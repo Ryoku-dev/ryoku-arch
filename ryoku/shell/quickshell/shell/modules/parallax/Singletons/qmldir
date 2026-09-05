@@ -1,0 +1,2 @@
+singleton Config Config.qml
+singleton ParallaxBackend ParallaxBackend.qml

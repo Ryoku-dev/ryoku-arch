@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Added
+- **A parallax module that cuts the wallpaper into movable layers.** A
+  standalone engine (`ryoku-parallax-engine`) cuts the subject and recolours
+  the cutout's hole with the surrounding colour, and every artifact lives in
+  the wallpaper's own folder under `~/Pictures/Parallax/`; a Parallax tab in
+  the Super+Esc quick settings cuts or lists layers per wallpaper, tunes each
+  layer (parallax speed, depth, opacity, offsets, feather, lift, shadow with
+  a draggable direction dial, audio reactivity and idle animation), and the
+  scene order editor really reorders layers, widgets and the audio visualizer
+  on screen (`ipc/parallax.go`, `scripts/ryoku-parallax-engine`,
+  `modules/parallax/`, `docs/parallax.md`).
+
 ### Fixed
 - **The Super+S chat can approve a tool.** When hermes paused on an edit or a
   command, the sidebar only showed "waiting for approval" with no way to

@@ -15,6 +15,10 @@ import Ryoku.PluginKit
 import shell.services as Services
 import "../depth"
 import "../depth/Singletons" as DepthCfg
+import "../parallax"
+import "../parallax/Singletons" as ParallaxCfg
+import "../visualizer"
+import "../visualizer/Singletons" as VizCfg
 import "../wallpaper" as WallpaperMod
 
 // desktop widgets layer: WlrLayer.Bottom (below windows), instantiated once per
@@ -31,6 +35,7 @@ Scope {
     // controller hook; the desktop layer defaults on.
     property bool active: true
     property string wallpaperUrl: ""
+    property string wallpaperPath: ""
     property string wallpaperFit: "Cover"
     property string depthUrl: ""
     property var wallpaperTransition: null
@@ -42,6 +47,21 @@ Scope {
     // The ryogami-live yield flag (default "ryogami" engine): hide the painter
     // while the C player owns the background layer.
     property bool wallpaperLive: false
+    Binding {
+        target: ParallaxCfg.Config
+        property: "activePath"
+        value: root.wallpaperPath
+    }
+
+    // The parallax background surface (modules/parallax/ParallaxBackground.qml)
+    // owns the screen's backdrop while its layers are cut for this wallpaper.
+    readonly property bool parallaxOwns: ParallaxCfg.Config.enabled && ParallaxCfg.Config.wallActive
+        && root.videoUrl === "" && !root.wallpaperLive
+    function widgetZ(id) {
+        if (ParallaxCfg.Config.enabled && ParallaxCfg.Config.wallActive)
+            return ParallaxCfg.Config.widgetZ(id);
+        return DepthCfg.Config.isFront(id) ? 1 : 0;
+    }
     readonly property var depthState: Services.ShellState.forScreen(root.screen)
     // compose mode frees every widget for dragging (like visualiser placement),
     // so a locked clock can still be nestled into the subject; Done restores it.
@@ -188,6 +208,9 @@ Scope {
         WallpaperMod.Backdrop {
             id: backdrop
             anchors.fill: parent
+            // cava-bg model: while the parallax surface owns the background
+            // layer, this window only carries widgets and chrome.
+            visible: !root.parallaxOwns
             readonly property real screenDpr: (root.screen && root.screen.devicePixelRatio) ? root.screen.devicePixelRatio : 1
             dpr: screenDpr
             // Keep the still decoded while a video plays: the frame path is
@@ -265,7 +288,7 @@ Scope {
         WidgetSlot {
             id: clockSlot
             widget: "clock"
-            z: DepthCfg.Config.isFront("clock") ? 1 : 0
+            z: root.widgetZ("clock")
             visible: root.reloadReady && Config.clockEnabled
             anchor: Config.clockAnchor
             freeX: Config.clockX
@@ -283,7 +306,7 @@ Scope {
         WidgetSlot {
             id: calendarSlot
             widget: "calendar"
-            z: DepthCfg.Config.isFront("calendar") ? 1 : 0
+            z: root.widgetZ("calendar")
             visible: root.reloadReady && Config.calendarEnabled
             anchor: Config.calendarAnchor
             freeX: Config.calendarX
@@ -309,7 +332,7 @@ Scope {
         WidgetSlot {
             id: musicSlot
             widget: "music"
-            z: DepthCfg.Config.isFront("music") ? 1 : 0
+            z: root.widgetZ("music")
             visible: root.reloadReady && Config.musicEnabled
             anchor: Config.musicAnchor
             freeX: Config.musicX
@@ -338,7 +361,7 @@ Scope {
         WidgetSlot {
             id: aioSlot
             widget: "aio"
-            z: DepthCfg.Config.isFront("aio") ? 1 : 0
+            z: root.widgetZ("aio")
             visible: root.reloadReady && Config.aioEnabled
             anchor: Config.aioAnchor
             freeX: Config.aioX
@@ -358,7 +381,7 @@ Scope {
         WidgetSlot {
             id: statsSlot
             widget: "stats"
-            z: DepthCfg.Config.isFront("stats") ? 1 : 0
+            z: root.widgetZ("stats")
             visible: root.reloadReady && Config.statsEnabled
             anchor: Config.statsAnchor
             freeX: Config.statsX
@@ -377,7 +400,7 @@ Scope {
         WidgetSlot {
             id: weatherSlot
             widget: "weather"
-            z: DepthCfg.Config.isFront("weather") ? 1 : 0
+            z: root.widgetZ("weather")
             visible: root.reloadReady && Config.weatherEnabled
             anchor: Config.weatherAnchor
             freeX: Config.weatherX
@@ -397,7 +420,7 @@ Scope {
         WidgetSlot {
             id: notesSlot
             widget: "notes"
-            z: DepthCfg.Config.isFront("notes") ? 1 : 0
+            z: root.widgetZ("notes")
             visible: root.reloadReady && Config.notesEnabled
             anchor: Config.notesAnchor
             freeX: Config.notesX
@@ -504,6 +527,34 @@ Scope {
                 }
             }
         }
+        // Bands live here so the scene order interleaves them with the
+        // widgets; the drift follows the cursor the background polls.
+            Repeater {
+                id: parallaxBands
+                model: ParallaxCfg.Config.layers.length
+                delegate: ParallaxBand {
+                    required property int index
+                    anchors.fill: parent
+                    layerIndex: index + 1
+                    url: ParallaxCfg.Config.layerUrl(index + 1)
+                    fit: root.wallpaperFit
+                    z: ParallaxCfg.Config.sceneZ("layer:" + (index + 1))
+                    mouseNX: ParallaxCfg.Config.cursorNXFor(root.screen.name)
+                    mouseNY: ParallaxCfg.Config.cursorNYFor(root.screen.name)
+                    energy: VizCfg.Spectrum.energy
+                }
+            }
+
+        Item {
+            id: inlineViz
+            anchors.fill: parent
+            z: ParallaxCfg.Config.sceneZ("visualizer")
+            visible: root.parallaxOwns && VizCfg.Config.enabled
+            InlineVisualizer {
+                anchors.fill: parent
+            }
+        }
+
         // the wallpaper's subject, drawn in front of the widgets: above the
         // slots (declared later), below the menus and the photo viewer.
         DepthForeground {
