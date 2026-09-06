@@ -1,0 +1,85 @@
+name: Ryotunes release
+
+# Keeps the [ryoku] ryotunes package on Ryotunes' latest GitHub release with no
+# hand in the loop: neur0map/ryotunes' release workflow dispatches
+# `ryotunes-release` the moment a tag is published, and a daily poll covers a
+# dispatch that never arrived. bin/ryoku-release-ryotunes rewrites the PKGBUILD
+# (tarball, sha256, pkgver, install hook, changelog); the commit lands on
+# unstable-dev and Publish [ryoku] repo is dispatched explicitly, because a push
+# made with GITHUB_TOKEN triggers no workflows. From there it is the normal
+# path: testing gets it on that publish, stable on the next Stable Release.
+on:
+  repository_dispatch:
+    types: [ryotunes-release]
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Ryotunes release tag (default latest)
+        required: false
+        default: latest
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: ryotunes-release
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    name: Track the Ryotunes release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: unstable-dev
+          fetch-depth: 0
+
+      - name: Bump the package to the release
+        id: bump
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="${{ github.event.client_payload.tag || inputs.tag || 'latest' }}"
+          out="$(bin/ryoku-release-ryotunes "$tag")"
+          echo "$out"
+          if [[ "$out" == unchanged:* ]]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "tag=$(sed -n 's/^pkgver=\(.*\)$/v\1/p' release/packages/ryotunes/PKGBUILD)" >> "$GITHUB_OUTPUT"
+
+      - name: Verify the PKGBUILD parses and the tarball hash holds
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          cd release/packages/ryotunes
+          bash -n PKGBUILD
+          src="$(bash -c 'source ./PKGBUILD; echo "${source[0]#*::}"')"
+          want="$(bash -c 'source ./PKGBUILD; echo "${sha256sums[0]}"')"
+          got="$(curl -sSfL "$src" | sha256sum | cut -d' ' -f1)"
+          [[ "$got" == "$want" ]] || { echo "::error::sha256 mismatch: $got != $want"; exit 1; }
+
+      - name: Commit and push
+        if: steps.bump.outputs.changed == 'true'
+        env:
+          TAG: ${{ steps.bump.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add release/packages/ryotunes release/CHANGELOG.md
+          git commit -m "[ryoku] ryotunes: track release $TAG" -m "Automated by .github/workflows/ryotunes-release.yml from the Ryotunes release." -m "Note: New: Ryotunes $TAG."
+          git pull --rebase origin unstable-dev
+          git push origin HEAD:unstable-dev
+
+      - name: Publish to the testing channel
+        if: steps.bump.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run publish-repo.yml --ref unstable-dev

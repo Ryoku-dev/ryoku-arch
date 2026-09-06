@@ -13,6 +13,12 @@
   the other plugin packages.
 
 ### Changed
+- **`ryotunes` 2.5.0-1 tracks neur0map/ryotunes v2.5.0.** The package now follows
+  Ryotunes' GitHub releases (a sha256-pinned source tarball) instead of a hand-pinned
+  commit: `.github/workflows/ryotunes-release.yml` bumps it on every upstream release
+  (dispatch or daily poll) and publishes to testing. The package enables
+  `ryotunesd.socket` for every user, so `ryotunes` opens the native client on a
+  fresh install instead of the old Tauri app.
 - **Every Hyprland plugin package lays an `.abi` receipt beside its `.so`.**
   `hypr-dynamic-cursors`, `ryoku-hypr-plugins`, `hyprglass`, `imgborders` and
   `ryoku-keysounds` write `<name>.abi` from the build host's `version.h`, the

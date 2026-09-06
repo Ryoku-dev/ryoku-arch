@@ -1,0 +1,29 @@
+post_install() {
+  gtk-update-icon-cache -q -t -f usr/share/icons/hicolor 2>/dev/null || true
+  update-desktop-database -q 2>/dev/null || true
+  # The user preset enables ryotunesd.socket for new user managers; a user
+  # manager already running gets the enable through its own instance so the
+  # very next `ryotunes` lands in the native client without a relogin.
+  systemctl --global enable ryotunesd.socket 2>/dev/null || true
+  for uid in $(loginctl list-users --no-legend 2>/dev/null | awk '{print $1}'); do
+    systemctl --user -M "$uid@" daemon-reload 2>/dev/null || true
+    systemctl --user -M "$uid@" enable --now ryotunesd.socket 2>/dev/null || true
+  done
+}
+post_upgrade() {
+  post_install
+  # A running daemon keeps serving the previous binary until it restarts; the
+  # socket stays enabled, so the next activation is the new one. Restart only
+  # an idle daemon (nothing playing) so a track is never cut.
+  for uid in $(loginctl list-users --no-legend 2>/dev/null | awk '{print $1}'); do
+    if systemctl --user -M "$uid@" is-active -q ryotunesd.service 2>/dev/null; then
+      st=$(runuser -u "$(id -nu "$uid")" -- ryotunes-cli get_playback 2>/dev/null)
+      case "$st" in *'"paused":false'*) ;; *) systemctl --user -M "$uid@" restart ryotunesd.service 2>/dev/null || true ;; esac
+    fi
+  done
+}
+post_remove() {
+  gtk-update-icon-cache -q -t -f usr/share/icons/hicolor 2>/dev/null || true
+  update-desktop-database -q 2>/dev/null || true
+  systemctl --global disable ryotunesd.socket 2>/dev/null || true
+}

@@ -22,8 +22,9 @@
 # ryomotion, the source is a pinned git commit: bump _commit (and pkgrel, or
 # pkgver when src-tauri/tauri.conf.json's version moves) to ship a new build.
 pkgname=ryotunes
-pkgver=2.4.1
-pkgrel=7
+pkgver=2.5.0
+pkgrel=1
+install=ryotunes.install
 pkgdesc="Ryotunes: the Ryoku music app (YouTube Music client with native playback)"
 arch=('x86_64')
 url="https://github.com/neur0map/ryotunes"
@@ -45,28 +46,30 @@ conflicts=("${_legacy[@]}")
 replaces=("${_legacy[@]}")
 # Rust already strips with the release profile; the debug split has nothing.
 options=('!lto' '!debug')
-_commit=43d063f2a3fc3f10ee466c74f9025df321fbcd6d
-source=("$pkgname::git+https://github.com/neur0map/ryotunes.git#commit=$_commit")
-sha256sums=('SKIP')
+source=("ryotunes-$pkgver.tar.gz::https://github.com/neur0map/ryotunes/releases/download/v$pkgver/ryotunes-$pkgver.tar.gz")
+sha256sums=('e65ee5ecf9871be95de41370c5bce9473678c6a2965529c769fb2557f0d98bcd')
 
 build() {
-  cd "$srcdir/$pkgname/ui"
+  cd "$srcdir/$pkgname-$pkgver/ui"
   export npm_config_cache="$srcdir/.npm-cache"
   pnpm install --frozen-lockfile
   pnpm build
 
-  cd "$srcdir/$pkgname"
+  cd "$srcdir/$pkgname-$pkgver"
   export CARGO_HOME="$srcdir/.cargo"
   cargo build --release --locked --package ryotunes --package ryotunesd --package ryotunes-cli
 }
 
 package() {
-  cd "$srcdir/$pkgname"
+  cd "$srcdir/$pkgname-$pkgver"
   install -Dm755 target/release/ryotunes "$pkgdir/usr/bin/ryotunes"
   install -Dm755 target/release/ryotunesd "$pkgdir/usr/bin/ryotunesd"
   install -Dm755 target/release/ryotunes-cli "$pkgdir/usr/bin/ryotunes-cli"
   install -Dm644 packaging/linux/ryotunesd.socket "$pkgdir/usr/lib/systemd/user/ryotunesd.socket"
   install -Dm644 packaging/linux/ryotunesd.service "$pkgdir/usr/lib/systemd/user/ryotunesd.service"
+  # Enable the socket for every user: `ryotunes` opens the native client only
+  # while the socket exists (see ryotunes.install for running sessions).
+  install -Dm644 packaging/linux/90-ryotunes.preset "$pkgdir/usr/lib/systemd/user-preset/90-ryotunes.preset"
 
   # The native client: a Quickshell config launched by explicit path (`qs -p`),
   # since `qs -c NAME` only resolves under $XDG_CONFIG_HOME/quickshell.

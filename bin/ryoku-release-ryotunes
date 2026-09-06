@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# Point release/packages/ryotunes at a Ryotunes release tag: the tagged source
+# tarball (sha256-pinned), pkgver from the tag, pkgrel back to 1, the install
+# hook synced from the tarball, and a changelog line. Prints "unchanged" and
+# exits 0 when the package already tracks that release; exits 2 when the tag
+# is not a published release with a source tarball.
+#
+#   bin/ryoku-release-ryotunes v2.5.0          # a specific release
+#   bin/ryoku-release-ryotunes latest          # the newest GitHub release
+#
+# .github/workflows/ryotunes-release.yml runs it on every Ryotunes release
+# (repository_dispatch) and on a daily poll; a maintainer can run it by hand.
+set -euo pipefail
+
+here="$(cd "$(dirname "$0")/.." && pwd)"
+pkgdir="$here/release/packages/ryotunes"
+repo="neur0map/ryotunes"
+want="${1:-latest}"
+
+api() { curl -sSfL -H "Accept: application/vnd.github+json" ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} "$@"; }
+
+if [[ "$want" == latest ]]; then
+  tag="$(api "https://api.github.com/repos/$repo/releases/latest" | python3 -c 'import json,sys; print(json.load(sys.stdin)["tag_name"])')"
+else
+  tag="$want"
+fi
+version="${tag#v}"
+[[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "ryoku-release-ryotunes: $tag is not a vX.Y.Z tag" >&2; exit 2; }
+
+current="$(sed -n 's/^pkgver=\(.*\)$/\1/p' "$pkgdir/PKGBUILD")"
+if [[ "$current" == "$version" ]] && grep -q "ryotunes-$version.tar.gz" "$pkgdir/PKGBUILD"; then
+  echo "unchanged: ryotunes already tracks $tag"
+  exit 0
+fi
+
+asset="ryotunes-$version.tar.gz"
+url="https://github.com/$repo/releases/download/$tag/$asset"
+tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
+if ! curl -sSfL -o "$tmp/$asset" "$url"; then
+  echo "ryoku-release-ryotunes: $tag has no $asset on its GitHub release" >&2
+  exit 2
+fi
+sha="$(sha256sum "$tmp/$asset" | cut -d' ' -f1)"
+tar -xzf "$tmp/$asset" -C "$tmp" "ryotunes-$version/packaging/arch/ryotunes.install" \
+  "ryotunes-$version/CHANGELOG.md" 2>/dev/null || true
+
+python3 - "$pkgdir/PKGBUILD" "$version" "$sha" "$url" <<'PY'
+import re, sys
+p, version, sha, url = sys.argv[1:]
+s = open(p).read()
+s = re.sub(r"^pkgver=.*$", f"pkgver={version}", s, count=1, flags=re.M)
+s = re.sub(r"^pkgrel=.*$", "pkgrel=1", s, count=1, flags=re.M)
+# The source block: a pinned git commit becomes the release tarball.
+s = re.sub(r"^_commit=[0-9a-f]+\n", "", s, flags=re.M)
+s = re.sub(r'^source=\(.*?\)\n', f'source=("ryotunes-$pkgver.tar.gz::{url.replace(version, "$pkgver")}")\n', s, count=1, flags=re.M | re.S)
+s = re.sub(r"^sha256sums=\(.*?\)\n", f"sha256sums=('{sha}')\n", s, count=1, flags=re.M | re.S)
+# The tarball extracts to ryotunes-<version>/, not ryotunes/.
+s = s.replace('"$srcdir/$pkgname/ui"', '"$srcdir/$pkgname-$pkgver/ui"').replace('"$srcdir/$pkgname"', '"$srcdir/$pkgname-$pkgver"')
+open(p, "w").write(s)
+PY
+if [[ -f "$tmp/ryotunes-$version/packaging/arch/ryotunes.install" ]]; then
+  cp "$tmp/ryotunes-$version/packaging/arch/ryotunes.install" "$pkgdir/ryotunes.install"
+  grep -q '^install=ryotunes.install' "$pkgdir/PKGBUILD" || sed -i 's/^pkgrel=1$/pkgrel=1\ninstall=ryotunes.install/' "$pkgdir/PKGBUILD"
+fi
+
+# One changelog line under Unreleased, with the release's own first bullet.
+summary="$(python3 - "$tmp/ryotunes-$version/CHANGELOG.md" "$version" <<'PY'
+import re, sys
+try:
+    s = open(sys.argv[1]).read()
+except OSError:
+    sys.exit()
+m = re.search(rf"^## v{re.escape(sys.argv[2])}[^\n]*\n(.*?)(?=^## |\Z)", s, re.S | re.M)
+if m:
+    b = re.search(r"^- (.+)$", m.group(1), re.M)
+    if b:
+        t = re.sub(r"\*\*|`", "", b.group(1)); print(t if len(t) <= 160 else t[:157].rsplit(" ", 1)[0] + "...")
+PY
+)"
+python3 - "$here/release/CHANGELOG.md" "$version" "$tag" "$summary" <<'PY'
+import sys
+p, version, tag, summary = sys.argv[1:]
+s = open(p).read()
+line = f"- **`ryotunes` {version}-1 tracks neur0map/ryotunes {tag}.**" + (f" {summary}" if summary else "") + "\n"
+if line.split("**")[1] in s:
+    sys.exit()
+i = s.index("### Changed", s.index("## Unreleased")) if "### Changed" in s[s.index("## Unreleased"):s.index("## Unreleased")+4000] else -1
+if i < 0:
+    k = s.index("\n", s.index("## Unreleased")) + 1
+    s = s[:k] + "\n### Changed\n" + line + s[k:]
+else:
+    k = s.index("\n", i) + 1
+    s = s[:k] + line + s[k:]
+open(p, "w").write(s)
+PY
+echo "updated: ryotunes -> $tag ($sha)"
