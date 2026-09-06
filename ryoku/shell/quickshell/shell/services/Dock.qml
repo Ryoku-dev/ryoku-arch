@@ -116,6 +116,20 @@ Singleton {
         }
     }
 
+    // Every first-party Quickshell app (the Hub, Ryostore, Ryoport) reaches the
+    // compositor as class org.quickshell: Quickshell owns the Wayland app id
+    // and offers no way to set one per config. The title is the only thing
+    // that tells them apart, so it maps to the desktop entry id the dock
+    // groups, launches and draws them by; anything else keeps its class.
+    readonly property var quickshellApps: ({ "Ryoku Settings": "ryoku-hub", "Ryostore": "ryostore", "ryovm": "ryovm" })
+    function classOf(data) {
+        if (!data) return "";
+        const cls = data.class || data.initialClass;
+        if (cls === "org.quickshell" && root.quickshellApps[data.title || data.initialTitle])
+            return root.quickshellApps[data.title || data.initialTitle];
+        return cls;
+    }
+
     // Toplevels as { className, address, pid }, pid-sorted for a stable order.
     readonly property var clients: {
         void root._rev;
@@ -123,7 +137,7 @@ Singleton {
         const toplevels = Hyprland.toplevels ? Hyprland.toplevels.values : [];
         for (let i = 0; i < toplevels.length; ++i) {
             const data = toplevels[i] && toplevels[i].lastIpcObject;
-            const className = data && (data.class || data.initialClass);
+            const className = root.classOf(data);
             if (typeof className === "string" && className)
                 result.push({ className: className, address: data.address || "", pid: (typeof data.pid === "number" ? data.pid : 0) });
         }
@@ -150,10 +164,7 @@ Singleton {
     // dock surface uses to show itself when there is nothing to get out of.
     readonly property bool anyFocused: root.focusedClient !== null
 
-    readonly property string activeClass: {
-        const active = root.focusedClient;
-        return active ? (active.class || active.initialClass || "") : "";
-    }
+    readonly property string activeClass: root.classOf(root.focusedClient)
 
     // Pinned first, then running-unpinned in pid order. Omit clients for live.
     function resolve(pinned, activeClients) {
@@ -255,7 +266,7 @@ Singleton {
         const matches = [];
         for (let i = 0; i < toplevels.length; ++i) {
             const d = toplevels[i] && toplevels[i].lastIpcObject;
-            if (d && (d.class === className || d.initialClass === className) && d.address)
+            if (d && root.classOf(d) === className && d.address)
                 matches.push(d);
         }
         if (matches.length === 0) {
@@ -282,7 +293,7 @@ Singleton {
         const toplevels = Hyprland.toplevels ? Hyprland.toplevels.values : [];
         for (let i = 0; i < toplevels.length; ++i) {
             const d = toplevels[i] && toplevels[i].lastIpcObject;
-            if (d && (d.class === className || d.initialClass === className) && d.address)
+            if (d && root.classOf(d) === className && d.address)
                 Hyprland.dispatch('closewindow address:' + d.address);
         }
     }

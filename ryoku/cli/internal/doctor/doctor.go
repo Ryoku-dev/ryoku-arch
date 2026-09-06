@@ -166,6 +166,7 @@ func reconcilers() []reconciler {
 		{"brand mark image", reconcileBrandLogo},
 		{"decor art", reconcileRyodecors},
 		{"Hyprland config integrity", reconcileHyprlandConfig},
+		{"Hyprland plugin builds", reconcileHyprPlugins},
 		{"stale window-border pin", reconcileBorderPin},
 		{"orphaned theme.lua", reconcileThemeLua},
 		{"follow-mouse default", reconcileFollowMouseDefault},

@@ -12,6 +12,30 @@
   `~/.config/ryotunes/client.json` `skin` equals its id. `ryostore open
   ryotunes-skins` opens the store on it
   (`apps/ryostore/backend/provider_ryotunes_skins.go`).
+- **Key sounds: a keyboard sound on every key press, from the compositor.**
+  `hyprland/plugins/keysounds` is Ryoku's first compositor plugin: Hyprland
+  sees every key before any app does, so one plugin covers every window with
+  nothing grabbing input. Samples play through libcanberra (the sound server
+  caches them, so a press costs one small request and presses mix there), a
+  random variant per press, with dedicated samples for Space, Enter and
+  Backspace and their releases when the profile has them. Eleven profiles ship,
+  each a recording of the real switch cut from the MIT-licensed Mechvibes packs
+  at build time and named for it: cherry-mx-blue, cherry-mx-brown (default),
+  cherry-mx-black, cherry-mx-red, topre, creamy, nk-cream, holy-panda, tealios,
+  crystal-purple, oreo. `ryoku-keysounds-import <pack>` turns any Mechvibes
+  pack into a profile of your own under `~/.local/share/ryoku/keysounds/`, and
+  a plain folder of samples named by role is one too. Off by default;
+  Settings > Plugins > Key sounds turns it on, picks the switch, sets the
+  volume; a change is heard as it is picked. Package `ryoku-keysounds`.
+- **Hyprland plugins rebuild themselves after a Hyprland bump.** Every plugin
+  copy Ryoku builds carries an `.abi` receipt (the compositor build it was
+  compiled for), `ryoku doctor` rebuilds each enabled plugin whose receipts no
+  longer match the installed headers on every `ryoku update`, and `deploy.sh`
+  builds through the same `ryoku-hub hypr plugins rebuild --stale` instead of
+  its own makepkg loop, rebuilding on any ABI change rather than only a
+  Hyprland version change, which is what left a cursor-motion plugin refusing
+  to load after an aquamarine bump (`cli/internal/doctor/reconcile_hypr_plugins.go`,
+  `shell/deploy.sh`; see `docs/hyprland-plugins.md`).
 - **A documented fix for TVs and ultrawides that refuse a resolution.** Some
   panels (LG ultrawides, TVs over HDMI) list a mode but snap back to a smaller
   one, with Hyprland logging "REJECTED available mode" beside "atomic drm

@@ -1,0 +1,17 @@
+# The build recipe: what `ryoku-hub hypr plugins rebuild` runs on a checkout or
+# a packaged box, in the format hyprpm reads. The plugin lives in the Ryoku
+# monorepo, so it tracks the Hyprland the repo ships and carries no commit pins.
+# `assets` is a Ryoku extension: a directory the build fills that the builder
+# lays beside the .so (the sample profiles).
+
+[repository]
+name = "ryoku-keysounds"
+authors = ["Ryoku"]
+description = "Keyboard sounds for Hyprland"
+commit_pins = []
+
+[keysounds]
+description = "Plays a keyboard sound on every key press"
+output = "keysounds.so"
+assets = "sounds"
+build = ["make all"]

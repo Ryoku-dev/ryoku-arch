@@ -327,57 +327,32 @@ else
 fi
 
 # Build the optional Hyprland compositor plugins (dynamic-cursors, hyprbars,
-# hyprfocus, hyprglass, imgborders) against the running Hyprland and drop the
-# .so files under the user plugin path the generated settings.lua loads from
-# (no root, the way the QML modules above deploy). They are ABI-locked to the
-# compositor, so rebuild only when its version changed since the last build or a
-# .so is missing. Toolchain-gated: skip cleanly when makepkg or the Hyprland
-# headers are absent (a plain config deploy still works; packaged installs get
-# these from [ryoku] as ryoku-desktop deps). A plugin that fails to build is
-# skipped, never fatal: its toggle degrades to off (settings.lua guards the load
-# in a pcall). Build artifacts stay in a tmp/cache dir, so the checkout is clean.
-hplugins="$HOME/.local/lib/hyprland/plugins"
-if command -v makepkg >/dev/null 2>&1 && pkg-config --exists hyprland 2>/dev/null; then
-  _hv="$(pkg-config --modversion hyprland)"
-  _stamp="$hplugins/.hyprland-version"
-  _prev="$(cat "$_stamp" 2>/dev/null || true)"
-  _srccache="$HOME/.cache/ryoku/hypr-plugins-src"
-  mkdir -p "$hplugins" "$_srccache"
-  _built=0
-  # "<package dir>:<space-separated .so basenames it yields>" (see each package()).
-  for _entry in "hypr-dynamic-cursors:dynamic-cursors" \
-                "ryoku-hypr-plugins:hyprbars hyprfocus" \
-                "hyprglass:hyprglass" "imgborders:imgborders"; do
-    _dir="${_entry%%:*}"; _sos="${_entry#*:}"
-    _need=0
-    [[ "$_prev" != "$_hv" ]] && _need=1
-    for _so in $_sos; do [[ -f "$hplugins/$_so.so" ]] || _need=1; done
-    (( _need )) || continue
-    say "building Hyprland plugin $_dir (Hyprland $_hv)"
-    _tmp="$(mktemp -d)"
-    if ( cd "$here/../../release/packages/$_dir" &&
-         env BUILDDIR="$_tmp/b" SRCDEST="$_srccache" PKGDEST="$_tmp" \
-             makepkg -f --nodeps --noconfirm >"$_tmp/log" 2>&1 ); then
-      for _pkg in "$_tmp"/*.pkg.tar.*; do
-        [[ -e "$_pkg" ]] && bsdtar -xf "$_pkg" -C "$_tmp" usr/lib/hyprland/plugins 2>/dev/null || true
-      done
-      # Rename into place, never copy: cp -f truncates the existing inode,
-      # which corrupts the mapped image of a plugin the running compositor
-      # has dlopen'd and crashes it. mv gives the path a fresh inode while
-      # the loaded copy keeps its own until the next clean load.
-      for _so in "$_tmp"/usr/lib/hyprland/plugins/*.so; do
-        [[ -e "$_so" ]] || continue
-        mv -f "$_so" "$hplugins/$(basename "$_so")" && _built=1
-      done
-    else
-      say "  $_dir failed to build against Hyprland $_hv; skipping (its toggle stays off)"
-    fi
-    rm -rf "$_tmp"
-  done
-  printf '%s\n' "$_hv" > "$_stamp"
-  (( _built )) && say "installed Hyprland compositor plugins -> $hplugins" || true
+# hyprfocus, hyprglass, imgborders, and this repo's keysounds) through the one
+# builder the Hub's Plugins page and the doctor use, `ryoku-hub hypr plugins
+# rebuild` (built above): it clones each upstream into
+# ~/.cache/ryoku/hypr-plugins-src, checks out the commit its hyprpm.toml pins
+# for the installed Hyprland, runs the manifest's build steps against the
+# installed headers, and lays the .so with its .abi receipt under the user
+# plugin path the generated settings.lua loads from (no root, the way the QML
+# modules above deploy). Plugins are ABI-locked to the compositor: `--stale`
+# rebuilds only a plugin whose receipt no longer matches the headers (a
+# Hyprland or aquamarine bump), one that is missing, or keysounds when its
+# source changed, so a redeploy is quick. A plugin that fails to build is
+# skipped, never fatal: its toggle degrades to off (settings.lua leaves the load
+# out and the Plugins page says why). Packaged installs get these from [ryoku]
+# as ryoku-desktop deps.
+rm -f "$HOME/.local/lib/hyprland/plugins/.hyprland-version"   # the pre-receipt stamp; receipts carry the ABI now
+if pkg-config --exists hyprland 2>/dev/null; then
+  mkdir -p "$HOME/.cache/ryoku"
+  say "building Hyprland compositor plugins that are missing or stale"
+  if _out="$("$bindir/ryoku-hub" hypr plugins rebuild --stale --checkout "$here/../.." 2>"$HOME/.cache/ryoku/hypr-plugins-build.log")"; then
+    say "  $(jq -r '"built: " + (.built|join(", ")|if .=="" then "none" else . end) + "  skipped: " + (.skipped|length|tostring) + "  failed: " + ((.failed|keys)|join(", ")|if .=="" then "none" else . end)' <<<"$_out")"
+    say "  log: ~/.cache/ryoku/hypr-plugins-build.log"
+  else
+    say "  plugin build could not run (see ~/.cache/ryoku/hypr-plugins-build.log); toggles stay off"
+  fi
 else
-  say "skipping Hyprland compositor plugins (makepkg or Hyprland headers not found)"
+  say "skipping Hyprland compositor plugins (Hyprland headers not found)"
 fi
 
 # Install the Ryoku.Ui QML module: the design system every surface imports --

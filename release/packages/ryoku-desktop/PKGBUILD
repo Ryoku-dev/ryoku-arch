@@ -33,14 +33,17 @@ depends=(
   'gpk'
   # compositor + Wayland session
   'hyprland'
-  # Hyprland compositor plugins the Hub can toggle (Appearance / Animations).
-  # pinned to this build's version like the other monorepo packages, so a plugin
-  # .so never runs against a different release's headers. Off by default; the
-  # generated settings.lua only loads one once the user enables it.
+  # Hyprland compositor plugins the Hub can toggle (Settings > Plugins). pinned
+  # to this build's version like the other monorepo packages, so a plugin .so
+  # never runs against a different release's headers. Off by default; the
+  # generated settings.lua only loads one once the user enables it. Each ships
+  # an .abi receipt beside its .so; when an Arch Hyprland bump outruns a [ryoku]
+  # release, the Hub's Plugins page rebuilds them here from upstream.
   "hypr-dynamic-cursors=$pkgver"
   "ryoku-hypr-plugins=$pkgver"
   "hyprglass=$pkgver"
   "imgborders=$pkgver"
+  "ryoku-keysounds=$pkgver"
   'xorg-xwayland'
   # CachyOS's SDDM greeter is still Qt5; QPA plugins are ABI-specific, so the
   # Qt6 plugin cannot provide the native Wayland platform to that greeter.

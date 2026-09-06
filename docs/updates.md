@@ -137,6 +137,13 @@ the module the loader blamed, moves a user override that breaks the desktop asid
 as `.broken`, puts back every shipped file the live tree no longer matches, and
 restarts the shell. When the shipped file is itself at fault it says so and names
 `ryoku update` and `ryoku rollback`, the two things that help.
+`reconcileHyprPlugins` keeps the enabled Hyprland compositor plugins loading
+across a Hyprland bump: a plugin is ABI-locked to the exact compositor build
+and every copy Ryoku builds carries an `.abi` receipt, so after an update it
+rebuilds each enabled plugin whose receipts no longer match the installed
+headers (`ryoku-hub hypr plugins rebuild --stale`, the Plugins page's builder)
+before the next login, and names the toolchain to install when a box has none.
+See `docs/hyprland-plugins.md`.
 
 ## Publishing: releases and channels
 

@@ -9,6 +9,7 @@ import "Singletons"
 import "schema/DesktopPage.js" as DesktopSchema
 import "schema/BarStudioPage.js" as BarStudioSchema
 import "schema/WindowsPage.js" as WindowsSchema
+import "schema/PluginsPage.js" as PluginsSchema
 import "schema/InputPage.js" as InputSchema
 import "schema/CursorPage.js" as CursorSchema
 import "schema/KeybindsPage.js" as KeybindsSchema
@@ -89,7 +90,7 @@ Rectangle {
         { name: "LOOK", items: [
             { key: "animations", name: "Animations" }, { key: "lockscreen", name: "Lockscreen" } ] },
         { name: "DESKTOP", items: [
-            { key: "windows", name: "Windows" }, { key: "bar-studio", name: "Bar Studio", wired: true }, { key: "desktop", name: "Desktop", wired: true },
+            { key: "windows", name: "Windows" }, { key: "plugins", name: "Plugins" }, { key: "bar-studio", name: "Bar Studio", wired: true }, { key: "desktop", name: "Desktop", wired: true },
             { key: "widgets", name: "Widgets" }, { key: "launcher", name: "App Launcher" } ] },
         { name: "KEYS & APPS", items: [
             { key: "keybinds", name: "Keybinds" }, { key: "appoverrides", name: "App Overrides", adv: true },
@@ -110,7 +111,7 @@ Rectangle {
     readonly property var jpName: ({
         "profile": "横顔", "displays": "画面", "input": "入力", "cursor": "矢印", "keybinds": "操作",
         "connections": "接続", "gpu": "演算", "recording": "録画", "dictation": "音声",
-        "windows": "窓", "bar-studio": "帯", "desktop": "卓上", "launcher": "起動", "fastfetch": "情報",
+        "windows": "窓", "plugins": "補", "bar-studio": "帯", "desktop": "卓上", "launcher": "起動", "fastfetch": "情報",
         "widgets": "部品", "lockscreen": "施錠", "animations": "動き",
         "addons": "拡張", "windowrules": "規則", "appoverrides": "上書", "layerrules": "階層",
         "autostart": "自動", "environment": "環境", "performance": "性能", "rashin": "羅針",
@@ -133,6 +134,7 @@ Rectangle {
         "recording": "screen record capture video screencast screenshot fps codec framerate",
         "dictation": "voice typing speech transcribe whisper microphone stt",
         "windows": "window windows rounding corners softness gaps border borders thickness colour tiling dwindle master scrolling layout opacity transparency transparent dim blur shadow glow glass wobble wobbly title bar titlebar float snap resize animation",
+        "plugins": "plugin plugins hyprland compositor hyprpm title bar titlebar hyprbars glass hyprglass image border imgborders cursor motion dynamic cursors focus flash hyprfocus key sound sounds keyboard keysounds typing click clicky thock creamy cherry mx topre mechvibes switch version abi mismatch rebuild build update add git repository install",
         "bar-studio": "bar frame rails zones widgets menus surfaces style catalogue layout framebars sidebar dock dockapps pinned pin magnify autohide auto-hide media chip peek labels edge taskbar",
         "desktop": "desktop visualizer visualiser spectrum brand logo mark name widget board wallpaper",
         "launcher": "launcher spotlight command palette greeting weather home",
@@ -159,7 +161,7 @@ Rectangle {
     // anywhere. Ranking is fuzzy: exact word > substring > subsequence.
     readonly property var searchIndex: {
         var srcs = {
-            "bar-studio": BarStudioSchema.rows, "desktop": DesktopSchema.rows, "windows": WindowsSchema.rows,
+            "bar-studio": BarStudioSchema.rows, "desktop": DesktopSchema.rows, "windows": WindowsSchema.rows, "plugins": PluginsSchema.rows,
             "input": InputSchema.rows, "cursor": CursorSchema.rows, "keybinds": KeybindsSchema.rows,
             "displays": DisplaysSchema.rows, "gpu": GpuSchema.rows,
             "recording": RecordingSchema.rows, "dictation": DictationSchema.rows,
@@ -350,7 +352,7 @@ Rectangle {
     // `framed` pages keep the rail + bottom action bar; `ledger` pages also get
     // the right write-ledger column. Everything else is full-bleed.
     readonly property var framedSet: ({
-        "bar-studio": true, "desktop": true, "windows": true, "input": true, "cursor": true, "animations": true, "global": true,
+        "bar-studio": true, "desktop": true, "windows": true, "plugins": true, "input": true, "cursor": true, "animations": true, "global": true,
         "windowrules": true, "appoverrides": true, "layerrules": true,
         "autostart": true, "environment": true
     })
@@ -358,7 +360,7 @@ Rectangle {
     // input, window/layer rules, keybinds, animations, autostart, env, plus the
     // display and cursor hardware). Everything else configures the Ryoku shell.
     readonly property var hyprlandSet: ({
-        "displays": true, "input": true, "cursor": true, "windows": true,
+        "displays": true, "input": true, "cursor": true, "windows": true, "plugins": true,
         "animations": true, "keybinds": true, "windowrules": true,
         "appoverrides": true, "layerrules": true, "autostart": true, "environment": true
     })
@@ -389,7 +391,7 @@ Rectangle {
         return false;
     }
     function pageFile(s) {
-        var map = { "windows": "WindowsPage", "profile": "ProfilePage", "bar-studio": "BarStudioPage", "desktop": "DesktopPage", "environment": "EnvironmentPage", "autostart": "AutostartPage", "layerrules": "LayerRulesPage", "windowrules": "WindowRulesPage", "appoverrides": "AppOverridesPage", "animations": "AnimationsPage", "input": "InputPage", "cursor": "CursorPage", "keybinds": "KeybindsPage", "dictation": "DictationPage", "displays": "DisplaysPage", "connections": "ConnectionsPage", "gpu": "GpuPage", "updates": "UpdatesPage", "rashin": "RashinPage", "recording": "RecordingPage", "performance": "PerformancePage", "launcher": "LauncherPage", "lockscreen": "LockscreenPage", "fastfetch": "FastfetchPage", "addons": "AddonsPage", "widgets": "WidgetsPage", "credits": "CreditsPage" };
+        var map = { "windows": "WindowsPage", "plugins": "PluginsPage", "profile": "ProfilePage", "bar-studio": "BarStudioPage", "desktop": "DesktopPage", "environment": "EnvironmentPage", "autostart": "AutostartPage", "layerrules": "LayerRulesPage", "windowrules": "WindowRulesPage", "appoverrides": "AppOverridesPage", "animations": "AnimationsPage", "input": "InputPage", "cursor": "CursorPage", "keybinds": "KeybindsPage", "dictation": "DictationPage", "displays": "DisplaysPage", "connections": "ConnectionsPage", "gpu": "GpuPage", "updates": "UpdatesPage", "rashin": "RashinPage", "recording": "RecordingPage", "performance": "PerformancePage", "launcher": "LauncherPage", "lockscreen": "LockscreenPage", "fastfetch": "FastfetchPage", "addons": "AddonsPage", "widgets": "WidgetsPage", "credits": "CreditsPage" };
         map.global = "GlobalPage";
         map["import"] = "ImportPage";
         return map[s] ? Qt.resolvedUrl("pages/" + map[s] + ".qml") : "";
@@ -868,6 +870,23 @@ Rectangle {
         var d = JSON.parse(JSON.stringify(hub.hyprDraft));
         hub.pathSet(d, path, v);
         hub.hyprDraft = d;
+    }
+    // forget a subtree the backend already removed from the store (a plugin the
+    // Plugins page dropped): out of the draft so the next Save does not put it
+    // back, and out of committed so nothing reads as an unsaved change.
+    function hyprDrop(path) {
+        var drop = function (root) {
+            var d = JSON.parse(JSON.stringify(root));
+            var parts = path.split("."), cur = d;
+            for (var i = 0; i < parts.length - 1; i++) {
+                cur = cur[parts[i]];
+                if (typeof cur !== "object" || cur === null) return root;
+            }
+            delete cur[parts[parts.length - 1]];
+            return d;
+        };
+        hub.hyprDraft = drop(hub.hyprDraft);
+        hub.hyprCommitted = drop(hub.hyprCommitted);
     }
     function pathGet(obj, path) {
         var parts = path.split("."), cur = obj;

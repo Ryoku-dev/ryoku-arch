@@ -7,7 +7,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -190,9 +192,9 @@ type Autostart struct {
 // Keybind = a user shortcut. action "exec" runs Value; the dispatcher actions
 // (close, fullscreen, togglefloating) take no value.
 type Keybind struct {
-	Keys   string `json:"keys"`
-	Action string `json:"action"`
-	Value  string `json:"value"`
+	Keys    string `json:"keys"`
+	Action  string `json:"action"`
+	Value   string `json:"value"`
 	Release bool   `json:"release,omitempty"`
 }
 
@@ -225,10 +227,10 @@ type Anim struct {
 // Plugins: the optional Hyprland compositor plugins the Hub can enable and
 // configure. Each is off by default (so an untouched system generates nothing
 // for it and the plugin never loads); enabling one makes genPlugins emit an
-// hl.plugin.load of its shipped .so plus its config. The .so files ship in the
-// [ryoku] repo (release/packages) at pluginDir; a missing or ABI-mismatched one
-// is guarded by `if hl.plugin.<name>` so it degrades to "off", never a config
-// error. Friendly field names here map to upstream option keys in genPlugins.
+// hl.plugin.load of its copy plus its config, the config behind a loaded
+// check (luaPluginLoaded) so a missing or ABI-mismatched .so degrades to
+// "off", never a config error. Friendly field names here map to upstream
+// option keys in pluginBlocks.
 type DynamicCursors struct {
 	Enabled bool    `json:"enabled"`
 	Mode    string  `json:"mode"` // rotate | tilt | stretch
@@ -282,13 +284,34 @@ type Hyprscrolling struct {
 	FollowFocus bool    `json:"followFocus"`
 }
 
+// Keysounds is Ryoku's own plugin (ryoku/hyprland/plugins/keysounds): a sound
+// on every key press from a shipped or user profile.
+type Keysounds struct {
+	Enabled bool    `json:"enabled"`
+	Profile string  `json:"profile"` // a dir under /usr/share/ryoku/keysounds or ~/.local/share/ryoku/keysounds
+	Volume  float64 `json:"volume"`  // 0..1
+	Release bool    `json:"release"` // also play the key-up sample
+}
+
+// ExtraPlugin is a plugin the user added from a git repository (or hyprpm laid
+// down) rather than one Ryoku bundles: the Hub has no curated knobs for it, so
+// its settings are the config keys detected in its .so, stored by their full
+// path under `plugin:` ("hyprexpo:columns") with the value type the control
+// produced (bool, number, string).
+type ExtraPlugin struct {
+	Enabled bool           `json:"enabled"`
+	Config  map[string]any `json:"config,omitempty"`
+}
+
 type Plugins struct {
-	DynamicCursors DynamicCursors `json:"dynamicCursors"`
-	Hyprbars       Hyprbars       `json:"hyprbars"`
-	Imgborders     Imgborders     `json:"imgborders"`
-	Hyprglass      Hyprglass      `json:"hyprglass"`
-	Hyprfocus      Hyprfocus      `json:"hyprfocus"`
-	Hyprscrolling  Hyprscrolling  `json:"hyprscrolling"`
+	DynamicCursors DynamicCursors         `json:"dynamicCursors"`
+	Hyprbars       Hyprbars               `json:"hyprbars"`
+	Imgborders     Imgborders             `json:"imgborders"`
+	Hyprglass      Hyprglass              `json:"hyprglass"`
+	Hyprfocus      Hyprfocus              `json:"hyprfocus"`
+	Keysounds      Keysounds              `json:"keysounds"`
+	Hyprscrolling  Hyprscrolling          `json:"hyprscrolling"`
+	Extra          map[string]ExtraPlugin `json:"extra,omitempty"`
 }
 
 type Overrides struct {
@@ -378,6 +401,7 @@ func defaultOverrides() Overrides {
 			Imgborders:     Imgborders{Enabled: false, Image: "", Sizes: "8,8,8,8", Insets: "0,0,0,0", Scale: 1.0, Smooth: true, Blur: false},
 			Hyprglass:      Hyprglass{Enabled: false, Preset: "clear", BlurStrength: 2.0, Opacity: 1.0, Tint: "8899aa22", Brightness: 1.0, Theme: "dark"},
 			Hyprfocus:      Hyprfocus{Enabled: false, Mode: "flash", Opacity: 0.8, Bounce: 0.95, Slide: 20},
+			Keysounds:      Keysounds{Enabled: false, Profile: "cherry-mx-brown", Volume: 0.6, Release: true},
 			Hyprscrolling:  Hyprscrolling{ColumnWidth: 0.5, FollowFocus: true},
 		},
 	}
@@ -545,7 +569,7 @@ func parseOverrides(s string) (Overrides, error) {
 // runHypr: dispatch for `ryoku-hub hypr <sub> [arg]`.
 func runHypr(args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("hypr needs get|defaults|save|preview|restore|cursors|layouts|variants|anim-preset")
+		return fmt.Errorf("hypr needs get|defaults|save|preview|restore|cursors|layouts|variants|anim-preset|plugins")
 	}
 	switch args[0] {
 	case "get":
@@ -563,6 +587,7 @@ func runHypr(args []string) error {
 		if err != nil {
 			return err
 		}
+		prev := loadOverrides()
 		if err := saveOverrides(o); err != nil {
 			return err
 		}
@@ -573,6 +598,16 @@ func runHypr(args []string) error {
 			return err
 		}
 		hyprReload()
+		// a reload only acts on a changed set of declared paths, and only
+		// unloads what it loaded itself: a plugin dropped by hand (a rebuild)
+		// or by the probe stays where it is. So: load what is enabled but
+		// missing, drop what was turned off, then push every plugin's config,
+		// since one that has just come up ran its config line before it existed.
+		loadEnabledPlugins(o)
+		for _, id := range pluginsTurnedOff(prev, o) {
+			unloadPluginCopies(id)
+		}
+		hyprEval(genPluginConfig(o))
 		// reload restores config keywords but not the cursor, which is imperative
 		// state set via setcursor rather than a keyword. Without this a saved
 		// theme change only lands live if a preview happened to run for the final
@@ -589,6 +624,8 @@ func runHypr(args []string) error {
 		}
 		hyprEval(liveLua(o))
 		return nil
+	case "plugins":
+		return runHyprPlugins(args[1:])
 	case "restore":
 		// revert the live session to the saved state by reloading (settings.lua +
 		// base modules). resets every keyword exactly, including ones eval can't
@@ -886,36 +923,147 @@ func genLua(o Overrides, follow bool) string {
 // Hyprland compositor plugin .so files. genPlugins loads them by absolute path.
 const pluginDir = "/usr/lib/hyprland/plugins"
 
-// pluginSoPath resolves where a compositor plugin .so actually lives for the box
-// generating this settings.lua. A packaged install ships them in pluginDir
-// (/usr/lib, root-owned); a dev/tester checkout has no root, so deploy.sh builds
-// them under ~/.local/lib/hyprland/plugins instead. Prefer that user path when
-// the .so is present (so a checkout loads what deploy.sh just built), else fall
-// back to the packaged path. deploy.sh re-emits settings.lua after building, so
-// the baked path stays true on a checkout.
-func pluginSoPath(soName string) string {
-	name := soName + ".so"
-	if home, err := os.UserHomeDir(); err == nil {
-		user := filepath.Join(home, ".local", "lib", "hyprland", "plugins", name)
-		if fi, err := os.Stat(user); err == nil && !fi.IsDir() {
-			return user
-		}
+// pluginSoPath resolves the copy of a compositor plugin settings.lua should
+// load: the local build (deploy.sh on a checkout, the Hub's Rebuild) before the
+// package copy, but only a copy whose .abi receipt matches the compositor this
+// file is generated for (the running one, else the installed headers). A copy
+// with no receipt is taken on trust. "" means nothing loadable is installed:
+// every copy is stale or the plugin is missing, and the load is left out, so
+// Hyprland does not refuse it with a notification on every reload. The Plugins
+// page reports the same verdict with a Rebuild.
+func pluginSoPath(id string) string {
+	target := liveCompositor().abi
+	if !target.ok() {
+		target, _ = headersABI()
 	}
-	return pluginDir + "/" + name
+	c, ok, stale := pickCopy(pluginCopies(id), target)
+	if !ok || stale {
+		return ""
+	}
+	return c.Path
 }
 
-// genPlugins renders the optional Hyprland compositor plugins the user enabled:
-// per plugin, an hl.plugin.load of its shipped .so plus its hl.config, all inside
-// a pcall so a missing or ABI-mismatched .so degrades to "off" instead of
-// aborting settings.lua with a config-error overlay. Plugin-API calls (hyprbars
-// buttons) are additionally guarded by `hl.plugin.<name> ~= nil`, which the real
-// hl API (hl.meta.lua: PluginNamespace has `load` + `[string]`) populates once a
-// plugin registers its Lua functions. Plugin settings land on Save (reload), not
-// the live eval preview, so genPlugins is used only by genLua, never liveLua. The
+// pluginsTurnedOff lists the plugins enabled in prev that the new store turns
+// off, so a Save can unload them from the running compositor.
+func pluginsTurnedOff(prev, next Overrides) []string {
+	var off []string
+	for _, d := range bundledPlugins {
+		if pluginEnabled(prev, d.ID) && !pluginEnabled(next, d.ID) {
+			off = append(off, d.ID)
+		}
+	}
+	for _, id := range sortedExtraIDs(prev.Plugins.Extra) {
+		if prev.Plugins.Extra[id].Enabled && !next.Plugins.Extra[id].Enabled {
+			off = append(off, id)
+		}
+	}
+	return off
+}
+
+// pluginBlock is one enabled compositor plugin, resolved for emission: the
+// copy to load, the name Hyprland reports for it once loaded, and its config.
+type pluginBlock struct {
+	id     string
+	name   string // as `hyprctl plugins list` reports it; the guard's key
+	so     string // "" when no copy built for this Hyprland is installed
+	config string // the `plugin = { ... }` table, "" when nothing to set
+	extra  string // verbatim Lua after the config (the hyprbars buttons)
+}
+
+// luaPluginLoaded is the guard every plugin block runs its config behind.
+// hl.plugin.load only declares a path: Hyprland loads the declared set after
+// the whole config pass and then reloads once more, so the config line has to
+// wait for that second pass, and the only thing true for every loaded plugin
+// is its entry in hl.get_loaded_plugins() (the hl.plugin.<name> namespace only
+// exists for a plugin that registers Lua functions). Setting hl.config on a
+// plugin that is not loaded is no Lua error (a pcall catches nothing); it paints
+// Hyprland's "unknown config key" overlay, so the guard is not optional.
+const luaPluginLoaded = `local function ryoku_plugin_loaded(name)
+  for _, p in ipairs(hl.get_loaded_plugins()) do
+    if p.name == name then return true end
+  end
+  return false
+end
+
+`
+
+// genPlugins renders the optional Hyprland compositor plugins the user enabled
+// for settings.lua: per plugin, an hl.plugin.load of its copy plus its
+// hl.config behind luaPluginLoaded, all inside a pcall so a missing or
+// ABI-mismatched .so degrades to "off" instead of aborting settings.lua. The
 // scrolling layout is Hyprland core (not a plugin): its knobs emit as the core
 // `scrolling` category when that layout is selected.
 func genPlugins(o Overrides) string {
 	var b strings.Builder
+	blocks := pluginBlocks(o)
+	if len(blocks) > 0 {
+		b.WriteString(luaPluginLoaded)
+	}
+	for _, pb := range blocks {
+		if pb.so == "" {
+			fmt.Fprintf(&b, "-- %s: no copy built for this Hyprland; rebuild it from Settings > Plugins\n\n", pb.id)
+			continue
+		}
+		b.WriteString("pcall(function()\n")
+		fmt.Fprintf(&b, "  hl.plugin.load(%s)\n", luaStr(pb.so))
+		b.WriteString(pb.configLua("  "))
+		b.WriteString("end)\n\n")
+	}
+	b.WriteString(genScrolling(o))
+	return b.String()
+}
+
+// genPluginConfig renders only the config of the enabled plugins, for
+// `hyprctl eval`: the live preview while a setting is being changed, and the
+// pass after a Save's reload or a load by hand, when a plugin that has just
+// come up still holds its defaults (settings.lua's config line ran before the
+// load landed).
+func genPluginConfig(o Overrides) string {
+	var b strings.Builder
+	for _, pb := range pluginBlocks(o) {
+		if pb.so == "" || pb.config == "" {
+			continue
+		}
+		if b.Len() == 0 {
+			b.WriteString(luaPluginLoaded)
+		}
+		b.WriteString(pb.configLua(""))
+	}
+	return b.String()
+}
+
+// configLua is the guarded config of one block, indented for its context.
+func (pb pluginBlock) configLua(indent string) string {
+	if pb.config == "" && pb.extra == "" {
+		return ""
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, "%sif ryoku_plugin_loaded(%s) then\n", indent, luaStr(pb.name))
+	if pb.config != "" {
+		fmt.Fprintf(&b, "%s  hl.config({ plugin = %s })\n", indent, pb.config)
+	}
+	b.WriteString(pb.extra)
+	fmt.Fprintf(&b, "%send\n", indent)
+	return b.String()
+}
+
+// typedBlock is a bundled plugin's block: its options under one section.
+// Section keys use underscores: the Lua config normalises "dynamic_cursors"
+// to the plugin's dashed "dynamic-cursors" (a dashed key is rejected as
+// unknown; verified live against Hyprland 0.55.4).
+func typedBlock(id, section string, opts []string, extra string) pluginBlock {
+	d, _ := bundledByID(id)
+	return pluginBlock{
+		id: id, name: d.Loaded, so: pluginSoPath(id),
+		config: fmt.Sprintf("{ %s = { %s } }", section, strings.Join(opts, ", ")),
+		extra:  extra,
+	}
+}
+
+// pluginBlocks resolves every enabled plugin, bundled ones first in the
+// registry's order, then the added ones.
+func pluginBlocks(o Overrides) []pluginBlock {
+	var out []pluginBlock
 	p := o.Plugins
 
 	if dc := p.DynamicCursors; dc.Enabled {
@@ -924,10 +1072,7 @@ func genPlugins(o Overrides) string {
 			fmt.Sprintf("mode = %s", luaStr(dc.Mode)),
 			fmt.Sprintf("shake = { enabled = %t, base = %s }", dc.Shake, luaNum(dc.Magnify)),
 		}
-		// config section key is the plugin name with dashes as underscores: the
-		// Lua config normalises "dynamic-cursors" to "dynamic_cursors" (a dashed
-		// key is rejected as unknown; verified live against Hyprland 0.55.4).
-		b.WriteString(genPluginBlock("dynamic-cursors", "dynamic_cursors", opts, ""))
+		out = append(out, typedBlock("dynamic-cursors", "dynamic_cursors", opts, ""))
 	}
 
 	if hb := p.Hyprbars; hb.Enabled {
@@ -940,15 +1085,12 @@ func genPlugins(o Overrides) string {
 		var extra string
 		if hb.Buttons {
 			// close + fullscreen toggle, traffic-light colours; re-added on each
-			// reload (hyprbars clears buttons in onPreConfigReload). guarded by the
-			// plugin's Lua namespace so a failed load can't nil-call. "\u00d7" and
+			// reload (hyprbars clears buttons in onPreConfigReload). "\u00d7" and
 			// "+" render in any font, so no Nerd Font dependency.
-			extra = "  if hl.plugin.hyprbars ~= nil then\n" +
-				"    hl.plugin.hyprbars.add_button({ bg_color = \"rgb(ff5f57)\", fg_color = \"rgb(ffffff)\", size = 12, icon = \"\u00d7\", action = \"hyprctl dispatch killactive\" })\n" +
-				"    hl.plugin.hyprbars.add_button({ bg_color = \"rgb(28c840)\", fg_color = \"rgb(ffffff)\", size = 12, icon = \"+\", action = \"hyprctl dispatch fullscreen 1\" })\n" +
-				"  end\n"
+			extra = "    hl.plugin.hyprbars.add_button({ bg_color = \"rgb(ff5f57)\", fg_color = \"rgb(ffffff)\", size = 12, icon = \"\u00d7\", action = \"hyprctl dispatch killactive\" })\n" +
+				"    hl.plugin.hyprbars.add_button({ bg_color = \"rgb(28c840)\", fg_color = \"rgb(ffffff)\", size = 12, icon = \"+\", action = \"hyprctl dispatch fullscreen 1\" })\n"
 		}
-		b.WriteString(genPluginBlock("hyprbars", "hyprbars", opts, extra))
+		out = append(out, typedBlock("hyprbars", "hyprbars", opts, extra))
 	}
 
 	if ib := p.Imgborders; ib.Enabled {
@@ -961,7 +1103,7 @@ func genPlugins(o Overrides) string {
 			fmt.Sprintf("smooth = %t", ib.Smooth),
 			fmt.Sprintf("blur = %t", ib.Blur),
 		}
-		b.WriteString(genPluginBlock("imgborders", "imgborders", opts, ""))
+		out = append(out, typedBlock("imgborders", "imgborders", opts, ""))
 	}
 
 	if hg := p.Hyprglass; hg.Enabled {
@@ -974,7 +1116,7 @@ func genPlugins(o Overrides) string {
 			fmt.Sprintf("brightness = %s", luaNum(hg.Brightness)),
 			fmt.Sprintf("default_theme = %s", luaStr(hg.Theme)),
 		}
-		b.WriteString(genPluginBlock("hyprglass", "hyprglass", opts, ""))
+		out = append(out, typedBlock("hyprglass", "hyprglass", opts, ""))
 	}
 
 	if hf := p.Hyprfocus; hf.Enabled {
@@ -994,65 +1136,142 @@ func genPlugins(o Overrides) string {
 			fmt.Sprintf("shrink_percentage = %s", luaNum(hf.Bounce)),
 			fmt.Sprintf("slide_height = %s", luaNum(hf.Slide)),
 		}
-		b.WriteString(genPluginBlock("hyprfocus", "hyprfocus", opts, ""))
+		out = append(out, typedBlock("hyprfocus", "hyprfocus", opts, ""))
 	}
 
-	// scrolling is a Hyprland core layout (0.54+), configured under the core
-	// `scrolling` category, not a plugin. emit its knobs only when the layout is
-	// selected, diffed against the core defaults.
-	if o.Appearance.Layout == "scrolling" {
-		hs, dhs := o.Plugins.Hyprscrolling, defaultOverrides().Plugins.Hyprscrolling
-		var sc []string
-		if hs.ColumnWidth != dhs.ColumnWidth {
-			sc = append(sc, fmt.Sprintf("column_width = %s", luaNum(hs.ColumnWidth)))
+	if ks := p.Keysounds; ks.Enabled {
+		opts := []string{
+			"enabled = true",
+			fmt.Sprintf("profile = %s", luaStr(ks.Profile)),
+			fmt.Sprintf("volume = %s", luaNum(ks.Volume)),
+			fmt.Sprintf("release = %t", ks.Release),
 		}
-		if hs.FollowFocus != dhs.FollowFocus {
-			sc = append(sc, fmt.Sprintf("follow_focus = %t", hs.FollowFocus))
-		}
-		if len(sc) > 0 {
-			fmt.Fprintf(&b, "hl.config({ scrolling = { %s } })\n\n", strings.Join(sc, ", "))
-		}
-
-		// Follow focus is inert while the pointer can't move focus: with the
-		// shipped follow_mouse = 2 (detached) hovering a peeked column never
-		// scrolls it in until you click (#56). So when follow focus is on, let
-		// the pointer drive focus too -- unless the user pinned their own value.
-		if hs.FollowFocus && o.Input.FollowMouse == defaultOverrides().Input.FollowMouse {
-			b.WriteString("hl.config({ input = { follow_mouse = 1 } })\n\n")
-		}
+		out = append(out, typedBlock("keysounds", "keysounds", opts, ""))
 	}
 
+	// plugins the user added from git (or hyprpm laid down): the load, then the
+	// detected keys the user changed, as nested tables from their colon paths.
+	for _, id := range sortedExtraIDs(p.Extra) {
+		if ep := p.Extra[id]; ep.Enabled {
+			out = append(out, extraBlock(id, ep.Config))
+		}
+	}
+	return out
+}
+
+// genScrolling: the scrolling layout is Hyprland core (0.54+), configured under
+// the core `scrolling` category, not a plugin. Its knobs emit only when the
+// layout is selected, diffed against the core defaults.
+func genScrolling(o Overrides) string {
+	if o.Appearance.Layout != "scrolling" {
+		return ""
+	}
+	var b strings.Builder
+	hs, dhs := o.Plugins.Hyprscrolling, defaultOverrides().Plugins.Hyprscrolling
+	var sc []string
+	if hs.ColumnWidth != dhs.ColumnWidth {
+		sc = append(sc, fmt.Sprintf("column_width = %s", luaNum(hs.ColumnWidth)))
+	}
+	if hs.FollowFocus != dhs.FollowFocus {
+		sc = append(sc, fmt.Sprintf("follow_focus = %t", hs.FollowFocus))
+	}
+	if len(sc) > 0 {
+		fmt.Fprintf(&b, "hl.config({ scrolling = { %s } })\n\n", strings.Join(sc, ", "))
+	}
+
+	// Follow focus is inert while the pointer can't move focus: with the
+	// shipped follow_mouse = 2 (detached) hovering a peeked column never
+	// scrolls it in until you click (#56). So when follow focus is on, let
+	// the pointer drive focus too -- unless the user pinned their own value.
+	if hs.FollowFocus && o.Input.FollowMouse == defaultOverrides().Input.FollowMouse {
+		b.WriteString("hl.config({ input = { follow_mouse = 1 } })\n\n")
+	}
 	return b.String()
 }
 
-// genPluginBlock loads soName.so and sets its config under `plugin[section]`,
-// plus any verbatim extra Lua (e.g. hyprbars buttons). section is the Lua table
-// key: a bare identifier (hyprbars) or a bracketed literal for a dashed name
-// (["dynamic-cursors"]).
-//
-// The load and config run in a pcall, but that alone is not enough: setting
-// hl.config on a plugin namespace that never loaded is NOT a Lua error (pcall
-// catches nothing), and Hyprland then paints its "unknown config key
-// 'plugin.<name>.*'" overlay. A load can fail silently after a Hyprland ABI bump
-// (the .so no longer matches), so gate the keys on the live namespace being
-// present, the same guard the hyprbars buttons already use, and the block
-// degrades cleanly to "plugin off" instead of erroring settings.lua.
-func genPluginBlock(soName, section string, opts []string, extra string) string {
-	guard := "hl.plugin." + section
-	if strings.HasPrefix(section, "[") {
-		guard = "hl.plugin" + section // dashed name: hl.plugin["dynamic-cursors"]
+// extraBlock is an added plugin's block: the config keys the user set, stored
+// as full paths under `plugin:` ("hyprexpo:columns"), as nested tables. The
+// Lua config normalises dashed names to underscores, so every component is
+// emitted that way. The name the plugin reports (the guard's key) comes from
+// its receipt once a load has revealed it, the id until then.
+func extraBlock(id string, cfg map[string]any) pluginBlock {
+	name := id
+	if r, ok := readReceipt(id); ok && r.Loaded != "" {
+		name = r.Loaded
 	}
-	var b strings.Builder
-	b.WriteString("pcall(function()\n")
-	fmt.Fprintf(&b, "  hl.plugin.load(%s)\n", luaStr(pluginSoPath(soName)))
-	fmt.Fprintf(&b, "  if %s ~= nil then\n", guard)
-	fmt.Fprintf(&b, "    hl.config({ plugin = { %s = { %s } } })\n", section, strings.Join(opts, ", "))
-	if extra != "" {
-		b.WriteString(extra)
+	pb := pluginBlock{id: id, name: name, so: pluginSoPath(id)}
+	if tree := luaConfigTree(cfg); len(tree) > 0 {
+		pb.config = renderLuaTable(tree)
 	}
-	b.WriteString("  end\n")
-	b.WriteString("end)\n\n")
-	return b.String()
+	return pb
+}
+
+// luaConfigTree nests colon-path keys into tables: "a:b:c" -> { a = { b = { c } } }.
+func luaConfigTree(cfg map[string]any) map[string]any {
+	tree := map[string]any{}
+	for _, k := range sortedKeys(cfg) {
+		parts := strings.Split(k, ":")
+		if len(parts) < 2 {
+			continue
+		}
+		for i := range parts {
+			parts[i] = strings.ReplaceAll(parts[i], "-", "_")
+		}
+		cur := tree
+		for _, p := range parts[:len(parts)-1] {
+			next, ok := cur[p].(map[string]any)
+			if !ok {
+				next = map[string]any{}
+				cur[p] = next
+			}
+			cur = next
+		}
+		cur[parts[len(parts)-1]] = cfg[k]
+	}
+	return tree
+}
+
+func sortedKeys(m map[string]any) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+var luaIdentRe = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+
+// renderLuaTable renders a nested map as a Lua table constructor with stable
+// key order; a key that is not a bare identifier is bracketed.
+func renderLuaTable(t map[string]any) string {
+	var parts []string
+	for _, k := range sortedKeys(t) {
+		key := k
+		if !luaIdentRe.MatchString(k) {
+			key = "[" + luaStr(k) + "]"
+		}
+		parts = append(parts, key+" = "+luaValue(t[k]))
+	}
+	return "{ " + strings.Join(parts, ", ") + " }"
+}
+
+// luaValue renders a store value by its JSON type: a bool, a number (integral
+// ones without a fraction, so an int option reads one), a string, a table.
+func luaValue(v any) string {
+	switch x := v.(type) {
+	case bool:
+		return strconv.FormatBool(x)
+	case float64:
+		return strconv.FormatFloat(x, 'f', -1, 64)
+	case int:
+		return strconv.Itoa(x)
+	case string:
+		return luaStr(x)
+	case map[string]any:
+		return renderLuaTable(x)
+	}
+	return luaStr(fmt.Sprint(v))
 }
 
 // luaHex8 sanitises an RRGGBBAA hex string (optionally #- or 0x-prefixed) to a
@@ -1855,13 +2074,14 @@ func genAnimatedBorder(o Overrides, follow, full bool) string {
 	return b.String()
 }
 
-// liveLua = full-config preview + cursor, applied flash-free via hyprctl eval
-// (appearance / input / cursor). rules, keybinds, env, autostart are not
-// previewed; they apply on Save via reload.
+// liveLua = full-config preview + cursor + the loaded plugins' config, applied
+// flash-free via hyprctl eval (appearance / input / cursor / plugin settings).
+// rules, keybinds, env, autostart are not previewed; they apply on Save via
+// reload, as does turning a plugin on or off (a load is a reload's job).
 func liveLua(o Overrides) string {
 	follow := paletteDriven()
 	return fullConfigLua(o, follow) + genMotion(o, true) + genAnimatedBorder(o, follow, true) +
-		genAnimBlock(o) + genGesture(o) +
+		genAnimBlock(o) + genGesture(o) + genPluginConfig(o) +
 		fmt.Sprintf("hl.exec_cmd(%s)\n", luaStr(fmt.Sprintf("hyprctl setcursor %s %d", o.Cursor.Theme, o.Cursor.Size)))
 }
 

@@ -31,8 +31,11 @@ truth for the live desktop.
   calls directly: the `ryoku-cmd-*` screen tools (lens, OCR, color, QR, webcam
   mirror, screen record, night light, caffeine) plus the stash sidebar's
   download, compress, and install helpers and `ryoku-sysinfo`. `hypridle.conf`
-  is the idle daemon's native config. The whole
-  directory deploys to `~/.config/hypr/`.
+  is the idle daemon's native config. `plugins/` holds the one compositor
+  plugin Ryoku authors, `keysounds` (C++ against the Hyprland plugin API, with
+  its `hyprpm.toml` recipe and the sample generator; see
+  `docs/hyprland-plugins.md`); it ships as a package, not with the config. The
+  rest of the directory deploys to `~/.config/hypr/`.
 - `lockscreen/` `qylock/` (the lock theme and its quickshell lockscreen),
   `install-qylock`, and `sddm/` (the greeter setup).
 - `shell/` the desktop shell subsystem: `quickshell/` (the QML UI. Every surface
@@ -162,8 +165,9 @@ System-level definition installed into the target.
   (`release/packages/`). `ryoku-desktop` is the umbrella: it version-pins the
   monorepo components (`ryoku-shell`, `ryoku-hub`, `ryoku-rashin`, `ryoku-blobs`,
   `ryoku`, and the Hyprland plugins `hypr-dynamic-cursors`, `ryoku-hypr-plugins`,
-  `hyprglass`, `imgborders`) and also depends on `ryoku-keyring` and the `gpk`
-  package manager, and lays the base config under `/usr/share/ryoku/config`.
+  `hyprglass`, `imgborders`, `ryoku-keysounds`) and also depends on
+  `ryoku-keyring` and the `gpk` package manager, and lays the base config under
+  `/usr/share/ryoku/config`.
 - The installer adds the `[ryoku]` repo, imports the keyring, and installs
   `ryoku-desktop`; per-user config is then copied into `~/.config` by
   `ryoku materialize`, which clobbers Ryoku-owned files and prunes dropped ones
@@ -190,12 +194,13 @@ raw.githubusercontent.com serves them with no release infrastructure.
 ## `release/` packaging
 
 - `packages/` one directory per pacman package in the `[ryoku]` repo, each a
-  `PKGBUILD`. 26 in all, in four groups by why they exist:
+  `PKGBUILD`. 27 in all, in four groups by why they exist:
   - built from the checked-out monorepo: the components (`ryoku-shell`,
     `ryoku-hub`, `ryoku-rashin`, `ryoku`, `ryoku-blobs`, `ryomotion`), the
     `ryoku-desktop` umbrella, `ryoku-keyring`, and the `gpk` package manager.
   - Hyprland plugins: `hypr-dynamic-cursors`, `ryoku-hypr-plugins`, `hyprglass`,
-    `imgborders`.
+    `imgborders`, `ryoku-keysounds`; each lays an `.abi` receipt beside its
+    `.so` (see `docs/hyprland-plugins.md`).
   - rebuilt from upstream so `ryoku update` can reach them, because it is pacman
     and pacman never touches the AUR: `asusctl`, `awww`, `spicetify-cli`,
     `spicetify-marketplace`,

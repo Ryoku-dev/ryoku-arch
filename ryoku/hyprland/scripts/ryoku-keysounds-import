@@ -1,0 +1,171 @@
+#!/usr/bin/env python3
+"""Turn a Mechvibes sound pack into a keysounds profile.
+
+Mechvibes packs (mechvibes.com, and the packs in its MIT-licensed repository)
+are recordings of real switches keyed by evdev keycode, in two shapes: one
+sprite file with [start_ms, length_ms] per key ("single"), or one file per key
+("multi", with a v2 variant that adds release sounds). This slices or copies
+them into the profile the keysounds plugin reads: 48 kHz mono WAVs named by
+role (down-N, up-N, space-N, enter-N, backspace-N).
+
+Usage: ryoku-keysounds-import <pack-dir> [--name <profile>] [--to <dir>]
+
+<pack-dir> holds config.json. The profile lands under --to (default
+~/.local/share/ryoku/keysounds), as <profile> (default: the pack's name,
+slugged). Pick it as the profile in Settings > Plugins > Key sounds.
+Needs ffmpeg.
+"""
+
+import glob
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+
+SPACE, ENTER, BACKSPACE = 57, 28, 14
+# the letter keys, the plainest presses a pack records: down variants come from
+# these, spread across the board so a run of presses does not repeat one key
+LETTERS = [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 36, 37, 38, 44, 45, 46, 47, 48, 49, 50]
+DOWN_VARIANTS = 6
+ROLES = {"space": SPACE, "enter": ENTER, "backspace": BACKSPACE}
+
+
+def die(msg):
+    sys.exit(f"ryoku-keysounds-import: {msg}")
+
+
+def slug(name):
+    s = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+    return s or "pack"
+
+
+PEAK_DB = -3.0
+
+
+def ffmpeg(src, dst, start_ms=None, length_ms=None):
+    """Slice (or copy) to 48 kHz mono s16 with the peak brought to PEAK_DB, so
+    packs recorded at different levels play at one volume setting."""
+    cut = []
+    if start_ms is not None:
+        cut = ["-ss", f"{start_ms / 1000:.3f}", "-t", f"{length_ms / 1000:.3f}"]
+    probe = subprocess.run(["ffmpeg", "-v", "info", *cut, "-i", src, "-af", "volumedetect", "-f", "null", "-"],
+                           capture_output=True, text=True)
+    m = re.search(r"max_volume: (-?[\d.]+) dB", probe.stderr)
+    gain = PEAK_DB - float(m.group(1)) if m else 0.0
+    subprocess.run(["ffmpeg", "-v", "error", "-y", *cut, "-i", src, "-af", f"volume={gain:.2f}dB",
+                    "-ac", "1", "-ar", "48000", "-sample_fmt", "s16", dst], check=True)
+
+
+def expand(pattern):
+    """press/GENERIC_R{0-4}.mp3 -> the five files it names."""
+    m = re.search(r"\{(\d+)-(\d+)\}", pattern)
+    if not m:
+        return [pattern]
+    lo, hi = int(m.group(1)), int(m.group(2))
+    return [pattern[: m.start()] + str(i) + pattern[m.end():] for i in range(lo, hi + 1)]
+
+
+class Pack:
+    def __init__(self, dir_):
+        self.dir = dir_
+        try:
+            with open(os.path.join(dir_, "config.json")) as f:
+                self.cfg = json.load(f)
+        except OSError as e:
+            die(f"{dir_}: no readable config.json ({e})")
+        self.name = self.cfg.get("name") or os.path.basename(dir_.rstrip("/"))
+        self.kind = self.cfg.get("key_define_type", "single")
+        self.defines = self.cfg.get("defines") or {}
+
+    def path(self, rel):
+        return os.path.join(self.dir, rel)
+
+    # a source for one keycode: (file, start_ms, length_ms) or None
+    def down(self, code):
+        d = self.defines.get(str(code))
+        if self.kind == "single":
+            if not isinstance(d, list) or len(d) != 2:
+                return None
+            return (self.path(self.cfg["sound"]), d[0], d[1])
+        if isinstance(d, str) and os.path.exists(self.path(d)):
+            return (self.path(d), None, None)
+        return None
+
+    def up(self, code):
+        d = self.defines.get(f"{code}-up")
+        if isinstance(d, str) and os.path.exists(self.path(d)):
+            return (self.path(d), None, None)
+        return None
+
+    # the generic press set: v2 packs name it, v1 packs spread it over the letters
+    def generic_down(self):
+        if self.cfg.get("sound") and "{" in self.cfg["sound"]:
+            files = [self.path(p) for p in expand(self.cfg["sound"]) if os.path.exists(self.path(p))]
+            return [(f, None, None) for f in files]
+        out, seen = [], set()
+        for code in LETTERS:
+            src = self.down(code)
+            if src and src not in seen:
+                seen.add(src)
+                out.append(src)
+            if len(out) >= DOWN_VARIANTS:
+                break
+        return out
+
+    def generic_up(self):
+        if self.cfg.get("soundup"):
+            files = [self.path(p) for p in expand(self.cfg["soundup"]) if os.path.exists(self.path(p))]
+            return [(f, None, None) for f in files]
+        return []
+
+
+def main():
+    args = sys.argv[1:]
+    name, to = None, os.path.join(os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share"), "ryoku", "keysounds")
+    rest = []
+    while args:
+        a = args.pop(0)
+        if a == "--name":
+            name = args.pop(0) if args else die("--name needs a value")
+        elif a == "--to":
+            to = args.pop(0) if args else die("--to needs a value")
+        else:
+            rest.append(a)
+    if len(rest) != 1:
+        die("usage: ryoku-keysounds-import <pack-dir> [--name <profile>] [--to <dir>]")
+    if not shutil.which("ffmpeg"):
+        die("ffmpeg not found (pacman -S ffmpeg)")
+
+    pack = Pack(rest[0])
+    profile = name or slug(pack.name)
+    out = os.path.join(to, profile)
+    if os.path.isdir(out):
+        shutil.rmtree(out)
+    os.makedirs(out)
+
+    def write(role, sources):
+        for i, (src, start, length) in enumerate(sources, 1):
+            ffmpeg(src, os.path.join(out, f"{role}-{i}.wav"), start, length)
+        return len(sources)
+
+    n = write("down", pack.generic_down())
+    if n == 0:
+        shutil.rmtree(out)
+        die(f"{pack.name}: no press sounds found in the pack")
+    counts = {"down": n, "up": write("up", pack.generic_up())}
+    for role, code in ROLES.items():
+        src = pack.down(code)
+        counts[role] = write(role, [src]) if src else 0
+        up = pack.up(code)
+        if up:
+            write(f"{role}-up", [up])
+    with open(os.path.join(out, "README"), "w") as f:
+        f.write(f"{pack.name}\nImported from a Mechvibes pack ({os.path.abspath(pack.dir)}) by ryoku-keysounds-import.\n")
+    summary = ", ".join(f"{k} {v}" for k, v in counts.items() if v)
+    print(f"{profile}: {summary} -> {out}")
+
+
+if __name__ == "__main__":
+    main()

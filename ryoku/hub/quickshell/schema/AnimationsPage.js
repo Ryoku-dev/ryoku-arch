@@ -35,7 +35,8 @@ var rows = [
             "flash",
             "bounce",
             "slide"
-        ]
+        ],
+        "when": { "plugins.hyprfocus.enabled": [true] }
     },
     {
         "tab": "",
@@ -48,7 +49,8 @@ var rows = [
         "lo": 0.0,
         "hi": 1.0,
         "unit": "%",
-        "pct": true
+        "pct": true,
+        "when": { "plugins.hyprfocus.enabled": [true], "plugins.hyprfocus.mode": ["flash"] }
     },
     {
         "tab": "",
@@ -61,7 +63,8 @@ var rows = [
         "lo": 0.5,
         "hi": 1.0,
         "unit": "%",
-        "pct": true
+        "pct": true,
+        "when": { "plugins.hyprfocus.enabled": [true], "plugins.hyprfocus.mode": ["bounce"] }
     },
     {
         "tab": "",
@@ -73,7 +76,8 @@ var rows = [
         "src": "settings.lua",
         "lo": 0.0,
         "hi": 150.0,
-        "unit": "px"
+        "unit": "px",
+        "when": { "plugins.hyprfocus.enabled": [true], "plugins.hyprfocus.mode": ["slide"] }
     },
     {
         "tab": "",

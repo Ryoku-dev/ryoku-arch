@@ -73,7 +73,8 @@ var rows = [{
             "rotate",
             "tilt",
             "stretch"
-        ]
+        ],
+        "when": { "plugins.dynamicCursors.enabled": [true] }
     },{
         "tab": "Motion",
         "group": "MOTION",
@@ -81,7 +82,8 @@ var rows = [{
         "label": "Shake to find (magnify)",
         "desc": "Shaking the mouse briefly grows the pointer so you can find it",
         "ctl": "sw",
-        "src": "hypr.json"
+        "src": "hypr.json",
+        "when": { "plugins.dynamicCursors.enabled": [true] }
     },{
         "tab": "Motion",
         "group": "MOTION",
@@ -91,6 +93,7 @@ var rows = [{
         "ctl": "step",
         "src": "hypr.json",
         "lo": 1.0,
-        "hi": 10.0
+        "hi": 10.0,
+        "when": { "plugins.dynamicCursors.enabled": [true], "plugins.dynamicCursors.shake": [true] }
     }
 ];

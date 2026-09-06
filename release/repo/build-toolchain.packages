@@ -39,10 +39,12 @@ qt6-shadertools
 qt6-multimedia
 
 # Compositor plugin packages (hypr-dynamic-cursors, ryoku-hypr-plugins,
-# hyprglass, imgborders) plus their makedepends. awww's common/build.rs probes
-# liblz4; hyprland-preview-share-picker needs gtk4 + gtk4-layer-shell.
+# hyprglass, imgborders, ryoku-keysounds) plus their makedepends: keysounds
+# links libcanberra. awww's common/build.rs probes liblz4;
+# hyprland-preview-share-picker needs gtk4 + gtk4-layer-shell.
 hyprland
 hyprcursor
+libcanberra
 pango
 cairo
 pixman

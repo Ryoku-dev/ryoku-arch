@@ -44,18 +44,6 @@ Item {
         }
     }
 
-    // a dependent row stays hidden until its parent is on: the motion knobs need
-    // realistic motion, and magnify needs shake-to-find.
-    function gateOk(key, d) {
-        switch (key) {
-        case "plugins.dynamicCursors.mode": case "plugins.dynamicCursors.shake":
-            return d["plugins.dynamicCursors.enabled"] === true;
-        case "plugins.dynamicCursors.magnify":
-            return d["plugins.dynamicCursors.enabled"] === true && d["plugins.dynamicCursors.shake"] === true;
-        }
-        return true;
-    }
-
     // draft/committed are flat maps off the hypr store (dotted keys), the shape
     // the settings sheet reads. draft depends on hyprVal, so an edit rebuilds it.
     readonly property var draft: {
@@ -75,10 +63,9 @@ Item {
         return d;
     }
     readonly property var settingsSchema: {
-        var d = pg.draft, out = [];
+        var out = [];
         for (var i = 0; i < Schema.rows.length; i++) {
             var r = Schema.rows[i];
-            if (!pg.gateOk(r.key, d)) continue;
             if (r.key === "cursor.theme")
                 out.push({ tab: r.tab, group: r.group, key: r.key, label: r.label,
                            desc: r.desc, ctl: "pick", src: "hypr", opts: pg.cursorThemes });

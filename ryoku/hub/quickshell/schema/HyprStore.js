@@ -786,6 +786,55 @@ var rows = [
     },
     {
         "tab": "",
+        "group": "plugins.keysounds",
+        "key": "plugins.keysounds.enabled",
+        "label": "Keyboard sounds",
+        "desc": "Loads the keysounds plugin: a sound on every key press",
+        "ctl": "sw",
+        "src": "settings.lua"
+    },
+    {
+        "tab": "",
+        "group": "plugins.keysounds",
+        "key": "plugins.keysounds.profile",
+        "label": "Sound profile",
+        "desc": "A shipped switch recording (cherry-mx-blue, topre, creamy, holy-panda, ...) or a profile of your own",
+        "ctl": "seg",
+        "src": "settings.lua",
+        "opts": [
+            "cherry-mx-blue",
+            "cherry-mx-brown",
+            "cherry-mx-black",
+            "cherry-mx-red",
+            "topre",
+            "creamy",
+            "nk-cream",
+            "holy-panda",
+            "tealios",
+            "crystal-purple",
+            "oreo"
+        ]
+    },
+    {
+        "tab": "",
+        "group": "plugins.keysounds",
+        "key": "plugins.keysounds.volume",
+        "label": "Volume",
+        "desc": "Playback volume, 0 to 1",
+        "ctl": "slid",
+        "src": "settings.lua"
+    },
+    {
+        "tab": "",
+        "group": "plugins.keysounds",
+        "key": "plugins.keysounds.release",
+        "label": "Key release sound",
+        "desc": "Also play the key-up sample",
+        "ctl": "sw",
+        "src": "settings.lua"
+    },
+    {
+        "tab": "",
         "group": "plugins.hyprscrolling",
         "key": "plugins.hyprscrolling.columnWidth",
         "label": "Column width",

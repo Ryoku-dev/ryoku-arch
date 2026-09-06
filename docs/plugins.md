@@ -8,6 +8,11 @@ shell - not you - draws the surface around it.
 
 If you only read one thing, read **"Who does what"** below.
 
+This is about **shell** plugins, widgets that run in Quickshell. A **Hyprland
+compositor** plugin (a `.so` the compositor loads: title bars, cursor motion,
+key sounds) is a different thing, managed on Settings > Plugins; see
+`docs/hyprland-plugins.md`.
+
 ---
 
 ## The rules

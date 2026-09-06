@@ -1,0 +1,15 @@
+# The shipped keysounds profiles: <profile name>  <Mechvibes pack directory>
+# Packs come from the MIT-licensed Mechvibes repository (src/audio), real
+# recordings of each switch. `make sounds` runs ryoku-keysounds-import on each.
+# A profile is named for the switch it records, nothing more.
+cherry-mx-blue      mxblue-travel
+cherry-mx-brown     mxbrown-travel
+cherry-mx-black     mxblack-travel
+cherry-mx-red       cherrymx-red-pbt
+topre               topre-purple-hybrid-pbt
+creamy              cream-travel
+nk-cream            nk-cream
+holy-panda          holy-pandas
+tealios             turquoise
+crystal-purple      eg-crystal-purple
+oreo                eg-oreo
