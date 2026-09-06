@@ -3,6 +3,14 @@
 ## Unreleased
 
 ### Fixed
+- **The reload cover renders a `~`-based custom asset (#146).** The reload
+  cover built its media URL as a bare `"file://" + path`, so a `reloadCover`
+  path carrying a leading `~` (a hand-edited or ported `brand.json`) became
+  `file://~/...`, which never resolves, and the reload silently showed the
+  default wordmark instead of the chosen asset. The renderer now expands a
+  leading `~` to `$HOME` before building the URL, the way the shell already
+  resolves the brand mark, for both the image and the video path
+  (`quickshell/reload-cover/ReloadMedia.qml`).
 - **The Super+S chat can approve a tool.** When hermes paused on an edit or a
   command, the sidebar only showed "waiting for approval" with no way to
   answer, so the turn dead-ended unless the dashboard was open. The permission

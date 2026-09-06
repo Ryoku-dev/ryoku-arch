@@ -380,20 +380,49 @@ func rehydrateDecorAssets(riceDir, slug string, decor map[string]any) {
 	}
 }
 
-// rehydrateBrandAssets is the brand layer's counterpart: markImage is a bare
-// path in brand.json, so the copy lands as one.
-func rehydrateBrandAssets(riceDir, slug string, brand map[string]any) {
-	src, _ := brand["markImage"].(string)
-	if !strings.HasPrefix(src, "rice://") {
-		return
+// rehydrateRiceAsset copies a rice://-referenced file out of the rice folder
+// into rice-assets/<slug>/ and returns where it landed. ok is false when ref is
+// not a rice:// reference or the copy fails, so the caller can drop the field.
+func rehydrateRiceAsset(riceDir, slug, ref string) (string, bool) {
+	if !strings.HasPrefix(ref, "rice://") {
+		return "", false
 	}
-	name := strings.TrimPrefix(src, "rice://")
+	name := strings.TrimPrefix(ref, "rice://")
 	dst := filepath.Join(ryokuConfigDir(), "rice-assets", slug, name)
 	if validAssetName(name) && isFile(filepath.Join(riceDir, name)) &&
 		copyFile(filepath.Join(riceDir, name), dst) == nil {
-		brand["markImage"] = dst
-	} else {
-		delete(brand, "markImage")
+		return dst, true
+	}
+	return "", false
+}
+
+// rehydrateBrandAssets is the brand layer's counterpart: markImage and the
+// reload-cover asset are bare paths in brand.json, so each copy lands as one.
+func rehydrateBrandAssets(riceDir, slug string, brand map[string]any) {
+	if src, _ := brand["markImage"].(string); strings.HasPrefix(src, "rice://") {
+		if dst, ok := rehydrateRiceAsset(riceDir, slug, src); ok {
+			brand["markImage"] = dst
+		} else {
+			delete(brand, "markImage")
+		}
+	}
+	// reloadCover.path is a bare path nested one level down. A rice:// one is
+	// bundled, so land it beside the mark; a foreign absolute path (an older
+	// rice, or one authored before covers travelled) resolves to nothing on
+	// this box, so drop the block and let the reload fall back to the default
+	// cover instead of a broken one.
+	if rc, ok := brand["reloadCover"].(map[string]any); ok {
+		src, _ := rc["path"].(string)
+		if strings.HasPrefix(src, "rice://") {
+			if dst, ok := rehydrateRiceAsset(riceDir, slug, src); ok {
+				rc["path"] = dst
+				brand["reloadCover"] = rc
+			} else {
+				delete(brand, "reloadCover")
+			}
+		} else if src != "" && !isFile(src) {
+			delete(brand, "reloadCover")
+		}
 	}
 }
 
@@ -494,13 +523,30 @@ func captureRice(name string, layers []string) (Rice, error) {
 	if raw, ok := r.Layers["brand"]; ok {
 		var bm map[string]any
 		if json.Unmarshal(raw, &bm) == nil {
+			changed := false
 			if mi, _ := bm["markImage"].(string); mi != "" && isFile(mi) {
 				asset := "brandmark" + filepath.Ext(mi)
 				if copyFile(mi, filepath.Join(dir, asset)) == nil {
 					bm["markImage"] = "rice://" + asset
-					if b, err := json.Marshal(bm); err == nil {
-						r.Layers["brand"] = b
+					changed = true
+				}
+			}
+			// the custom reload cover is a managed asset on the author's disk;
+			// bundle it like the mark so the rice renders it on another box
+			// instead of leaving the default cover.
+			if rc, ok := bm["reloadCover"].(map[string]any); ok {
+				if p, _ := rc["path"].(string); p != "" && isFile(p) {
+					asset := "reloadcover" + filepath.Ext(p)
+					if copyFile(p, filepath.Join(dir, asset)) == nil {
+						rc["path"] = "rice://" + asset
+						bm["reloadCover"] = rc
+						changed = true
 					}
+				}
+			}
+			if changed {
+				if b, err := json.Marshal(bm); err == nil {
+					r.Layers["brand"] = b
 				}
 			}
 		}

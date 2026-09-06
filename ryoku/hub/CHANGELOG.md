@@ -40,6 +40,14 @@
   off (a reload only unloads what it loaded itself). See `docs/hyprland-plugins.md`.
 
 ### Fixed
+- **A rice carries its custom reload cover (#146).** The brand layer bundled
+  the mark image but left `reloadCover.path` as the author's absolute path, so
+  applying a rice on another box (or after the source asset moved) wrote a path
+  to a file that was never there and the shell reload fell back to the default
+  cover. Capture now copies the reload-cover asset into the rice and rewrites
+  the path to `rice://`, apply lands it under `rice-assets/<slug>/` like the
+  mark, and a dangling `rice://` or foreign absolute path is dropped so the
+  reload degrades to the default cover cleanly (`backend/rice.go`).
 - **Store lock skins show in Settings again, and a read failure says so.**
   Settings > Lockscreen listed skins by walking `~/.local/share/qylock/themes`
   two levels deep for a `Main.qml`, but `os.ReadDir` reports a symlinked theme

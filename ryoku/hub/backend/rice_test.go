@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -797,5 +798,112 @@ func TestCaptureAppliesThemeFastfetchAndLock(t *testing.T) {
 	}
 	if readLockPref(qylockThemePref()) != slug {
 		t.Fatalf("apply did not set the lock skin: %q", readLockPref(qylockThemePref()))
+	}
+}
+
+// A rice with the brand layer bundles the custom reload-cover asset the same
+// way it bundles the mark: the file is copied into the rice folder and the
+// path rewritten to rice://, so the cover travels instead of pointing at a
+// file that exists only on the author's disk.
+func TestCaptureBundlesReloadCover(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	t.Setenv("XDG_STATE_HOME", filepath.Join(dir, "state"))
+	t.Setenv("HOME", dir)
+	if err := os.MkdirAll(filepath.Join(dir, "ryoku"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	cover := filepath.Join(dir, "cover.gif")
+	if err := os.WriteFile(cover, []byte("GIF89a"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(brandStorePath(), []byte(`{"name":"Berserk","reloadCover":{"path":"`+cover+`","name":"cover.gif","kind":"animated","bytes":6,"enabled":true}}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	r, err := captureRice("Cov", []string{"brand"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, ok := r.Layers["brand"]
+	if !ok {
+		t.Fatalf("brand layer not captured: %v", r.Layers)
+	}
+	var bm map[string]any
+	if err := json.Unmarshal(raw, &bm); err != nil {
+		t.Fatal(err)
+	}
+	rc, _ := bm["reloadCover"].(map[string]any)
+	if rc == nil {
+		t.Fatalf("reloadCover not in captured brand layer: %s", raw)
+	}
+	if rc["path"] != "rice://reloadcover.gif" {
+		t.Fatalf("reloadCover path not bundled to rice://: %v", rc["path"])
+	}
+	if rc["kind"] != "animated" || rc["enabled"] != true {
+		t.Fatalf("reloadCover metadata not preserved: %v", rc)
+	}
+	if !isFile(filepath.Join(ricesDir(), "cov", "reloadcover.gif")) {
+		t.Fatal("bundled reload cover missing from the rice folder")
+	}
+}
+
+// Applying a rice lands the bundled reload cover under rice-assets and rewrites
+// the path to that absolute location (so the renderer's "file://"+path resolves
+// on this box); a rice:// asset that is missing, or a foreign absolute path
+// that does not resolve here, drops the block so the reload falls back to the
+// default cover cleanly instead of a broken one.
+func TestRehydrateReloadCoverAsset(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	t.Setenv("HOME", dir)
+	if err := os.MkdirAll(filepath.Join(dir, "ryoku"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	riceDir := filepath.Join(dir, "rice")
+	if err := os.MkdirAll(riceDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(riceDir, "reloadcover.gif"), []byte("GIF89a"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	present := filepath.Join(dir, "present.gif")
+	if err := os.WriteFile(present, []byte("GIF89a"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// rice:// reference: copied under rice-assets, path rewritten to it.
+	bm := map[string]any{"reloadCover": map[string]any{"path": "rice://reloadcover.gif", "kind": "animated"}}
+	rehydrateBrandAssets(riceDir, "cov", bm)
+	rc, _ := bm["reloadCover"].(map[string]any)
+	if rc == nil {
+		t.Fatalf("reloadCover dropped for a valid rice:// asset: %v", bm)
+	}
+	got, _ := rc["path"].(string)
+	wantPrefix := filepath.Join(dir, "ryoku", "rice-assets", "cov")
+	if !strings.HasPrefix(got, wantPrefix) || !isFile(got) {
+		t.Fatalf("reloadCover not rehydrated under rice-assets: %q", got)
+	}
+
+	// rice:// reference whose file is not in the rice folder: dropped.
+	bm = map[string]any{"reloadCover": map[string]any{"path": "rice://missing.gif", "kind": "animated"}}
+	rehydrateBrandAssets(riceDir, "cov", bm)
+	if _, ok := bm["reloadCover"]; ok {
+		t.Fatalf("missing rice:// cover not dropped: %v", bm)
+	}
+
+	// foreign absolute path that does not resolve on this box: dropped.
+	bm = map[string]any{"reloadCover": map[string]any{"path": "/home/someone-else/.local/share/ryoku/reload-cover/x.gif", "kind": "animated"}}
+	rehydrateBrandAssets(riceDir, "cov", bm)
+	if _, ok := bm["reloadCover"]; ok {
+		t.Fatalf("dangling absolute cover not dropped: %v", bm)
+	}
+
+	// an absolute path that does resolve here (e.g. a same-box re-apply) is kept.
+	bm = map[string]any{"reloadCover": map[string]any{"path": present, "kind": "animated"}}
+	rehydrateBrandAssets(riceDir, "cov", bm)
+	rc, _ = bm["reloadCover"].(map[string]any)
+	if rc == nil || rc["path"] != present {
+		t.Fatalf("resolvable absolute cover not kept: %v", bm)
 	}
 }

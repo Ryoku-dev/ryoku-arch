@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 
 Item {
     id: root
@@ -16,7 +17,15 @@ Item {
     readonly property bool customEnabled: !descriptor || descriptor.enabled !== false
     readonly property bool wantsVideo: customEnabled && mediaPath !== "" && mediaKind === "video"
     readonly property bool wantsImage: customEnabled && mediaPath !== "" && (mediaKind === "image" || mediaKind === "animated")
-    readonly property string imageSource: mediaPath.indexOf("://") >= 0 ? mediaPath : "file://" + mediaPath
+    // brand.json stores an absolute path today, but a hand-edited or ported
+    // config may carry a ~ (the shell expands it for the brand mark too); a bare
+    // "file://~/..." resolves to nothing and silently falls back to the default
+    // cover, so expand it here before building the URL.
+    readonly property string homeDir: Quickshell.env("HOME") || ""
+    readonly property string resolvedPath: mediaPath === "~"
+        ? root.homeDir
+        : (mediaPath.indexOf("~/") === 0 ? root.homeDir + mediaPath.substring(1) : mediaPath)
+    readonly property string imageSource: resolvedPath.indexOf("://") >= 0 ? resolvedPath : "file://" + resolvedPath
     readonly property size orientationProbeSize: Qt.size(64, 64)
     property bool orientationKnown: false
     property bool imageTall: false
@@ -127,7 +136,7 @@ Item {
         source: active ? Qt.resolvedUrl("ReloadVideo.qml") : ""
         onLoaded: {
             if (status === Loader.Ready && item) {
-                item.path = Qt.binding(() => root.mediaPath)
+                item.path = Qt.binding(() => root.resolvedPath)
                 item.active = Qt.binding(() => root.active && !root.forceDefault)
             }
         }
