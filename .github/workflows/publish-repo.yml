@@ -184,7 +184,11 @@ jobs:
           rclone copy "Ryoku:$R2_BUCKET/$PREFIX/x86_64/" "$mirror/" --include '*.pkg.tar.zst' || true
           if [[ $CHANNEL == stable ]]; then
             rclone copy "Ryoku:$R2_BUCKET/x86_64/" "$mirror/" --include '*.pkg.tar.zst' --ignore-existing || true
-            rclone copy "Ryoku:$R2_BUCKET/channels/testing/x86_64/" "$mirror/" --include '*.pkg.tar.zst' --exclude 'ryoku-desktop-*' --ignore-existing || true
+            # rclone applies filter rules in order and stops at the first match, so
+            # the exclude must come before the include or ryoku-desktop's
+            # testing bytes are adopted anyway (they carry CHANNEL=testing, and
+            # the container install then fails the release).
+            rclone copy "Ryoku:$R2_BUCKET/channels/testing/x86_64/" "$mirror/" --exclude 'ryoku-desktop-*' --include '*.pkg.tar.zst' --ignore-existing || true
           fi
 
       - name: Verify hard dependencies exist in the official repos or [ryoku]
