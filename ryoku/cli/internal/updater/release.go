@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -113,44 +114,92 @@ func sanitize(s string) string {
 	}, s)
 }
 
-// Track moves a packaged box between package channels: stable (the pointer
-// every install starts on), testing (rebuilt on every push to unstable-dev),
-// or a release tag (pinned to that frozen release until tracked away). It
-// rewrites the [ryoku] Server line and runs an update, which moves the Ryoku
-// set to whatever the channel serves, down as well as up. A checkout box
-// tracks git branches instead; that path stays in bin/ryoku-track.
+// Track moves a box onto a package channel: stable (the pointer every install
+// starts on), testing (rebuilt on every push to unstable-dev), or a release
+// tag (pinned to that frozen release until tracked away). It rewrites the
+// [ryoku] Server line and runs an update, which moves the Ryoku set to whatever
+// the channel serves, down as well as up. A box whose updates currently come
+// from a source checkout is migrated onto packages first: the checkout is
+// retired as the update source (the ~/ryoku-arch clone stays on disk but no
+// longer drives updates). Building from a checkout is `ryoku track ... --source`.
 func Track(channel string) error {
-	if sys.ResolveRepo() != "" {
-		return fmt.Errorf("this box runs from a checkout; package channels apply to packaged installs (use `ryoku track main|unstable-dev` here)")
-	}
-	if !sys.PkgInstalled("ryoku-desktop") {
-		return fmt.Errorf("ryoku-desktop is not installed; nothing to track")
-	}
 	if sys.ChannelServer(channel) == "" {
 		return fmt.Errorf("unknown channel %q: stable, testing, or a release tag (see `ryoku rollback` for the list)", channel)
 	}
-	cur := sys.PackagedChannel()
-	if cur == channel {
+	source := sys.SourceTracked()
+	install := !sys.PkgInstalled("ryoku-desktop")
+	// A pure source box with no ryoku-desktop and no [ryoku] repo to install it
+	// from cannot be moved onto packages here; the doctor adds the repo first.
+	if install && sys.RyokuServer() == "" {
+		return fmt.Errorf("no ryoku-desktop package and no [ryoku] repo to install it from; run `ryoku doctor` to add the repo, then `ryoku track %s`", channel)
+	}
+	// A deliberate private mirror (a Server Ryoku does not publish) is never
+	// silently overwritten, unless we are migrating a source box off its checkout.
+	if !source && sys.PackagedChannel() == "" && sys.RyokuServer() != "" {
+		return fmt.Errorf("the [ryoku] repo points at %s, a mirror Ryoku does not publish; edit %s by hand", sys.RyokuServer(), sys.PacmanConf)
+	}
+	// Already on the channel, package box, nothing to migrate: only move the set
+	// if the channel now serves something newer than what is installed.
+	if !source && !install && sys.PackagedChannel() == channel {
 		if serves := channelServes(channel).Release; serves == "" || serves == sys.ReadRelease().Release {
 			fmt.Printf("already on %s\n", channel)
 			return nil
 		}
 		fmt.Printf("==> Already tracking %s; moving the Ryoku set to what it serves\n", channel)
-		return Update([]string{"--channel-switch"})
+		return runChannelUpdate()
 	}
-	if cur == "" && sys.RyokuServer() != "" {
-		return fmt.Errorf("the [ryoku] repo points at %s, a mirror Ryoku does not publish; edit /etc/pacman.conf by hand", sys.RyokuServer())
-	}
-	if err := sys.SetPackagedChannel(channel); err != nil {
+
+	migrated, err := switchToPackageChannel(channel)
+	if err != nil {
 		return err
+	}
+	if migrated {
+		clearSessionChannelEnv()
+		fmt.Println("==> Retired the source checkout as the update source; the ~/ryoku-arch clone stays on disk but no longer drives updates.")
 	}
 	switch {
 	case channel == sys.ChannelTesting:
-		fmt.Println("==> Now tracking testing: every push to unstable-dev, before it is released. Expect breakage; `ryoku track stable` returns.")
+		fmt.Println("==> Now tracking testing packages: rebuilt on every push to unstable-dev. `ryoku track main` returns to stable releases.")
 	case sys.IsReleaseTag(channel):
-		fmt.Printf("==> Pinned to release %s. `ryoku update` keeps this release; `ryoku track stable` follows releases again.\n", channel)
+		fmt.Printf("==> Pinned to release %s. `ryoku update` keeps this release; `ryoku track main` follows releases again.\n", channel)
 	default:
-		fmt.Println("==> Now tracking stable: named releases as they are published.")
+		fmt.Println("==> Now tracking stable packages: named releases as they are published.")
 	}
-	return Update([]string{"--channel-switch"})
+	if install {
+		fmt.Println("==> ryoku-desktop is not installed here; the channel switch installs it from the selected channel.")
+	}
+	fmt.Println("==> Updates now come from packages: `ryoku update` runs pacman.")
+	return runChannelUpdate()
+}
+
+// switchToPackageChannel performs the filesystem side of a packaged track:
+// migrate a source-tracked box off its checkout (retire tracking, keep the
+// clone) and rewrite the [ryoku] Server to channel. It touches no pacman and no
+// network, so it is unit-testable; the caller runs the pacman side after.
+func switchToPackageChannel(channel string) (migrated bool, err error) {
+	if sys.SourceTracked() {
+		if err := sys.RetireSourceTracking(); err != nil {
+			return false, fmt.Errorf("could not retire the source checkout: %w", err)
+		}
+		migrated = true
+	}
+	if err := sys.SetPackagedChannel(channel); err != nil {
+		return migrated, err
+	}
+	return migrated, nil
+}
+
+// runChannelUpdate is the pacman side of a track (the forced -Syyu plus an
+// explicit -S ryoku-desktop, which installs it when absent and moves the set in
+// either direction). A var so a test exercises the switch without running pacman.
+var runChannelUpdate = func() error { return Update([]string{"--channel-switch"}) }
+
+// clearSessionChannelEnv drops RYOKU_CHANNEL from the running user manager and
+// the D-Bus activation env (the reverse of bin/ryoku-track), so units and apps
+// launched after a migration no longer carry the stale channel. Best-effort and
+// a var so a test never touches the real session.
+var clearSessionChannelEnv = func() {
+	_ = exec.Command("systemctl", "--user", "unset-environment", "RYOKU_CHANNEL").Run()
+	_ = exec.Command("dbus-update-activation-environment", "RYOKU_CHANNEL=").Run()
+	os.Unsetenv("RYOKU_CHANNEL")
 }

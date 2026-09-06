@@ -93,7 +93,7 @@ func usage() {
 	fmt.Print(`Usage: ryoku <command>
 
   update         apply channel commits (or pacman -Syu), redeploy, reload
-  track <chan>   packaged box: stable, testing, or a release tag (pins it); checkout: main or unstable-dev
+  track <chan>   packages: stable|testing|unstable-dev|main|v<tag>; add --source to build from a checkout
   rollback       list releases and snapshots; --to <tag> puts the Ryoku set back on that release
   rollback [id]  guide restoring snapshot <id> from the boot menu
   snapshots      list snapper snapshots

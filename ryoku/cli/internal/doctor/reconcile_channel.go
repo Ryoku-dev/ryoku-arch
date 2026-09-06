@@ -29,7 +29,7 @@ func reconcileUpdateChannel(checkOnly bool) recResult {
 	head, _ := sys.RunOut("git", "-C", repo, "symbolic-ref", "--short", "--quiet", "HEAD")
 	head = strings.TrimSpace(head)
 	if head == ch {
-		return okRes("update-channel checkout is on " + ch)
+		return okRes("updates come from the source checkout on %q; `ryoku track %s` moves this box onto packages", ch, ch)
 	}
 	if checkOnly {
 		return wouldRes("the update checkout %s is on %q but the tracked channel is %q; `ryoku update` measures against the wrong branch", repo, head, ch).
@@ -74,7 +74,11 @@ func reconcileRepoPointer(checkOnly bool) recResult {
 		recorded = strings.TrimSpace(string(b))
 	}
 	track := filepath.Join(sys.Home(), "ryoku-arch")
-	if !isRyokuArchTree(recorded) && isRyokuArchTree(track) {
+	// Only adopt ~/ryoku-arch for a box that still opts into source tracking (a
+	// recorded RYOKU_CHANNEL). A box migrated onto packages carries no tracked
+	// channel and left its clone on disk deliberately; re-adopting it would undo
+	// the migration.
+	if sys.TrackedChannel() != "" && !isRyokuArchTree(recorded) && isRyokuArchTree(track) {
 		if checkOnly {
 			what := "missing"
 			if recorded != "" {

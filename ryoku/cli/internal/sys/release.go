@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -163,13 +165,37 @@ func SetPackagedChannel(channel string) error {
 // transaction on "invalid or corrupted database (PGP signature)"; dropping it
 // lets the next -Sy pull a matched pair. Callers refresh afterwards.
 func DropRyokuSyncDB() error {
-	return Sudo("rm", "-f", "/var/lib/pacman/sync/ryoku.db", "/var/lib/pacman/sync/ryoku.db.sig",
-		"/var/lib/pacman/sync/ryoku.files", "/var/lib/pacman/sync/ryoku.files.sig")
+	names := []string{"ryoku.db", "ryoku.db.sig", "ryoku.files", "ryoku.files.sig"}
+	paths := make([]string, len(names))
+	for i, n := range names {
+		paths[i] = filepath.Join(PacmanSyncDir, n)
+	}
+	// Remove directly when we own the sync dir (a test fixture under a temp dir);
+	// the real root-owned /var/lib/pacman/sync falls back to sudo.
+	if writableDir(PacmanSyncDir) {
+		for _, p := range paths {
+			if err := os.Remove(p); err != nil && !os.IsNotExist(err) {
+				return err
+			}
+		}
+		return nil
+	}
+	return Sudo(append([]string{"rm", "-f"}, paths...)...)
 }
 
-// WriteRootFile writes contents to a root-owned path through a temp file and
-// sudo install, so the target is replaced whole with the given mode.
+// PacmanSyncDir holds pacman's cached sync dbs; a var so tests point it at a
+// fixture and DropRyokuSyncDB never removes the real one.
+var PacmanSyncDir = "/var/lib/pacman/sync"
+
+// WriteRootFile replaces path whole with contents at the given mode. A target
+// whose directory we can write (a user-owned file, a test fixture under a temp
+// dir) is written in place; only a root-owned path like /etc falls back to
+// sudo install. The in-place path keeps writers hermetic under a temp
+// PacmanConf and never shells out to sudo in a unit test.
 func WriteRootFile(path, contents, mode string) error {
+	if writableDir(filepath.Dir(path)) {
+		return writeFileAtomic(path, contents, fileMode(mode))
+	}
 	tmp, err := os.CreateTemp("", "ryoku-root-*")
 	if err != nil {
 		return err
@@ -183,6 +209,57 @@ func WriteRootFile(path, contents, mode string) error {
 		return err
 	}
 	return Run("sudo", "install", "-D", "-m", mode, "-o", "root", "-g", "root", tmp.Name(), path)
+}
+
+// writableDir reports whether the current process can create a file in dir (a
+// user-owned config dir or a test temp dir); a root-owned dir like /etc returns
+// false so the caller escalates.
+func writableDir(dir string) bool {
+	f, err := os.CreateTemp(dir, ".ryoku-probe-*")
+	if err != nil {
+		return false
+	}
+	name := f.Name()
+	f.Close()
+	_ = os.Remove(name)
+	return true
+}
+
+// writeFileAtomic writes contents to path via a temp file in the same directory
+// and an atomic rename, so a reader never sees a half-written file.
+func writeFileAtomic(path, contents string, mode os.FileMode) error {
+	tmp, err := os.CreateTemp(filepath.Dir(path), ".ryoku-tmp-*")
+	if err != nil {
+		return err
+	}
+	name := tmp.Name()
+	if _, err := tmp.WriteString(contents); err != nil {
+		tmp.Close()
+		_ = os.Remove(name)
+		return err
+	}
+	if err := tmp.Close(); err != nil {
+		_ = os.Remove(name)
+		return err
+	}
+	if err := os.Chmod(name, mode); err != nil {
+		_ = os.Remove(name)
+		return err
+	}
+	if err := os.Rename(name, path); err != nil {
+		_ = os.Remove(name)
+		return err
+	}
+	return nil
+}
+
+// fileMode parses an octal mode string ("0644") for the in-place writer,
+// defaulting to 0644 for anything unparseable.
+func fileMode(mode string) os.FileMode {
+	if m, err := strconv.ParseUint(mode, 8, 32); err == nil {
+		return os.FileMode(m)
+	}
+	return 0o644
 }
 
 // Release is /etc/ryoku-release: the named state a packaged box runs, written

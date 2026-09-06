@@ -10,6 +10,21 @@
   rail carrying Home, the way the capture and depth checks already did, and the
   three now share one append helper
   (`internal/doctor/reconcile_parallax_module.go`, `reconcile_depth_module.go`).
+- **`ryoku track unstable-dev` means testing packages, `ryoku track main` means
+  stable.** A branch name now selects a package channel: `unstable-dev` is the
+  `testing` channel (rebuilt on every push to `unstable-dev`, delivered as signed
+  packages through `ryoku update`), `main` is `stable` (named releases); both are
+  aliases for `ryoku track testing | stable`, and `stable | testing | v<tag>`
+  still work. A box whose updates come from a source checkout is migrated onto
+  packages by the switch: the recorded repo pointer and the `RYOKU_CHANNEL` line
+  in `environment.d`/`hypr/user.lua` are dropped (the `~/ryoku-arch` clone stays
+  on disk but no longer drives updates), `ryoku-desktop` is installed from the
+  channel when absent, and `ryoku status`/`version`/`doctor` then report the
+  packaged channel (`testing`) instead of the stale `unstable-dev`. Building from
+  a checkout is now explicit: `ryoku track <main|unstable-dev> --source`
+  (`track.go`, `internal/updater/release.go`, `internal/updater/channel.go`,
+  `internal/sys/repo.go`, `internal/sys/release.go`,
+  `internal/doctor/reconcile_channel.go`, `bin/ryoku-track`).
 - **ghostty's config is the user's, and an existing one is migrated.** Materialize
   seeds `ghostty/config` (user-owned, overlay-able through `user_edits`) and
   `ghostty/ryoku-colors` (matugen-owned, so the overlay never re-lays a frozen
