@@ -22,7 +22,7 @@
 # ryomotion, the source is a pinned git commit: bump _commit (and pkgrel, or
 # pkgver when src-tauri/tauri.conf.json's version moves) to ship a new build.
 pkgname=ryotunes
-pkgver=2.5.0
+pkgver=2.5.1
 pkgrel=1
 install=ryotunes.install
 pkgdesc="Ryotunes: the Ryoku music app (YouTube Music client with native playback)"
@@ -47,7 +47,7 @@ replaces=("${_legacy[@]}")
 # Rust already strips with the release profile; the debug split has nothing.
 options=('!lto' '!debug')
 source=("ryotunes-$pkgver.tar.gz::https://github.com/neur0map/ryotunes/releases/download/v$pkgver/ryotunes-$pkgver.tar.gz")
-sha256sums=('e65ee5ecf9871be95de41370c5bce9473678c6a2965529c769fb2557f0d98bcd')
+sha256sums=('6348be9c853050dd532ecc4ba4f0cd1ff8c5b466c409e31239844ad924faf411')
 
 build() {
   cd "$srcdir/$pkgname-$pkgver/ui"

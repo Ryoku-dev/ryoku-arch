@@ -13,6 +13,7 @@
   the other plugin packages.
 
 ### Changed
+- **`ryotunes` 2.5.1-1 tracks neur0map/ryotunes v2.5.1.** The heart saves without an account. Liking a track when there is no YouTube Music session (or on a SoundCloud/local track) lands it in a device-local Liked...
 - **`ryotunes` 2.5.0-1 tracks neur0map/ryotunes v2.5.0.** The package now follows
   Ryotunes' GitHub releases (a sha256-pinned source tarball) instead of a hand-pinned
   commit: `.github/workflows/ryotunes-release.yml` bumps it on every upstream release
