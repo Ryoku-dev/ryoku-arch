@@ -30,6 +30,11 @@ Item {
     property bool loadFailed: false
     property string pendingSlug: ""   // "" idle, else the slug being applied
     property string error: ""
+    // "none installed" is a valid empty result; loadFailed is a read failure.
+    // Kept apart so the page shows a Store nudge for the first and a retry for
+    // the second, never one message that blames the user for a backend that
+    // couldn't answer.
+    readonly property bool emptyInstalled: !pg.loading && !pg.loadFailed && pg.skins.length === 0
 
     // the in-session lock preview script; running it locks the screen with the
     // named skin so the user sees the real thing (an action, not a pane).
@@ -593,10 +598,26 @@ Item {
     Process {
         id: listProc
         command: ["ryoku-hub", "lock", "list"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    const response = JSON.parse(this.text || "{}");
+        stdout: StdioCollector { id: listOut }
+        stderr: StdioCollector { id: listErr }
+        // A non-zero exit (ryoku-hub missing from the Hub's PATH, a crash), a
+        // backend that reports a read error, or unparsable output is a listing
+        // FAILURE, kept distinct from a valid empty list so the page never says
+        // "nothing installed" when it simply couldn't ask. StdioCollector waits
+        // for stream end, so the collected text is complete in onExited.
+        onExited: code => {
+            if (code !== 0) {
+                pg.skins = [];
+                pg.loadFailed = true;
+                pg.loading = false;
+                return;
+            }
+            try {
+                const response = JSON.parse(listOut.text || "{}");
+                if (response.error) {
+                    pg.skins = [];
+                    pg.loadFailed = true;
+                } else {
                     pg.skins = (response.skins || []).map((skin, index) => ({
                         slug: skin.slug,
                         name: skin.name || skin.slug,
@@ -611,12 +632,12 @@ Item {
                     }));
                     pg.active = response.active || "";
                     pg.loadFailed = false;
-                } catch (e) {
-                    pg.skins = [];
-                    pg.loadFailed = true;
                 }
-                pg.loading = false;
+            } catch (e) {
+                pg.skins = [];
+                pg.loadFailed = true;
             }
+            pg.loading = false;
         }
     }
     Process {
@@ -1019,10 +1040,12 @@ Item {
         glyph: "column"; glyph2: "wave"
     }
 
-    // ── loading / empty-or-failed state ─────────────────────────────────────
+    // ── loading / none-installed / read-failure state ───────────────────────
+    // Three outcomes share one centred column: a spinner while loading, a Store
+    // nudge when the list came back empty, and a retry when it couldn't be read.
     Column {
         anchors.centerIn: parent
-        visible: pg.loading || pg.loadFailed
+        visible: pg.loading || pg.loadFailed || pg.emptyInstalled
         spacing: Tokens.s3
         width: Math.min(pg.width - Tokens.s6 * 2, 420)
 
@@ -1036,7 +1059,7 @@ Item {
         }
         Glyph {
             anchors.horizontalCenter: parent.horizontalCenter
-            visible: pg.loadFailed
+            visible: pg.loadFailed || pg.emptyInstalled
             path: pg.pLock; size: 44; tint: Tokens.inkFaint
         }
         Text {
@@ -1044,7 +1067,15 @@ Item {
             visible: pg.loadFailed
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
-            text: I18n.tr("No lock skins found. Install qylock to add some.")
+            text: I18n.tr("Couldn't read the lock skins list. Try again.")
+            color: Tokens.inkDim; font.family: Tokens.ui; font.pixelSize: Tokens.fBody
+        }
+        Text {
+            width: parent.width
+            visible: pg.emptyInstalled
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
+            text: I18n.tr("No lock skins installed yet. Get some from Ryoku Store.")
             color: Tokens.inkDim; font.family: Tokens.ui; font.pixelSize: Tokens.fBody
         }
         Btn {
@@ -1053,12 +1084,18 @@ Item {
             text: I18n.tr("TRY AGAIN")
             onAct: pg.reload()
         }
+        Btn {
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: pg.emptyInstalled
+            text: I18n.tr("BROWSE STORE")
+            onAct: pg.browseStore()
+        }
     }
 
     // ── no-matches state (a search that filtered everything out) ────────────
     Text {
         anchors.centerIn: parent
-        visible: !pg.loading && !pg.loadFailed && pg.shown.length === 0 && pg.query.trim() !== ""
+        visible: !pg.loading && !pg.loadFailed && pg.shown.length === 0 && pg.query.trim() !== "" && pg.skins.length > 0
         text: I18n.tr("No skins match your search.")
         color: Tokens.inkMuted; font.family: Tokens.ui; font.pixelSize: Tokens.fBody
     }

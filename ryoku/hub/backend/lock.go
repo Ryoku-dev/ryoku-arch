@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -41,6 +42,10 @@ type LockSkin struct {
 type LockResponse struct {
 	Active string     `json:"active"`
 	Skins  []LockSkin `json:"skins"`
+	// Error is non-empty when the skins list could not be read (e.g. the themes
+	// dir exists but can't be scanned). It lets the page tell "couldn't read the
+	// list" from "nothing installed" instead of showing one message for both.
+	Error string `json:"error,omitempty"`
 }
 
 // lockCurated: hand-written copy for the skins Ryoku ships. anything not in
@@ -98,7 +103,7 @@ func runLock(args []string) error {
 }
 
 func listLockSkins() LockResponse {
-	return listLockSkinsIn(qylockThemesDir(), readLockPref(qylockThemePref()))
+	return listLockSkinsIn(qylockThemesDir(), readLockPref(qylockThemePref()), lockReceiptsDir())
 }
 
 // readLockPref: active slug (trimmed). missing file -> "".
@@ -110,11 +115,30 @@ func readLockPref(path string) string {
 	return strings.TrimSpace(string(b))
 }
 
-// listLockSkinsIn: scan dir, mark whichever slug matches active. split out
-// from listLockSkins so a temp tree can drive it from tests.
-func listLockSkinsIn(dir, active string) LockResponse {
-	skins := []LockSkin{}
-	for _, slug := range scanLockSlugs(dir) {
+// listLockSkinsIn scans dir for installed skins, unions in any store product the
+// folder scan missed but whose receipt in receiptsDir points at a Main.qml that
+// is present, marks whichever slug matches active, and reports a read failure so
+// the page can tell "couldn't read the list" from "nothing installed". Split out
+// from listLockSkins so a temp tree (and an empty receiptsDir) can drive it from
+// tests.
+func listLockSkinsIn(dir, active, receiptsDir string) LockResponse {
+	slugs, scanErr := scanLockSlugs(dir)
+	seen := make(map[string]bool, len(slugs))
+	for _, slug := range slugs {
+		seen[slug] = true
+	}
+	// Second source: store receipts. The scan's folder heuristic can miss a
+	// receipt-owned tree (installed as/under a symlink, or nested deeper than it
+	// walks); the receipt is the authoritative record that the product is
+	// installed, so union it in when its Main.qml is actually on disk.
+	for _, slug := range receiptLockSlugs(dir, receiptsDir) {
+		if !seen[slug] {
+			seen[slug] = true
+			slugs = append(slugs, slug)
+		}
+	}
+	skins := make([]LockSkin, 0, len(slugs))
+	for _, slug := range slugs {
 		s := lockSkinFor(dir, slug)
 		s.Active = slug == active
 		skins = append(skins, s)
@@ -125,30 +149,136 @@ func listLockSkinsIn(dir, active string) LockResponse {
 		}
 		return skins[i].Name < skins[j].Name
 	})
-	return LockResponse{Active: active, Skins: skins}
+	resp := LockResponse{Active: active, Skins: skins}
+	if scanErr != nil {
+		resp.Error = scanErr.Error()
+	}
+	return resp
 }
 
-// scanLockSlugs walks two levels deep (theme, theme/variant) for any folder
-// that has a Main.qml, returning the slug (path under dir).
-func scanLockSlugs(dir string) []string {
+// scanLockSlugs walks two levels deep (theme, theme/variant) for any folder that
+// has a Main.qml, returning the slug (path under dir). A theme installed as a
+// symlink to a directory is followed like a real folder: os.ReadDir yields a
+// symlink entry whose IsDir() is false, so without this it would be dropped. A
+// non-nil error means dir itself could not be read for a reason other than "does
+// not exist"; the caller surfaces that as a listing failure, not an empty tree.
+func scanLockSlugs(dir string) ([]string, error) {
+	tops, err := os.ReadDir(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
 	var slugs []string
-	tops, _ := os.ReadDir(dir)
 	for _, t := range tops {
-		if !t.IsDir() {
+		if !entryIsDir(dir, t) {
 			continue
 		}
-		if fileExists(filepath.Join(dir, t.Name(), "Main.qml")) {
+		top := filepath.Join(dir, t.Name())
+		if fileExists(filepath.Join(top, "Main.qml")) {
 			slugs = append(slugs, t.Name())
 			continue
 		}
-		subs, _ := os.ReadDir(filepath.Join(dir, t.Name()))
+		subs, _ := os.ReadDir(top)
 		for _, s := range subs {
-			if s.IsDir() && fileExists(filepath.Join(dir, t.Name(), s.Name(), "Main.qml")) {
+			if entryIsDir(top, s) && fileExists(filepath.Join(top, s.Name(), "Main.qml")) {
 				slugs = append(slugs, t.Name()+"/"+s.Name())
 			}
 		}
 	}
+	return slugs, nil
+}
+
+// entryIsDir reports whether e in parent is a directory, following a symlink to
+// its target. os.ReadDir returns a symlinked dir with IsDir()==false, so a theme
+// dir that is a symlink (or lives under one) would be skipped without this.
+func entryIsDir(parent string, e os.DirEntry) bool {
+	if e.IsDir() {
+		return true
+	}
+	if e.Type()&os.ModeSymlink == 0 {
+		return false
+	}
+	info, err := os.Stat(filepath.Join(parent, e.Name()))
+	return err == nil && info.IsDir()
+}
+
+// lockReceiptsDir: where RyoStore records installed lockscreen products, one
+// JSON receipt per product. Resolved from the Hub's XDG_STATE_HOME, matching the
+// store's storeStateDir() (stateHome/ryoku/store/<category>).
+func lockReceiptsDir() string {
+	return filepath.Join(xdgHome("XDG_STATE_HOME", ".local/state"), "ryoku", "store", "lockscreens")
+}
+
+// lockReceipt is the slice of a RyoStore receipt the Hub needs to locate an
+// installed lockscreen: the destination under the data dir and the files laid
+// down, so the one that is Main.qml pins the slug.
+type lockReceipt struct {
+	Destination string `json:"destination"`
+	Files       []struct {
+		Destination string `json:"destination"`
+	} `json:"files"`
+}
+
+// receiptLockSlugs reads the store's lockscreen receipts under receiptsDir and
+// returns, for each whose Main.qml is present under dir, the slug lock.sh
+// resolves (the directory holding Main.qml, relative to the themes dir). A
+// receipt is proof the product was installed; unioning it with the folder scan
+// keeps a receipt-owned skin listed even when the scan's heuristic misses it, as
+// long as its files are still on disk where the Hub can read them.
+func receiptLockSlugs(dir, receiptsDir string) []string {
+	if receiptsDir == "" {
+		return nil
+	}
+	entries, err := os.ReadDir(receiptsDir)
+	if err != nil {
+		return nil
+	}
+	var slugs []string
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".json") {
+			continue
+		}
+		slug := receiptLockSlug(filepath.Join(receiptsDir, e.Name()))
+		if slug != "" && fileExists(filepath.Join(dir, filepath.FromSlash(slug), "Main.qml")) {
+			slugs = append(slugs, slug)
+		}
+	}
 	return slugs
+}
+
+// receiptLockSlug turns one receipt file into the slug of the skin it installed,
+// or "" if it is not a themes-dir lockscreen. The slug is the directory holding
+// Main.qml, taken relative to <data>/qylock/themes.
+func receiptLockSlug(receiptPath string) string {
+	b, err := os.ReadFile(receiptPath)
+	if err != nil {
+		return ""
+	}
+	var r lockReceipt
+	if err := json.Unmarshal(b, &r); err != nil {
+		return ""
+	}
+	const prefix = "qylock/themes/"
+	base := filepath.ToSlash(r.Destination)
+	if !strings.HasPrefix(base, prefix) {
+		return ""
+	}
+	base = strings.TrimPrefix(base, prefix)
+	if base == "" {
+		return ""
+	}
+	for _, f := range r.Files {
+		d := filepath.ToSlash(f.Destination)
+		if d == "Main.qml" {
+			return base
+		}
+		if sub, ok := strings.CutSuffix(d, "/Main.qml"); ok {
+			return base + "/" + sub
+		}
+	}
+	return base
 }
 
 func lockSkinFor(dir, slug string) LockSkin {

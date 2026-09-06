@@ -40,6 +40,18 @@
   off (a reload only unloads what it loaded itself). See `docs/hyprland-plugins.md`.
 
 ### Fixed
+- **Store lock skins show in Settings again, and a read failure says so.**
+  Settings > Lockscreen listed skins by walking `~/.local/share/qylock/themes`
+  two levels deep for a `Main.qml`, but `os.ReadDir` reports a symlinked theme
+  dir with `IsDir()` false, so a skin installed as (or under) a symlink was
+  dropped and vanished though its files were on disk. The scan now follows a
+  symlinked directory, and `ryoku-hub lock list` unions in a second source: the
+  RyoStore receipts under `~/.local/state/ryoku/store/lockscreens/*.json`, so a
+  receipt-owned product the folder heuristic misses still lists as long as its
+  `Main.qml` is present. A themes dir that exists but cannot be read now returns
+  an `error`, and the page tells "Couldn't read the lock skins list" (retry)
+  apart from "No lock skins installed yet" (browse the Store), instead of one
+  message for both (`backend/lock.go`, `pages/LockscreenPage.qml`).
 - **Plugin settings apply on Save, and preview live.** `hl.plugin.load()` only
   declares a path; Hyprland loads the declared set after the config pass and
   reloads once more, and the old `if hl.plugin.<name> ~= nil` guard was only
