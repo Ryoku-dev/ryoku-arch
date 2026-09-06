@@ -65,10 +65,12 @@ model Ryoku already has.
 **The stable path, not the palette.** Ryoku renders straight into each app's
 final destination. That has two costs:
 
-- Two templates own the app's *whole* config, not a colour fragment:
-  `cava -> ~/.config/cava/config` and `ghostty -> ~/.config/ghostty/config`
-  (`ryoku/shell/matugen/apps.toml`). A user's own settings in either file are
-  overwritten on the next wallpaper change.
+- `cava -> ~/.config/cava/config` (`ryoku/shell/matugen/apps.toml`) still renders
+  the app's *whole* config, not a colour fragment, so a user's own cava settings
+  are overwritten on the next wallpaper change -- cava has no include directive to
+  split the palette out. ghostty took that split: matugen writes only the palette
+  to `~/.config/ghostty/ryoku-colors`, and the shipped `config` pulls it in with
+  `config-file = ryoku-colors`, so the user's `~/.config/ghostty/config` stands.
 - A theme has no single location. There is nothing to point at, export, or
   install -- which is exactly why a third-party theme folder cannot be supported
   today.

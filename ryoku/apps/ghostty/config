@@ -1,0 +1,12 @@
+# Your ghostty config. Ryoku seeds this once and never overwrites it, so
+# anything you add here survives updates.
+#
+# ghostty applies config-file includes after this file's own keys, so the
+# palette below lands on top of any colour set here; put colour overrides in
+# user.conf, which loads last and wins.
+
+# theme palette, written by matugen next to this file
+config-file = ryoku-colors
+
+# your overrides; never shipped, loads last. ? = optional, no error if absent
+config-file = ?user.conf

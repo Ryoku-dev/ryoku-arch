@@ -3,6 +3,16 @@
 ## Unreleased
 
 ### Changed
+- **ghostty's config is the user's, and an existing one is migrated.** Materialize
+  seeds `ghostty/config` (user-owned, overlay-able through `user_edits`) and
+  `ghostty/ryoku-colors` (matugen-owned, so the overlay never re-lays a frozen
+  copy), and the new `ghostty theme include` check converts a box that predates
+  the split: a config that is nothing but the old generated palette becomes the
+  include wrapper with its colours preserved, a config with the user's own
+  settings keeps every byte and only gains the include, and once that migration
+  has run a removed include is treated as the user's choice and never re-added
+  (`internal/doctor/reconcile_ghostty.go`, `internal/updater/materialize.go`,
+  `internal/sys/useredits.go`).
 - **`ryoku doctor` never puts back an app you deleted.** The applications Ryoku
   ships left `ryoku-desktop`'s depends (pacman rebuilt them on every upgrade), so
   the doctor now owns their delivery: `shipped app packages` installs an app the

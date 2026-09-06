@@ -415,6 +415,10 @@ EOF
   install -Dm644 "$_repo/ryoku/apps/yazi/yazi.toml"         "$cfg/yazi/yazi.toml"
   install -d "$cfg/kitty"
   cp -a "$_repo/ryoku/apps/kitty/." "$cfg/kitty/"
+  # ghostty: config is the user's (materialize seeds it once, never clobbers);
+  # matugen owns ryoku-colors, which the config includes for the palette.
+  install -d "$cfg/ghostty"
+  cp -a "$_repo/ryoku/apps/ghostty/." "$cfg/ghostty/"
 
   # neovim (LazyVim seed): the config only, not the repo docs.
   install -Dm644 "$_repo/ryoku/apps/nvim/init.lua"       "$cfg/nvim/init.lua"

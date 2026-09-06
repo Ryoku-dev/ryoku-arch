@@ -30,9 +30,10 @@ var ryokuDropIn = regexp.MustCompile(`^[0-9]+-ryoku-[^/]*\.conf$`)
 // (keyboard.lua; hypr/user.lua, seeded with a header so a hand-edit sticks;
 // fastfetch/config.jsonc, which has no include mechanism, so direct edits
 // are the only way to customize the readout).
-// Slash-separated paths, relative to the config base. Every entry here is also
-// in sys.LiveOwnedConfig: a seed is edited in place, so the user_edits overlay
-// must never re-lay a frozen copy over it.
+// Slash-separated paths, relative to the config base. Most are also in
+// sys.LiveOwnedConfig so the overlay never re-lays a frozen copy over a file
+// edited in place; ghostty/config is the exception -- it is a seed the user may
+// instead fork through the overlay, so it stays overlay-able (not live-owned).
 var generatedSeed = map[string]bool{
 	"hypr/monitors.lua":        true,
 	"hypr/gpu.lua":             true,
@@ -40,6 +41,8 @@ var generatedSeed = map[string]bool{
 	"hypr/user.lua":            true,
 	"fastfetch/config.jsonc":   true,
 	"kitty/current-theme.conf": true,
+	"ghostty/config":           true,
+	"ghostty/ryoku-colors":     true,
 }
 
 // Materialize lays the Ryoku-owned base configs into the user's ~/.config,

@@ -146,6 +146,7 @@ func reconcilers() []reconciler {
 		{"retired system sidebar", reconcileLegacySystemSidebar},
 		{"stash features sidebar anchor", reconcileStashSidebar},
 		{"shipped app packages", reconcileShippedApps},
+		{"ghostty theme include", reconcileGhostty},
 		{"obsidian palette snippet", reconcileObsidianSnippet},
 		{"flatpak app channel", reconcileFlatpakRemote},
 		{"browser theme host", reconcileBrowserTheme},

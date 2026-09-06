@@ -50,9 +50,12 @@ output_path = "~/.steam/steam/steamui/skins/Material-Theme/css/main/colors/matug
 input_path = "~/.config/matugen/templates/cava.ini"
 output_path = "~/.config/cava/config"
 
+# ghostty/config is the user's own file; matugen writes only the palette to a
+# sibling the config includes (`config-file = ryoku-colors`), so a retint never
+# clobbers it -- the same split kitty uses with current-theme.conf.
 [templates.ghostty]
 input_path = "~/.config/matugen/templates/ghostty.conf"
-output_path = "~/.config/ghostty/config"
+output_path = "~/.config/ghostty/ryoku-colors"
 
 [templates.micro]
 input_path = "~/.config/matugen/templates/micro.micro"

@@ -9,6 +9,16 @@
   (`ipc/music.go`).
 
 ### Fixed
+- **A retint no longer wipes your ghostty config.** `matugen/apps.toml` rendered
+  the palette straight onto `~/.config/ghostty/config`, ghostty's own config
+  file, so every wallpaper change, theme switch and update overwrote whatever
+  the user had put there (and overwrote a `user_edits/ghostty/config` fork right
+  after materialize laid it down, which is why the documented workaround did not
+  work either). matugen now writes only the palette, to
+  `~/.config/ghostty/ryoku-colors`, and the shipped `config` pulls it in with
+  `config-file = ryoku-colors` plus an optional `user.conf` for overrides: the
+  same split kitty has always used (`matugen/apps.toml`,
+  `matugen/templates/ghostty.conf`, `apps/ghostty/`, `deploy.sh`).
 - **The power profile you pick is remembered again.** Two defects sent every
   session back to performance. Game mode's own `powerprofilesctl set
   performance` looked exactly like a user pick, so it was written to
