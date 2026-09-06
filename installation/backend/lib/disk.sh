@@ -521,15 +521,20 @@ ryoku_max_partnum() {
 # trusting parted here: dirty NTFS makes it lie, and archinstall crashes on the
 # same disks (KPMcore reads the table with sfdisk for exactly this reason). start
 # aligns UP to 1 MiB, end DOWN, in the disk's real sector size (512 and 4096 both
-# correct). sfdisk's lastlba already excludes the backup GPT, so a gap never eats it.
+# correct). sfdisk emits firstlba/lastlba only for GPT (lastlba already excludes
+# the backup GPT); a dos/MBR table has neither, so fall back to 1 MiB in and the
+# whole-disk last sector, else free space on an MBR data disk is never listed.
 ryoku_free_regions() {
-  local disk=$1 json
+  local disk=$1 json ss first last
   json=$(sfdisk --json "$disk" 2>/dev/null) || return 0
   [[ -n $json ]] || return 0
-  printf '%s\n' "$json" | jq -r '
-    .partitiontable |
-    "meta \(.sectorsize) \(.firstlba) \(.lastlba)",
-    (.partitions[]? | "part \(.start) \(.size)")
+  read -r ss first last < <(printf '%s' "$json" | jq -r \
+    '.partitiontable | "\(.sectorsize // 512) \(.firstlba // "-") \(.lastlba // "-")"')
+  [[ $first == - ]] && first=$(( 1048576 / ss ))                                   # dos: 1 MiB in
+  [[ $last == - ]] && last=$(( $(blockdev --getsize64 "$disk" 2>/dev/null || echo 0) / ss - 1 ))
+  printf '%s\n' "$json" | jq -r --arg ss "$ss" --arg first "$first" --arg last "$last" '
+    "meta \($ss) \($first) \($last)",
+    (.partitiontable.partitions[]? | "part \(.start) \(.size)")
   ' | awk '
     function emit(gs, ge,   as, ae, mib) {
       as = int((gs + spm - 1) / spm) * spm         # align start up to 1 MiB
@@ -770,22 +775,26 @@ ryoku_any_shrinkable() {
 #   esp <device>                    selected existing ESP
 #   region <start> <end> <mib>      zero or more, largest first
 #   leftover <dev> <label> <mib>    zero or more, VERIFIED failed-run debris only
-#   verdict ok|none|no-gpt|no-esp|error
+#   verdict ok|none|no-gpt|no-esp|error|create-esp
 #   message <text>                  present on every non-ok verdict
 # lines are ADDED, never reordered, so the TUI's keyword parser stays stable.
-# verdict is ok whenever a usable ESP exists and there is somewhere to put us:
-# a free region or a shrinkable partition.
+# sectorsize + region are reported for ANY readable disk (even non-GPT/ESP-less)
+# so a prepared secondary disk isn't shown as blank; the verdict still gates it.
+# ok = a usable existing ESP + a free region or shrinkable partition. create-esp =
+# GPT, free space, but no ESP: Ryoku makes a dedicated one in the free space.
 ryoku_probe_alongside() {
-  local disk=$1 pttype ss regions espinfo esp esp_kind esp_boot shrinkable=no
+  local disk=$1 pttype ss regions espinfo esp esp_kind esp_boot shrinkable=no esp_found=no readable=no
   [[ -b $disk ]] || { printf 'verdict error\nmessage %s is not a block device\n' "$disk"; return 0; }
   pttype=$(blkid -o value -s PTTYPE "$disk" 2>/dev/null || true)
-  if [[ $pttype != gpt ]]; then
-    printf 'verdict no-gpt\nmessage %s has a '\''%s'\'' partition table; alongside needs GPT. Use whole-disk, or convert to GPT.\n' "$disk" "${pttype:-none}"
-    return 0
-  fi
   ss=$(blockdev --getss "$disk" 2>/dev/null || echo 512)
   printf 'sectorsize %s\n' "$ss"
-  if espinfo=$(ryoku_esp_scan "$disk"); then
+  # Report free space for every readable disk before the gate below, so a prepared
+  # secondary disk isn't blank; the verdict (unchanged) still keeps it non-target.
+  sfdisk --json "$disk" >/dev/null 2>&1 && readable=yes
+  [[ $readable == yes ]] && regions=$(ryoku_free_regions "$disk" | sort -k3,3 -nr)
+  # esp_scan reads via lsblk+mount, so it holds even when sfdisk can't parse.
+  if [[ $pttype == gpt ]] && espinfo=$(ryoku_esp_scan "$disk"); then
+    esp_found=yes
     read -r esp esp_kind esp_boot <<<"$espinfo"
     printf 'esp_kind %s\n' "$esp_kind"
     [[ $esp_boot == - ]] && esp_boot=none
@@ -793,18 +802,31 @@ ryoku_probe_alongside() {
     printf 'esp %s\n' "$esp"
     printf 'esp_count %s\n' "$(sgdisk -p "$disk" 2>/dev/null | awk '$6=="EF00"' | wc -l | tr -d ' ')"
     printf 'esp_free_kib %s\n' "$(ryoku_esp_free_kib "$esp")"
-  else
-    printf 'verdict no-esp\nmessage no usable EFI System Partition (EF00) found on %s; alongside needs one to identify the existing OS. Use whole-disk, or create an ESP first.\n' "$disk"
+  fi
+  [[ -n $regions ]] && printf '%s\n' "$regions" | while read -r s e m; do printf 'region %s %s %s\n' "$s" "$e" "$m"; done
+  # Leftovers are matched by partlabel, so they are found with or without an ESP:
+  # a create-esp disk can carry debris from a failed run too.
+  [[ $readable == yes ]] && ryoku_emit_leftovers "$disk"
+  # Verdict gate. alongside runs on a GPT disk with somewhere to place us and an
+  # ESP: an existing one to share/identify, or -- on a disk with free space but no
+  # ESP of its own -- a dedicated one Ryoku creates in that free space (verdict
+  # create-esp; nothing existing is touched). Size sufficiency is gated downstream.
+  if [[ $pttype != gpt ]]; then
+    printf 'verdict no-gpt\nmessage %s has a '\''%s'\'' partition table; alongside needs GPT, so its free space is listed but cannot be used as an install target here. Use whole-disk, or convert this disk to GPT.\n' "$disk" "${pttype:-none}"
     return 0
   fi
-  # a table sfdisk can't read is NOT a free-space problem: say so.
-  if ! sfdisk --json "$disk" >/dev/null 2>&1; then
+  if [[ $readable != yes ]]; then
     printf 'verdict error\nmessage could not read the partition table on %s (sfdisk failed); the disk may be unreadable or lack a usable GPT. This is not a free-space problem.\n' "$disk"
     return 0
   fi
-  regions=$(ryoku_free_regions "$disk" | sort -k3,3 -nr)
-  [[ -n $regions ]] && printf '%s\n' "$regions" | while read -r s e m; do printf 'region %s %s %s\n' "$s" "$e" "$m"; done
-  ryoku_emit_leftovers "$disk"
+  if [[ $esp_found != yes ]]; then
+    if [[ -n $regions ]]; then
+      printf 'verdict create-esp\nmessage no existing EFI System Partition on %s; Ryoku will create a dedicated 2 GiB ESP plus its root in the free space and leave the existing partitions untouched.\n' "$disk"
+    else
+      printf 'verdict no-esp\nmessage no EFI System Partition on %s and no free space to create one; free space by shrinking a partition, or use whole-disk.\n' "$disk"
+    fi
+    return 0
+  fi
   [[ -z $regions ]] && ryoku_any_shrinkable "$disk" && shrinkable=yes
   if [[ -n $regions || $shrinkable == yes ]]; then
     printf 'verdict ok\n'

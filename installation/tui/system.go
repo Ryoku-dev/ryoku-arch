@@ -409,40 +409,8 @@ func sysDiskLayout(disk string) diskLayout {
 	if pt, ok := run("blkid", "-o", "value", "-s", "PTTYPE", disk); ok {
 		dl.gpt = strings.TrimSpace(pt) == "gpt"
 	}
-	out, ok := run("lsblk", "-pnbo", "NAME,TYPE,SIZE,FSTYPE,PARTTYPE,PARTLABEL", "-P", disk)
-	if ok {
-		for _, line := range strings.Split(out, "\n") {
-			line = strings.TrimSpace(line)
-			if line == "" {
-				continue
-			}
-			r := map[string]string{}
-			for _, tok := range splitPairs(line) {
-				if eq := strings.IndexByte(tok, '='); eq >= 0 {
-					r[tok[:eq]] = unescapeLsblk(strings.Trim(tok[eq+1:], "\""))
-				}
-			}
-			if r["TYPE"] != "part" {
-				continue
-			}
-			sizeB, _ := strconv.ParseInt(r["SIZE"], 10, 64)
-			gib := int((sizeB + (1 << 29)) / (1 << 30)) // round to nearest GiB
-			fs := strings.ToLower(r["FSTYPE"])
-			if fs == "bitlocker" {
-				dl.bitlocker = true // locked NTFS: booting Windows via Ryoku will demand the recovery key
-			}
-			p := part{size: gib, fs: fs, mount: "-", flags: "-", status: "keep"}
-			switch {
-			case strings.EqualFold(r["PARTTYPE"], espTypeGUID):
-				p.dev, p.fs, p.mount, p.flags = "EFI System", "fat32", "-", "esp"
-			case fs == "ntfs":
-				p.dev, p.mount = winLabel(r["PARTLABEL"]), "Windows"
-				dl.windows = true
-			default:
-				p.dev = partLabel(r["PARTLABEL"], fs)
-			}
-			dl.parts = append(dl.parts, p)
-		}
+	if out, ok := run("lsblk", "-pnbo", "NAME,TYPE,SIZE,FSTYPE,PARTTYPE,PARTLABEL", "-P", disk); ok {
+		dl.parts, dl.windows, dl.bitlocker = parseDiskParts(out)
 	}
 	pr := probeAlongside(disk)
 	dl.freeG, dl.regionStart, dl.regionEnd = pr.freeG, pr.regionStart, pr.regionEnd
@@ -450,6 +418,46 @@ func sysDiskLayout(disk string) diskLayout {
 	dl.espKind, dl.existingBoot, dl.leftovers = pr.espKind, pr.existingBoot, pr.leftovers
 	dl.espCount, dl.espFreeKiB = pr.espCount, pr.espFreeKiB
 	return dl
+}
+
+// parseDiskParts parses `lsblk -pnbo NAME,TYPE,SIZE,FSTYPE,PARTTYPE,PARTLABEL -P`
+// into a disk's partition list. Every `part` row is listed regardless of table
+// type or filesystem, so an MBR disk or an unformatted partition never reads as
+// blank. windows/bitlocker report a present NTFS / locked-NTFS volume.
+func parseDiskParts(out string) (parts []part, windows, bitlocker bool) {
+	for _, line := range strings.Split(out, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		r := map[string]string{}
+		for _, tok := range splitPairs(line) {
+			if eq := strings.IndexByte(tok, '='); eq >= 0 {
+				r[tok[:eq]] = unescapeLsblk(strings.Trim(tok[eq+1:], "\""))
+			}
+		}
+		if r["TYPE"] != "part" {
+			continue
+		}
+		sizeB, _ := strconv.ParseInt(r["SIZE"], 10, 64)
+		gib := int((sizeB + (1 << 29)) / (1 << 30)) // round to nearest GiB
+		fs := strings.ToLower(r["FSTYPE"])
+		if fs == "bitlocker" {
+			bitlocker = true // locked NTFS: booting Windows via Ryoku will demand the recovery key
+		}
+		p := part{size: gib, fs: fs, mount: "-", flags: "-", status: "keep"}
+		switch {
+		case strings.EqualFold(r["PARTTYPE"], espTypeGUID):
+			p.dev, p.fs, p.mount, p.flags = "EFI System", "fat32", "-", "esp"
+		case fs == "ntfs":
+			p.dev, p.mount = winLabel(r["PARTLABEL"]), "Windows"
+			windows = true
+		default:
+			p.dev = partLabel(r["PARTLABEL"], fs)
+		}
+		parts = append(parts, p)
+	}
+	return parts, windows, bitlocker
 }
 
 func winLabel(lbl string) string {

@@ -607,9 +607,14 @@ func diskStrategiesFor(dl diskLayout) []item {
 	}
 	whole := item{"whole", "Erase whole disk", "wipe & auto-layout"}
 	var along item
-	if dl.windows {
+	switch {
+	case dl.probeVerdict == "create-esp":
+		// GPT disk with free space but no ESP of its own (e.g. a second data disk):
+		// Ryoku makes its own ESP in the free space instead of sending the user to fdisk.
+		along = item{"alongside", "Install in the free space", "create a new EFI partition + root · keep existing data"}
+	case dl.windows:
 		along = item{"alongside", "Install alongside Windows", "keep Windows · use free space"}
-	} else {
+	default:
 		along = item{"alongside", "Install alongside (keep existing OS)", "shrink a partition · use free space"}
 	}
 	// A hard blocker (no ESP, no GPT) is shown inline on the dimmed option instead
@@ -1653,6 +1658,9 @@ func (m model) needsEraseAck() bool {
 func (m model) espMode() string {
 	if m.picks["disk"] != "alongside" {
 		return "auto"
+	}
+	if m.probeVerdict == "create-esp" {
+		return "dedicated" // no existing ESP; Ryoku creates its own in the free space
 	}
 	if m.espFreeKiB < 0 {
 		return "auto"
@@ -3037,7 +3045,11 @@ func (m model) reviewBody(w int) string {
 	case "whole":
 		stratCell = bold(cRed, "ERASE whole disk")
 	case "alongside":
-		stratCell = fg(cGreen, "alongside (keep existing OS)")
+		if m.probeVerdict == "create-esp" {
+			stratCell = fg(cGreen, "install into free space (new ESP)")
+		} else {
+			stratCell = fg(cGreen, "alongside (keep existing OS)")
+		}
 	default:
 		stratCell = bold(cRed, "unset (refused)")
 	}
@@ -3057,7 +3069,11 @@ func (m model) reviewBody(w int) string {
 	if len(m.kept) > 0 {
 		lines = append(lines, fg(cSub, "kept       ")+fg(cYell, fmt.Sprintf("%d existing partition(s)", len(m.kept))))
 	}
-	if strat == "alongside" {
+	if strat == "alongside" && m.probeVerdict == "create-esp" {
+		// No existing ESP: Ryoku creates its own in the free space (dedicated mode).
+		lines = append(lines,
+			fg(cSub, "boot       ")+fg(cText, "new 2 GiB EFI partition + root created in the free space; existing partitions are untouched"))
+	} else if strat == "alongside" {
 		existing := map[string]string{"windows": "Windows", "ryoku": "Ryoku", "linux": "Linux"}[m.espKind]
 		if existing == "" {
 			existing = "existing OS"

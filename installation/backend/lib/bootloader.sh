@@ -432,6 +432,7 @@ ryoku_dedicated_existing_entry() {
   esp=${RYOKU_PF_ESP:-}
   kind=${RYOKU_PF_ESP_KIND:-}
   boot=${RYOKU_PF_ESP_BOOT:--}
+  [[ $kind == none ]] && return 0   # create-esp: no existing OS to chainload
   [[ -n $esp && -n $kind ]] \
     || die "dedicated bootloader: preflight did not preserve the existing ESP metadata."
   [[ $kind != windows ]] || return 0

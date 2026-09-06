@@ -96,9 +96,9 @@ ryoku_resolve_esp_mode() {
   esac
 }
 
-# Alongside needs a GPT disk and an existing ESP so the current OS can be
-# discovered for the boot menu. Shared mode also requires 8 MiB free there;
-# dedicated mode leaves it untouched and boots from Ryoku's own ESP.
+# Alongside needs a GPT disk and an ESP: an existing one to identify the current
+# OS (shared mode also needs 8 MiB free there), or -- in dedicated mode -- one
+# Ryoku creates in the free space, so a disk with no ESP of its own still works.
 ryoku_require_existing_esp() {
   local disk=$RYOKU_DISK pttype ef_count espinfo esp kind boot avail_kib=0
   pttype=$(blkid -o value -s PTTYPE "$disk" 2>/dev/null || true)
@@ -107,7 +107,17 @@ ryoku_require_existing_esp() {
   # Scan every ESP to identify the existing system. Windows is preferred for
   # chainload metadata, but dedicated mode never writes the selected ESP.
   ef_count=$(sgdisk -p "$disk" 2>/dev/null | awk '$6=="EF00"' | wc -l)
-  espinfo=$(ryoku_esp_scan "$disk") || die "no usable EFI System Partition on $disk to identify the existing OS. Use whole-disk, or create an ESP first."
+  if ! espinfo=$(ryoku_esp_scan "$disk"); then
+    # No existing ESP. dedicated mode creates its own in the free space, so there
+    # is nothing to identify or share; any other mode still needs one to boot.
+    [[ ${RYOKU_ESP_MODE:-auto} == dedicated ]] \
+      || die "no usable EFI System Partition on $disk to identify the existing OS. Use whole-disk, or create an ESP first."
+    RYOKU_RESOLVED_ESP_MODE=dedicated
+    RYOKU_PF_ESP=""; RYOKU_PF_ESP_KIND=none; RYOKU_PF_ESP_BOOT=none
+    export RYOKU_RESOLVED_ESP_MODE RYOKU_PF_ESP RYOKU_PF_ESP_KIND RYOKU_PF_ESP_BOOT
+    log "alongside boot mode: dedicated Ryoku ESP created in free space (no existing ESP on $disk)"
+    return 0
+  fi
   read -r esp kind boot <<<"$espinfo"
 
   avail_kib=$(ryoku_esp_free_kib "$esp")

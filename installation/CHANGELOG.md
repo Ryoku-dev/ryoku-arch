@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Fixed
+- **A second disk shows its partitions and its free space.** The alongside probe
+  returned before reporting anything when the target disk was not GPT or had no
+  EFI System Partition, and the free-region math read `firstlba`/`lastlba`, which
+  `sfdisk --json` emits only for GPT. A prepared data disk therefore looked empty
+  in the installer and "Erase whole disk" was the only committable strategy. Every
+  readable disk now reports its sector size and free regions before the verdict
+  gate, MBR free space is computed from the device size, and a non-GPT disk says
+  its space is listed but needs GPT (`backend/lib/disk.sh`, `tui/system.go`).
+
+### Added
+- **Install into the free space on a disk that has no ESP.** A GPT disk with free
+  space but no EFI System Partition of its own (a second, OS-less drive) now gets
+  the `create-esp` verdict: the installer offers "Install in the free space",
+  creates a dedicated 2 GiB ESP plus root inside the free region, and leaves every
+  existing partition byte-identical. Non-destructive, so it needs no ERASE
+  acknowledgement, and the review screen states exactly what will be created
+  (`backend/lib/disk.sh`, `backend/lib/preflight.sh`, `backend/lib/bootloader.sh`,
+  `tui/main.go`).
+
 ### Changed
 - **ISOs are named for their release and variant.** A release build produces
   `ryoku-<date>-r<run>-<sha>-x86_64-v0.57.0-beta.19.iso` and, for CachyOS,
