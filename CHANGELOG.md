@@ -57,6 +57,8 @@ for finer detail.
   example.
 
 ### Fixed
+- The visualizer now accounts for hitbox rotation when determining its placement
+  area and allows deliberate edge overhang through the `overhang` property.
 - The overview's new-workspace controls now allocate workspace ids globally, so
   clicking `+` or `NEW` on a secondary monitor creates the workspace on that
   monitor instead of jumping to an existing workspace on another output.

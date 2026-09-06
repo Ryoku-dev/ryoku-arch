@@ -61,20 +61,22 @@ PanelWindow {
             } else if (win.gesture === "move") {
                 done = Math.abs(win.tx - Config.x) < eps && Math.abs(win.ty - Config.y) < eps;
                 if (done)
-                    Config.moveBox(win.tx, win.ty);
+                    Config.moveBox(win.tx, win.ty, win.width / win.height);
                 else
                     Config.moveBox(Config.x + (win.tx - Config.x) * k,
-                                   Config.y + (win.ty - Config.y) * k);
+                                   Config.y + (win.ty - Config.y) * k,
+                                   win.width / win.height);
             } else {
                 done = Math.abs(win.tx - Config.x) < eps && Math.abs(win.ty - Config.y) < eps
                     && Math.abs(win.tw - Config.w) < eps && Math.abs(win.th - Config.h) < eps;
                 if (done)
-                    Config.setBox(win.tx, win.ty, win.tw, win.th);
+                    Config.setBox(win.tx, win.ty, win.tw, win.th, win.width / win.height);
                 else
                     Config.setBox(Config.x + (win.tx - Config.x) * k,
                                   Config.y + (win.ty - Config.y) * k,
                                   Config.w + (win.tw - Config.w) * k,
-                                  Config.h + (win.th - Config.h) * k);
+                                  Config.h + (win.th - Config.h) * k,
+                                  win.width / win.height);
             }
             // Over only once the hand is off and the box has caught up.
             if (done && grab.mode === "")
@@ -215,7 +217,7 @@ PanelWindow {
         }
         onWheel: (w) => {
             var k = w.angleDelta.y > 0 ? 1.06 : 0.94;
-            Config.sizeBox(Config.w * k, Config.h * k);
+            Config.sizeBox(Config.w * k, Config.h * k, win.width / win.height);
         }
         Keys.onEscapePressed: {
             if (editBar.trayOpen)

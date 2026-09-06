@@ -180,30 +180,60 @@ Singleton {
         file.writeAdapter();
     }
 
-    // The box is a fraction of the screen, and it stays inside it: a look that
-    // overhangs an edge is simply cut off there (the placer used to allow a
-    // quarter of the box past the edge, and a drag or a wheel resize that
-    // stopped over the edge left the spectrum clipped on every login). Size is
-    // clamped first, then the position to what the size leaves.
-    function fitBox(nx, ny, nw, nh) {
+    // How much of the box's own turned footprint is allowed to hang past a
+    // screen edge, an aesthetic choice the box can be left sitting in (not just
+    // a mid-drag overshoot that snaps back): 0 keeps the whole look on screen,
+    // 0.5 would let it hang out to its own centre. Proportional to the box's
+    // footprint rather than a flat screen fraction, so a small look doesn't lose
+    // a bigger share of itself than a large one does.
+    readonly property real overhang: 0.5
+
+    // The box is a fraction of the screen, and a look can be left hanging
+    // `overhang` of its own turned footprint past an edge, on purpose - past
+    // that, it is clamped back (the placer used to allow a flat quarter-screen
+    // past any edge regardless of the box's own size, and a drag or a wheel
+    // resize that stopped past the limit left the spectrum clipped further than
+    // intended, saved that way on every login). Size is clamped first, then the
+    // position to what the size and the overhang allowance leave.
+    //
+    // A turned box's own footprint is bigger than its unrotated w/h (the same
+    // axis-aligned bounding box SpectrumField.qml works out for coverRect), so
+    // clamping position against the raw w/h left a turned look free to swing an
+    // arc it never actually needed and still short of the edge it visually
+    // reached. `angleDeg` and `aspect` (screenWidth / screenHeight, since width
+    // and height are fractions of different physical scales on anything but a
+    // square screen) fold that footprint into the same clamp. Callers that omit
+    // them keep the old unrotated, square-screen behaviour.
+    function fitBox(nx, ny, nw, nh, angleDeg, aspect) {
         var w = Math.max(0.04, Math.min(1, nw));
         var h = Math.max(0.03, Math.min(1, nh));
-        return { x: Math.max(0, Math.min(1 - w, nx)), y: Math.max(0, Math.min(1 - h, ny)), w: w, h: h };
+        var a = ((angleDeg || 0) % 180) * Math.PI / 180;
+        var ar = (aspect && aspect > 0) ? aspect : 1;
+        var c = Math.abs(Math.cos(a)), s = Math.abs(Math.sin(a));
+        // The turned box's own bounding box, back in fraction space.
+        var bw = Math.min(1, w * c + h * s / ar);
+        var bh = Math.min(1, w * s * ar + h * c);
+        var oh = Math.max(0, Math.min(0.5, root.overhang));
+        var minCx = bw * (0.5 - oh), maxCx = 1 - minCx;
+        var minCy = bh * (0.5 - oh), maxCy = 1 - minCy;
+        var cx = Math.max(minCx, Math.min(maxCx, nx + w / 2));
+        var cy = Math.max(minCy, Math.min(maxCy, ny + h / 2));
+        return { x: cx - w / 2, y: cy - h / 2, w: w, h: h };
     }
 
     // Placement from the desktop: the properties move with the pointer so the
     // look follows the drag frame by frame, written once the gesture settles.
-    function moveBox(nx, ny) {
-        var b = root.fitBox(nx, ny, root.w, root.h);
+    function moveBox(nx, ny, aspect) {
+        var b = root.fitBox(nx, ny, root.w, root.h, root.angle, aspect);
         root.poke("x", b.x);
         root.poke("y", b.y);
     }
-    function sizeBox(nw, nh) {
-        root.setBox(root.x, root.y, nw, nh);
+    function sizeBox(nw, nh, aspect) {
+        root.setBox(root.x, root.y, nw, nh, aspect);
     }
     // Size and position land together, or a turned box swings between two writes.
-    function setBox(nx, ny, nw, nh) {
-        var b = root.fitBox(nx, ny, nw, nh);
+    function setBox(nx, ny, nw, nh, aspect) {
+        var b = root.fitBox(nx, ny, nw, nh, root.angle, aspect);
         if (root.active <= 0) {
             adapter.w = b.w;
             adapter.h = b.h;
@@ -388,9 +418,14 @@ Singleton {
 
     // A box saved while overhang was still allowed (or by hand) is folded back
     // inside the screen once, primary and extras alike; true when one moved.
+    // Best-effort aspect from whatever screen is up first; a stored box off by
+    // a turn on a differently-shaped monitor still lands closer than ignoring
+    // the turn entirely, and a live drag re-fits against the real screen anyway.
     function fitStored() {
         var moved = false;
-        var b = root.fitBox(adapter.x, adapter.y, adapter.w, adapter.h);
+        var scr = Quickshell.screens.length > 0 ? Quickshell.screens[0] : null;
+        var aspect = (scr && scr.height > 0) ? scr.width / scr.height : 1;
+        var b = root.fitBox(adapter.x, adapter.y, adapter.w, adapter.h, adapter.angle, aspect);
         if (b.x !== adapter.x || b.y !== adapter.y || b.w !== adapter.w || b.h !== adapter.h) {
             adapter.x = b.x; adapter.y = b.y; adapter.w = b.w; adapter.h = b.h;
             moved = true;
@@ -398,7 +433,8 @@ Singleton {
         var arr = (adapter.extras || []).slice();
         for (var i = 0; i < arr.length; i++) {
             var e = arr[i] || {};
-            var f = root.fitBox(Number(e.x) || 0, Number(e.y) || 0, Number(e.w) || 1, Number(e.h) || 0.42);
+            var f = root.fitBox(Number(e.x) || 0, Number(e.y) || 0, Number(e.w) || 1, Number(e.h) || 0.42,
+                                Number(e.angle) || 0, aspect);
             if (f.x !== e.x || f.y !== e.y || f.w !== e.w || f.h !== e.h) {
                 arr[i] = Object.assign({}, e, f);
                 moved = true;
