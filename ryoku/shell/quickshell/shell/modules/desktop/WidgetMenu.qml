@@ -7,7 +7,7 @@ import Ryoku.Ui.Singletons
 // shadowed this menu's own, leaving every widget toggle reading undefined.
 import shell.services as Services
 import "../visualizer/Singletons" as VizCfg
-import "../depth/Singletons" as DepthCfg
+import "../stage/Singletons" as StageCfg
 
 // The desktop right-click menu, built on the shared DesktopMenu chrome in the
 // quick-settings sidebar idiom. Two scopes:
@@ -129,6 +129,32 @@ Item {
         Config.set("musicVideo", d[(d.indexOf(Config.musicVideo) + 1) % d.length]);
     }
 
+    // Stage: place a widget in front of or behind the subject by moving its
+    // token past the subject layer in the current wall's scene (docs/stage.md).
+    readonly property bool stageActive: StageCfg.StageBackend.isActiveFor(StageCfg.StageBackend.current)
+    function isWidgetFront(id) {
+        const scene = StageCfg.StageBackend.effectiveSceneFor(StageCfg.StageBackend.current);
+        const si = scene.indexOf("layer:1");
+        const wi = scene.indexOf("widget:" + id);
+        return wi >= 0 && si >= 0 && wi > si;
+    }
+    function setWidgetFront(id, front) {
+        const scene = StageCfg.StageBackend.effectiveSceneFor(StageCfg.StageBackend.current).slice();
+        const tok = "widget:" + id;
+        const wi = scene.indexOf(tok);
+        if (wi >= 0) scene.splice(wi, 1);
+        const si = scene.indexOf("layer:1");
+        if (si < 0) scene.push(tok);
+        else if (front) scene.splice(si + 1, 0, tok);
+        else scene.splice(si, 0, tok);
+        StageCfg.StageBackend.setScene(scene);
+    }
+    function editStage() {
+        const st = Services.ShellState.forActive();
+        if (st) st.stageComposing = true;
+        menu.close();
+    }
+
     DesktopMenu {
         id: shell
         title: menu.scope
@@ -202,6 +228,11 @@ Item {
                     st.visualizerPlacing = true;
             }
         }
+        MenuRow {
+            visible: !menu.isWidget && menu.stageActive
+            label: I18n.tr("Edit stage")
+            onTriggered: menu.editStage()
+        }
 
         // ── widget scope ───────────────────────────────────────────────
         MenuRow {
@@ -266,12 +297,20 @@ Item {
             onTriggered: Config.toggle(menu.scope + "Locked")
         }
         MenuRow {
-            visible: menu.isWidget && DepthCfg.Config.enabled
-            label: I18n.tr("In front of subject")
-            value: DepthCfg.Config.isFront(menu.scope) ? "On" : "Off"
-            on: DepthCfg.Config.isFront(menu.scope)
+            visible: menu.isWidget && menu.stageActive
+            label: I18n.tr("In front of the subject")
+            value: menu.isWidgetFront(menu.scope) ? "On" : "Off"
+            on: menu.isWidgetFront(menu.scope)
             closeOnTrigger: false
-            onTriggered: DepthCfg.Config.toggleFront(menu.scope)
+            onTriggered: menu.setWidgetFront(menu.scope, true)
+        }
+        MenuRow {
+            visible: menu.isWidget && menu.stageActive
+            label: I18n.tr("Behind the subject")
+            value: !menu.isWidgetFront(menu.scope) ? "On" : "Off"
+            on: !menu.isWidgetFront(menu.scope)
+            closeOnTrigger: false
+            onTriggered: menu.setWidgetFront(menu.scope, false)
         }
 
         // Size + Opacity: discoverable equivalents of the corner-drag resize and

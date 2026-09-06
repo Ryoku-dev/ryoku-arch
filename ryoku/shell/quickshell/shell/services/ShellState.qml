@@ -123,10 +123,10 @@ Singleton {
             // overlay is what the user chose.
             property bool visualizerPlacing: false
 
-            // Depth "compose" mode on this monitor: shows the wallpaper cutout at
-            // full strength and raises the depth bar while the clock is dragged
-            // into the subject's negative space (docs/depth.md).
-            property bool depthComposing: false
+            // Stage "compose" mode on this monitor: frees the widgets for
+            // dragging so they can be arranged in front of or behind the
+            // subject, and raises the Stage compose bar (docs/stage.md).
+            property bool stageComposing: false
 
             // A place for the on-screen-display and notification surfaces to
             // signal activity when they migrate (Phase 5).

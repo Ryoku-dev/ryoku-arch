@@ -6,9 +6,11 @@ import Quickshell.Wayland
 import Quickshell.Io
 import "Singletons"
 
-// The parallax backdrop surface at WlrLayer.Background: recoloured
-// background + drift. The layer bands render inside the desktop surface
-// so the scene order interleaves them with the widgets.
+// The parallax backdrop surface at WlrLayer.Background: the recoloured
+// background plus the base wallpaper, both drifting with the cursor
+// (docs/stage.md). Only the Parallax effect uses it; Subject-in-front has no
+// backdrop surface. The layer bands render inside the desktop surface so the
+// scene order can interleave them with the widgets. Click-through (empty mask).
 Item {
     id: root
 
@@ -19,7 +21,7 @@ Item {
     property string videoUrl: ""
     property bool wallpaperLive: false
 
-    readonly property bool owns: Config.enabled && Config.wallActiveForPath(root.wallpaperPath)
+    readonly property bool owns: StageBackend.isParallaxFor(root.wallpaperPath)
         && root.videoUrl === "" && !root.wallpaperLive
 
     property real cursorNX: 0
@@ -27,7 +29,7 @@ Item {
 
     readonly property bool shown: root.owns && root.wallpaperUrl !== ""
 
-    property real _baseMax: Math.min(root.width * 0.04 * Config.mouseRange, root.width * 0.04)
+    readonly property real _baseMax: Math.min(root.width * 0.04 * Config.mouseRange, root.width * 0.04)
     function baseOffsetX() {
         if (!Config.mouseEnabled) return 0;
         return root.cursorNX * root._baseMax * Config.wallpaperParallax * Config.mouseSensitivity;
@@ -55,7 +57,7 @@ Item {
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.layer: WlrLayer.Background
-        WlrLayershell.namespace: "ryoku-parallax"
+        WlrLayershell.namespace: "ryoku-stage"
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
         mask: emptyRegion
@@ -90,7 +92,7 @@ Item {
             Image {
                 id: bg
                 anchors.fill: parent
-                source: Config.backgroundUrlForPath(root.wallpaperPath)
+                source: StageBackend.backgroundUrlFor(root.wallpaperPath)
                 cache: false
                 asynchronous: true
                 fillMode: root.fillModeFor(bg)
@@ -98,7 +100,7 @@ Item {
                 sourceSize.height: height
                 scale: 1.1
                 z: -1
-                visible: status === Image.Ready && Config.backgroundUrlForPath(root.wallpaperPath) !== ""
+                visible: status === Image.Ready && StageBackend.backgroundUrlFor(root.wallpaperPath) !== ""
                 transform: Translate {
                     x: root.baseOffsetX()
                     y: root.baseOffsetY()
@@ -106,10 +108,12 @@ Item {
                     Behavior on y { SmoothedAnimation { velocity: 320; duration: 70 } }
                 }
             }
-
         }
     }
 
+    // Parallax needs the global cursor, which Quickshell does not surface without
+    // a poll; the value is smoothed and shared per-monitor so the bands in the
+    // desktop surface drift in lockstep with this backdrop.
     Timer {
         id: cursorTick
         interval: 40
@@ -134,14 +138,11 @@ Item {
                 const cx = parseFloat(parts[0]);
                 const cy = parseFloat(parts[1]);
                 if (isNaN(cx) || isNaN(cy)) return;
-                const mx = (cx - m.x) / m.width * 2 - 1;
-                const my = (cy - m.y) / m.height * 2 - 1;
-                const nx = Math.max(-1, Math.min(1, mx));
-                const ny = Math.max(-1, Math.min(1, my));
-                // Smoothed so the irregular poll timing never jitters.
+                const nx = Math.max(-1, Math.min(1, (cx - m.x) / m.width * 2 - 1));
+                const ny = Math.max(-1, Math.min(1, (cy - m.y) / m.height * 2 - 1));
                 root.cursorNX = root.cursorNX + (nx - root.cursorNX) * 0.55;
                 root.cursorNY = root.cursorNY + (ny - root.cursorNY) * 0.55;
-                Config.setCursor(root.screen.name, root.cursorNX, root.cursorNY);
+                StageBackend.setCursor(m.name, root.cursorNX, root.cursorNY);
             }
         }
     }

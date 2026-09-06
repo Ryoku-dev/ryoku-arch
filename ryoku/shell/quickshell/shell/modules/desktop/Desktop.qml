@@ -13,10 +13,8 @@ import "weather"
 import "notes"
 import Ryoku.PluginKit
 import shell.services as Services
-import "../depth"
-import "../depth/Singletons" as DepthCfg
-import "../parallax"
-import "../parallax/Singletons" as ParallaxCfg
+import "../stage"
+import "../stage/Singletons" as StageCfg
 import "../visualizer"
 import "../visualizer/Singletons" as VizCfg
 import "../wallpaper" as WallpaperMod
@@ -37,7 +35,6 @@ Scope {
     property string wallpaperUrl: ""
     property string wallpaperPath: ""
     property string wallpaperFit: "Cover"
-    property string depthUrl: ""
     property var wallpaperTransition: null
     property string videoUrl: ""
     // The in-shell clip's audio, threaded from the wallpaper bridge to the
@@ -47,29 +44,25 @@ Scope {
     // The ryogami-live yield flag (default "ryogami" engine): hide the painter
     // while the C player owns the background layer.
     property bool wallpaperLive: false
-    Binding {
-        target: ParallaxCfg.Config
-        property: "activePath"
-        value: root.wallpaperPath
-    }
 
-    // The parallax background surface (modules/parallax/ParallaxBackground.qml)
-    // owns the screen's backdrop while its layers are cut for this wallpaper.
-    readonly property bool parallaxOwns: ParallaxCfg.Config.enabled
-        && ParallaxCfg.Config.wallActiveForPath(root.wallpaperPath)
+    // The Stage parallax backdrop (modules/stage/StageBackground.qml) owns the
+    // screen's backdrop while this wallpaper's layers are cut (docs/stage.md).
+    readonly property bool stageParallaxOwns: StageCfg.StageBackend.isParallaxFor(root.wallpaperPath)
         && root.videoUrl === "" && !root.wallpaperLive
     function widgetZ(id) {
-        if (ParallaxCfg.Config.enabled && ParallaxCfg.Config.wallActiveForPath(root.wallpaperPath))
-            return ParallaxCfg.Config.widgetZForPath(root.wallpaperPath, id);
-        return DepthCfg.Config.isFront(id) ? 1 : 0;
+        if (StageCfg.StageBackend.isParallaxFor(root.wallpaperPath))
+            return StageCfg.StageBackend.widgetZFor(root.wallpaperPath, id);
+        if (StageCfg.StageBackend.isSubjectFor(root.wallpaperPath))
+            return StageCfg.Config.isFront(id) ? 1 : 0;
+        return 0;
     }
-    readonly property var depthState: Services.ShellState.forScreen(root.screen)
-    // compose mode frees every widget for dragging (like visualiser placement),
-    // so a locked clock can still be nestled into the subject; Done restores it.
-    readonly property bool depthComposing: root.depthState ? root.depthState.depthComposing : false
-    // grab the keyboard while composing so Esc/Enter exit the mode (the bar owns
+    readonly property var stageState: Services.ShellState.forScreen(root.screen)
+    // Compose mode frees every widget for dragging (like visualiser placement),
+    // so a locked clock can still be nestled against the subject; Done restores it.
+    readonly property bool stageComposing: root.stageState ? root.stageState.stageComposing : false
+    // Grab the keyboard while composing so Esc/Enter exit the mode (the bar owns
     // the keys); dropping it hands the keyboard back like any widget edit.
-    onDepthComposingChanged: win.kbWanted += root.depthComposing ? 1 : -1
+    onStageComposingChanged: win.kbWanted += root.stageComposing ? 1 : -1
     readonly property bool reloadReady: readiness.ready
 
     ReloadReadiness {
@@ -211,7 +204,7 @@ Scope {
             anchors.fill: parent
             // cava-bg model: while the parallax surface owns the background
             // layer, this window only carries widgets and chrome.
-            visible: !root.parallaxOwns
+            visible: !root.stageParallaxOwns
             readonly property real screenDpr: (root.screen && root.screen.devicePixelRatio) ? root.screen.devicePixelRatio : 1
             dpr: screenDpr
             // Keep the still decoded while a video plays: the frame path is
@@ -294,7 +287,7 @@ Scope {
             anchor: Config.clockAnchor
             freeX: Config.clockX
             freeY: Config.clockY
-            locked: Config.clockLocked && !root.depthComposing
+            locked: Config.clockLocked && !root.stageComposing
             bg: Config.clockBg
             radius: Config.clockRadius
             scaleCfg: Config.clockScale
@@ -312,7 +305,7 @@ Scope {
             anchor: Config.calendarAnchor
             freeX: Config.calendarX
             freeY: Config.calendarY
-            locked: Config.calendarLocked && !root.depthComposing
+            locked: Config.calendarLocked && !root.stageComposing
             bg: "none"
             scaleCfg: Config.calendarScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -338,7 +331,7 @@ Scope {
             anchor: Config.musicAnchor
             freeX: Config.musicX
             freeY: Config.musicY
-            locked: Config.musicLocked && !root.depthComposing
+            locked: Config.musicLocked && !root.stageComposing
             bg: "none"
             scaleCfg: Config.musicScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -367,7 +360,7 @@ Scope {
             anchor: Config.aioAnchor
             freeX: Config.aioX
             freeY: Config.aioY
-            locked: Config.aioLocked && !root.depthComposing
+            locked: Config.aioLocked && !root.stageComposing
             bg: "none"
             scaleCfg: Config.aioScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -387,7 +380,7 @@ Scope {
             anchor: Config.statsAnchor
             freeX: Config.statsX
             freeY: Config.statsY
-            locked: Config.statsLocked && !root.depthComposing
+            locked: Config.statsLocked && !root.stageComposing
             bg: "none"
             scaleCfg: Config.statsScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -406,7 +399,7 @@ Scope {
             anchor: Config.weatherAnchor
             freeX: Config.weatherX
             freeY: Config.weatherY
-            locked: Config.weatherLocked && !root.depthComposing
+            locked: Config.weatherLocked && !root.stageComposing
             bg: "none"
             scaleCfg: Config.weatherScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -426,7 +419,7 @@ Scope {
             anchor: Config.notesAnchor
             freeX: Config.notesX
             freeY: Config.notesY
-            locked: Config.notesLocked && !root.depthComposing
+            locked: Config.notesLocked && !root.stageComposing
             bg: "none"
             scaleCfg: Config.notesScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -467,7 +460,7 @@ Scope {
 
                 pluginId: slot.pid
                 visible: root.reloadReady
-                locked: (slot.dw.locked === true) && !root.depthComposing
+                locked: (slot.dw.locked === true) && !root.stageComposing
                 scaleCfg: slot.dw.scale || 0.85
                 freeX: slot.dw.x !== undefined ? slot.dw.x : 80
                 freeY: slot.dw.y !== undefined ? slot.dw.y : 80
@@ -528,44 +521,51 @@ Scope {
                 }
             }
         }
-        // Bands live here so the scene order interleaves them with the
-        // widgets; the drift follows the cursor the background polls.
-            Repeater {
-                id: parallaxBands
-                // Gate on parallaxOwns so a video or live wallpaper that owns
-                // the surface never renders stray bands over it.
-                model: root.parallaxOwns ? ParallaxCfg.Config.layersForPath(root.wallpaperPath).length : 0
-                delegate: ParallaxBand {
-                    required property int index
-                    anchors.fill: parent
-                    layerIndex: index + 1
-                    wallPath: root.wallpaperPath
-                    url: ParallaxCfg.Config.layerUrlForPath(root.wallpaperPath, index + 1)
-                    fit: root.wallpaperFit
-                    z: ParallaxCfg.Config.sceneZForPath(root.wallpaperPath, "layer:" + (index + 1))
-                    mouseNX: ParallaxCfg.Config.cursorNXFor(root.screen.name)
-                    mouseNY: ParallaxCfg.Config.cursorNYFor(root.screen.name)
-                    energy: VizCfg.Spectrum.energy
-                }
+        // Stage parallax bands live here so the scene order interleaves them
+        // with the widgets; the drift follows the cursor the backdrop polls.
+        Repeater {
+            id: stageBands
+            // Gate on stageParallaxOwns so a video or live wallpaper that owns
+            // the surface never renders stray bands over it.
+            model: root.stageParallaxOwns ? StageCfg.StageBackend.layerCountFor(root.wallpaperPath) : 0
+            delegate: StageLayer {
+                required property int index
+                anchors.fill: parent
+                layerIndex: index + 1
+                wallPath: root.wallpaperPath
+                url: StageCfg.StageBackend.layerUrlFor(root.wallpaperPath, index)
+                fit: root.wallpaperFit
+                z: StageCfg.StageBackend.sceneZFor(root.wallpaperPath, "layer:" + (index + 1))
+                mouseNX: StageCfg.StageBackend.cursorNXFor(root.screen.name)
+                mouseNY: StageCfg.StageBackend.cursorNYFor(root.screen.name)
+                energy: VizCfg.Spectrum.energy
+                motionEnabled: true
             }
+        }
 
         Item {
             id: inlineViz
             anchors.fill: parent
-            z: ParallaxCfg.Config.sceneZForPath(root.wallpaperPath, "visualizer")
-            visible: root.parallaxOwns && VizCfg.Config.enabled
+            z: StageCfg.StageBackend.sceneZFor(root.wallpaperPath, "visualizer")
+            visible: root.stageParallaxOwns && VizCfg.Config.enabled
             InlineVisualizer {
                 anchors.fill: parent
             }
         }
 
-        // the wallpaper's subject, drawn in front of the widgets: above the
-        // slots (declared later), below the menus and the photo viewer.
-        DepthForeground {
-            anchors.fill: parent
-            url: root.depthUrl
+        // The Subject-in-front effect: one still StageLayer above the widgets
+        // (declared here so non-front widgets fall behind it and front ones rise
+        // above). The same StageLayer renderer, motion off -- no separate depth
+        // renderer (docs/stage.md). Only in subject mode; parallax draws the
+        // subject as one of its interleaved bands above.
+        StageLayer {
+            visible: StageCfg.StageBackend.isSubjectFor(root.wallpaperPath)
+                && StageCfg.StageBackend.layerEnabled(root.wallpaperPath, 0)
+            layerIndex: 1
+            wallPath: root.wallpaperPath
+            url: StageCfg.StageBackend.layerUrlFor(root.wallpaperPath, 0)
             fit: root.wallpaperFit
-            composing: root.depthState ? root.depthState.depthComposing : false
+            motionEnabled: false
         }
 
         WidgetMenu { id: menu }
@@ -672,13 +672,13 @@ Scope {
                 }
             }
         }
-        // the depth composing toolbar; the clock is placed with the ordinary
-        // widget drag while this carries the few depth knobs.
-        DepthEditBar {
+        // The Stage compose toolbar; widgets are placed with the ordinary drag,
+        // so this only names the gesture and carries Done (docs/stage.md).
+        StageComposeBar {
             z: 101
-            visible: root.depthState ? root.depthState.depthComposing : false
-            onDone: if (root.depthState)
-                root.depthState.depthComposing = false
+            visible: root.stageState ? root.stageState.stageComposing : false
+            onDone: if (root.stageState)
+                root.stageState.stageComposing = false
         }
 
         // position/scale writeback for plugin tiles. ryoku-plugins-place

@@ -1,18 +1,50 @@
 #!/usr/bin/env bash
-# Standalone parallax cutout engine (docs/parallax.md): `cutout` produces the
-# subject's alpha-matted PNG and `inpaint` recolours the cutout's hole with
-# the surrounding colour, so a drifted subject reveals the backdrop instead
-# of its own ghost. Own venv and model cache; no dependency on ryoku-depth.
+# ryostage: the desktop's cut-out engine (docs/stage.md), shared by the
+# Subject-in-front and Parallax effects. `cut` writes the wallpaper's subject as
+# an alpha-matted PNG, `inpaint` fills the hole it leaves with the surrounding
+# colour so a drifting subject reveals the backdrop and not its own ghost.
+# The runtime is opt-in: `install` provisions one venv on first enable, so
+# nothing ML ships in the base image.
+#
+# Third-party runtime, fetched on first enable, removable with `remove`.
+# Weights carry their own licence, separate from rembg's:
+#   rembg[cpu]            MIT            https://github.com/danielgatis/rembg
+#   onnxruntime (via it)  MIT            https://github.com/microsoft/onnxruntime
+#   u2netp                Apache-2.0*    https://github.com/xuebinqin/U-2-Net
+#   birefnet-general-lite MIT            https://github.com/ZhengPeng7/BiRefNet
+# * the upstream repo states no licence; the mirrored weights rembg fetches are
+#   published Apache-2.0.
 set -euo pipefail
 
-state="${XDG_STATE_HOME:-$HOME/.local/state}/ryoku/parallax"
+# One venv and one model cache for both effects. A pre-split tree from the old
+# ryoku-depth or ryoku-parallax-engine is adopted by rename (same filesystem,
+# no re-download); a leftover second tree is the doctor's to reclaim.
+xdg_state="${XDG_STATE_HOME:-$HOME/.local/state}"
+state="$xdg_state/ryoku/ryostage"
+if [[ ! -x "$state/venv/bin/python" ]]; then
+    for legacy in "$xdg_state/ryoku/depth" "$xdg_state/ryoku/parallax"; do
+        [[ -x "$legacy/venv/bin/python" ]] || continue
+        mkdir -p "$(dirname "$state")"
+        mv "$legacy" "$state" 2>/dev/null || state="$legacy"
+        break
+    done
+fi
 venv="$state/venv"
 models="$state/models"
 export REMBG_HOME="$models"
 export U2NET_HOME="$models" # older rembg reads this name
 
+# The curated catalogue: id, quality tier, UI label, download size, licence,
+# upstream. `models --json` renders it for the Stage tab so no tier is hardcoded
+# in QML.
 curated=(u2netp birefnet-general-lite)
 default_model="u2netp"
+model_meta() {
+    case "$1" in
+    u2netp) printf 'draft\tDraft\t4.6 MB\tApache-2.0 (mirrored weights)\thttps://github.com/xuebinqin/U-2-Net\n' ;;
+    birefnet-general-lite) printf 'fine\tFine\t224 MB\tMIT\thttps://github.com/ZhengPeng7/BiRefNet\n' ;;
+    esac
+}
 
 is_curated() {
     local m
@@ -68,18 +100,33 @@ cmd_check() {
 }
 
 cmd_models() {
-    rembg_python || return 1
-    local m any=0
+    local json=0 m any=0 first=1 tier label size licence upstream installed
+    [[ ${1:-} == --json ]] && json=1
+    if [[ $json == 0 ]]; then
+        rembg_python || return 1
+        for m in "${curated[@]}"; do
+            if model_cached "$m"; then
+                printf '%s\n' "$m"
+                any=1
+            fi
+        done
+        [[ $any == 1 ]]
+        return
+    fi
+    printf '['
     for m in "${curated[@]}"; do
-        if model_cached "$m"; then
-            printf '%s\n' "$m"
-            any=1
-        fi
+        IFS=$'\t' read -r tier label size licence upstream < <(model_meta "$m")
+        installed=false
+        model_cached "$m" && installed=true
+        [[ $first == 1 ]] || printf ','
+        first=0
+        printf '{"id":"%s","tier":"%s","label":"%s","size":"%s","installed":%s,"licence":"%s","upstream":"%s"}' \
+            "$m" "$tier" "$label" "$size" "$installed" "$licence" "$upstream"
     done
-    [[ $any == 1 ]]
+    printf ']\n'
 }
 
-cmd_cutout() {
+cmd_cut() {
     local in="" out="" model="$default_model" matting=0
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -87,7 +134,7 @@ cmd_cutout() {
             model="${2:-}"
             shift 2
             ;;
-        --alpha-matting)
+        --matting | --alpha-matting)
             matting=1
             shift
             ;;
@@ -96,7 +143,7 @@ cmd_cutout() {
             break
             ;;
         -*)
-            printf 'ryoku-parallax-engine: unknown option %s\n' "$1" >&2
+            printf 'ryostage: unknown option %s\n' "$1" >&2
             return 2
             ;;
         *)
@@ -115,21 +162,21 @@ cmd_cutout() {
     }
 
     if [[ -z $in || -z $out ]]; then
-        printf 'usage: ryoku-parallax-engine cutout <in> <out.png> [--model <id>] [--alpha-matting]\n' >&2
+        printf 'usage: ryostage cut <in> <out.png> [--model <id>] [--matting]\n' >&2
         return 2
     fi
     [[ -f "$in" ]] || {
-        printf 'ryoku-parallax-engine: input not found: %s\n' "$in" >&2
+        printf 'ryostage: input not found: %s\n' "$in" >&2
         return 1
     }
     is_curated "$model" || model="$default_model"
 
     rembg_python || {
-        printf 'ryoku-parallax-engine: engine not installed (run: ryoku-parallax-engine install)\n' >&2
+        printf 'ryostage: engine not installed (run: ryostage install)\n' >&2
         return 1
     }
     model_cached "$model" || {
-        printf 'ryoku-parallax-engine: model %s not downloaded\n' "$model" >&2
+        printf 'ryostage: model %s not downloaded\n' "$model" >&2
         return 1
     }
 
@@ -164,7 +211,7 @@ PY
         fi
     fi
     rm -f "$tmp"
-    printf 'ryoku-parallax-engine: cutout failed\n' >&2
+    printf 'ryostage: cut failed\n' >&2
     return 1
 }
 
@@ -183,7 +230,7 @@ cmd_inpaint() {
             break
             ;;
         -*)
-            printf 'ryoku-parallax-engine inpaint: unknown option %s\n' "$1" >&2
+            printf 'ryostage inpaint: unknown option %s\n' "$1" >&2
             return 2
             ;;
         *)
@@ -194,19 +241,19 @@ cmd_inpaint() {
     done
 
     if [[ -z $in || -z $mask || -z $out ]]; then
-        printf 'usage: ryoku-parallax-engine inpaint <image> <mask> <out.png>\n' >&2
+        printf 'usage: ryostage inpaint <image> <mask> <out.png>\n' >&2
         return 2
     fi
     [[ -f "$in" ]] || {
-        printf 'ryoku-parallax-engine: image not found: %s\n' "$in" >&2
+        printf 'ryostage: image not found: %s\n' "$in" >&2
         return 1
     }
     [[ -f "$mask" ]] || {
-        printf 'ryoku-parallax-engine: mask not found: %s\n' "$mask" >&2
+        printf 'ryostage: mask not found: %s\n' "$mask" >&2
         return 1
     }
     inpaint_python || {
-        printf 'ryoku-parallax-engine: engine not installed (run: ryoku-parallax-engine install)\n' >&2
+        printf 'ryostage: engine not installed (run: ryostage install)\n' >&2
         return 1
     }
 
@@ -252,7 +299,7 @@ PY
         fi
     fi
     rm -f "$tmp"
-    printf 'ryoku-parallax-engine: inpaint failed\n' >&2
+    printf 'ryostage: inpaint failed\n' >&2
     return 1
 }
 
@@ -286,7 +333,7 @@ ensure_venv() {
         uv python install 3.13 && uv venv --python 3.13 "$venv"
         [[ -x "$venv/bin/python" ]] && return 0
     fi
-    printf 'ryoku-parallax-engine: needs Python 3.11-3.13 or uv (install it: sudo pacman -S uv)\n' >&2
+    printf 'ryostage: needs Python 3.11-3.13 or uv (install it: sudo pacman -S uv)\n' >&2
     return 1
 }
 
@@ -308,7 +355,7 @@ cmd_install() {
     printf 'Installing rembg (CPU)...\n'
     [[ -x "$venv/bin/pip" ]] && venv_pip --upgrade pip
     if ! venv_pip "rembg[cpu]"; then
-        printf 'ryoku-parallax-engine: could not install rembg (no onnxruntime wheel for this Python?)\n' >&2
+        printf 'ryostage: could not install rembg (no onnxruntime wheel for this Python?)\n' >&2
         return 1
     fi
 
@@ -331,18 +378,18 @@ PY
         printf 'done\n'
         return 0
     fi
-    printf 'ryoku-parallax-engine: install finished but the engine is still unavailable\n' >&2
+    printf 'ryostage: install finished but the engine is still unavailable\n' >&2
     return 1
 }
 
 cmd_remove() {
     local m="${1:-}"
     [[ -n $m ]] || {
-        printf 'usage: ryoku-parallax-engine remove <model>\n' >&2
+        printf 'usage: ryostage remove <model>\n' >&2
         return 2
     }
     is_curated "$m" || {
-        printf 'ryoku-parallax-engine: not a curated model: %s\n' "$m" >&2
+        printf 'ryostage: not a curated model: %s\n' "$m" >&2
         return 2
     }
     local f found=0
@@ -362,11 +409,11 @@ case "${1:-}" in
 check) cmd_check ;;
 models)
     shift
-    cmd_models
+    cmd_models "$@"
     ;;
-cutout)
+cut)
     shift
-    cmd_cutout "$@"
+    cmd_cut "$@"
     ;;
 inpaint)
     shift
@@ -381,7 +428,7 @@ remove)
     cmd_remove "$@"
     ;;
 *)
-    printf 'usage: ryoku-parallax-engine check | models | cutout <in> <out.png> [--model <id>] [--alpha-matting] | inpaint <image> <mask> <out.png> | install [model...] | remove <model>\n' >&2
+    printf 'usage: ryostage check | models [--json] | cut <in> <out.png> [--model <id>] [--matting] | inpaint <image> <mask> <out.png> | install [model...] | remove <model>\n' >&2
     exit 2
     ;;
 esac
