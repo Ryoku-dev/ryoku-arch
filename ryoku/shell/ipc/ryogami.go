@@ -177,6 +177,7 @@ func (d *daemon) consumeRyogamiFrames(r io.Reader) {
 		}
 		if srcChanged {
 			d.scheduleTheme()
+			d.scheduleParallax()
 		}
 	}
 }
