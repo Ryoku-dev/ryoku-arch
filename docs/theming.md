@@ -21,6 +21,10 @@ Eighteen apps are covered: kitty, the Hyprland border, btop and qt6ct always;
 gtk3, gtk4, vesktop, equibop, qt5ct, obs, zed, heroic, telegram, steam, cava,
 ghostty, micro and papirus behind the app-suite toggle.
 
+Ryotunes, the native music client, joins the suite too: matugen renders its
+Material 3 palette as a Ryoku skin at `~/.config/ryotunes/skins/matugen/skin.json`,
+which the client loads as its "System" theme.
+
 ## How Omarchy works
 
 A theme is a *folder* of per-app files. One directory always holds the active

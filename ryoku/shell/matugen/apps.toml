@@ -95,3 +95,10 @@ output_path = "~/.config/tmux/ryoku-colors.conf"
 [templates.sidra]
 input_path = "~/.config/matugen/templates/sidra.css"
 output_path = "~/.config/Sidra/custom.css"
+
+# Ryotunes (the native music client) reads its palette as a Ryoku skin: matugen
+# renders the skin manifest into the user skins dir, where the client's Skin
+# singleton picks it up as the "matugen" skin (the Settings "System" source).
+[templates.ryotunes]
+input_path = "~/.config/matugen/templates/ryotunes.json"
+output_path = "~/.config/ryotunes/skins/matugen/skin.json"

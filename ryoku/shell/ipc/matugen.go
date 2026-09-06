@@ -1657,6 +1657,7 @@ func matugenEnsureDirs() {
 		filepath.Join(cfg, "zathura"),
 		filepath.Join(cfg, "alacritty"),
 		filepath.Join(cfg, "tmux"),
+		filepath.Join(cfg, "ryotunes", "skins", "matugen"),
 		filepath.Join(data, "TelegramDesktop", "tdata"),
 	} {
 		_ = os.MkdirAll(d, 0o755)

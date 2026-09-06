@@ -12,6 +12,12 @@
   it can crash a hybrid laptop, so a single-GPU nvidia TV box sets it by hand),
   plus a note on Hyprland's whole-pixel scale rule
   (`hyprland/monitors_user.lua.example`).
+- **Ryotunes joins the matugen app suite.** The native music client reads its
+  palette as a Ryoku skin: matugen fans the Material 3 roles into
+  `~/.config/ryotunes/skins/matugen/skin.json`, the user skins dir where the
+  client's Skin singleton loads it as the "System" theme, regenerated on every
+  wallpaper change (`shell/matugen/templates/ryotunes.json`,
+  `shell/matugen/apps.toml`, `shell/ipc/matugen.go`, `../hub/backend/matugen.go`).
 
 ### Fixed
 - **Floating windows fit the screen they open on (#147).** Files, Ryoku
