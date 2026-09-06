@@ -103,10 +103,11 @@ var (
 		args := append([]string{"pacman", "-D", "--asexplicit", "--quiet"}, pkgs...)
 		_ = exec.CommandContext(ctx, "sudo", args...).Run()
 	}
+	hasPacman = func() bool { return sys.Has("pacman") }
 )
 
 func reconcileShippedApps(checkOnly bool) recResult {
-	if !sys.Has("pacman") {
+	if !hasPacman() {
 		return okRes("not a pacman box; shipped apps are the installer's business")
 	}
 	apps := shippedApps()

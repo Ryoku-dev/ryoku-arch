@@ -121,12 +121,15 @@ func withShippedAppTestState(t *testing.T, present map[string]bool) {
 	isolateProvisioned(t)
 	oldInstalled, oldDep := appInstalled, appInstalledAsDep
 	oldInstall, oldExplicit := installShippedApps, markAppsExplicit
+	oldHas := hasPacman
 	appInstalled = func(pkg string) bool { return present[pkg] }
 	appInstalledAsDep = func(string) bool { return false }
 	installShippedApps = func([]string) {}
 	markAppsExplicit = func([]string) {}
+	hasPacman = func() bool { return true } // the CI runner has no pacman
 	t.Cleanup(func() {
 		appInstalled, appInstalledAsDep = oldInstalled, oldDep
 		installShippedApps, markAppsExplicit = oldInstall, oldExplicit
+		hasPacman = oldHas
 	})
 }
