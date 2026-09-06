@@ -80,17 +80,6 @@
             "output": "~/.config/vesktop/themes/kitty-match.css"
         },
         {
-            "name": "spicetify",
-            "template": "spicetify.ini",
-            "output": "~/.config/spicetify/Themes/Matugen/color.ini",
-            "reload": "~/.config/ryogami-wall/scripts/reload-spicetify.sh"
-        },
-        {
-            "name": "spicetify-css",
-            "template": "spicetify.css",
-            "output": "~/.config/spicetify/Themes/Matugen/user.css"
-        },
-        {
             "name": "yazi",
             "template": "yazi-theme.toml",
             "output": "~/.config/yazi/theme.toml"

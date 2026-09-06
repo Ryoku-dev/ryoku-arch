@@ -108,13 +108,10 @@ type musicState struct {
 	client *http.Client
 	dir    string
 
-	mu      sync.Mutex
-	gen     int
-	key     string
-	frame   musicFrame
-	curID   string // current track's Spotify id (guarded by mu)
-	relayMu sync.Mutex
-	relay   map[string]string // Spotify id -> Canvas url from the spicetify relay
+	mu    sync.Mutex
+	gen   int
+	key   string
+	frame musicFrame
 }
 
 // startMusic registers the music topic and the track push, and publishes the
@@ -124,10 +121,8 @@ func (d *daemon) startMusic() {
 		topic:  d.registerTopic("music"),
 		client: &http.Client{Timeout: musHTTPTimeout},
 		dir:    musicCacheDir(),
-		relay:  map[string]string{},
 	}
 	s.publish()
-	go s.serveCanvasRelay()
 
 	d.registerCall("music.track", func(raw json.RawMessage) (any, error) {
 		var t musicTrack
@@ -160,7 +155,6 @@ func (s *musicState) setTrack(t musicTrack) {
 	s.gen++
 	gen := s.gen
 	s.key = key
-	s.curID = spotifyTrackID(t)
 	empty := strings.TrimSpace(t.Title) == ""
 	s.frame = musicFrame{
 		Key:          key,
@@ -262,18 +256,13 @@ func (s *musicState) setArt(gen int, path, status string) {
 }
 
 // resolveCanvas matches the track's Spotify id to a local backdrop the user
-// keeps in ~/.config/ryoku/canvas/<id>.<ext> (a downloaded Spotify Canvas, or
-// any loop): the "canvas" backdrop mode plays it per song. No id, or no file,
+// keeps in ~/.config/ryoku/canvas/<id>.<ext> (a downloaded Canvas clip, or any
+// loop): the "canvas" backdrop mode plays it per song. No id, or no file,
 // leaves the field empty and the surface falls back to the cover.
 func (s *musicState) resolveCanvas(gen int, t musicTrack) {
-	id := spotifyTrackID(t)
 	url := ""
-	if p := canvasFileFor(id); p != "" {
+	if p := canvasFileFor(spotifyTrackID(t)); p != "" {
 		url = "file://" + p
-	} else if id != "" {
-		s.relayMu.Lock()
-		url = s.relay[id]
-		s.relayMu.Unlock()
 	}
 	s.setCanvas(gen, url)
 }
@@ -303,56 +292,6 @@ func (s *musicState) setCanvas(gen int, url string) {
 	s.frame.Canvas = url
 	s.mu.Unlock()
 	s.publish()
-}
-
-// onRelay records a Canvas URL the spicetify extension fetched from Spotify's
-// own session and, when it is for the current track, paints it -- a local file
-// in the Canvas library still wins over the streamed one.
-func (s *musicState) onRelay(id, url string) {
-	if id == "" {
-		return
-	}
-	s.relayMu.Lock()
-	s.relay[id] = url
-	s.relayMu.Unlock()
-	s.mu.Lock()
-	cur := id == s.curID
-	gen := s.gen
-	s.mu.Unlock()
-	if !cur {
-		return
-	}
-	if p := canvasFileFor(id); p != "" {
-		url = "file://" + p
-	}
-	s.setCanvas(gen, url)
-}
-
-// serveCanvasRelay listens on loopback for the spicetify extension's Canvas
-// reports. Spotify's token is bot-gated, so the daemon cannot fetch Canvas
-// itself; the extension runs inside Spotify, where a valid token exists, and
-// POSTs the resolved url here. The flatpak client shares the host network
-// namespace, so 127.0.0.1 reaches this.
-func (s *musicState) serveCanvasRelay() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/canvas", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			return
-		}
-		var body struct {
-			URI string `json:"uri"`
-			URL string `json:"url"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		s.onRelay(spotifyTrackID(musicTrack{URL: body.URI}), body.URL)
-		w.WriteHeader(http.StatusNoContent)
-	})
-	srv := &http.Server{Addr: "127.0.0.1:47615", Handler: mux, ReadHeaderTimeout: 5 * time.Second}
-	_ = srv.ListenAndServe()
 }
 
 // canvasDir is the user's Canvas library, beside the other ryoku config.

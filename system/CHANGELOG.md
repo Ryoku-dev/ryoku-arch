@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **The base set no longer installs Spotify.** `spotify-launcher`,
+  `spicetify-cli` and `spicetify-marketplace` are out of
+  `system/packages/base.packages`; Ryotunes is the music app a fresh install
+  gets. A Spotify a user installs themselves is untouched.
+
 - **`ryoku update` no longer deadlocks on the Oh My Zsh swap.** CachyOS-era
   installs carry `cachyos-zsh-config`, which depends on `oh-my-zsh-git`;
   ryoku-oh-my-zsh previously conflicted with that package without providing

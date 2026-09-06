@@ -99,28 +99,20 @@ depends=(
   # installed theme, offline and after `ryoku update`, like ryoku-cursors above.
   # see release/packages/ryoku-cursor-material/PKGBUILD.
   'ryoku-cursor-material'
-  # shell + apps configured here
+  # shell + the runtime the QML itself imports
   'quickshell'
   # KSyntaxHighlighting (org.kde.syntaxhighlighting QML module) colours code
   # blocks in the Super+S chat; the import is load-bearing, so it ships here.
   'syntax-highlighting'
-  'kitty'
-  'fish'
-  'blesh'
-  'starship'
+  # The user-facing applications are deliberately NOT depends (see optdepends):
+  # pacman re-satisfies a dependency list on every upgrade, so a hard depend
+  # reinstalled apps people deleted. The ISO pacstraps them from
+  # system/packages/base.packages and `ryoku doctor` delivers them once
+  # (reconcile_shipped_apps.go). Tools the shell calls by name stay below.
   'zsh'
   'zsh-autosuggestions'
   'zsh-history-substring-search'
   'zsh-syntax-highlighting'
-  'fastfetch'
-  'yazi'
-  'neovim'
-  # file manager + its stash right-click integration. nautilus-python loads
-  # ryoku-stash-menu.py (Install/Compress/Send with Ryoku); a hard depend, not
-  # optional, so `ryoku update` pulls it onto existing boxes that predate it (an
-  # optdepend never installs on -Syu) and the right-click menu actually shows up.
-  'nautilus'
-  'nautilus-python'
   # tools the shipped autostart, pill, ryoshot, and helper scripts call by name
   'hypridle'
   'brightnessctl'
@@ -166,21 +158,6 @@ depends=(
   # official repo, hard depends so they reach existing boxes on `ryoku update`.
   'qt6-multimedia'
   'qt6-declarative'
-  # Ryoku Motion: the screen-demo recorder and editor (OpenScreen fork, built for
-  # the [ryoku] repo). The shell's record island opens it for a studio capture or
-  # to import a clip; ships in the ISO and reaches boxes on `ryoku update`.
-  'ryomotion'
-  # Ryotunes: the music app (Tauri + libmpv, built for the [ryoku] repo from
-  # neur0map/ryotunes). The desktop now-playing widget, the dock pill and the
-  # music toggle follow its MPRIS name; ships in the ISO and reaches boxes on
-  # `ryoku update`, where it takes over /usr/bin/ryotunes from the Chromium
-  # app-window wrapper this package used to install.
-  'ryotunes'
-  # ryoshot Beautify's HD export and ryowalls Enhance AI-upscale on the GPU with
-  # this. official repo (extra), so a hard depend ships it in the ISO install and
-  # reaches existing boxes on `ryoku update` -- an optdepend never installs on -Syu,
-  # and the HD toggle / Enhance are meant to work for every user out of the box.
-  'waifu2x-ncnn-vulkan'
   # Hub's ISO picker (GPU passthrough VM) shells out to a file chooser
   'zenity'
   # Game Mode wifi power-save toggle (ryoku-wifi-powersave runs iw)
@@ -224,9 +201,7 @@ depends=(
   'wf-recorder'          # multi-GPU capture fallback (pill Super+U)
   'hyprsunset'           # night-light colour temperature (pill Super+U)
   'wtype'                # voice-dictation typing on Wayland (Voxtype)
-  'openrgb'              # keyboard and mouse lighting (Settings > Appearance > Lighting)
   'libqalculate'         # calculator backend (launcher Super+Space)
-  'songrec'              # Recognize Music (launcher)
   'upower'               # battery + power status (pill/bar battery indicator)
   'power-profiles-daemon'
   # external-monitor brightness over DDC/CI: the pill DISPLAY faders and the
@@ -234,11 +209,6 @@ depends=(
   # was base.packages-only, so it never reached update/shell boxes (the pill
   # faders were silently dead there); a hard depend fixes every path.
   'ddcutil'
-  # GUI audio mixer the bar's "Open audio" button launches for advanced routing
-  # (card profiles, per-app device moves) beyond the bar's own native PipeWire
-  # mixer. A hard depend so the button works on every install path; it launched a
-  # missing binary before. Official extra repo.
-  'pavucontrol'
   # Game controllers: xpadneo-dkms (Xbox One/Series Bluetooth pads, from the AUR
   # step) is a DKMS module, so it needs the kernel headers and the DKMS build
   # system to compile its module; without them the build silently fails and the
@@ -248,18 +218,29 @@ depends=(
   # onto an existing box rebuilds an already-installed pad driver.
   'linux-headers'
   'dkms'
-  # Gaming stack (Bazzite-style): gamescope runs a game in a nested micro-
-  # compositor isolated from the desktop, sidestepping the XWayland compositing
-  # that is the real source of in-game and Steam-overlay lag on Wayland
-  # (`gamescope -- %command%`); gamemode is the perf governor Steam invokes via
-  # `gamemoderun %command%`; mangohud is the FPS/frametime overlay. Official extra
-  # repo, so a hard depend ships them in the ISO and reaches existing boxes on
-  # `ryoku update`.
-  'gamescope'
-  'gamemode'
-  'mangohud'
 )
 optdepends=(
+  # The applications Ryoku ships. Optional here on purpose: the ISO pacstraps
+  # them and `ryoku doctor` delivers them once to an existing box, so pacman
+  # never has a missing dependency to "repair" and a deleted app stays deleted.
+  'kitty: the default terminal'
+  'fish: optional interactive shell'
+  'blesh: Bash line editor'
+  'starship: shell prompt'
+  'fastfetch: system summary (launcher, RyoStore covers)'
+  'yazi: terminal file manager'
+  'neovim: the shipped editor'
+  'nautilus: graphical file manager'
+  'nautilus-python: Ryoku stash actions in the Nautilus right-click menu'
+  'ryotunes: the Ryoku music app the now-playing widget follows'
+  'ryomotion: screen-demo recorder and editor'
+  'waifu2x-ncnn-vulkan: AI upscale for ryoshot Beautify HD and ryowalls Enhance'
+  'pavucontrol: GUI mixer behind the bar Open audio button'
+  'songrec: Recognize Music in the launcher'
+  'openrgb: keyboard and mouse lighting (Settings > Appearance > Lighting)'
+  'gamescope: nested gaming micro-compositor'
+  'gamemode: gaming performance governor Steam invokes'
+  'mangohud: in-game FPS and frametime overlay'
   'chromium: web browser'
   'kdialog: folder picker fallback for rice export/import when zenity is absent'
   'qemu-desktop: GPU-passthrough VM (Ryoku Settings > GPU)'
@@ -458,12 +439,6 @@ EOF
     "$pkgdir/usr/share/applications/ryoku-hub.desktop"
   install -Dm644 "$_repo/ryoku/assets/brand/logo.svg" \
     "$pkgdir/usr/share/icons/hicolor/scalable/apps/ryoku-hub.svg"
-  # ryoku-canvas spicetify extension (apps/spicetify): the source asset for the
-  # music widget's Spotify Canvas backdrop. `ryoku doctor` (reconcileSpicetifyCanvas)
-  # drops it into a Spotify user's spicetify Extensions and applies it, and stays
-  # inert for anyone without Spotify, so it ships as an asset here, not active config.
-  install -Dm644 "$_repo/ryoku/apps/spicetify/ryoku-canvas.js" \
-    "$pkgdir/usr/share/ryoku/spicetify/ryoku-canvas.js"
   # Default apps: the vendor layer, NOT ~/.config/mimeapps.list. That file is
   # where "Set as default" (GNOME, Firefox, xdg-mime) writes, and materializing
   # over it threw a user's choices away on every update. /usr/share/applications

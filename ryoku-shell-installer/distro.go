@@ -102,7 +102,6 @@ var debianLinux = &distro{
 		"matugen":                       "",
 		"otf-space-grotesk":             "",
 		"songrec":                       "",
-		"spotify-launcher":              "",
 		"ttf-material-symbols-variable": "",
 		"vimix-cursors":                 "",
 		"waifu2x-ncnn-vulkan":           "",

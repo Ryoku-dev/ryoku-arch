@@ -13,6 +13,20 @@
   the other plugin packages.
 
 ### Changed
+- **The apps Ryoku ships are optdepends, not depends.** pacman re-satisfies a
+  dependency list on every upgrade of the package that carries it, so a hard
+  depend meant `ryoku update` reinstalled kitty, Nautilus, Ryotunes or the
+  gaming stack for anyone who had deleted them. `ryoku-desktop` now names them
+  as optdepends; the ISO pacstraps them and `ryoku doctor` delivers them once to
+  an existing box, then honours a removal for good. Feature tools the shell
+  calls by name (grim, matugen, cava, mpv, the OCR/capture backends) stay hard
+  depends. Present apps are re-marked explicitly installed so leaving `depends`
+  cannot turn them into orphan-sweep casualties.
+- **Spotify and spicetify are gone.** `spotify-launcher`, `spicetify-cli` and
+  `spicetify-marketplace` no longer ship, the two [ryoku] spicetify packages are
+  retired, and the Ryoku Canvas extension and its loopback relay are removed
+  with them. Ryotunes is the music app Ryoku ships. An already-installed Spotify
+  is left alone.
 - **`ryotunes` 2.5.1-1 tracks neur0map/ryotunes v2.5.1.** The heart saves without an account. Liking a track when there is no YouTube Music session (or on a SoundCloud/local track) lands it in a device-local Liked...
 - **`ryotunes` 2.5.0-1 tracks neur0map/ryotunes v2.5.0.** The package now follows
   Ryotunes' GitHub releases (a sha256-pinned source tarball) instead of a hand-pinned

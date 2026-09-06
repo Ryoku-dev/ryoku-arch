@@ -39,7 +39,15 @@ official_repo() {
     && ! grep -qxF "$1" "$pkgs/aur.packages" 2>/dev/null \
     && [[ ! -d "$ROOT/release/packages/$1" ]]
 }
-# deliberately NOT a hard depend (documented exceptions):
+# shipped_app: the other delivery path. An application a user may delete is not a
+# hard depend (pacman would put it back on the next upgrade); `ryoku doctor`
+# delivers it once and then honours the removal. Membership is the doctor's own
+# table, so a name cannot fall out of delivery and still pass this gate.
+shipped_apps_go="$ROOT/ryoku/cli/internal/doctor/reconcile_shipped_apps.go"
+shipped_app() {
+  grep -qE "^[[:space:]]*\{\"$1\", " "$shipped_apps_go"
+}
+# deliberately neither a hard depend nor a provisioned app (documented exception):
 #   chromium -- the default browser is user-swappable; base.packages ships it and
 #               the ryoku-app role resolver tolerates another browser being set.
 declare -A dependExempt=( [chromium]=1 )
@@ -108,7 +116,7 @@ for feat in "${!need[@]}"; do
   pkg=${need[$feat]}
   [[ -n ${dependExempt[$pkg]:-} ]] && continue
   official_repo "$pkg" || continue
-  hard_depend "$pkg" || notreached+=("$feat -> $pkg")
+  hard_depend "$pkg" || shipped_app "$pkg" || notreached+=("$feat -> $pkg")
 done
 if (( ${#notreached[@]} )); then
   echo "::error::feature tools in base.packages but NOT a ryoku-desktop hard depend (ISO-only; never reach 'ryoku update' or shell-installer boxes -- the ddcutil-class drift):" >&2

@@ -14,12 +14,18 @@ import (
 // the unit enabled a fresh package install keeps opening the Tauri app.
 const ryotunesSocketUnit = "ryotunesd.socket"
 
-// Ryotunes ships as a [ryoku] package (a ryoku-desktop depend). Two things
-// keep an updated box opening the retired Chromium YouTube Music window
-// instead: a wrapper or a locally built copy in ~/.local/bin, which shadows
-// /usr/bin/ryotunes on PATH (a dev deploy laid both before the package
-// existed), and a box whose channel switch never installed the package.
+// Keeps an updated box off the retired Chromium YouTube Music window: a wrapper
+// or locally built copy in ~/.local/bin shadows /usr/bin/ryotunes on PATH, and
+// the socket unit needs enabling for `ryotunes` to reach the daemon.
+//
+// Installing the package belongs to reconcile_shipped_apps.go, which honours a
+// removal, so a missing package is silence here.
 func reconcileRyotunes(checkOnly bool) recResult {
+	if !sys.PkgInstalled("ryotunes") {
+		if stale := staleUserRyotunes(filepath.Join(sys.Home(), ".local", "bin", "ryotunes")); stale == "" {
+			return okRes("the ryotunes package is not installed; nothing to reconcile")
+		}
+	}
 	var problems, fixes []string
 
 	bin := filepath.Join(sys.Home(), ".local", "bin", "ryotunes")
@@ -27,10 +33,6 @@ func reconcileRyotunes(checkOnly bool) recResult {
 	if stale != "" {
 		problems = append(problems, stale+" in ~/.local/bin shadows the packaged app")
 		fixes = append(fixes, "rm -f ~/.local/bin/ryotunes ~/.local/share/applications/ryotunes.desktop")
-	}
-	if sys.ResolveRepo() == "" && sys.PkgInstalled("ryoku-desktop") && !sys.PkgInstalled("ryotunes") {
-		problems = append(problems, "the ryotunes package is not installed")
-		fixes = append(fixes, "sudo pacman -S --needed ryotunes")
 	}
 	socketMissing := sys.PkgInstalled("ryotunes") && !ryotunesSocketEnabled()
 	if socketMissing {
@@ -63,11 +65,6 @@ func reconcileRyotunes(checkOnly bool) recResult {
 		icons, _ := filepath.Glob(filepath.Join(appshare, "icons", "hicolor", "*", "apps", "ryotunes.png"))
 		for _, p := range icons {
 			_ = os.Remove(p)
-		}
-	}
-	if sys.ResolveRepo() == "" && sys.PkgInstalled("ryoku-desktop") && !sys.PkgInstalled("ryotunes") {
-		if err := sys.Sudo("pacman", "-S", "--needed", "--noconfirm", "ryotunes"); err != nil {
-			return failRes("could not install ryotunes: %v", err).withFix("sudo pacman -S --needed ryotunes")
 		}
 	}
 	if socketMissing {

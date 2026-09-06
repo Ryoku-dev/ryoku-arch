@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Removed
+- **The Spotify Canvas relay is gone.** The music daemon no longer runs a
+  loopback HTTP listener for the retired spicetify extension. The per-song
+  backdrop still plays a clip you keep in `~/.config/ryoku/canvas/<id>.<ext>`
+  (`ipc/music.go`).
+
 ### Fixed
 - **The reload cover renders a `~`-based custom asset (#146).** The reload
   cover built its media URL as a bare `"file://" + path`, so a `reloadCover`

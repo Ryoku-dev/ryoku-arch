@@ -133,7 +133,13 @@ The small daemons and utilities the desktop leans on every session.
 | `kitty` | The default terminal |
 | `mpv`, `mpv-mpris` | The media player, wired onto the players bus |
 | `nautilus`, `nautilus-python` | The file manager and its "Install / Compress / Send with Ryoku" right-click actions |
-| `spotify-launcher` | Spotify, installed per-user so the desktop's Canvas backdrop works out of the box |
+
+Every application on this page is yours to remove. Ryoku installs an app once
+(on the ISO, or on the first `ryoku update` after a release adds it) and records
+that it did; delete it afterwards and no update reinstalls it. (`ryoku doctor`
+keeps that ledger in `~/.local/state/ryoku/provisioned`; drop a name from the
+file to be offered the app again.) The tools the desktop itself calls, like
+`grim` or `matugen`, stay hard dependencies.
 
 ## Terminal, CLI, and TUI
 
@@ -257,8 +263,6 @@ pass.
 | `voxtype-bin` | The offline Whisper voice-dictation daemon (pill Super+`) |
 | `localsend-bin` | AirDrop-style LAN file sharing, spoken by the file stash |
 | `nvibrant-bin` | NVIDIA digital vibrance for the pill's saturation fader |
-| `spicetify-cli` | Patches Spotify so the Ryoku Canvas widget can read the playing track |
-| `spicetify-marketplace` | The Marketplace "store" icon in Spotify (install themes and extensions); `ryoku doctor` wires it into the client out of the box |
 | `game-devices-udev` | udev rules and battery reporting for DualSense and Switch Pro pads |
 | `xpadneo-dkms` | The Xbox One/Series wireless controller driver |
 | `phinger-cursors`, `catppuccin-cursors-mocha`, `apple_cursor` | Extra cursor themes the Hub cursor picker offers |
@@ -289,7 +293,7 @@ live in `installation/backend/lib/disk.sh` and `filesystem.sh`.
 So a fresh Ryoku desktop is roughly **13–15 GiB** of real data. The 20 GiB root
 floor is deliberately roomier than that: the extra headroom is for the AUR
 builds, for Btrfs snapshots, and for the things that download on first launch
-(the Spotify client, any Flatpaks you add). The CachyOS image sits at the upper
+(any Flatpaks you add, a voice model, a game). The CachyOS image sits at the upper
 end of the range, since it carries a second kernel and the Proton build. The
 swapfile is separate and off by default (`RYOKU_SWAP_GIB=0`).
 

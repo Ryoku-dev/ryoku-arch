@@ -6,8 +6,8 @@
 # uses". It drifted, and the drift is silent until a package needs the missing
 # tool: `meson` was added for the controller packages in one copy only, and the
 # container-install gate went red on the first main sync, which skipped the
-# publish job entirely. `pnpm`/`nodejs` had drifted the same way earlier and were
-# worse, because spicetify-cli builds without its wrapper rather than failing.
+# publish job entirely. `pnpm`/`nodejs` had drifted the same way earlier, and
+# ryotunes' Svelte UI does not build without them.
 #
 # build-repo.sh runs makepkg --nodeps, so every makedepends a recipe needs must
 # already be on the host. Anything used only to UPLOAD a built repo (rclone)
@@ -69,11 +69,10 @@ xorg-xcursorgen
 xcur2png
 python
 
-# pnpm (which pulls nodejs) builds spicetify-cli's jsHelper wrapper:
-# `pnpm build:wrapper` generates jsHelper/spicetifyWrapper.js, the `Spicetify`
-# global every extension is written against. It is absent from the release
-# tarball, so without pnpm the package builds clean and silently breaks the
-# Ryoku Canvas extension.
+# pnpm (which pulls nodejs) builds the ryotunes web UI: its PKGBUILD runs
+# `pnpm install --frozen-lockfile && pnpm build` to produce the SvelteKit bundle
+# the Tauri binary embeds, so without pnpm on the host the package cannot build
+# at all.
 pnpm
 nodejs
 

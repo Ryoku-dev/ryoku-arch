@@ -8,10 +8,9 @@ import (
 	"ryoku-cli/internal/sys"
 )
 
-// Packages the doctor installs on its own (a client spicetify can patch, the
-// ASUS daemon) are recorded here, so a package it provisioned once and the
-// user then removed stays removed: an update must not put back what someone
-// took away. Deleting a name from the file lets the doctor provision it again.
+// Ledger of packages Ryoku installed itself (the shipped apps, the ASUS daemon).
+// A recorded name that is now missing means the user removed it, so nothing puts
+// it back; deleting the name from the file re-arms provisioning.
 var provisionedFile = func() string {
 	return filepath.Join(sys.StateDir(), "provisioned")
 }
@@ -48,18 +47,4 @@ func recordProvisioned(pkg string) {
 // is gone now, which only a deliberate removal explains.
 func removedByUser(pkg string) bool {
 	return provisioned()[pkg] && !sys.PkgInstalled(pkg)
-}
-
-// provision installs pkg through install unless the user removed it after an
-// earlier provisioning. It returns whether the install landed and whether it
-// was skipped for that reason.
-func provision(pkg string, install func() bool) (present, skipped bool) {
-	if removedByUser(pkg) {
-		return false, true
-	}
-	if !install() {
-		return false, false
-	}
-	recordProvisioned(pkg)
-	return true, false
 }

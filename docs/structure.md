@@ -202,8 +202,7 @@ raw.githubusercontent.com serves them with no release infrastructure.
     `imgborders`, `ryoku-keysounds`; each lays an `.abi` receipt beside its
     `.so` (see `docs/hyprland-plugins.md`).
   - rebuilt from upstream so `ryoku update` can reach them, because it is pacman
-    and pacman never touches the AUR: `asusctl`, `awww`, `spicetify-cli`,
-    `spicetify-marketplace`,
+    and pacman never touches the AUR: `asusctl`, `awww`,
     `hyprland-preview-share-picker`, `limine-mkinitcpio-hook`,
     `limine-snapper-sync`, `otf-space-grotesk`, `ryoku-cursors`,
     `ryoku-cursor-material`.

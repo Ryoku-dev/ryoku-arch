@@ -3,6 +3,15 @@
 ## Unreleased
 
 ### Changed
+- **`ryoku doctor` never puts back an app you deleted.** The applications Ryoku
+  ships left `ryoku-desktop`'s depends (pacman rebuilt them on every upgrade), so
+  the doctor now owns their delivery: `shipped app packages` installs an app the
+  box has never had in one pacman transaction, records it in
+  `~/.local/state/ryoku/provisioned`, and from then on treats its absence as the
+  user's decision. It also re-marks present apps as explicitly installed so an
+  orphan sweep cannot delete them, and the Ryotunes check no longer reinstalls
+  the package (`internal/doctor/reconcile_shipped_apps.go`,
+  `reconcile_ryotunes.go`). The two spicetify reconcilers are gone with Spotify.
 - **An edit to a shipped file survives the update as a fork.** `ryoku
   materialize` re-lays every shipped config on each update, so a hand edit
   to, say, `hypr/modules/window_rules.lua` was thrown away. The manifest now

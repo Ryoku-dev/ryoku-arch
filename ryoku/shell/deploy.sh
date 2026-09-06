@@ -524,14 +524,6 @@ else
   say "skipping packaged externals (sudo or pacman not available)"
 fi
 
-# ryoku-canvas: a spicetify extension (apps/spicetify) that relays the playing
-# track's Spotify Canvas to the shell so the music widget can show it. Landed in
-# the spicetify Extensions dir; a spicetify user turns it on with
-# `spicetify config extensions ryoku-canvas.js && spicetify apply`, and it stays
-# inert for anyone who does not spicetify Spotify.
-install -Dm644 "$here/../apps/spicetify/ryoku-canvas.js" "$cfg/spicetify/Extensions/ryoku-canvas.js"
-say "installed ryoku-canvas spicetify extension"
-
 # Nautilus stash actions (a nautilus-python extension). Installs ship it system-wide
 # from the ryoku-desktop package; the dev loop drops it in the user extensions dir.
 install -Dm644 "$here/../apps/nautilus/ryoku-stash-menu.py" \
@@ -619,6 +611,10 @@ install -m755 "$here/../apps/fastfetch/ryoku-fastfetch" "$bindir/ryoku-fastfetch
 mkdir -p "$cfg/kitty"
 cp -a "$here/../apps/kitty/kitty.conf" "$cfg/kitty/kitty.conf"
 seed_once "$here/../apps/kitty/current-theme.conf" "$cfg/kitty/current-theme.conf"
+# ghostty: config is the user's (seeded once, editable); matugen owns ryoku-colors.
+mkdir -p "$cfg/ghostty"
+seed_once "$here/../apps/ghostty/config" "$cfg/ghostty/config"
+seed_once "$here/../apps/ghostty/ryoku-colors" "$cfg/ghostty/ryoku-colors"
 mkdir -p "$cfg/wireplumber"; cp -a "$here/../apps/wireplumber/." "$cfg/wireplumber/"
 mkdir -p "$cfg/systemd/user"; cp -a "$here/systemd/user/." "$cfg/systemd/user/"
 # dev deploy runs the daemon from ~/.local/bin; the package ships /usr/bin.
