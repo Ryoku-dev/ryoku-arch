@@ -19,7 +19,7 @@ Item {
     property string videoUrl: ""
     property bool wallpaperLive: false
 
-    readonly property bool owns: Config.enabled && Config.wallActive
+    readonly property bool owns: Config.enabled && Config.wallActiveForPath(root.wallpaperPath)
         && root.videoUrl === "" && !root.wallpaperLive
 
     property real cursorNX: 0
@@ -30,11 +30,11 @@ Item {
     property real _baseMax: Math.min(root.width * 0.04 * Config.mouseRange, root.width * 0.04)
     function baseOffsetX() {
         if (!Config.mouseEnabled) return 0;
-        return root.cursorNX * _baseMax * Config.wallpaperParallax * Config.mouseSensitivity;
+        return root.cursorNX * root._baseMax * Config.wallpaperParallax * Config.mouseSensitivity;
     }
     function baseOffsetY() {
         if (!Config.mouseEnabled) return 0;
-        return root.cursorNY * _baseMax * Config.wallpaperParallax * Config.mouseSensitivity;
+        return root.cursorNY * root._baseMax * Config.wallpaperParallax * Config.mouseSensitivity;
     }
 
     function fillModeFor(im) {
@@ -90,7 +90,7 @@ Item {
             Image {
                 id: bg
                 anchors.fill: parent
-                source: Config.backgroundUrl
+                source: Config.backgroundUrlForPath(root.wallpaperPath)
                 cache: false
                 asynchronous: true
                 fillMode: root.fillModeFor(bg)
@@ -98,7 +98,7 @@ Item {
                 sourceSize.height: height
                 scale: 1.1
                 z: -1
-                visible: status === Image.Ready && Config.backgroundUrl !== ""
+                visible: status === Image.Ready && Config.backgroundUrlForPath(root.wallpaperPath) !== ""
                 transform: Translate {
                     x: root.baseOffsetX()
                     y: root.baseOffsetY()

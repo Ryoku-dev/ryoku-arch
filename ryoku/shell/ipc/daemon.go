@@ -1029,23 +1029,34 @@ func (d *daemon) dispatch(line string) string {
 		// worker's busy flag, the layer count, the mode and the latest
 		// stage + percent. The module keeps its own file
 		// (~/Pictures/Parallax/layers.pz).
+		// The trailing path or scene argument may contain spaces; recover it
+		// from the raw line with a 3-field limit instead of the whitespace-
+		// split args, which would truncate at the first space.
+		rest := ""
+		if parts := strings.SplitN(line, " ", 3); len(parts) == 3 {
+			rest = parts[2]
+		}
 		if len(args) >= 2 && args[0] == "set-enabled" {
 			d.parallaxSetEnabled(args[1] == "1" || args[1] == "true")
 			return "ok"
 		}
 		if len(args) >= 2 && args[0] == "set-mode" {
-			d.parallaxSetMode(parallaxMode(args[1]))
+			mode := parallaxMode(args[1])
+			if mode != parallaxModeAuto && mode != parallaxModeManual {
+				return "err parallax set-mode: expected auto or manual"
+			}
+			d.parallaxSetMode(mode)
 			return "ok"
 		}
 		if len(args) >= 2 && args[0] == "add-layer" {
-			path, err := d.parallaxAddManualLayer(args[1])
+			path, err := d.parallaxAddManualLayer(rest)
 			if err != nil {
 				return "err parallax add-layer: " + err.Error()
 			}
 			return "ok " + path
 		}
 		if len(args) >= 2 && args[0] == "remove-layer" {
-			if err := d.parallaxRemoveManualLayer(args[1]); err != nil {
+			if err := d.parallaxRemoveManualLayer(rest); err != nil {
 				return "err parallax remove-layer: " + err.Error()
 			}
 			return "ok"
@@ -1056,7 +1067,7 @@ func (d *daemon) dispatch(line string) string {
 			return "ok"
 		}
 		if len(args) >= 2 && args[0] == "set-scene" {
-			d.parallaxSetScene(args[1])
+			d.parallaxSetScene(rest)
 			return "ok"
 		}
 		if len(args) >= 1 && args[0] == "cancel" {

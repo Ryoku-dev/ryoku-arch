@@ -199,7 +199,8 @@ ShellRoot {
                 mode: !VizCfg.Config.enabled ? "off"
                     : (perScreen.st && perScreen.st.visualizerOverlay ? "overlay" : "desktop")
                 placing: perScreen.st ? perScreen.st.visualizerPlacing : false
-                suppressed: ParallaxCfg.Config.enabled && ParallaxCfg.Config.wallActive
+                suppressed: ParallaxCfg.Config.enabled
+                    && ParallaxCfg.Config.wallActiveForPath(wallpaper.wallpaperPath)
                     && VizCfg.Config.enabled && !perScreenViz.placing
                 onPlacingDone: if (perScreen.st) perScreen.st.visualizerPlacing = false
             }

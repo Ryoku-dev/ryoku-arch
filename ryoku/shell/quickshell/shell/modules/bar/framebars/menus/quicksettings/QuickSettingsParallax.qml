@@ -185,12 +185,26 @@ Item {
         }
         return true;
     }
+    function _sceneRowShown(id) {
+        if (id === "wallpaper") return false;
+        if (id === "visualizer") return VizCfg.Config.enabled;
+        if (id.indexOf("layer:") === 0) return true;
+        if (id.indexOf("widget:") === 0) return root.widgetOn(id.slice(7));
+        return false;
+    }
     function moveOrder(id, dir) {
         const scene = PxCfg.Config.effectiveScene().slice();
-        const i = scene.indexOf(id);
-        const j = i + dir;
-        if (i < 0 || j < 0 || j >= scene.length) return;
-        const tmp = scene[i]; scene[i] = scene[j]; scene[j] = tmp;
+        // Reorder only among the rows the editor actually renders; swapping a
+        // visible entry with a hidden widget, the wallpaper or a disabled
+        // visualizer would read as a dead click or jump past invisible rows.
+        const shown = [];
+        for (let k = 0; k < scene.length; k++)
+            if (root._sceneRowShown(scene[k])) shown.push(k);
+        const pos = shown.indexOf(scene.indexOf(id));
+        const tpos = pos + dir;
+        if (pos < 0 || tpos < 0 || tpos >= shown.length) return;
+        const a = shown[pos], b = shown[tpos];
+        const tmp = scene[a]; scene[a] = scene[b]; scene[b] = tmp;
         PxCfg.Config.setScene(scene);
         root.rebuildScene();
     }

@@ -38,6 +38,23 @@ rembg_python() {
     return 1
 }
 
+# inpaint imports numpy, PIL and scipy (not rembg), so gate on those directly.
+inpaint_python() {
+    if [[ -x "$venv/bin/python" ]] && "$venv/bin/python" -c "import numpy, PIL, scipy" 2>/dev/null; then
+        PY="$venv/bin/python"
+        return 0
+    fi
+    local p
+    for p in python3.13 python3.12 python3.11 python3; do
+        command -v "$p" >/dev/null 2>&1 || continue
+        if "$p" -c "import numpy, PIL, scipy" 2>/dev/null; then
+            PY="$p"
+            return 0
+        fi
+    done
+    return 1
+}
+
 # rembg's cache layout varies by version, so find the onnx rather than assume a path.
 model_cached() { [[ -n "$(find "$models" -name "$1.onnx" -print -quit 2>/dev/null)" ]]; }
 
@@ -188,7 +205,7 @@ cmd_inpaint() {
         printf 'ryoku-parallax-engine: mask not found: %s\n' "$mask" >&2
         return 1
     }
-    rembg_python || {
+    inpaint_python || {
         printf 'ryoku-parallax-engine: engine not installed (run: ryoku-parallax-engine install)\n' >&2
         return 1
     }

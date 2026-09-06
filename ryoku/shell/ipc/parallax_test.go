@@ -66,7 +66,9 @@ func TestReadLastParallaxProgress(t *testing.T) {
 		if _, err := f.Write(append(b, '\n')); err != nil {
 			t.Fatal(err)
 		}
-		f.Close()
+		if err := f.Close(); err != nil {
+			t.Fatal(err)
+		}
 	}
 	rec, label, percent := readLastParallaxProgress()
 	if rec == nil {
@@ -140,6 +142,40 @@ func TestParallaxStatusJSONFields(t *testing.T) {
 	}
 	if got["stage"] != "cutting subject" {
 		t.Errorf("stage = %v, want cutting subject", got["stage"])
+	}
+}
+
+func TestParallaxDispatchArgs(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("HOME", dir)
+	t.Setenv("XDG_STATE_HOME", filepath.Join(dir, ".local", "state"))
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(dir, ".config"))
+	t.Setenv("XDG_RUNTIME_DIR", t.TempDir())
+
+	wall := filepath.Join(dir, "wp.png")
+	writeFile(t, wall, "png")
+
+	d := &daemon{}
+	d.ryoWallMu.Lock()
+	d.ryoWall = ryogamiFrame{Default: ryogamiFrameEntry{Path: wall}}
+	d.ryoWallMu.Unlock()
+
+	if got := d.dispatch("parallax set-mode bogus"); !strings.HasPrefix(got, "err parallax set-mode") {
+		t.Fatalf("set-mode bogus = %q, want err", got)
+	}
+	if got := d.dispatch("parallax set-mode manual"); got != "ok" {
+		t.Fatalf("set-mode manual = %q, want ok", got)
+	}
+
+	// A source path with a space must survive the command split intact.
+	src := filepath.Join(dir, "my layer.png")
+	writeFile(t, src, "layer")
+	got := d.dispatch("parallax add-layer " + src)
+	if !strings.HasPrefix(got, "ok ") {
+		t.Fatalf("add-layer = %q, want ok <path>", got)
+	}
+	if _, err := os.Stat(strings.TrimPrefix(got, "ok ")); err != nil {
+		t.Fatalf("add-layer dst missing: %v", err)
 	}
 }
 

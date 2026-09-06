@@ -287,6 +287,17 @@ Singleton {
             adapter.animType = _set(adapter.animType, j, id === "none" ? "none" : "float");
             adapter.shadow = _set(adapter.shadow, j, id === "cinematic" ? 0.5 : 0);
         }
+        // none returns the whole stack to defaults, not just animType/shadow.
+        if (id === "none") {
+            var op = [], ox = [], oy = [], mm = [], sa = [], le = [];
+            for (var k = 0; k < n; k++) { op.push(1); ox.push(0); oy.push(0); mm.push(32); sa.push(90); le.push(true); }
+            adapter.opacity = op;
+            adapter.offsetX = ox;
+            adapter.offsetY = oy;
+            adapter.mouseMax = mm;
+            adapter.shadowAngle = sa;
+            adapter.layerEnabled = le;
+        }
         save();
     }
 
@@ -362,6 +373,87 @@ Singleton {
         return ls[i - 1].out;
     }
     function isLayerReady(i) { return root.layerUrl(i) !== ""; }
+
+    // Per-wallpaper parallax state, so a multi-monitor box does not let one
+    // screen's wallpaper overwrite the others'. The layer cut, opt-in, scene
+    // order and recoloured background are a pure function of the wallpaper path
+    // and the shared registry (_reg), so every surface reads its OWN screen's
+    // wallpaper path through these *ForPath helpers. The scalar activePath/wall*
+    // above stay as the quick-settings panel's view of the current wallpaper.
+    function _stemFor(path) {
+        if (!path) return "";
+        const base = path.split("/").pop();
+        return base.replace(/\.[^.]+$/, "");
+    }
+    function _folderFor(path) {
+        const stem = root._stemFor(path);
+        if (stem === "") return "";
+        return (Quickshell.env("HOME") || "") + "/Pictures/Parallax/" + stem;
+    }
+    function _wallOf(path) { return (root._reg.walls && path) ? root._reg.walls[path] : null; }
+    function _layersOf(path) { return (root._reg.layers && path) ? root._reg.layers[path] : null; }
+    function wallActiveForPath(path) {
+        const w = root._wallOf(path);
+        const ls = root._layersOf(path);
+        return !!(path && w && w.enabled && ls && ls.length);
+    }
+    function layersForPath(path) {
+        const w = root._wallOf(path);
+        const ls = root._layersOf(path);
+        return (w && w.enabled && ls) ? ls : [];
+    }
+    function wallModeForPath(path) {
+        const w = root._wallOf(path);
+        return (w && w.mode) ? w.mode : root.mode;
+    }
+    function bandCountForPath(path) {
+        const n = root.layersForPath(path).length;
+        return Math.max(1, Math.min(8, n > 0 ? n : (adapter.bands || 1)));
+    }
+    function backgroundUrlForPath(path) {
+        const w = root._wallOf(path);
+        if (!(w && w.mode === "auto")) return "";
+        const folder = root._folderFor(path);
+        if (folder === "") return "";
+        const ls = root._layersOf(path);
+        const rev = (ls && ls.length && ls[0].rev) ? ls[0].rev : 0;
+        return "file://" + folder + "/background.png?v=" + rev;
+    }
+    function layerUrlForPath(path, i) {
+        const ls = root.layersForPath(path);
+        if (i < 1 || i > ls.length) return "";
+        return "file://" + ls[i - 1].out + "?v=" + ls[i - 1].rev;
+    }
+    function defaultSceneForPath(path) {
+        const out = ["wallpaper"];
+        const n = root.bandCountForPath(path);
+        for (var i = 1; i <= n; i++) out.push("layer:" + i);
+        for (const wid of root.builtinWidgetIds) out.push("widget:" + wid);
+        out.push("visualizer");
+        return out;
+    }
+    function effectiveSceneForPath(path) {
+        const w = root._wallOf(path);
+        const ws = (w && w.scene && w.scene.length) ? w.scene : [];
+        if (ws.length) return ws;
+        return (adapter.scene && adapter.scene.length) ? adapter.scene : root.defaultSceneForPath(path);
+    }
+    function sceneIndexOfForPath(path, name) { return root.effectiveSceneForPath(path).indexOf(name); }
+    function sceneZForPath(path, name) {
+        const i = root.sceneIndexOfForPath(path, name);
+        return i < 0 ? 0 : i * 2 + 1;
+    }
+    function sceneGapZForPath(path) {
+        const s = root.effectiveSceneForPath(path);
+        for (var i = s.length - 1; i >= 0; i--)
+            if (s[i].indexOf("layer:") === 0) return i * 2 + 1.5;
+        return 1;
+    }
+    function widgetZForPath(path, id) {
+        const name = "widget:" + id;
+        const i = root.sceneIndexOfForPath(path, name);
+        return i >= 0 ? i * 2 + 2 : root.sceneGapZForPath(path);
+    }
 
     function ensureDefaults() {
         const n = root.bandCount;
@@ -449,8 +541,6 @@ Singleton {
     }
 
     Component.onCompleted: {
-        if (!file.text())
-            file.writeAdapter();
         root.ensureDefaults();
         if (wallsFile.text())
             wallsFile.reload();

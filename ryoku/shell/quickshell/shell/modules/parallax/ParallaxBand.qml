@@ -9,6 +9,7 @@ Item {
     id: root
 
     property int layerIndex: 1
+    property string wallPath: ""
     property string url: ""
     property string fit: "Cover"
     property real mouseNX: 0
@@ -16,9 +17,10 @@ Item {
     property real energy: 0
 
     readonly property int i: root.layerIndex - 1
-    readonly property bool enabled: root.url !== "" && Config.enabled && Config.wallActive
+    readonly property bool enabled: root.url !== "" && Config.enabled
+        && Config.wallActiveForPath(root.wallPath)
         && Config.layerEnabled2(root.i)
-        && Config.sceneIndexOf("layer:" + root.layerIndex) >= 0
+        && Config.sceneIndexOfForPath(root.wallPath, "layer:" + root.layerIndex) >= 0
 
     anchors.fill: parent
     visible: root.enabled
@@ -61,7 +63,7 @@ Item {
     readonly property string _anim: Config.animTypeFor(root.i)
     readonly property real _amp: Config.animAmplitudeFor(root.i)
     readonly property real _spd: Config.animSpeedFor(root.i)
-    readonly property int _dur: Math.max(500, Math.round(3200 / Math.max(0.1, _spd)))
+    readonly property int _dur: Math.max(500, Math.round(3200 / Math.max(0.1, root._spd)))
 
     property real animT: 0
     Timer {
@@ -72,17 +74,17 @@ Item {
         onTriggered: root.animT += 50
     }
 
-    readonly property real _phase: root.animT * 2 * Math.PI * 4 / _dur
-    readonly property real _animX: (_anim === "float" || _anim === "wiggle" || _anim === "rotate")
-        ? Math.sin(_phase) * _amp : 0
-    readonly property real _animY: (_anim === "float" || _anim === "wiggle")
-        ? Math.cos(_phase) * _amp : 0
-    readonly property real _animOpacity: _anim === "pulse"
-        ? 0.55 + 0.45 * Math.abs(Math.sin(_phase / 2)) : 1
-    readonly property real _animScale: _anim === "scale"
-        ? 1.1 + _amp / 200 * Math.sin(_phase / 2) : 1
-    readonly property real _animRotate: _anim === "rotate"
-        ? Math.sin(_phase) * _amp * 0.35 : 0
+    readonly property real _phase: root.animT * 2 * Math.PI * 4 / root._dur
+    readonly property real _animX: (root._anim === "float" || root._anim === "wiggle" || root._anim === "rotate")
+        ? Math.sin(root._phase) * root._amp : 0
+    readonly property real _animY: (root._anim === "float" || root._anim === "wiggle")
+        ? Math.cos(root._phase) * root._amp : 0
+    readonly property real _animOpacity: root._anim === "pulse"
+        ? 0.55 + 0.45 * Math.abs(Math.sin(root._phase / 2)) : 1
+    readonly property real _animScale: root._anim === "scale"
+        ? 1.1 + root._amp / 200 * Math.sin(root._phase / 2) : 1
+    readonly property real _animRotate: root._anim === "rotate"
+        ? Math.sin(root._phase) * root._amp * 0.35 : 0
 
     readonly property real _shAngle: Config.shadowAngleFor(root.i) * Math.PI / 180
     readonly property real _shStrength: Config.shadowFor(root.i)

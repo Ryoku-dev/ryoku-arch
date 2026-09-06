@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -48,14 +49,12 @@ type parallaxWalls struct {
 func parallaxWallsPath() string { return filepath.Join(parallaxDir(), "layers.pz") }
 
 func loadParallaxWalls() parallaxWalls {
-	w := parallaxWalls{Walls: map[string]parallaxWall{}, Layers: map[string][]parallaxLayerRef{}}
-	raw, err := os.ReadFile(parallaxWallsPath())
-	if err != nil {
-		return w
+	var w parallaxWalls
+	if raw, err := os.ReadFile(parallaxWallsPath()); err == nil {
+		_ = json.Unmarshal(raw, &w)
 	}
-	if json.Unmarshal(raw, &w) != nil {
-		return w
-	}
+	// Normalize after any read or decode failure so callers can assign into
+	// the maps without a nil-map panic.
 	if w.Walls == nil {
 		w.Walls = map[string]parallaxWall{}
 	}
@@ -65,17 +64,47 @@ func loadParallaxWalls() parallaxWalls {
 	return w
 }
 
-func saveParallaxWalls(w parallaxWalls) {
+func saveParallaxWalls(w parallaxWalls) error {
 	if w.Walls == nil {
 		w.Walls = map[string]parallaxWall{}
 	}
 	if w.Layers == nil {
 		w.Layers = map[string][]parallaxLayerRef{}
 	}
-	_ = os.MkdirAll(filepath.Dir(parallaxWallsPath()), 0o755)
-	if b, err := json.MarshalIndent(w, "", "  "); err == nil {
-		_ = os.WriteFile(parallaxWallsPath(), b, 0o644)
+	path := parallaxWallsPath()
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return fmt.Errorf("parallax walls mkdir: %w", err)
 	}
+	b, err := json.MarshalIndent(w, "", "  ")
+	if err != nil {
+		return fmt.Errorf("parallax walls marshal: %w", err)
+	}
+	// Write to a temp file in the same directory and rename so a crash never
+	// leaves a half-written registry.
+	tmp, err := os.CreateTemp(dir, ".layers-*.pz")
+	if err != nil {
+		return fmt.Errorf("parallax walls temp: %w", err)
+	}
+	tmpName := tmp.Name()
+	if _, err := tmp.Write(b); err != nil {
+		tmp.Close()
+		os.Remove(tmpName)
+		return fmt.Errorf("parallax walls write: %w", err)
+	}
+	if err := tmp.Close(); err != nil {
+		os.Remove(tmpName)
+		return fmt.Errorf("parallax walls close: %w", err)
+	}
+	if err := os.Chmod(tmpName, 0o644); err != nil {
+		os.Remove(tmpName)
+		return fmt.Errorf("parallax walls chmod: %w", err)
+	}
+	if err := os.Rename(tmpName, path); err != nil {
+		os.Remove(tmpName)
+		return fmt.Errorf("parallax walls rename: %w", err)
+	}
+	return nil
 }
 
 type parallaxConfig struct {
@@ -152,6 +181,14 @@ func writeParallaxProgress(record map[string]any) {
 	}
 	defer f.Close()
 	_, _ = f.Write(append(b, '\n'))
+}
+
+// resetParallaxProgress truncates the progress log so each cut starts fresh
+// and the append-only file cannot grow without bound.
+func resetParallaxProgress() {
+	path := parallaxProgressPath()
+	_ = os.MkdirAll(filepath.Dir(path), 0o755)
+	_ = os.WriteFile(path, nil, 0o644)
 }
 
 func progressPercent(rec map[string]any) int {
@@ -253,31 +290,35 @@ func runParallaxAuto(source string, subjectModel string, alphaMatting bool) erro
 	subjectOut := parallaxSubjectOut(source)
 	inpaintedOut := parallaxInpaintedOut(source)
 	if err := os.MkdirAll(filepath.Dir(subjectOut), 0o755); err != nil {
-		return err
+		return fmt.Errorf("parallax mkdir: %w", err)
 	}
+	resetParallaxProgress()
 
 	cutoutArgs := []string{"cutout", source, subjectOut, "--model", subjectModel}
 	if alphaMatting {
 		cutoutArgs = append(cutoutArgs, "--alpha-matting")
 	}
 
-	if parallaxCutPID.Swap(int32(os.Getpid())) == 0 {
-		defer parallaxCutPID.Store(0)
-	}
-
+	// parallaxCutPID holds the running child's real PID (not the daemon's) so
+	// `parallax cancel` can signal its process group; reset to 0 once it exits.
 	writeParallaxProgress(map[string]any{"stage": "subject", "model": subjectModel})
 	cmd := exec.Command(parallaxEngineBin(), cutoutArgs...)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return err
+		return fmt.Errorf("parallax cutout stderr: %w", err)
 	}
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
 		_, _ = io.Copy(io.Discard, stderr)
 	}()
-	werr := cmd.Run()
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("parallax cutout start: %w", err)
+	}
+	parallaxCutPID.Store(int32(cmd.Process.Pid))
+	werr := cmd.Wait()
+	parallaxCutPID.Store(0)
 	<-done
 	if werr != nil {
 		writeParallaxProgress(map[string]any{"stage": "error", "error": werr.Error()})
@@ -294,14 +335,20 @@ func runParallaxAuto(source string, subjectModel string, alphaMatting bool) erro
 	inStderr, err := inpaintCmd.StderrPipe()
 	if err != nil {
 		writeParallaxProgress(map[string]any{"stage": "error", "error": err.Error()})
-		return err
+		return fmt.Errorf("parallax inpaint stderr: %w", err)
 	}
 	done2 := make(chan struct{})
 	go func() {
 		defer close(done2)
 		_, _ = io.Copy(io.Discard, inStderr)
 	}()
-	werr = inpaintCmd.Run()
+	if err := inpaintCmd.Start(); err != nil {
+		writeParallaxProgress(map[string]any{"stage": "error", "error": err.Error()})
+		return fmt.Errorf("parallax inpaint start: %w", err)
+	}
+	parallaxCutPID.Store(int32(inpaintCmd.Process.Pid))
+	werr = inpaintCmd.Wait()
+	parallaxCutPID.Store(0)
 	<-done2
 	if werr != nil {
 		// Inpainting failing is non-fatal: the user can still see the
@@ -351,7 +398,9 @@ func parallaxEngineBin() string {
 }
 
 func parallaxEngineAvailable() bool {
-	return exec.Command(parallaxEngineBin(), "check").Run() == nil
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return exec.CommandContext(ctx, parallaxEngineBin(), "check").Run() == nil
 }
 
 func (d *daemon) scheduleParallax() {
@@ -424,7 +473,9 @@ func (d *daemon) reconcileParallax(force bool) {
 	}
 
 	if changed {
-		saveParallaxWalls(reg)
+		if err := saveParallaxWalls(reg); err != nil {
+			fmt.Fprintf(os.Stderr, "parallax: save walls: %v\n", err)
+		}
 	}
 }
 
@@ -563,7 +614,9 @@ func (d *daemon) parallaxSetEnabledMode(on bool, mode parallaxMode) {
 		len(reg.Layers[wall]) != prevLayers ||
 		reg.Walls[wall].Mode != prevMode
 	if dirty {
-		saveParallaxWalls(reg)
+		if err := saveParallaxWalls(reg); err != nil {
+			fmt.Fprintf(os.Stderr, "parallax: save walls: %v\n", err)
+		}
 	}
 	d.parallaxForce.Store(true)
 	d.scheduleParallax()
@@ -583,7 +636,9 @@ func (d *daemon) parallaxSetScene(body string) {
 	entry.Enabled = entry.Enabled || len(scene) > 0
 	entry.Scene = scene
 	reg.Walls[wall] = entry
-	saveParallaxWalls(reg)
+	if err := saveParallaxWalls(reg); err != nil {
+		fmt.Fprintf(os.Stderr, "parallax: save walls: %v\n", err)
+	}
 }
 
 func (d *daemon) parallaxAddManualLayer(src string) (string, error) {

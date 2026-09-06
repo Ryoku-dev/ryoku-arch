@@ -55,8 +55,11 @@ Singleton {
         const base = wallPath.split("/").pop();
         const stem = base.replace(/\.[^.]+$/, "");
         const folder = (Quickshell.env("HOME") || "") + "/Pictures/Parallax/" + stem;
+        // Pass the folder as a positional argument ($1) so a path with shell
+        // metacharacters cannot be interpreted as part of the command.
         openProc.command = ["sh", "-c",
-            "mkdir -p \"" + folder + "\" && (nautilus \"" + folder + "\" 2>/dev/null || gio open \"" + folder + "\" 2>/dev/null || xdg-open \"" + folder + "\")"];
+            "mkdir -p \"$1\" && (nautilus \"$1\" 2>/dev/null || gio open \"$1\" 2>/dev/null || xdg-open \"$1\")",
+            "sh", folder];
         openProc.running = false;
         openProc.running = true;
     }

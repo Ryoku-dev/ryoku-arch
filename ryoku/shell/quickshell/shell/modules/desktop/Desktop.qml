@@ -55,11 +55,12 @@ Scope {
 
     // The parallax background surface (modules/parallax/ParallaxBackground.qml)
     // owns the screen's backdrop while its layers are cut for this wallpaper.
-    readonly property bool parallaxOwns: ParallaxCfg.Config.enabled && ParallaxCfg.Config.wallActive
+    readonly property bool parallaxOwns: ParallaxCfg.Config.enabled
+        && ParallaxCfg.Config.wallActiveForPath(root.wallpaperPath)
         && root.videoUrl === "" && !root.wallpaperLive
     function widgetZ(id) {
-        if (ParallaxCfg.Config.enabled && ParallaxCfg.Config.wallActive)
-            return ParallaxCfg.Config.widgetZ(id);
+        if (ParallaxCfg.Config.enabled && ParallaxCfg.Config.wallActiveForPath(root.wallpaperPath))
+            return ParallaxCfg.Config.widgetZForPath(root.wallpaperPath, id);
         return DepthCfg.Config.isFront(id) ? 1 : 0;
     }
     readonly property var depthState: Services.ShellState.forScreen(root.screen)
@@ -531,14 +532,17 @@ Scope {
         // widgets; the drift follows the cursor the background polls.
             Repeater {
                 id: parallaxBands
-                model: ParallaxCfg.Config.layers.length
+                // Gate on parallaxOwns so a video or live wallpaper that owns
+                // the surface never renders stray bands over it.
+                model: root.parallaxOwns ? ParallaxCfg.Config.layersForPath(root.wallpaperPath).length : 0
                 delegate: ParallaxBand {
                     required property int index
                     anchors.fill: parent
                     layerIndex: index + 1
-                    url: ParallaxCfg.Config.layerUrl(index + 1)
+                    wallPath: root.wallpaperPath
+                    url: ParallaxCfg.Config.layerUrlForPath(root.wallpaperPath, index + 1)
                     fit: root.wallpaperFit
-                    z: ParallaxCfg.Config.sceneZ("layer:" + (index + 1))
+                    z: ParallaxCfg.Config.sceneZForPath(root.wallpaperPath, "layer:" + (index + 1))
                     mouseNX: ParallaxCfg.Config.cursorNXFor(root.screen.name)
                     mouseNY: ParallaxCfg.Config.cursorNYFor(root.screen.name)
                     energy: VizCfg.Spectrum.energy
@@ -548,7 +552,7 @@ Scope {
         Item {
             id: inlineViz
             anchors.fill: parent
-            z: ParallaxCfg.Config.sceneZ("visualizer")
+            z: ParallaxCfg.Config.sceneZForPath(root.wallpaperPath, "visualizer")
             visible: root.parallaxOwns && VizCfg.Config.enabled
             InlineVisualizer {
                 anchors.fill: parent
