@@ -15,7 +15,6 @@ import Ryoku.PluginKit
 import shell.services as Services
 import "../stage"
 import "../stage/Singletons" as StageCfg
-import "../visualizer"
 import "../visualizer/Singletons" as VizCfg
 import "../wallpaper" as WallpaperMod
 
@@ -45,16 +44,18 @@ Scope {
     // while the C player owns the background layer.
     property bool wallpaperLive: false
 
-    // The Stage parallax backdrop (modules/stage/StageBackground.qml) owns the
-    // screen's backdrop while this wallpaper's layers are cut (docs/stage.md).
-    readonly property bool stageParallaxOwns: StageCfg.StageBackend.isParallaxFor(root.wallpaperPath)
+    // Stage z-ordering (docs/stage.md): behind-layers sit below the widgets
+    // (z 2), in-front layers above them (z 4), and a widget the user lifted
+    // (Config.front) rises above even the in-front layers (z 5). Gated off for
+    // video/live walls, which the daemon skips.
+    readonly property bool stageOn: StageCfg.StageBackend.isActiveFor(root.wallpaperPath)
+        && root.videoUrl === "" && !root.wallpaperLive
+    readonly property bool stageParallax: StageCfg.StageBackend.isParallaxFor(root.wallpaperPath)
         && root.videoUrl === "" && !root.wallpaperLive
     function widgetZ(id) {
-        if (StageCfg.StageBackend.isParallaxFor(root.wallpaperPath))
-            return StageCfg.StageBackend.widgetZFor(root.wallpaperPath, id);
-        if (StageCfg.StageBackend.isSubjectFor(root.wallpaperPath))
-            return StageCfg.Config.isFront(id) ? 1 : 0;
-        return 0;
+        if (!root.stageOn)
+            return 0;
+        return StageCfg.Config.isFront(id) ? 5 : 3;
     }
     readonly property var stageState: Services.ShellState.forScreen(root.screen)
     // Compose mode frees every widget for dragging (like visualiser placement),
@@ -62,7 +63,57 @@ Scope {
     readonly property bool stageComposing: root.stageState ? root.stageState.stageComposing : false
     // Grab the keyboard while composing so Esc/Enter exit the mode (the bar owns
     // the keys); dropping it hands the keyboard back like any widget edit.
-    onStageComposingChanged: win.kbWanted += root.stageComposing ? 1 : -1
+    onStageComposingChanged: {
+        win.kbWanted += root.stageComposing ? 1 : -1;
+        if (root.stageComposing)
+            StageCfg.StageSession.reset();
+    }
+    // Human titles + the Add-palette model + toggle for the edit session
+    // (docs/stage.md): built-ins and the visualizer read their config flags,
+    // plugins come from the Registry's placed desktopWidgets.
+    function widgetTitle(w) {
+        const n = { clock: "Clock", calendar: "Calendar", music: "Music", aio: "All-in-one", stats: "System stats", weather: "Weather", notes: "Notes" };
+        return n[w] || w;
+    }
+    readonly property var editItems: {
+        const bi = [
+            { id: "clock", label: "Clock", icon: "schedule", enabled: Config.clockEnabled },
+            { id: "calendar", label: "Calendar", icon: "calendar_month", enabled: Config.calendarEnabled },
+            { id: "music", label: "Music", icon: "music_note", enabled: Config.musicEnabled },
+            { id: "aio", label: "All-in-one", icon: "dashboard", enabled: Config.aioEnabled },
+            { id: "stats", label: "System stats", icon: "monitor_heart", enabled: Config.statsEnabled },
+            { id: "weather", label: "Weather", icon: "partly_cloudy_day", enabled: Config.weatherEnabled },
+            { id: "notes", label: "Notes", icon: "sticky_note_2", enabled: Config.notesEnabled },
+            { id: "visualizer", label: "Visualizer", icon: "graphic_eq", enabled: VizCfg.Config.enabled }
+        ];
+        const pl = (win.desktopPluginIds || []).map(pid => {
+            const e = Registry.plugins.find(p => p.id === pid);
+            return { id: "plugin:" + pid, label: (e && e.manifest && e.manifest.name) ? e.manifest.name : pid, icon: "widgets", enabled: true };
+        });
+        return bi.concat(pl);
+    }
+    function paletteToggle(id) {
+        if (id === "visualizer") { VizCfg.Config.setEnabled(!VizCfg.Config.enabled); return; }
+        if (id.indexOf("plugin:") === 0) {
+            const pid = id.slice(7);
+            const on = (win.desktopPluginIds || []).indexOf(pid) >= 0;
+            paletteProc.command = [root.placeTool, pid, "enabled", on ? "false" : "true"];
+            paletteProc.running = true;
+            return;
+        }
+        Config.set(id + "Enabled", !Config[id + "Enabled"]);
+    }
+    // Live drag readout for the toolbar (built-in widget drags).
+    readonly property string dragReadout: {
+        const s = win.dragSlot;
+        return s ? (root.widgetTitle(s.widget) + "  " + Math.round(s.dragX) + ", " + Math.round(s.dragY)) : "";
+    }
+    Binding {
+        target: StageCfg.StageSession
+        property: "readout"
+        value: root.dragReadout
+        when: root.stageComposing
+    }
     readonly property bool reloadReady: readiness.ready
 
     ReloadReadiness {
@@ -202,9 +253,10 @@ Scope {
         WallpaperMod.Backdrop {
             id: backdrop
             anchors.fill: parent
-            // cava-bg model: while the parallax surface owns the background
-            // layer, this window only carries widgets and chrome.
-            visible: !root.stageParallaxOwns
+            // The base wallpaper always draws now (no separate stage surface):
+            // Parallax's StageBackdrop covers its baked subject, and Depth locks
+            // the still cut over it (docs/stage.md).
+            visible: true
             readonly property real screenDpr: (root.screen && root.screen.devicePixelRatio) ? root.screen.devicePixelRatio : 1
             dpr: screenDpr
             // Keep the still decoded while a video plays: the frame path is
@@ -217,6 +269,17 @@ Scope {
             live: root.wallpaperLive
             videoMuted: root.videoMuted
             videoVolume: root.videoVolume
+        }
+
+        // The Parallax backdrop: the inpainted background.png drifting just
+        // above the base wallpaper, covering its baked subject. Only Parallax
+        // shows it; it also owns the per-monitor cursor poll (docs/stage.md).
+        StageBackdrop {
+            z: 1
+            screen: root.screen
+            wallpaperPath: root.wallpaperPath
+            wallpaperFit: root.wallpaperFit
+            visible: root.stageParallax
         }
 
         // Mirror of the same image for glass widgets: Qt cannot sample another
@@ -519,54 +582,153 @@ Scope {
                     it.widthBudget = 360;
                     it.active = true;
                 }
+
+                // Edit-session chip, reparented to the overlay so its pill stays
+                // clickable past a small tile's edge (docs/stage.md).
+                StageWidgetChip {
+                    parent: composeOverlay
+                    visible: root.stageComposing
+                    box: Qt.rect(slot.x, slot.y, slot.width, slot.height)
+                    title: (slot.entry && slot.entry.manifest && slot.entry.manifest.name) ? slot.entry.manifest.name : slot.pid
+                    isFront: StageCfg.Config.isFront(slot.pid)
+                    locked: slot.dw.locked === true
+                    selected: StageCfg.StageSession.selected === slot.pid
+                    onFlip: StageCfg.Config.toggleFront(slot.pid)
+                    onToggleLock: {
+                        const dw = slot.dw;
+                        const x = (dw.x !== undefined) ? dw.x : 80;
+                        const y = (dw.y !== undefined) ? dw.y : 80;
+                        const sc = (dw.scale !== undefined) ? dw.scale : 1;
+                        lockProc.command = [root.placeTool, slot.pid, "desktopWidget", "" + x, "" + y, "" + sc, "" + !(dw.locked === true)];
+                        lockProc.running = true;
+                    }
+                    onRemoveEl: { hide.command = [root.placeTool, slot.pid, "enabled", "false"]; hide.running = true; }
+                    onOpenSettings: pluginMenu.openFor(slot.pid, slot.dw.locked === true, slot.x + 20, slot.y + 20, slot.entry ? slot.entry.manifest : null, slot.entry ? slot.entry.placement : null)
+                    onPicked: StageCfg.StageSession.select(slot.pid)
+                }
             }
         }
-        // Stage parallax bands live here so the scene order interleaves them
-        // with the widgets; the drift follows the cursor the backdrop polls.
+        // The one place a stage layer is drawn (docs/stage.md): every cut layer,
+        // each at its own z by its `front` flag -- behind the widgets (z 2) or in
+        // front of them (z 4). Depth renders this stack still (motion off, no
+        // backdrop); Parallax adds drift. Gated off for video/live walls.
         Repeater {
-            id: stageBands
-            // Gate on stageParallaxOwns so a video or live wallpaper that owns
-            // the surface never renders stray bands over it.
-            model: root.stageParallaxOwns ? StageCfg.StageBackend.layerCountFor(root.wallpaperPath) : 0
+            id: stageLayers
+            model: root.stageOn ? StageCfg.StageBackend.layerCountFor(root.wallpaperPath) : 0
             delegate: StageLayer {
                 required property int index
-                anchors.fill: parent
                 layerIndex: index + 1
                 wallPath: root.wallpaperPath
                 url: StageCfg.StageBackend.layerUrlFor(root.wallpaperPath, index)
                 fit: root.wallpaperFit
-                z: StageCfg.StageBackend.sceneZFor(root.wallpaperPath, "layer:" + (index + 1))
+                z: StageCfg.StageBackend.layerFront(root.wallpaperPath, index) ? 4 : 2
                 mouseNX: StageCfg.StageBackend.cursorNXFor(root.screen.name)
                 mouseNY: StageCfg.StageBackend.cursorNYFor(root.screen.name)
                 energy: VizCfg.Spectrum.energy
-                motionEnabled: true
+                motionEnabled: root.stageParallax
             }
         }
 
+        // ── desktop edit session overlay (docs/stage.md) ──────────────
+        // Soft outlines + chips on every element, only while composing. The
+        // chips sit above the layers and widgets so they stay reachable; the
+        // rest is transparent, so the widgets underneath still drag.
         Item {
-            id: inlineViz
+            id: composeOverlay
             anchors.fill: parent
-            z: StageCfg.StageBackend.sceneZFor(root.wallpaperPath, "visualizer")
-            visible: root.stageParallaxOwns && VizCfg.Config.enabled
-            InlineVisualizer {
-                anchors.fill: parent
+            z: 60
+            visible: root.stageComposing
+
+            Repeater {
+                model: root.stageOn ? StageCfg.StageBackend.layerCountFor(root.wallpaperPath) : 0
+                delegate: StageLayerChip {
+                    required property int index
+                    wallPath: root.wallpaperPath
+                    slot: index
+                    count: StageCfg.StageBackend.layerCountFor(root.wallpaperPath)
+                    parallax: root.stageParallax
+                }
+            }
+
+            component BuiltinChip: StageWidgetChip {
+                id: bc
+                property var slotItem: null
+                property string wid: ""
+                visible: bc.slotItem ? bc.slotItem.visible : false
+                box: bc.slotItem ? Qt.rect(bc.slotItem.x, bc.slotItem.y, bc.slotItem.width, bc.slotItem.height) : Qt.rect(0, 0, 0, 0)
+                title: root.widgetTitle(bc.wid)
+                isFront: StageCfg.Config.isFront(bc.wid)
+                locked: Config[bc.wid + "Locked"] === true
+                selected: StageCfg.StageSession.selected === bc.wid
+                onFlip: StageCfg.Config.toggleFront(bc.wid)
+                onToggleLock: Config.toggle(bc.wid + "Locked")
+                onRemoveEl: Config.set(bc.wid + "Enabled", false)
+                onOpenSettings: menu.openFor(bc.wid, bc.box.x + 20, bc.box.y + 20)
+                onPicked: StageCfg.StageSession.select(bc.wid)
+            }
+            BuiltinChip { wid: "clock"; slotItem: clockSlot }
+            BuiltinChip { wid: "calendar"; slotItem: calendarSlot }
+            BuiltinChip { wid: "music"; slotItem: musicSlot }
+            BuiltinChip { wid: "aio"; slotItem: aioSlot }
+            BuiltinChip { wid: "stats"; slotItem: statsSlot }
+            BuiltinChip { wid: "weather"; slotItem: weatherSlot }
+            BuiltinChip { wid: "notes"; slotItem: notesSlot }
+
+            // Visualizer: its own surface, so front/behind maps to its layer.
+            StageWidgetChip {
+                visible: VizCfg.Config.enabled
+                box: Qt.rect(composeOverlay.width * 0.12, composeOverlay.height * 0.72, composeOverlay.width * 0.76, composeOverlay.height * 0.2)
+                title: "Visualizer"
+                frontLabel: "Above windows"
+                behindLabel: "On desktop"
+                isFront: root.stageState ? root.stageState.visualizerOverlay : false
+                canLock: false
+                canSettings: false
+                selected: StageCfg.StageSession.selected === "visualizer"
+                onFlip: if (root.stageState) root.stageState.visualizerOverlay = !root.stageState.visualizerOverlay
+                onRemoveEl: VizCfg.Config.setEnabled(false)
+                onPicked: StageCfg.StageSession.select("visualizer")
             }
         }
 
-        // The Subject-in-front effect: one still StageLayer above the widgets
-        // (declared here so non-front widgets fall behind it and front ones rise
-        // above). The same StageLayer renderer, motion off -- no separate depth
-        // renderer (docs/stage.md). Only in subject mode; parallax draws the
-        // subject as one of its interleaved bands above.
-        StageLayer {
-            visible: StageCfg.StageBackend.isSubjectFor(root.wallpaperPath)
-                && StageCfg.StageBackend.layerEnabled(root.wallpaperPath, 0)
-            layerIndex: 1
-            wallPath: root.wallpaperPath
-            url: StageCfg.StageBackend.layerUrlFor(root.wallpaperPath, 0)
-            fit: root.wallpaperFit
-            motionEnabled: false
+        // The Add palette, docked at the left while composing.
+        StageAddPalette {
+            anchors.left: parent.left
+            anchors.leftMargin: 20
+            anchors.top: parent.top
+            anchors.topMargin: 24
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 180
+            z: 62
+            visible: root.stageComposing && StageCfg.StageSession.paletteOpen
+            items: root.editItems
+            onToggle: id => root.paletteToggle(id)
+            onClosed: StageCfg.StageSession.paletteOpen = false
         }
+        // A small handle to reopen the palette once it is closed.
+        Rectangle {
+            anchors.left: parent.left
+            anchors.leftMargin: 20
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 180
+            z: 62
+            visible: root.stageComposing && !StageCfg.StageSession.paletteOpen
+            width: reopenRow.implicitWidth + 24
+            height: 40
+            radius: 12
+            color: Qt.rgba(Services.Theme.surface.r, Services.Theme.surface.g, Services.Theme.surface.b, 0.92)
+            border.width: 1
+            border.color: Qt.rgba(Services.Theme.outline.r, Services.Theme.outline.g, Services.Theme.outline.b, 0.4)
+            Row {
+                id: reopenRow
+                anchors.centerIn: parent
+                spacing: 6
+                Text { anchors.verticalCenter: parent.verticalCenter; text: "+"; color: Services.Theme.onSurface; font.family: Services.Theme.fontPrimary; font.pixelSize: 20; font.weight: Font.DemiBold }
+                Text { anchors.verticalCenter: parent.verticalCenter; text: "Add"; color: Services.Theme.onSurface; font.family: Services.Theme.fontPrimary; font.pixelSize: Services.Theme.fontSm; font.weight: Font.DemiBold }
+            }
+            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: StageCfg.StageSession.paletteOpen = true }
+        }
+        Process { id: paletteProc }
 
         WidgetMenu { id: menu }
 

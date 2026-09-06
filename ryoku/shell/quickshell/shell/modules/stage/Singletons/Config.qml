@@ -5,43 +5,47 @@ import Quickshell
 import Quickshell.Io
 
 // Global Stage settings on ~/.config/ryoku/stage.json (docs/stage.md). Only the
-// look every layer inherits and the parallax drift live here; anything
-// per-wallpaper (effect, scene, per-layer knobs, cut artifacts) is daemon-owned
-// in the registry and reaches the shell through StageBackend's `stage` topic.
-// Watched and self-seeded like the visualiser/depth singletons; drag-y setters
-// coalesce writes through one settle timer.
+// look every layer inherits (edge, shadow) and the motion the whole stack shares
+// (amount, idle, music) live here; anything per-wallpaper (effect, per-layer
+// front/depth, cut artifacts) is daemon-owned in the registry and reaches the
+// shell through StageBackend's `stage` topic. `front` is the widget ids the user
+// lifted above the in-front layers from the desktop editor. Watched and
+// self-seeded; drag-y setters coalesce writes through one settle timer, while
+// deliberate segmented picks write eagerly.
 Singleton {
     id: root
 
     property alias quality: adapter.quality
-    property alias feather: adapter.feather
-    property alias lift: adapter.lift
+    property alias edge: adapter.edge
     property alias shadow: adapter.shadow
     property alias shadowAngle: adapter.shadowAngle
     property alias motion: adapter.motion
-    property alias preset: adapter.preset
     property alias front: adapter.front
 
-    // Motion sub-fields, read directly by the renderers (defaults guard a
-    // half-written file).
-    readonly property bool mouseEnabled: (root.motion && root.motion.mouse !== undefined) ? root.motion.mouse === true : true
-    readonly property real mouseSensitivity: (root.motion && typeof root.motion.sensitivity === "number") ? root.motion.sensitivity : 1
-    readonly property real mouseRange: (root.motion && typeof root.motion.range === "number") ? root.motion.range : 0.3
-    readonly property real wallpaperParallax: (root.motion && typeof root.motion.wallpaper === "number") ? root.motion.wallpaper : 0.2
+    // Motion sub-fields, read directly by the renderer (defaults guard a
+    // half-written file). Amount is a word the UI shows; the renderer needs the
+    // drift/idle multiplier it stands for.
+    readonly property string amount: (root.motion && typeof root.motion.amount === "string") ? root.motion.amount : "normal"
+    readonly property string idle: (root.motion && typeof root.motion.idle === "string") ? root.motion.idle : "none"
+    readonly property bool music: !!(root.motion && root.motion.music === true)
+    readonly property real amountFactor: root.amount === "subtle" ? 0.5 : root.amount === "strong" ? 1.8 : 1.0
 
     function isFront(id) {
         return (adapter.front || []).indexOf(id) >= 0;
     }
-    function toggleFront(id) {
+    function setFront(id, on) {
         var arr = (adapter.front || []).slice();
         var i = arr.indexOf(id);
-        if (i >= 0)
+        if (on && i < 0)
+            arr.push(id);
+        else if (!on && i >= 0)
             arr.splice(i, 1);
         else
-            arr.push(id);
+            return;
         adapter.front = arr;
         settle.restart();
     }
+    function toggleFront(id) { root.setFront(id, !root.isFront(id)); }
 
     // Quality is a plain tier the daemon maps to model + matting when it cuts;
     // the UI never names "u2netp" or "alpha matting". Written eagerly because a
@@ -53,8 +57,7 @@ Singleton {
         file.writeAdapter();
     }
 
-    function setFeather(v) { adapter.feather = Math.max(0, Math.min(1, v)); settle.restart(); }
-    function setLift(v) { adapter.lift = Math.max(0.2, Math.min(1, v)); settle.restart(); }
+    function setEdge(v) { adapter.edge = Math.max(0, Math.min(1, v)); settle.restart(); }
     function setShadow(v) { adapter.shadow = Math.max(0, Math.min(1, v)); settle.restart(); }
     function setShadowAngle(v) { adapter.shadowAngle = Math.round(v); settle.restart(); }
 
@@ -65,19 +68,11 @@ Singleton {
             m[k] = src[k];
         m[key] = v;
         adapter.motion = m;
-        settle.restart();
-    }
-    function setMouseEnabled(on) { root._setMotion("mouse", on === true); }
-    function setMouseSensitivity(v) { root._setMotion("sensitivity", Math.max(0.05, Math.min(2, v))); }
-    function setMouseRange(v) { root._setMotion("range", Math.max(0.02, Math.min(1, v))); }
-    function setWallpaperParallax(v) { root._setMotion("wallpaper", Math.max(0, Math.min(1, v))); }
-
-    function setPreset(id) {
-        if (["none", "softdepth", "audiopulse", "cinematic"].indexOf(id) < 0)
-            return;
-        adapter.preset = id;
         file.writeAdapter();
     }
+    function setAmount(a) { if (["subtle", "normal", "strong"].indexOf(a) >= 0) root._setMotion("amount", a); }
+    function setIdle(i) { if (["none", "float", "breathe"].indexOf(i) >= 0) root._setMotion("idle", i); }
+    function setMusic(on) { root._setMotion("music", on === true); }
 
     Timer {
         id: settle
@@ -97,12 +92,10 @@ Singleton {
         JsonAdapter {
             id: adapter
             property string quality: "draft"
-            property real feather: 0.15
-            property real lift: 1.0
+            property real edge: 0.15
             property real shadow: 0.0
             property int shadowAngle: 90
-            property var motion: ({ mouse: true, sensitivity: 1, range: 0.3, wallpaper: 0.2 })
-            property string preset: "none"
+            property var motion: ({ amount: "normal", idle: "none", music: false })
             property var front: []
         }
     }

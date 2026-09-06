@@ -1,7 +1,7 @@
 import QtQuick
 import shell.services
 
-// Shadow direction dial (0 = right, 90 = down) — drag the dot (docs/stage.md).
+// Shadow direction dial (0 = right, 90 = down): drag the dot (docs/stage.md).
 Item {
     id: dial
     property real angle: 90

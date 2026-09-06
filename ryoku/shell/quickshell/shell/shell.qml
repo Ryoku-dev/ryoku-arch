@@ -12,12 +12,11 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import shell.services
 import "modules/visualizer/Singletons" as VizCfg
+import "modules/stage/Singletons" as StageCfg
 import "components"
 import "modules/wallpaper"
 import "modules/desktop"
 import "modules/visualizer"
-import "modules/stage"
-import "modules/stage/Singletons" as StageCfg
 import "modules/bar"
 import "modules/dock"
 import "modules/launcher"
@@ -181,25 +180,17 @@ ShellRoot {
                 videoVolume: wallpaper.videoVolume
             }
 
-            // The Stage parallax composition lives at WlrLayer.Background, below
-            // this slice: its own surface draws the wallpaper + recoloured
-            // backdrop while the desktop window above carries widgets and bands.
-            StageBackground {
-                screen: perScreen.modelData
-                wallpaperUrl: wallpaper.wallpaperUrl
-                wallpaperPath: wallpaper.wallpaperPath
-                wallpaperFit: wallpaper.fit
-                videoUrl: wallpaper.videoUrl
-                wallpaperLive: wallpaper.live
-            }
+            // Stage now renders entirely inside the desktop surface (one stack:
+            // backdrop, layers, widgets), so there is no separate Background
+            // surface here (docs/stage.md).
             Visualizer {
                 id: perScreenViz
                 screen: perScreen.modelData
                 mode: !VizCfg.Config.enabled ? "off"
                     : (perScreen.st && perScreen.st.visualizerOverlay ? "overlay" : "desktop")
-                placing: perScreen.st ? perScreen.st.visualizerPlacing : false
-                suppressed: StageCfg.StageBackend.isParallaxFor(wallpaper.wallpaperPath)
-                    && VizCfg.Config.enabled && !perScreenViz.placing
+                placing: perScreen.st ? (perScreen.st.visualizerPlacing
+                    || (perScreen.st.stageComposing && StageCfg.StageSession.selected === "visualizer")) : false
+                suppressed: false
                 onPlacingDone: if (perScreen.st) perScreen.st.visualizerPlacing = false
             }
 
