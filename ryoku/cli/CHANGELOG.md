@@ -14,6 +14,11 @@
   (`internal/updater/materialize.go`).
 
 ### Fixed
+- **`ryotunes` opened the old Tauri app after the package update.** The launcher
+  defers to the native client only while `ryotunesd.socket` exists, and nothing
+  enabled that user unit on a fresh install. The doctor now enables it
+  (`--now`, no relogin) on every update; the package ships a user preset and an
+  install hook so a plain `pacman -Syu` does the same.
 - **The wallpaper cutover restarts a stale Ryogami so it repaints (#149).**
   `ryoku doctor` stopped the retired awww-daemon and enabled the Ryogami unit,
   but left a Ryogami already running the pre-cutover binary in place -- which

@@ -2,11 +2,17 @@ package doctor
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"ryoku-cli/internal/sys"
 )
+
+// ryotunesSocketUnit is the user unit systemd listens on for the native
+// client. `ryotunes` defers to the daemon only when its socket exists; without
+// the unit enabled a fresh package install keeps opening the Tauri app.
+const ryotunesSocketUnit = "ryotunesd.socket"
 
 // Ryotunes ships as a [ryoku] package (a ryoku-desktop depend). Two things
 // keep an updated box opening the retired Chromium YouTube Music window
@@ -25,6 +31,11 @@ func reconcileRyotunes(checkOnly bool) recResult {
 	if sys.ResolveRepo() == "" && sys.PkgInstalled("ryoku-desktop") && !sys.PkgInstalled("ryotunes") {
 		problems = append(problems, "the ryotunes package is not installed")
 		fixes = append(fixes, "sudo pacman -S --needed ryotunes")
+	}
+	socketMissing := sys.PkgInstalled("ryotunes") && !ryotunesSocketEnabled()
+	if socketMissing {
+		problems = append(problems, "the ryotunesd socket is not enabled, so `ryotunes` opens the old Tauri app")
+		fixes = append(fixes, "systemctl --user enable --now ryotunesd.socket")
 	}
 	if len(problems) == 0 {
 		if _, err := sys.RunOut("pacman", "-Qoq", "/usr/bin/ryotunes"); err == nil {
@@ -59,7 +70,21 @@ func reconcileRyotunes(checkOnly bool) recResult {
 			return failRes("could not install ryotunes: %v", err).withFix("sudo pacman -S --needed ryotunes")
 		}
 	}
+	if socketMissing {
+		// daemon-reload so a unit the package just delivered is known, then
+		// enable --now: the socket binds in this session without a relogin.
+		_ = exec.Command("systemctl", "--user", "daemon-reload").Run()
+		if err := exec.Command("systemctl", "--user", "enable", "--now", ryotunesSocketUnit).Run(); err != nil {
+			return failRes("could not enable %s: %v", ryotunesSocketUnit, err).
+				withFix("systemctl --user enable --now ryotunesd.socket")
+		}
+	}
 	return fixedRes("ryotunes opens the packaged app (%s)", strings.Join(problems, "; "))
+}
+
+func ryotunesSocketEnabled() bool {
+	out, _ := exec.Command("systemctl", "--user", "is-enabled", ryotunesSocketUnit).Output()
+	return strings.TrimSpace(string(out)) == "enabled"
 }
 
 // staleUserRyotunes names what ~/.local/bin/ryotunes is when it is not the
