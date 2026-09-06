@@ -266,13 +266,122 @@ func TestTemplateGroup(t *testing.T) {
 	cases := map[string]string{
 		"gtk3": "gtk", "gtk4": "gtk",
 		"vesktop": "discord", "equibop": "discord",
-		"qt6ct": "qt", "qt5ct": "qt5", "hypr": "hyprland",
+		"qt6ct": "qt", "kde": "qt", "qt5ct": "qt5", "hypr": "hyprland",
 		"kitty": "kitty", "btop": "btop", "papirus": "papirus", "cava": "cava",
 	}
 	for block, want := range cases {
 		if got := templateGroup(block); got != want {
 			t.Errorf("templateGroup(%q) = %q, want %q", block, got, want)
 		}
+	}
+}
+
+// TestApplyKdeColors is the merge contract: the colour groups come from the
+// render, and everything else in kdeglobals is the user's and survives. The
+// fixture carries the two shapes a general INI reader gets wrong, the
+// [Colors:Header][Inactive] group name and case-sensitive keys, because
+// mangling either would silently drop a user's settings.
+func TestApplyKdeColors(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
+	t.Setenv("XDG_CACHE_HOME", filepath.Join(home, ".cache"))
+
+	mustWrite := func(path, body string) {
+		t.Helper()
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	mustWrite(kdeglobalsPath(), `[General]
+ColorScheme=SomethingElse
+font=Comic Sans,11
+
+[Icons]
+Theme=breeze-dark
+
+[KDE]
+widgetStyle=Darkly
+
+[Colors:View]
+BackgroundNormal=#ffffff
+
+[Colors:Header][Inactive]
+BackgroundNormal=#ffffff
+`)
+	mustWrite(matugenKdeColorsPath(), `[Colors:View]
+BackgroundNormal=#101010
+BackgroundAlternate=#181818
+
+[Colors:Header][Inactive]
+BackgroundNormal=#101010
+
+[WM]
+activeBackground=#202020
+`)
+
+	applyKdeColors()
+
+	b, err := os.ReadFile(kdeglobalsPath())
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := string(b)
+
+	for _, want := range []string{
+		"font=Comic Sans,11", // the user's font
+		"Theme=breeze-dark",  // the user's icon theme
+		"widgetStyle=Darkly", // the user's widget style
+		"ColorScheme=Ryoku",  // the one General key the palette owns
+		"BackgroundNormal=#101010",
+		"BackgroundAlternate=#181818",
+		"[Colors:Header][Inactive]",
+		"activeBackground=#202020",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("kdeglobals missing %q; got:\n%s", want, out)
+		}
+	}
+	if strings.Contains(out, "#ffffff") {
+		t.Errorf("stale colour survived the merge; got:\n%s", out)
+	}
+	if strings.Contains(out, "ColorScheme=SomethingElse") {
+		t.Errorf("stale scheme name survived the merge; got:\n%s", out)
+	}
+}
+
+// TestApplyKdeColorsWithoutKdeglobals covers the machine that has never run a
+// KDE app: no kdeglobals yet, so the merge writes a colours-only one instead of
+// skipping.
+func TestApplyKdeColorsWithoutKdeglobals(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
+	t.Setenv("XDG_CACHE_HOME", filepath.Join(home, ".cache"))
+
+	path := matugenKdeColorsPath()
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte("[Colors:View]\nBackgroundNormal=#101010\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Dir(kdeglobalsPath()), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	applyKdeColors()
+
+	b, err := os.ReadFile(kdeglobalsPath())
+	if err != nil {
+		t.Fatalf("kdeglobals not created: %v", err)
+	}
+	if !strings.Contains(string(b), "BackgroundNormal=#101010") {
+		t.Errorf("colours not written; got:\n%s", b)
 	}
 }
 

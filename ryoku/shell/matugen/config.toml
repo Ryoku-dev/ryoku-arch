@@ -37,3 +37,10 @@ output_path = "~/.config/qt6ct/colors/ryoku.conf"
     # change from either path (follow-wallpaper and fixed schemes), so they need
     # no wiring in the Go daemon.
     post_hook = "command -v ryoku-cmd-folders >/dev/null && ryoku-cmd-folders; command -v ryoku-cursor-material-recolor >/dev/null && ryoku-cursor-material-recolor; true"
+
+# KDE apps resolve their colours through KColorScheme and ~/.config/kdeglobals,
+# which the qt6ct palette never reaches. This renders the same roles in KDE's
+# format; the daemon merges them so the rest of kdeglobals stays the user's.
+[templates.kde]
+input_path = "~/.config/matugen/templates/kdeglobals"
+output_path = "~/.cache/ryoku/kdeglobals-colors.conf"

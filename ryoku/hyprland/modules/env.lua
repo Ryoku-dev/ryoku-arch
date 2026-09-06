@@ -57,7 +57,11 @@ hl.env("QT_WAYLAND_DISABLE_WINDOWDECORATION", "1")
 -- must never leave the file manager unable to open.
 hl.env("GSK_RENDERER", "gl")
 
-hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
+-- kde, not qt6ct: the KDE platform theme is the only one that reads
+-- ~/.config/kdeglobals, and without it Dolphin, Ark and Gwenview paint their
+-- views at Qt's defaults whatever the palette says. Plain Qt apps keep
+-- working; the platform theme hands them the same palette.
+hl.env("QT_QPA_PLATFORMTHEME", "kde")
 
 -- Shared QML modules (Ryoku.Ui, Ryoku.PluginKit, Ryoku.Blobs) live in
 -- /usr/lib/qt6/qml on an installed system, which Qt finds on its own. A
