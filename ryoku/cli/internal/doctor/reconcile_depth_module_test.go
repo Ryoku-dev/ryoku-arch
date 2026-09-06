@@ -5,12 +5,12 @@ import (
 	"testing"
 )
 
-// addDepthModule appends "depth" to any quick-settings rail carrying the base Home
+// addQuickSettingsModule appends "depth" to any quick-settings rail carrying the base Home
 // module, preserves every sibling and top-level key, and no-ops on a rail already
 // carrying depth or one with no Home module.
 func TestAddDepthModule(t *testing.T) {
 	full := []byte(`{"frameBars":{"menus":{"quick-settings":{"anchor":"left","minWidth":410,"modules":["home","notifications","weather","capture"]},"weather":{"anchor":"right"}},"style":"slate-frame"},"weatherLocation":"Oslo"}`)
-	out, changed, err := addDepthModule(full)
+	out, changed, err := addQuickSettingsModule(full, "depth")
 	if err != nil || !changed {
 		t.Fatalf("the pre-depth default must gain depth: changed=%v err=%v", changed, err)
 	}
@@ -33,7 +33,7 @@ func TestAddDepthModule(t *testing.T) {
 	}
 
 	// idempotent once depth is present.
-	if _, changed, err := addDepthModule(out); err != nil || changed {
+	if _, changed, err := addQuickSettingsModule(out, "depth"); err != nil || changed {
 		t.Errorf("re-running on a migrated store must be a no-op: changed=%v err=%v", changed, err)
 	}
 
@@ -47,7 +47,7 @@ func TestAddDepthModule(t *testing.T) {
 		{`{"frameBars":{"menus":{"quick-settings":{"modules":["home","notifications","weather"]}}}}`, []string{"home", "notifications", "weather", "depth"}},
 		{`{"frameBars":{"menus":{"quick-settings":{"modules":["home","notifications","weather","capture","media"]}}}}`, []string{"home", "notifications", "weather", "capture", "media", "depth"}},
 	} {
-		out, changed, err := addDepthModule([]byte(rail.in))
+		out, changed, err := addQuickSettingsModule([]byte(rail.in), "depth")
 		if err != nil || !changed {
 			t.Errorf("a home-carrying rail must gain depth: changed=%v err=%v (%s)", changed, err, rail.in)
 			continue
@@ -58,14 +58,14 @@ func TestAddDepthModule(t *testing.T) {
 	}
 
 	// a rail with no base Home module is foreign; leave it alone.
-	if _, changed, err := addDepthModule([]byte(`{"frameBars":{"menus":{"quick-settings":{"modules":["notifications","weather"]}}}}`)); err != nil || changed {
+	if _, changed, err := addQuickSettingsModule([]byte(`{"frameBars":{"menus":{"quick-settings":{"modules":["notifications","weather"]}}}}`), "depth"); err != nil || changed {
 		t.Errorf("a rail without home must be untouched: changed=%v err=%v", changed, err)
 	}
 
-	if _, changed, err := addDepthModule([]byte(`{"bars":{}}`)); err != nil || changed {
+	if _, changed, err := addQuickSettingsModule([]byte(`{"bars":{}}`), "depth"); err != nil || changed {
 		t.Errorf("a store with no frameBars must be untouched: changed=%v err=%v", changed, err)
 	}
-	if _, _, err := addDepthModule([]byte("not json")); err == nil {
+	if _, _, err := addQuickSettingsModule([]byte("not json"), "depth"); err == nil {
 		t.Fatal("garbage must error, not silently rewrite")
 	}
 }

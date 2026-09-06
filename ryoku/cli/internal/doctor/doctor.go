@@ -143,6 +143,7 @@ func reconcilers() []reconciler {
 		{"ryowalls app leftovers", reconcileRyowallsRemoval},
 		{"quick-settings capture tab", reconcileCaptureModule},
 		{"quick-settings depth tab", reconcileDepthModule},
+		{"quick-settings parallax tab", reconcileParallaxModule},
 		{"retired system sidebar", reconcileLegacySystemSidebar},
 		{"stash features sidebar anchor", reconcileStashSidebar},
 		{"shipped app packages", reconcileShippedApps},

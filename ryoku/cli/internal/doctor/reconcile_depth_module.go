@@ -2,16 +2,16 @@ package doctor
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+
 	"ryoku-cli/internal/sys"
 )
 
 // The Depth tab is a quick-settings module. New installs get it from the catalog
 // default, but a machine that persisted a pre-depth rail would never see it, and
 // that rail varies by install era ([home, notifications, weather], then +capture).
-// This appends "depth" to any persisted rail that carries the base Home module
-// and lacks it; a rail already carrying depth, or a foreign one, is left alone.
 // Runs after reconcileCaptureModule so a two-releases-behind rail gains capture
 // first, then depth, in the same pass.
 func reconcileDepthModule(checkOnly bool) recResult {
@@ -20,7 +20,7 @@ func reconcileDepthModule(checkOnly bool) recResult {
 	if err != nil {
 		return okRes("no shell.json yet (seeded on first shell run)")
 	}
-	migrated, changed, err := addDepthModule(raw)
+	migrated, changed, err := addQuickSettingsModule(raw, "depth")
 	if err != nil {
 		return warnRes("shell.json does not parse (%v); the shell falls back to defaults", err).
 			withFix("delete %s to re-seed it", path)
@@ -32,21 +32,16 @@ func reconcileDepthModule(checkOnly bool) recResult {
 		return wouldRes("quick-settings rail predates the Depth tab").
 			withFix("ryoku doctor adds it after Capture")
 	}
-	tmp := path + ".ryoku-tmp"
-	if err := os.WriteFile(tmp, migrated, 0o644); err != nil {
-		return failRes("could not write %s: %v", tmp, err)
-	}
-	if err := os.Rename(tmp, path); err != nil {
-		os.Remove(tmp)
-		return failRes("could not replace %s: %v", path, err)
+	if err := writeShellStore(path, migrated); err != nil {
+		return failRes("%v", err)
 	}
 	return fixedRes("added the depth tab to the quick-settings rail after Capture")
 }
 
-// addDepthModule appends "depth" to the quick-settings module rail of a shell
-// store whose rail carries the base Home module and lacks depth, preserving every
-// other key as its own raw bytes.
-func addDepthModule(raw []byte) ([]byte, bool, error) {
+// addQuickSettingsModule appends id to the quick-settings module rail of a shell
+// store whose rail carries the base Home module and lacks id, preserving every
+// other key as its own raw bytes. An empty or foreign rail is left alone.
+func addQuickSettingsModule(raw []byte, id string) ([]byte, bool, error) {
 	var top map[string]json.RawMessage
 	if err := json.Unmarshal(raw, &top); err != nil {
 		return nil, false, err
@@ -81,21 +76,17 @@ func addDepthModule(raw []byte) ([]byte, bool, error) {
 	}
 	hasHome := false
 	for _, m := range modules {
-		if m == "depth" {
+		if m == id {
 			return nil, false, nil
 		}
 		if m == "home" {
 			hasHome = true
 		}
 	}
-	// Any genuine quick-settings rail (one carrying the base Home module) gains the
-	// Depth tab; an empty or foreign rail is left alone. Runs after the capture
-	// reconciler, so a [home, notifications, weather] rail gains capture first and
-	// then depth in the same pass.
 	if !hasHome {
 		return nil, false, nil
 	}
-	next, err := json.Marshal(append(modules, "depth"))
+	next, err := json.Marshal(append(modules, id))
 	if err != nil {
 		return nil, false, err
 	}
@@ -120,4 +111,18 @@ func addDepthModule(raw []byte) ([]byte, bool, error) {
 		return nil, false, err
 	}
 	return append(out, '\n'), true, nil
+}
+
+// writeShellStore replaces shell.json atomically, so a torn write never leaves
+// the shell without a config.
+func writeShellStore(path string, body []byte) error {
+	tmp := path + ".ryoku-tmp"
+	if err := os.WriteFile(tmp, body, 0o644); err != nil {
+		return fmt.Errorf("could not write %s: %w", tmp, err)
+	}
+	if err := os.Rename(tmp, path); err != nil {
+		os.Remove(tmp)
+		return fmt.Errorf("could not replace %s: %w", path, err)
+	}
+	return nil
 }

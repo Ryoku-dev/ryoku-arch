@@ -3,6 +3,13 @@
 ## Unreleased
 
 ### Changed
+- **The Parallax tab reaches a box that already had a quick-settings rail.** A new
+  panel is a module in the catalogue default, so only a fresh install saw it: a
+  machine that had persisted its rail (ending at Depth) got the new QML and no way
+  to open it. `quick-settings parallax tab` appends the module to any persisted
+  rail carrying Home, the way the capture and depth checks already did, and the
+  three now share one append helper
+  (`internal/doctor/reconcile_parallax_module.go`, `reconcile_depth_module.go`).
 - **ghostty's config is the user's, and an existing one is migrated.** Materialize
   seeds `ghostty/config` (user-owned, overlay-able through `user_edits`) and
   `ghostty/ryoku-colors` (matugen-owned, so the overlay never re-lays a frozen
