@@ -1074,7 +1074,7 @@ func templateGroup(block string) string {
 		return "gtk"
 	case "vesktop", "equibop":
 		return "discord"
-	case "qt6ct":
+	case "qt6ct", "kde":
 		return "qt"
 	case "qt5ct":
 		return "qt5"
@@ -1260,6 +1260,7 @@ func matugenReload(mode string) {
 	_ = runCommand("gsettings", "set", "org.gnome.desktop.interface", "color-scheme", scheme)
 
 	applyGnomeAccent()
+	applyKdeColors()
 
 	// gtkTheme "system" (name == "") means the user owns gtk-theme, so Ryoku
 	// leaves it entirely alone. Otherwise land the variant for this mode.
@@ -1365,6 +1366,114 @@ func applyGnomeAccent() {
 		return
 	}
 	_ = runCommand("gsettings", "set", "org.gnome.desktop.interface", "accent-color", name)
+}
+
+// kdeglobalsPath is the file KColorScheme reads an app's colours from.
+func kdeglobalsPath() string {
+	return filepath.Join(matugenConfigHome(), "kdeglobals")
+}
+
+// matugenKdeColorsPath is the rendered colour groups waiting to be merged.
+func matugenKdeColorsPath() string {
+	return filepath.Join(matugenCacheHome(), "ryoku", "kdeglobals-colors.conf")
+}
+
+// kdeOwnedGroup reports whether a kdeglobals group is one the palette replaces.
+// Everything else in the file, the fonts, the icon theme, the widget style and
+// the dialog state KDE apps write for themselves, belongs to the user and is
+// copied through untouched.
+func kdeOwnedGroup(name string) bool {
+	return strings.HasPrefix(name, "Colors:") ||
+		strings.HasPrefix(name, "ColorEffects:") ||
+		name == "WM"
+}
+
+// applyKdeColors merges the rendered colour groups into kdeglobals. KDE apps
+// (Dolphin, Ark, Gwenview, Kate) resolve their palette through KColorScheme
+// rather than the qt6ct one, so without this they paint at Qt's defaults: on a
+// dark scheme a white view background under the scheme's light text.
+//
+// Merged rather than written over, because kdeglobals is shared with the KDE
+// apps themselves. A file that does not exist yet is fine and yields a
+// colours-only one.
+func applyKdeColors() {
+	rendered, err := os.ReadFile(matugenKdeColorsPath())
+	if err != nil {
+		return
+	}
+	existing, err := os.ReadFile(kdeglobalsPath())
+	if err != nil && !os.IsNotExist(err) {
+		return
+	}
+
+	var out []string
+	for _, group := range parseIniGroups(string(existing)) {
+		if kdeOwnedGroup(group.name) {
+			continue
+		}
+		if group.name == "General" {
+			group.rows = setIniRow(group.rows, "ColorScheme", "Ryoku")
+		}
+		out = append(out, renderIniGroup(group))
+	}
+	for _, group := range parseIniGroups(string(rendered)) {
+		out = append(out, renderIniGroup(group))
+	}
+
+	tmp := kdeglobalsPath() + ".tmp"
+	if err := os.WriteFile(tmp, []byte(strings.Join(out, "\n")), 0o644); err != nil {
+		return
+	}
+	// Rename so a KDE app reading concurrently never sees half a palette.
+	if err := os.Rename(tmp, kdeglobalsPath()); err != nil {
+		_ = os.Remove(tmp)
+	}
+}
+
+type iniGroup struct {
+	name string
+	rows [][2]string
+}
+
+// parseIniGroups keeps group order and exact key spelling. Hand-rolled because
+// kdeglobals uses group names like [Colors:Header][Inactive] and case-sensitive
+// keys, neither of which a general INI reader round-trips.
+func parseIniGroups(s string) []iniGroup {
+	var groups []iniGroup
+	cur := -1
+	for _, line := range strings.Split(s, "\n") {
+		t := strings.TrimSpace(line)
+		switch {
+		case t == "" || strings.HasPrefix(t, "#"):
+		case strings.HasPrefix(t, "[") && strings.HasSuffix(t, "]"):
+			groups = append(groups, iniGroup{name: t[1 : len(t)-1]})
+			cur = len(groups) - 1
+		case cur >= 0:
+			if k, v, ok := strings.Cut(t, "="); ok {
+				groups[cur].rows = append(groups[cur].rows, [2]string{k, v})
+			}
+		}
+	}
+	return groups
+}
+
+func setIniRow(rows [][2]string, key, value string) [][2]string {
+	for i := range rows {
+		if rows[i][0] == key {
+			rows[i][1] = value
+			return rows
+		}
+	}
+	return append(rows, [2]string{key, value})
+}
+
+func renderIniGroup(g iniGroup) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "[%s]\n", g.name)
+	for _, r := range g.rows {
+		fmt.Fprintf(&b, "%s=%s\n", r[0], r[1])
+	}
+	return b.String()
 }
 
 // gnomeNamedAccents are libadwaita's nine named accents (contract C5), the only

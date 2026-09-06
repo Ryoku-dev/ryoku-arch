@@ -22,10 +22,6 @@ output_path = "~/.config/vesktop/themes/matugen.css"
 input_path = "~/.config/matugen/templates/discord.css"
 output_path = "~/.config/equibop/themes/matugen.css"
 
-[templates.qt5ct]
-input_path = "~/.config/matugen/templates/qt6ct-colors.conf"
-output_path = "~/.config/qt5ct/colors/ryoku.conf"
-
 [templates.obs]
 input_path = "~/.config/matugen/templates/obs.theme"
 output_path = "~/.config/obs-studio/themes/matugen.theme"
@@ -77,11 +73,6 @@ output_path = "~/.config/yazi/theme.toml"
 [templates.obsidian]
 input_path = "~/.config/matugen/templates/obsidian.css"
 output_path = "~/.config/matugen/generated/obsidian.css"
-
-[templates.kvantum]
-input_path = "~/.config/matugen/templates/kvantum.kvconfig"
-output_path = "~/.config/Kvantum/ryoku/ryoku.kvconfig"
-post_hook = "mkdir -p ~/.config/Kvantum/ryoku && cp -f ~/.config/matugen/templates/kvantum.svg ~/.config/Kvantum/ryoku/ryoku.svg 2>/dev/null; kvantummanager --set ryoku 2>/dev/null || true"
 
 [templates.zathura]
 input_path = "~/.config/matugen/templates/zathura"

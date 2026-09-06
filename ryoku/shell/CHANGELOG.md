@@ -183,6 +183,17 @@
   imported logo or a decor picked in the Hub. Both are now seeded once and
   never re-laid, the same generatedSeed set `ryoku materialize` honours on a
   packaged box (`deploy.sh`).
+- **KDE apps can follow the wallpaper palette through kdeglobals.** Dolphin,
+  Ark, Gwenview and Kate resolve their colours through KColorScheme and
+  `~/.config/kdeglobals`, which the qt6ct palette never reached, so under the
+  KDE platform theme they painted at Qt's defaults: white file names on a white
+  view in icon and compact mode, and rows striping light and dark in details.
+  The palette now renders KDE's colour groups and the daemon merges them into
+  kdeglobals, claiming only the colour groups so the fonts, icon theme and
+  widget style a user set there survive. Ryoku keeps `qt6ct` as the platform
+  theme, so a user gets these colours by installing `plasma-integration` and
+  setting `QT_QPA_PLATFORMTHEME=kde`. The qt5ct and Kvantum outputs nothing
+  consumed are gone (`matugen/templates/kdeglobals`, `ipc/matugen.go`).
 
 ### Added
 - **The update island and the Hub's Updates page name the release line.**

@@ -57,6 +57,10 @@ hl.env("QT_WAYLAND_DISABLE_WINDOWDECORATION", "1")
 -- must never leave the file manager unable to open.
 hl.env("GSK_RENDERER", "gl")
 
+-- qt6ct, not kde: the kde platform theme reads ~/.config/kdeglobals (which the
+-- daemon keeps in sync) but needs plasma-integration, which Ryoku does not ship,
+-- so switching here would strip plain Qt apps of their palette, Papirus icons
+-- and font. A user who installs plasma-integration can set kde here themselves.
 hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
 
 -- Shared QML modules (Ryoku.Ui, Ryoku.PluginKit, Ryoku.Blobs) live in
