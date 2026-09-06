@@ -25,6 +25,24 @@ Ryotunes, the native music client, joins the suite too: matugen renders its
 Material 3 palette as a Ryoku skin at `~/.config/ryotunes/skins/matugen/skin.json`,
 which the client loads as its "System" theme.
 
+### KDE apps and the optional platform theme
+
+KDE apps (Dolphin, Ark, Gwenview, Kate) never read the qt6ct palette; they
+resolve their colours through KColorScheme and `~/.config/kdeglobals`. The `kde`
+matugen template renders the palette into KDE's colour groups, and the daemon
+merges them into `kdeglobals` on every repaint, claiming only the colour groups
+so a user's fonts, icon theme and widget style there survive.
+
+Those colours are only consulted when the KDE platform theme is active, and
+Ryoku keeps `QT_QPA_PLATFORMTHEME=qt6ct` (see `hyprland/modules/env.lua`). qt6ct
+is what ships: it hands every plain Qt app the palette, the Papirus icons and the
+`qt6ct.conf` font. The `kde` platform theme needs `plasma-integration`, which
+Ryoku does not depend on, so switching to it out of the box would strip plain Qt
+apps back to Qt's defaults. To opt in, install `plasma-integration` and set
+`QT_QPA_PLATFORMTHEME=kde` (through the user_edits overlay or your own
+environment); the kdeglobals colours are already in place, so KDE apps follow the
+wallpaper the moment the theme is active.
+
 ## How Omarchy works
 
 A theme is a *folder* of per-app files. One directory always holds the active

@@ -385,6 +385,61 @@ func TestApplyKdeColorsWithoutKdeglobals(t *testing.T) {
 	}
 }
 
+// TestApplyKdeColorsForeignSectionSurvives proves the merge only claims the
+// colour groups: a section Ryoku knows nothing about, and the user's font,
+// come through byte for byte while the palette lands.
+func TestApplyKdeColorsForeignSectionSurvives(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
+	t.Setenv("XDG_CACHE_HOME", filepath.Join(home, ".cache"))
+
+	mustWrite := func(path, body string) {
+		t.Helper()
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	mustWrite(kdeglobalsPath(), `[General]
+font=Comic Sans,11
+
+[SomeSection]
+key=value
+
+[Colors:View]
+BackgroundNormal=#ffffff
+`)
+	mustWrite(matugenKdeColorsPath(), `[Colors:View]
+BackgroundNormal=#101010
+`)
+
+	applyKdeColors()
+
+	b, err := os.ReadFile(kdeglobalsPath())
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := string(b)
+
+	for _, want := range []string{
+		"[SomeSection]",
+		"key=value",
+		"font=Comic Sans,11",
+		"BackgroundNormal=#101010",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("kdeglobals missing %q; got:\n%s", want, out)
+		}
+	}
+	if strings.Contains(out, "#ffffff") {
+		t.Errorf("stale colour survived the merge; got:\n%s", out)
+	}
+}
+
 // TestFilterMatugenConfig is the roster gate: the [config] preamble always
 // renders, an enabled block renders with its comments and post_hook, and a
 // disabled block (or a whole group like gtk) is dropped entirely, so the render
