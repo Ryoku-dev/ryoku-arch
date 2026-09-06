@@ -92,8 +92,13 @@ func reconcileRyogamiWallpaper(checkOnly bool) recResult {
 		_ = exec.Command("pkill", "-x", "awww-daemon").Run()
 		did = append(did, "stopped the retired awww-daemon")
 	}
-	// Best-effort start: a no-op outside a graphical session (the unit gates on
-	// ConditionEnvironment=WAYLAND_DISPLAY); autostart starts it at login.
+	// Refresh a daemon still running the pre-cutover binary so the delivered one
+	// takes over and paints -- it restores the recorded wallpaper, or a shipped
+	// default when none is recorded, instead of leaving the empty grey frame --
+	// then start one that is down. Best-effort: a no-op outside a graphical
+	// session (the unit gates on ConditionEnvironment=WAYLAND_DISPLAY), where
+	// autostart starts it at login.
+	_ = exec.Command("systemctl", "--user", "try-restart", ryogamiUserUnit).Run()
 	_ = exec.Command("systemctl", "--user", "start", ryogamiUserUnit).Run()
 	return fixedRes("cut the wallpaper over to Ryogami: " + strings.Join(did, ", "))
 }

@@ -376,6 +376,49 @@ func (d *daemon) restoreOutputs() (want, applied int) {
 	return want, applied
 }
 
+// defaultWallpaper is the fallback the startup restore paints when nothing is
+// recorded: the first static image in the configured wallpaper directory, in
+// name order so the choice is deterministic. A box that never set a wallpaper
+// through Ryogami (a fresh install, or one cut over from awww) would otherwise
+// sit on the empty grey frame. Videos and animated formats (typeOf "video",
+// e.g. .gif) are skipped so the fallback never lands on the live player, which
+// the box may not be able to decode on every GPU.
+func (d *daemon) defaultWallpaper() string {
+	dir := d.config().wallpaperDir()
+	ents, err := os.ReadDir(dir)
+	if err != nil {
+		return ""
+	}
+	var names []string
+	for _, e := range ents {
+		if e.IsDir() || strings.HasPrefix(e.Name(), ".") {
+			continue
+		}
+		ext := strings.ToLower(strings.TrimPrefix(filepath.Ext(e.Name()), "."))
+		if imageExts[ext] && typeOf(e.Name()) == "static" {
+			names = append(names, e.Name())
+		}
+	}
+	if len(names) == 0 {
+		return ""
+	}
+	sort.Strings(names)
+	return filepath.Join(dir, names[0])
+}
+
+// applyDefaultWallpaper paints the shipped default in "init" mode (no reveal,
+// straight onto the fresh backdrop) and persists it, so the desktop is never
+// left blank and the next login restores this choice instead of re-picking.
+func (d *daemon) applyDefaultWallpaper() {
+	pick := d.defaultWallpaper()
+	if pick == "" {
+		return
+	}
+	if err := d.applyWallpaper("static", pick, "init", nil, nil, nil); err != nil {
+		fmt.Fprintf(os.Stderr, "ryogami: default wallpaper %s: %v\n", pick, err)
+	}
+}
+
 func fileExists(p string) bool {
 	st, err := os.Stat(p)
 	return err == nil && st.Mode().IsRegular()

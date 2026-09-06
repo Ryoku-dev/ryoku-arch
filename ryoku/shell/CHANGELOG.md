@@ -54,6 +54,15 @@
   the picker closes; the process stays warm, so a reopen is instant (36 ms
   measured) and an idle picker sits at about 160 MB instead of 410
   (`ryogami/wall-ui/shell.qml`).
+- **The desktop lands on a wallpaper when none was ever recorded (#149).**
+  Ryogami painted nothing on startup when no choice was stored, so a fresh
+  install -- or a box cut over from awww without ever setting one through
+  Ryoku -- sat on the empty grey frame, and went black the moment the doctor
+  retired a hand-started awww-daemon. The startup restore now paints the first
+  static image in the wallpaper directory when nothing is recorded and persists
+  it, so the next login restores that choice; a clip is never picked, so the
+  fallback stays off the live player on every GPU (`ryogami/daemon/apply.go`,
+  `ryogami/daemon/daemon.go`).
 
 ### Changed
 - **The Ryogami picker closes once something is applied.** Wallpaper, video,

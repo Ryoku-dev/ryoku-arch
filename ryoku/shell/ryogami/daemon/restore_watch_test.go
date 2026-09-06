@@ -105,6 +105,74 @@ func TestMigrateLegacyOutputs(t *testing.T) {
 	}
 }
 
+// defaultWallpaper is the startup fallback for a box with no recorded choice: it
+// returns the first static image in the wallpaper dir by name, skipping
+// subdirs, dotfiles, videos, and animated formats (a .gif is typeOf "video"),
+// so the fallback never lands on the live player. An empty or missing dir
+// yields "" (nothing to paint) rather than an error.
+func TestDefaultWallpaperPicksFirstStatic(t *testing.T) {
+	d, _ := restoreDaemon(t)
+	wallDir := filepath.Join(t.TempDir(), "Wallpapers")
+	d.cfg.Paths.Wallpaper = wallDir
+
+	if got := d.defaultWallpaper(); got != "" {
+		t.Fatalf("missing wallpaper dir must yield \"\", got %q", got)
+	}
+	if err := os.MkdirAll(filepath.Join(wallDir, "sub"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if got := d.defaultWallpaper(); got != "" {
+		t.Fatalf("dir with no images must yield \"\", got %q", got)
+	}
+
+	// Names that sort before the first real image, but must all be skipped: a
+	// subdir, a dotfile, a clip, and an animated gif.
+	for _, name := range []string{"0-clip.mp4", "1-anim.gif", ".hidden.png", "aardvark.jpg", "zebra.png"} {
+		if err := os.WriteFile(filepath.Join(wallDir, name), []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.WriteFile(filepath.Join(wallDir, "sub", "0-nested.png"), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if got, want := d.defaultWallpaper(), filepath.Join(wallDir, "aardvark.jpg"); got != want {
+		t.Fatalf("defaultWallpaper() = %q, want the first static image %q", got, want)
+	}
+}
+
+// A box that never recorded a wallpaper (a fresh install, or one cut over from
+// awww) must land on the shipped default instead of the empty grey frame:
+// applyDefaultWallpaper paints the frame AND persists the choice to
+// outputs.json, so the next login's restore reproduces it. This is the #149
+// regression: the desktop went black because ryogami painted nothing when no
+// choice was stored.
+func TestApplyDefaultWallpaperPaintsAndPersists(t *testing.T) {
+	root := t.TempDir()
+	cache := filepath.Join(root, "cache")
+	if err := os.MkdirAll(cache, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, "config"))
+	t.Setenv("XDG_STATE_HOME", filepath.Join(root, "state"))
+	wallDir := filepath.Join(root, "Wallpapers")
+	pic := filepath.Join(wallDir, "default.png")
+	writeE2EPNG(t, pic)
+
+	d := &daemon{surface: newWallSurface(), store: openStore(cache), events: newEventHub(), video: newVideoPlayer(), lastTransition: -1}
+	d.cfg.Paths.Cache = cache
+	d.cfg.Paths.Wallpaper = wallDir
+
+	d.applyDefaultWallpaper()
+
+	if got := d.surface.snapshot().Default.Path; got != pic {
+		t.Fatalf("default wallpaper frame path = %q, want %q", got, pic)
+	}
+	// Persisted, so a plain restore (no fallback) reproduces the choice next login.
+	if want, applied := d.restoreOutputs(); want != 1 || applied != 1 {
+		t.Fatalf("after default apply: restore want/applied = %d/%d, expected 1/1", want, applied)
+	}
+}
+
 // hyprEventSocket returns the newest instance's .socket2.sock and "" when no
 // compositor socket has landed, so the watcher targets the live session and
 // backs off cleanly during a login-time race.

@@ -14,6 +14,15 @@
   (`internal/updater/materialize.go`).
 
 ### Fixed
+- **The wallpaper cutover restarts a stale Ryogami so it repaints (#149).**
+  `ryoku doctor` stopped the retired awww-daemon and enabled the Ryogami unit,
+  but left a Ryogami already running the pre-cutover binary in place -- which
+  painted nothing when no wallpaper was recorded, so the desktop went black
+  once the doctor killed a hand-started awww. The reconciler now try-restarts
+  the unit when it takes a cutover action, so the delivered daemon takes over
+  and restores the recorded wallpaper (or a shipped default when none is
+  recorded) instead of the empty grey frame
+  (`internal/doctor/reconcile_ryogami_wallpaper.go`).
 - **`ryoku update` clears an unowned file that blocks the upgrade, then
   retries.** A `pacman -Syu` aborts the whole transaction when any package (not
   just a Ryoku one) is about to install a file that already exists on disk owned

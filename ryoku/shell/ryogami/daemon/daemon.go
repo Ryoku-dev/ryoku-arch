@@ -148,7 +148,14 @@ func runDaemon() error {
 	go func() {
 		if d.config().restoreEnabled() {
 			d.migrateLegacyOutputs()
-			if want, applied := d.restoreOutputs(); want > 0 && applied == 0 {
+			switch want, applied := d.restoreOutputs(); {
+			case want == 0:
+				// Nothing was ever recorded (a fresh install, or a box cut over
+				// from awww without setting one through Ryogami). Paint a shipped
+				// default so the desktop lands on a wallpaper instead of the empty
+				// grey frame; "init" persists it, so the next login restores it.
+				d.applyDefaultWallpaper()
+			case applied == 0:
 				// A login race can leave the file the choice names, or the
 				// outputs a live wall spans, not yet present; keep trying rather
 				// than leave the desktop on the empty grey frame until a manual set.
