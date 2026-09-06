@@ -60,6 +60,11 @@ for finer detail.
 - The overview's new-workspace controls now allocate workspace ids globally, so
   clicking `+` or `NEW` on a secondary monitor creates the workspace on that
   monitor instead of jumping to an existing workspace on another output.
+- `ryoku doctor` no longer re-writes the SDDM greeter config when it's already
+  correct: `readFileSafe` strips the trailing newline on read-back while the
+  expected body kept one, so a byte-correct file always looked out of date and
+  the sudo rewrite failed silently when no TTY was available. The comparison
+  now ignores the trailing newline.
 - Limine now shows the generated boot menu: the branded config moved from
   `/boot/limine/limine.conf` (which Limine scans first, shadowing everything
   `limine-entry-tool` generates into `/boot/limine.conf`: the UKI tree and the
