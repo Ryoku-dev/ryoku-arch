@@ -9,6 +9,13 @@
   (`ipc/music.go`).
 
 ### Fixed
+- **The now-playing spectrum follows the wallpaper.** With Follow System on, the
+  bar retinted on a wallpaper change but the qsbar spectrum kept its old
+  gradient: `cavaPalette` was an imperative snapshot taken when the panel
+  loaded, and its canvas only repainted when that snapshot changed. It is a
+  binding on the live wallpaper slots now, with a named theme's own `cava_theme`
+  gradient still winning when one is set
+  (`quickshell/shell/modules/bar/barstyles/qsbar/panels/MprisPanel.qml`).
 - **A retint no longer wipes your ghostty config.** `matugen/apps.toml` rendered
   the palette straight onto `~/.config/ghostty/config`, ghostty's own config
   file, so every wallpaper change, theme switch and update overwrote whatever

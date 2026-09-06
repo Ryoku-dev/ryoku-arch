@@ -72,14 +72,16 @@ PanelWindow {
     property var levels:  []     // smoothed, what we draw
     property var targets: []     // raw cava input
     property real phase: 0       // drives the synthetic idle wave
-    property var cavaPalette: []
+    // A named theme may ship a hand-picked spectrum gradient; null otherwise.
+    property var cavaTheme: null
 
-    function fallbackCavaPalette() {
-        cavaPalette = [
-            root.color06, root.color04, root.color05, root.color07,
-            root.color03, root.color01
-        ]
-    }
+    // A static named theme keeps its own gradient; otherwise the live wallpaper
+    // palette drives it as a binding, so a wallpaper change retints the spectrum
+    // instead of freezing it on the panel's load-time colours.
+    readonly property var cavaPalette: (root._namedPalette && cavaTheme && cavaTheme.length >= 2)
+        ? cavaTheme
+        : [root.color06, root.color04, root.color05,
+           root.color07, root.color03, root.color01]
 
     function parseCavaTheme(raw) {
         var text = String(raw || "")
@@ -90,15 +92,13 @@ PanelWindow {
             var match = text.match(re)
             if (match) colors.push(match[1])
         }
-        if (colors.length >= 2) cavaPalette = colors
-        else fallbackCavaPalette()
+        cavaTheme = colors.length >= 2 ? colors : null
     }
 
     Component.onCompleted: {
         var a = [], b = []
         for (var i = 0; i < bands; i++) { a.push(0.06); b.push(0.0) }
         levels = a; targets = b
-        fallbackCavaPalette()
     }
 
     FileView {
@@ -108,7 +108,7 @@ PanelWindow {
         printErrors: false
         onFileChanged: reload()
         onLoaded: mprisPanel.parseCavaTheme(cavaThemeFile.text())
-        onLoadFailed: mprisPanel.fallbackCavaPalette()
+        onLoadFailed: mprisPanel.cavaTheme = null
     }
 
     property real reveal: root.mprisVisible ? 1 : 0
