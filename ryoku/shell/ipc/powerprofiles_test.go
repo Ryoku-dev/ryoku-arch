@@ -148,26 +148,36 @@ func TestApplyDelay(t *testing.T) {
 	}
 }
 
-func TestPersistDecision(t *testing.T) {
+func TestDecideProfileChange(t *testing.T) {
 	const long = time.Hour
+	const near = 2 * time.Second // inside autoSwitchWindow and restoreReassertWindow
 	cases := []struct {
-		name                             string
-		active                           string
-		restoreDone, onBat, saverFeature bool
-		sinceFlip                        time.Duration
-		want                             bool
+		name                                       string
+		active, saved                              string
+		restoreDone, onBat, saverFeature, gameMode bool
+		sinceFlip, sinceRestore                    time.Duration
+		want                                       profileAction
 	}{
-		{"empty profile", "", true, false, false, long, false},
-		{"before restore is boot noise", "performance", false, false, false, long, false},
-		{"battery saver is not a choice", "power-saver", true, true, true, long, false},
-		{"saver on AC is a real pick", "power-saver", true, false, true, long, true},
-		{"switch right after an AC flip is automatic", "performance", true, false, false, 2 * time.Second, false},
-		{"settled performance is a choice", "performance", true, false, false, long, true},
-		{"settled balanced is a choice", "balanced", true, false, false, long, true},
+		// boot noise and Ryoku-caused changes are never a pick.
+		{"empty profile", "", "balanced", true, false, false, false, long, long, profileNone},
+		{"before restore is boot noise", "performance", "balanced", false, false, false, false, long, long, profileNone},
+		{"game mode owns the profile", "performance", "balanced", true, false, false, true, long, long, profileNone},
+		{"game mode wins even inside the restore window", "performance", "balanced", true, false, false, true, long, near, profileNone},
+		{"battery saver is not a choice", "power-saver", "balanced", true, true, true, false, long, long, profileNone},
+		{"switch right after an AC flip is automatic", "performance", "balanced", true, false, false, false, near, long, profileNone},
+		// a late ppd boot default is put back, not banked.
+		{"ppd default drift inside the restore window is re-asserted", "performance", "balanced", true, false, false, false, long, near, profileReassert},
+		{"no saved pick means nothing to re-assert", "performance", "", true, false, false, false, long, near, profilePersist},
+		{"drift equal to the saved pick is not re-asserted", "balanced", "balanced", true, false, false, false, long, near, profilePersist},
+		// genuine picks on either write path persist.
+		{"saver on AC is a real pick", "power-saver", "balanced", true, false, true, false, long, long, profilePersist},
+		{"performance after the restore window is a pick", "performance", "balanced", true, false, false, false, long, long, profilePersist},
+		{"settled balanced is a pick", "balanced", "balanced", true, false, false, false, long, long, profilePersist},
 	}
 	for _, c := range cases {
-		if got := persistDecision(c.active, c.restoreDone, c.onBat, c.saverFeature, c.sinceFlip); got != c.want {
-			t.Errorf("%s: persistDecision = %v, want %v", c.name, got, c.want)
+		got := decideProfileChange(c.active, c.saved, c.restoreDone, c.onBat, c.saverFeature, c.gameMode, c.sinceFlip, c.sinceRestore)
+		if got != c.want {
+			t.Errorf("%s: decideProfileChange = %v, want %v", c.name, got, c.want)
 		}
 	}
 }

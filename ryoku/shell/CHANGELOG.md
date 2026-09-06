@@ -9,6 +9,18 @@
   (`ipc/music.go`).
 
 ### Fixed
+- **The power profile you pick is remembered again.** Two defects sent every
+  session back to performance. Game mode's own `powerprofilesctl set
+  performance` looked exactly like a user pick, so it was written to
+  `power-profile.json`, and a game-mode session ended by a relogin never wrote
+  the old profile back, leaving the store corrupted for good. And restore read
+  ppd's active profile once at daemon start: when ppd published its platform
+  default a beat later, the desktop landed on that default and banked it. The
+  daemon now ignores profile changes while game mode holds the profile,
+  re-asserts the saved pick over a late ppd default for the first seconds of a
+  session, and banks a pick made through the shell's own call the moment it
+  succeeds, so the menu, the bar widget and the battery popout all persist
+  (`ipc/powerprofiles.go`, `ipc/autoprofile.go`).
 - **The reload cover renders a `~`-based custom asset (#146).** The reload
   cover built its media URL as a bare `"file://" + path`, so a `reloadCover`
   path carrying a leading `~` (a hand-edited or ported `brand.json`) became

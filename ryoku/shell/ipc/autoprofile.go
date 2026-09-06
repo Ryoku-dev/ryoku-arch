@@ -82,6 +82,10 @@ func (d *daemon) watchAutoPowerSaver() {
 					to = saved
 				}
 			}
+			// Game mode owns the profile; don't fight its switch.
+			if gameModeActive() {
+				to = ""
+			}
 			if to != "" {
 				if err := d.pp.setProfile(to); err != nil {
 					log.Printf("ryoku-shell: auto power profile: set %q failed: %v", to, err)

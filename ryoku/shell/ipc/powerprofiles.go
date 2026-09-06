@@ -39,11 +39,13 @@ type powerProfilesState struct {
 	applyMu      sync.Mutex  // serialises applies so overlapping fires never race
 	lastApplyErr string      // profile whose apply last failed; logged once per change
 
-	// restoreDone: a PropertiesChanged before restore-on-login finishes is ppd's
-	// boot default, not a user pick. acFlipNs: unix-nanos of the last AC flip; a
-	// change within autoSwitchWindow of it is automatic, not a pick.
+	// Timestamps guard the persist decision: a change before restoreDone, within
+	// restoreReassertWindow of restoreNs, or within autoSwitchWindow of acFlipNs
+	// is not a user pick. saved (string) is the live re-assert target.
 	restoreDone atomic.Bool
+	restoreNs   atomic.Int64
 	acFlipNs    atomic.Int64
+	saved       atomic.Value // string
 }
 
 // startPowerProfiles brings the power-profile integration up, registers the
@@ -62,9 +64,10 @@ func (d *daemon) startPowerProfiles() {
 		topic: d.registerTopic("powerprofiles"),
 	}
 	d.pp = p
-	// Capture the saved choice before wiring signals: a boot-time
-	// PropertiesChanged could rewrite the store before restore reads it.
+	// Read the pick before wiring signals so a boot PropertiesChanged can't
+	// rewrite the store first.
 	saved := readPersistedProfile()
+	p.saved.Store(saved)
 
 	if err := conn.AddMatchSignal(
 		dbus.WithMatchObjectPath(dbus.ObjectPath(ppPath)),
@@ -79,13 +82,16 @@ func (d *daemon) startPowerProfiles() {
 		for range sigs {
 			p.publish()
 			p.scheduleApply()
-			p.maybePersistActive()
+			p.maybeHandleProfileChange()
 		}
 		if p.applyTimer != nil {
 			p.applyTimer.Stop()
 		}
 	}()
 
+	// A pick that came through this call is the user's by construction, so it is
+	// banked here rather than inferred from the signal: it must not be mistaken
+	// for ppd's boot default and re-asserted away inside the restore window.
 	d.registerCall("powerprofiles.setProfile", func(raw json.RawMessage) (any, error) {
 		var a struct {
 			Profile string `json:"profile"`
@@ -93,17 +99,26 @@ func (d *daemon) startPowerProfiles() {
 		if err := json.Unmarshal(raw, &a); err != nil {
 			return nil, err
 		}
-		return nil, p.setProfile(a.Profile)
+		if err := p.setProfile(a.Profile); err != nil {
+			return nil, err
+		}
+		if !gameModeActive() {
+			p.saved.Store(a.Profile)
+			p.persistProfile(a.Profile)
+		}
+		return nil, nil
 	})
 
-	// Restore the profile the user last chose. power-profiles-daemon resets to a
-	// platform default on reboot (and can boot differently on AC vs battery), so
-	// without this the desktop forgets a balanced/performance pick every restart.
+	// Restore the last pick: ppd resets to a platform default on reboot.
 	if saved != "" && saved != p.activeProfile() {
 		if err := p.setProfile(saved); err != nil {
 			log.Printf("ryoku-shell: restore power profile %q: %v", saved, err)
 		}
 	}
+	// restoreNs before restoreDone so the first post-restore signal sees both.
+	// The first activeProfile() read is not final: ppd can publish its boot
+	// default a beat later, which maybeHandleProfileChange re-asserts over.
+	p.restoreNs.Store(time.Now().UnixNano())
 	p.restoreDone.Store(true)
 
 	p.publish()
@@ -178,9 +193,8 @@ func persistedProfilePath() string {
 	return filepath.Join(dir, "power-profile.json")
 }
 
-// persistProfile records an explicit user profile choice so it can be restored
-// after a reboot. Only the user path calls this; autoprofile's transient
-// on-battery switch must not overwrite the saved preference.
+// persistProfile records the user's pick for restore after a reboot. Only
+// decideProfileChange's profilePersist verdict reaches here.
 func (p *powerProfilesState) persistProfile(name string) {
 	if name == "" {
 		return
@@ -190,40 +204,96 @@ func (p *powerProfilesState) persistProfile(name string) {
 	}
 }
 
-const autoSwitchWindow = 6 * time.Second
+const (
+	autoSwitchWindow = 6 * time.Second
+	// Wider than autoSwitchWindow: ppd can settle platform_profile a few seconds
+	// into the session, and a user won't reconfigure power that fast.
+	restoreReassertWindow = 12 * time.Second
+)
 
-// persistDecision reports whether active should be saved as the user's choice.
-// Pure, so the guard is unit-tested without a bus or clock.
-func persistDecision(active string, restoreDone, onBattery, saverFeature bool, sinceACFlip time.Duration) bool {
+// gameModeProfilePath mirrors ryoku-cmd-game-mode's stash file, present only while
+// a game-mode override holds the profile at performance. Env overrides match the
+// script's.
+func gameModeProfilePath() string {
+	if f := os.Getenv("RYOKU_GAMEMODE_PROFILE_FILE"); f != "" {
+		return f
+	}
+	dir := os.Getenv("RYOKU_STATE_PATH")
+	if dir == "" {
+		dir = filepath.Join(stateDir(), "ryoku")
+	}
+	return filepath.Join(dir, "game-mode.profile")
+}
+
+// gameModeActive reports whether game mode holds the profile. Its switch is
+// Ryoku's, not the user's, so the daemon neither banks nor fights it; game mode
+// restores the prior profile on stop.
+func gameModeActive() bool {
+	_, err := os.Stat(gameModeProfilePath())
+	return err == nil
+}
+
+// profileAction is what the daemon does with an observed active profile.
+type profileAction int
+
+const (
+	profileNone     profileAction = iota // Ryoku-caused change; leave it, do not record it
+	profilePersist                       // a genuine user pick (either write path); save it
+	profileReassert                      // ppd's boot default landed after restore; put the pick back
+)
+
+// decideProfileChange classifies an active profile seen on a PropertiesChanged.
+// Pure, so the persist/restore precedence is unit-tested without a bus or clock.
+func decideProfileChange(active, saved string, restoreDone, onBattery, saverFeature, gameMode bool, sinceACFlip, sinceRestore time.Duration) profileAction {
 	switch {
 	case active == "" || !restoreDone:
-		return false
+		return profileNone
+	case gameMode:
+		return profileNone
 	case active == ppSaver && onBattery && saverFeature:
-		return false // autoprofile's battery switch, not a choice
+		return profileNone
 	case sinceACFlip < autoSwitchWindow:
-		return false // automatic reaction to plugging or unplugging
+		return profileNone
+	case saved != "" && active != saved && sinceRestore < restoreReassertWindow:
+		return profileReassert
 	default:
-		return true
+		return profilePersist
 	}
 }
 
 // noteACFlip records that AC just plugged or unplugged.
 func (p *powerProfilesState) noteACFlip() { p.acFlipNs.Store(time.Now().UnixNano()) }
 
-// maybePersistActive saves the current profile as the user's choice on any path
-// (the bar widget shells out to powerprofilesctl, not this daemon), skipping the
-// changes persistDecision flags as automatic. Runs on every PropertiesChanged.
-func (p *powerProfilesState) maybePersistActive() {
+// maybeHandleProfileChange persists a real pick (from either write path) or
+// re-asserts the saved pick over a late ppd default, per decideProfileChange.
+// Runs on every PropertiesChanged.
+func (p *powerProfilesState) maybeHandleProfileChange() {
 	active := p.activeProfile()
-	sinceFlip := time.Duration(1) << 62
-	if ns := p.acFlipNs.Load(); ns != 0 {
-		sinceFlip = time.Since(time.Unix(0, ns))
-	}
+	saved, _ := p.saved.Load().(string)
 	st := readPowerState()
 	onBattery := st.present && st.discharging
-	if persistDecision(active, p.restoreDone.Load(), onBattery, perfFlag("autoPowerSaverOnBattery"), sinceFlip) {
+	switch decideProfileChange(active, saved, p.restoreDone.Load(), onBattery,
+		perfFlag("autoPowerSaverOnBattery"), gameModeActive(),
+		p.sinceACFlip(), p.sinceRestore()) {
+	case profilePersist:
 		p.persistProfile(active)
+		p.saved.Store(active)
+	case profileReassert:
+		if err := p.setProfile(saved); err != nil {
+			log.Printf("ryoku-shell: re-assert power profile %q over ppd default %q: %v", saved, active, err)
+		}
 	}
+}
+
+// A never-set stamp reads as effectively infinite.
+func (p *powerProfilesState) sinceACFlip() time.Duration  { return sinceStamp(p.acFlipNs.Load()) }
+func (p *powerProfilesState) sinceRestore() time.Duration { return sinceStamp(p.restoreNs.Load()) }
+
+func sinceStamp(ns int64) time.Duration {
+	if ns == 0 {
+		return time.Duration(1) << 62
+	}
+	return time.Since(time.Unix(0, ns))
 }
 
 // readPersistedProfile returns the user's last saved profile, or "" when none is
