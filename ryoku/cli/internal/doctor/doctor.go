@@ -2353,7 +2353,7 @@ func reconcileGreeterDisplayServer(checkOnly bool) recResult {
 	}
 	want := sddmWaylandBody()
 	have := readFileSafe(sddmWaylandConf)
-	if have == want {
+	if have == strings.TrimRight(want, "\n") {
 		return okRes("SDDM greeter runs on Wayland (weston kiosk)")
 	}
 	if have != "" {
