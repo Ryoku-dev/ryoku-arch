@@ -1,7 +1,7 @@
 .pragma library
 // Angular, katakana-flavored stroke alphabet for weekday abbreviations. Each
 // glyph is a list of polylines in a 0..1 cell (y down). Drawn thick with square
-// caps it reads as Latin but carries a Japanese-poster look — no font dependency.
+// caps it reads as Latin but carries a Japanese-poster look: no font dependency.
 var G = {
   "A": [[[0.5,0.06],[0.12,0.94]],[[0.5,0.06],[0.88,0.94]],[[0.26,0.62],[0.74,0.62]]],
   "S": [[[0.82,0.12],[0.2,0.12]],[[0.2,0.12],[0.2,0.5]],[[0.2,0.5],[0.82,0.5]],[[0.82,0.5],[0.82,0.88]],[[0.82,0.88],[0.2,0.88]]],

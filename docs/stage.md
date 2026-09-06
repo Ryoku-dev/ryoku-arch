@@ -27,25 +27,59 @@ migrates all of them (below).
 
 ## The mental model a user needs
 
-Three levels, and most people stop at the first.
+One stack, back to front: the **backdrop** (the wallpaper), the **layers**
+(the cut-out subject, plus any picture you add), and the **cast** (the widgets
+and the visualizer). A layer is either behind the cast or in front of it. That
+is the whole model, and because the stage is a spatial thing it is *edited on
+the desktop itself*, not in a scrolling sidebar.
 
-1. **Effect.** Off, **Subject in front** (the old Depth), or **Parallax**
-   (the subject and layers drift with the cursor, the backdrop is recoloured
-   behind them). One three-way control at the top of the Stage tab, plus a
-   live preview of the current wallpaper's cut. Turning either on for a
-   wallpaper the engine has not cut yet runs the cut once and remembers it
-   per wallpaper, exactly as Depth did.
-2. **Look.** Quality (Draft / Standard / Fine), edge fade, strength, shadow
-   with its angle dial. These apply to the subject layer; every layer inherits
-   them until it is edited on its own.
-3. **Scene** (collapsed by default). The layer list (the auto subject plus any
-   `layer-NN.png` the user adds), per-layer knobs (motion, idle animation,
-   audio reactivity, offsets), the cast order (which widgets and the
-   visualizer sit in front of or behind each layer), presets, and the
-   maintenance actions (open the folder, re-cut, clear cache).
+The Super+Esc **Stage entry card** is tiny: a live preview, the
+`Off | Depth | Parallax` switch, and one **Edit stage** button:
 
-Nothing in level 1 or 2 mentions layers, z-order, inpainting or models. The
-words "Depth" and "Parallax" survive only as the names of the two effects.
+```
+ Stage
+ [ preview: the wallpaper with the subject lifted ]
+ ( Off | Depth | Parallax )
+ "Depth: the subject sits in front of your widgets."
+ [ Edit stage ]
+```
+
+**Edit stage** (also on the desktop right-click) turns the live desktop into
+the editor: one mode, no second surface:
+
+- every element: each layer, every widget and the visualizer: gets a soft
+  outline and a **chip**: `Behind <-> In front` (one tap flips; the visualizer
+  reads `On desktop <-> Above windows`, since it is its own surface), plus
+  lock, settings (its existing right-click menu) and remove. In Parallax a
+  layer's chip also carries a `near <-> far` control. Widgets drag/resize as
+  the old compose mode already did.
+- a left **Add palette** lists every widget and the visualizer as a card you
+  toggle on/off (with a search box), and carries **Add layer** at the top
+  (Cut from a picture... / From a PNG...).
+- one slim, bottom **toolbar** holds the stage knobs: effect, quality (with an
+  inline Download when a model is missing), edge, shadow (+ an angle dial only
+  while shadow > 0), motion (Amount / Idle / React-to-music, Parallax only) and
+  Done. It flows to one row on a wide screen and two on a narrow one, and never
+  leaves the bottom edge, so it cannot obscure the subject.
+- **cutting progress rides the subject itself**: the layer dims and a ring with
+  the percent is drawn on it, never in a panel.
+
+Rules that keep it simple:
+
+- **Every idea has one control.** Edge, shadow and quality live once, in the
+  toolbar, and apply to every layer. There are no per-layer look overrides.
+- **A layer has three properties**: on/off, *behind or in front of the cast*,
+  and *near or far* (its Parallax drift; ignored in Depth). Offsets, per-layer
+  opacity/audio/animation, mouse caps and presets are gone; Amount / Idle /
+  React-to-music tune the whole stack.
+- **Depth and Parallax are the same stack.** Depth renders the layers still;
+  Parallax adds drift and the recoloured backdrop. Switching effect never
+  re-cuts: the cut depends on the wallpaper and the quality only.
+- **Labels never clip**: the effect control is `Off | Depth | Parallax`.
+- **The subject owns its own progress.** There is no panel spinner.
+- The session has no Save: one Escape cancels the current selection, a second
+  (or Done) leaves. A cut-out is never dragged: it stays pixel-locked to the
+  wallpaper; only its front/behind and near/far are editable.
 
 ## Models: one catalogue, visible provenance
 
@@ -92,33 +126,30 @@ by the doctor as reclaimable space.
 
 ## Daemon: `ipc/stage.go`
 
-One worker, one registry, one topic. It replaces `depth.go` and `parallax.go`.
+One worker, one registry (below), one topic.
 
-- **Registry** `~/.local/state/ryoku/stage-walls.json`:
-  `{ "current": "<path>", "walls": { "<path>": { "effect": "off|subject|parallax",
-  "mode": "auto|manual", "scene": [...], "layers": [ {per-layer knobs} ] } } }`.
-  Per-wallpaper, because a cut belongs to one image and a user's arrangement
-  belongs to that image.
-- **Artifacts** `~/Pictures/Stage/<stem>/`: `subject.png` (the auto cut),
-  `background.png` (the inpainted backdrop, only when parallax is on),
-  `layer-NN.png` (manual layers), `.index.json` (mtime reuse). The old
-  `~/Pictures/Depth/<wallpaper>-depth.png` becomes `subject.png` of its stem;
-  `~/Pictures/Parallax/<stem>/` is moved whole.
-- **Topic** `stage` (per-wallpaper-keyed; QML renders from this and nothing else):
-  `{ "current": <path>, "busy": bool, "stage": "cut|inpaint", "percent": n,
-  "walls": { "<path>": { "effect": ..., "mode": ..., "subject": "<path>",
-  "background": "<path>", "rev": mtime, "scene": [...], "layers": [...] } } }`.
-  ryogami keeps folding the subject as `depth` in the wallpaper frame for
-  pixel-lock, unchanged on the wire.
-- **Verbs** (`ryoku-shell stage ...`): `set-effect <off|subject|parallax>`,
-  `set-mode <auto|manual>`, `refresh`, `cancel`, `status`, `set-scene <json>`,
-  `set-layer <index> <json>`, `add-layer <path>`, `remove-layer <path>`,
-  `clear`. `depth *` and `parallax *` are gone; the shell is updated with
-  them.
-- A wallpaper switch reconciles and never auto-generates (Depth's rule): a
-  wallpaper with a stage reuses it instantly, one without shows the plain
-  wallpaper. Generation runs only on an effect change, a quality change,
-  re-cut, or a manual-layer edit.
+- **Artifacts** `~/Pictures/Stage/<stem>/`: `subject.png` (the cut),
+  `background.png` (the inpainted backdrop, made once the first time
+  Parallax is chosen for that wallpaper), `layer-NN.png` (added layers),
+  `.index.json` (mtime + quality reuse).
+- **Topic** `stage`: `{ current, busy, stage: "cut"|"inpaint"|"", percent,
+  walls: { <path>: { effect, subject, background, rev, layers: [...] } } }`,
+  published on every change and on each generation phase. QML renders from it
+  and nothing else. `subject`/`background` are absolute paths ("" until fresh);
+  `rev` is the max mtime across the wall's `subject.png`/`background.png`/
+  `layer-NN.png`, so the shell busts every url with the one revision. The frame
+  layers carry `{out, label, enabled, front, depth}` and no per-layer rev, and
+  `layers[0]` is always the subject slot.
+- **Verbs** (`ryoku-shell stage ...`): `set-effect <off|depth|parallax>`,
+  `set-layer <index> <json>` (enabled/front/depth), `add-layer <png>`,
+  `cut-layer <picture>` (runs the engine on another picture and adds the
+  result), `remove-layer <index>`, `refresh` (re-cut), `cancel`, `clear`,
+  `status`, `models`.
+- **Rules**: a wallpaper switch reconciles and never generates; a stage is
+  per wallpaper; videos are skipped; an effect switch never re-cuts (only
+  Parallax's first use on a wallpaper adds the inpaint); a failure leaves the
+  effect off with a logged reason. The subject is still handed to ryogami as
+  `depth` for the Depth effect only, unchanged on the wire.
 
 ## Settings: `~/.config/ryoku/stage.json`
 
@@ -127,78 +158,87 @@ Global only; anything per-wallpaper is in the registry.
 | Key | Default | What it is |
 |---|---|---|
 | `quality` | `draft` | `draft` / `standard` / `fine`, the model + matting pair |
-| `feather`, `lift`, `shadow`, `shadowAngle` | `0.15`, `1.0`, `0`, `90` | defaults every layer inherits |
-| `motion` | `{mouse:true, sensitivity:1, range:0.3, wallpaper:0.2}` | parallax drift |
-| `preset` | `none` | `none`, `softdepth`, `audiopulse`, `cinematic` |
-| `front` | `[]` | widget ids drawn above the subject when no per-wall scene exists (migrated from depth) |
+| `edge` | `0.15` | edge softness of every cut-out (0..1) |
+| `shadow` | `0` | drop shadow behind every layer (0..1) |
+| `shadowAngle` | `90` | shadow direction in degrees, 0 = right, 90 = down |
+| `motion.amount` | `normal` | `subtle` / `normal` / `strong`: cursor drift, and the idle amplitude |
+| `motion.idle` | `none` | `none` / `float` / `breathe` |
+| `motion.music` | `false` | layers react to the shared spectrum |
+| `front` | `[]` | widget ids drawn above the layers marked "in front" when the user lifts specific widgets from the desktop editor |
 
-Migration runs in two places, each idempotent and leaving the user's files where
-they were on any failure. The daemon does the fold once at startup, gated on a
-marker `~/.local/state/ryoku/migrations/ryostage` (present = done): `depth.json`
-and `parallax.json` into `stage.json`, `depth-walls.json` and `layers.pz` into
-`stage-walls.json`, and `~/Pictures/Depth` + `~/Pictures/Parallax` into
-`~/Pictures/Stage/<stem>/` (renamed, never copied). The doctor then converges the
-rest: `quick-settings stage tab` folds the two sidebar tabs into one `stage` tab in
-the same position; `ryostage cache` reclaims the leftover
-`~/.local/state/ryoku/{depth,parallax}` engine trees once the shared `ryostage`
-venv exists; and `stage migration leftovers` reclaims the superseded `depth.json`,
-`parallax.json`, `depth-walls.json` and `layers.pz` once the marker is set. A
-leftover `~/Pictures/Depth` PNG (a wall enabled in both effects keeps its depth
-cut) is the user's and is left in place.
+The daemon reads `quality`; the shell reads the rest. On the first start after
+v2 a v1 `stage.json` (one still carrying `feather`, `lift`, `preset` or the
+`motion.{mouse,sensitivity,range,wallpaper}` sub-knobs) is folded once and
+rewritten atomically: `feather` -> `edge`, `lift` and `preset` dropped, and the
+motion sub-knobs reduce to `motion.amount` (`mouse: false` -> `subtle`,
+else `sensitivity >= 1.5` -> `strong`, else `normal`) with `motion.idle`/
+`motion.music` defaulted. An already-v2 file is left alone; the daemon never
+creates the GUI-owned file. A stable box that skipped v1 has no `stage.json` but
+still carries the retired `depth.json`/`parallax.json`; those are folded instead
+(model+matting -> `quality`, higher tier winning; `feather` -> `edge`;
+`shadow`/`shadowAngle` scalars kept, per-layer arrays skipped).
 
-## Scene: the per-layer knobs
+## Registry: per-wallpaper stage
 
-Each entry in a wall's `layers[]` is one cut-out band. The daemon owns its artifact
-refs (`out`, `rev`, `label`) and the detected `depth` / `area`; every other field is
-a knob the Scene level of the Stage tab writes live, indexed back-to-front (layer 0
-= back of the scene). `feather`, `lift`, `shadow` and `shadowAngle` are `null` to
-inherit the global `stage.json` look and a number to override it per layer; the rest
-are per-layer only. Manual layers are `layer-NN.png` files in
-`~/Pictures/Stage/<stem>/`, `NN` at least two digits, sorted ascending (lowest `NN`
-= back of the scene).
+`~/.local/state/ryoku/stage-walls.json`:
 
-Per-layer object (shell-owned unless noted): `out` / `rev` / `label` (daemon),
-`enabled`, `opacity`, `feather`, `lift`, `shadow`, `shadowAngle`, `parallax`,
-`depthFactor`, `offsetX`, `offsetY`, `mouseMax`, `audioLevel`, `animType`,
-`animSpeed`, `animAmplitude`, plus detected `depth` / `area`.
+```
+{ "current": "<path>",
+  "walls": { "<path>": {
+      "effect": "off|depth|parallax",
+      "layers": [ { "out": "<png>", "label": "Subject", "enabled": true,
+                    "front": true, "depth": 0.5 }, ... ] } } }
+```
 
-| Knob | Default | What it does |
-|---|---|---|
-| `enabled` | `true` | Layer visible on the desktop. |
-| `parallax` | `1.0` | Cursor strength multiplier (0..2). |
-| `depthFactor` | `0.5` | Depth factor (0..1); deeper layers drift more. |
-| `mouseMax` | `32` | Max cursor drift in px per axis (0..96). |
-| `opacity` | `1.0` | Layer alpha (0..1). |
-| `offsetX` / `offsetY` | `0` | Manual positional offset in px. |
-| `shadow` | `null` (inherit) | Drop-shadow strength 0..1; a number overrides the global look. |
-| `shadowAngle` | `null` (inherit) | Shadow direction in degrees (0 = right, 90 = down), a draggable dial. |
-| `feather` | `null` (inherit) | Edge blur 0..1; a number overrides the global look. |
-| `lift` | `null` (inherit) | Subject pop 0..1; a number overrides the global look. |
-| `audioLevel` | `0` | Audio reactivity 0..1 via the shared spectrum. |
-| `animType` | `none` | Idle motion: `none`, `float`, `pulse`, `scale`, `wiggle`, `rotate`. |
-| `animSpeed` / `animAmplitude` | `0.5` / `10` | Animation speed (0.1..3) and amplitude (px or deg). |
-
-Scene z-order tokens (a wall's `scene[]`): `"wallpaper"`, `"layer:N"` (1-based),
-`"widget:<id>"`, `"visualizer"`. Empty means the program computes the default.
+`layers[0]` is always the subject the engine cut (`subject.png`); every
+later entry is a picture the user added (`layer-NN.png`, cut from a picture
+or dropped in as a PNG). `front` is behind/in front of the widgets; `depth`
+0..1 is near..far for Parallax drift. The v1 registry is folded once, gated by
+`~/.local/state/ryoku/migrations/ryostage-v2`: `effect: subject` becomes
+`depth`, a `scene` order reduces to each layer's `front` (a layer listed after
+any `widget:*` token is `front: true`), a v1 `depthFactor` becomes `depth`, and
+`mode`, `scene` and the other per-layer knobs are dropped. A v1 manual wall's
+`layer-NN.png` entries are kept after a prepended subject slot. Under the same
+marker and before the v1 fold, the retired Depth (`depth-walls.json` +
+`~/Pictures/Depth`) and Parallax (`layers.pz` + `~/Pictures/Parallax`) state a
+stable box still carries is folded in for walls v1 has not claimed, its
+artifacts moved by rename into `~/Pictures/Stage/<stem>/`, so both upgrade paths
+converge on one registry.
 
 ## Rendering: `modules/stage/`
 
-`StageBackground.qml` (the recoloured backdrop with drift, only for the
-parallax effect, one layer-shell surface per monitor at `Background`),
-`StageLayer.qml` (one cut-out band at its scene z, with feather, lift,
-shadow, drift, idle animation and audio reactivity), and the desktop reads its
-own monitor's entry from the `stage` topic, keyed by wallpaper path. The
-Subject-in-front effect is a `StageLayer` above the widgets with motion off:
-there is no second renderer for Depth.
+One surface, one stack. The desktop surface draws, back to front:
+`StageBackdrop.qml` (Parallax only: the inpainted `background.png`, sized with
+the wallpaper's own fit and drifting with the cursor, so it covers the
+wallpaper's baked subject and can never misalign with ryogami's surface), then
+the layers marked behind the widgets (z 2), then the widgets (z 3), then the
+layers marked in front (`StageLayer.qml`: edge, shadow and angle from the global
+look, drift by the layer's `depth` x the shared motion Amount, idle and music;
+z 4), then any widget the user lifted into `front` (z 5). Depth is the same
+stack with `motionEnabled: false` and no backdrop, so the still cut is
+pixel-locked over the wallpaper's own subject. There is no second renderer, no
+separate layer-shell surface, and no path that can draw the subject twice.
+While the engine cuts, the subject layer dims and draws its own progress ring.
 
 ## Editing on the desktop
 
-Right-click on the desktop gains **Edit stage**. It opens the existing
-compose mode (widgets draggable, the compose bar) with the Stage tab docked,
-and each element's right-click menu carries **In front of the subject /
-Behind the subject** and, with parallax on, its layer. Knobs stay in the
-sidebar; the desktop is only the canvas. That is the whole editor: no
-floating inspectors, no second settings surface.
+Right-click the desktop (or the entry card's **Edit stage**) enters one edit
+mode on the live desktop: no floating inspectors, no second settings surface:
+
+- **Chips** (`StageWidgetChip.qml`, `StageLayerChip.qml`) sit on every element
+  with a soft outline: `Behind <-> In front` (widgets/plugins via `Config.front`;
+  the subject via its layer `front`; the visualizer via `On desktop <-> Above
+  windows`, its own surface's layer), plus lock, its existing right-click menu
+  for settings, and remove. A layer's chip adds `near <-> far` in Parallax.
+- The **Add palette** (`StageAddPalette.qml`) docks left: a card per widget and
+  the visualizer to toggle, a search box, and **Add layer** at the top.
+- The **toolbar** (`StageComposeBar.qml`) docks bottom with the stage knobs and
+  Done; it wraps to fit the screen and never covers the subject.
+- The visualizer's placement reuses its own Placer, activated by selecting its
+  chip; there is no separate "Move visualiser" command.
+
+Widgets drag/resize as before, with a live readout while a gesture is in flight.
+There is no Save: one Escape cancels the selection, a second (or Done) exits.
 
 ## Delivery
 

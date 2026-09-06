@@ -129,26 +129,11 @@ Item {
         Config.set("musicVideo", d[(d.indexOf(Config.musicVideo) + 1) % d.length]);
     }
 
-    // Stage: place a widget in front of or behind the subject by moving its
-    // token past the subject layer in the current wall's scene (docs/stage.md).
+    // Stage: lift a widget in front of the "in front" layers (the subject), or
+    // drop it back behind them, via Config.front (docs/stage.md).
     readonly property bool stageActive: StageCfg.StageBackend.isActiveFor(StageCfg.StageBackend.current)
-    function isWidgetFront(id) {
-        const scene = StageCfg.StageBackend.effectiveSceneFor(StageCfg.StageBackend.current);
-        const si = scene.indexOf("layer:1");
-        const wi = scene.indexOf("widget:" + id);
-        return wi >= 0 && si >= 0 && wi > si;
-    }
-    function setWidgetFront(id, front) {
-        const scene = StageCfg.StageBackend.effectiveSceneFor(StageCfg.StageBackend.current).slice();
-        const tok = "widget:" + id;
-        const wi = scene.indexOf(tok);
-        if (wi >= 0) scene.splice(wi, 1);
-        const si = scene.indexOf("layer:1");
-        if (si < 0) scene.push(tok);
-        else if (front) scene.splice(si + 1, 0, tok);
-        else scene.splice(si, 0, tok);
-        StageCfg.StageBackend.setScene(scene);
-    }
+    function isWidgetFront(id) { return StageCfg.Config.isFront(id); }
+    function setWidgetFront(id, front) { StageCfg.Config.setFront(id, front); }
     function editStage() {
         const st = Services.ShellState.forActive();
         if (st) st.stageComposing = true;
@@ -217,19 +202,8 @@ Item {
             closeOnTrigger: false
             onTriggered: Config.set("notesEnabled", !Config.notesEnabled)
         }
-        // The spectrum is a wallpaper surface with no pointer of its own, so the
-        // desktop menu is where you reach for it.
         MenuRow {
-            visible: !menu.isWidget && menu.vizOn
-            label: I18n.tr("Move visualiser")
-            onTriggered: {
-                const st = Services.ShellState.forActive();
-                if (st)
-                    st.visualizerPlacing = true;
-            }
-        }
-        MenuRow {
-            visible: !menu.isWidget && menu.stageActive
+            visible: !menu.isWidget
             label: I18n.tr("Edit stage")
             onTriggered: menu.editStage()
         }

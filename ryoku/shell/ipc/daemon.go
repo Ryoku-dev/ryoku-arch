@@ -993,40 +993,29 @@ func (d *daemon) dispatch(line string) string {
 		}
 		return "err hub: expected open [section] or close"
 	case "stage":
-		// One verb surface for the unified Depth/Parallax feature (docs/stage.md):
-		// set-effect records the three-way effect per wallpaper; set-mode picks
-		// the parallax mode; refresh forces a re-cut; cancel kills a running
-		// engine child; set-scene stores the cast order; set-layer merges a
-		// layer's knobs; add-layer / remove-layer manage manual layers; clear
-		// drops the current wall's generated artifacts; status snapshots the
-		// topic; models proxies the engine catalogue. QML normally subscribes
-		// to the `stage` topic; these verbs carry intent the other way.
+		// One verb surface for Ryostage (docs/stage.md): set-effect records the
+		// three-way effect per wallpaper; set-layer applies a layer's arrangement
+		// flags (enabled/front/depth); add-layer / cut-layer / remove-layer manage
+		// the manual layers; refresh forces a re-cut; cancel kills a running engine
+		// child; clear drops the current wall's generated artifacts; status
+		// snapshots the topic; models proxies the engine catalogue. QML normally
+		// subscribes to the `stage` topic; these verbs carry intent the other way.
 		if len(args) == 0 {
 			return "err stage: expected a verb"
 		}
-		// Trailing path / scene / json arguments may contain spaces, so recover
-		// them from the raw line by fixed-field split instead of the whitespace
-		// args, which would truncate at the first space.
+		// Trailing path / json arguments may contain spaces, so recover them from
+		// the raw line by fixed-field split instead of the whitespace args, which
+		// would truncate at the first space.
 		switch args[0] {
 		case "set-effect":
 			if len(args) < 2 {
-				return "err stage set-effect: expected off|subject|parallax"
+				return "err stage set-effect: expected off|depth|parallax"
 			}
 			eff := stageEffect(args[1])
-			if eff != stageEffectOff && eff != stageEffectSubject && eff != stageEffectParallax {
-				return "err stage set-effect: expected off|subject|parallax"
+			if eff != stageEffectOff && eff != stageEffectDepth && eff != stageEffectParallax {
+				return "err stage set-effect: expected off|depth|parallax"
 			}
 			d.stageSetEffect(eff)
-			return "ok"
-		case "set-mode":
-			if len(args) < 2 {
-				return "err stage set-mode: expected auto|manual"
-			}
-			m := stageMode(args[1])
-			if m != stageModeAuto && m != stageModeManual {
-				return "err stage set-mode: expected auto|manual"
-			}
-			d.stageSetMode(m)
 			return "ok"
 		case "refresh":
 			d.stageForce.Store(true)
@@ -1039,12 +1028,15 @@ func (d *daemon) dispatch(line string) string {
 			return d.stageStatusJSON()
 		case "models":
 			return stageModelsJSON()
-		case "set-scene":
+		case "cut-layer":
 			if len(args) < 2 {
-				return "err stage set-scene: expected a json array"
+				return "err stage cut-layer: expected a path"
 			}
-			d.stageSetScene(restField(line, 3))
-			return "ok"
+			path, err := d.stageCutLayer(restField(line, 3))
+			if err != nil {
+				return "err stage cut-layer: " + err.Error()
+			}
+			return "ok " + path
 		case "set-layer":
 			if len(args) < 3 {
 				return "err stage set-layer: expected <index> <json>"
@@ -1064,9 +1056,9 @@ func (d *daemon) dispatch(line string) string {
 			return "ok " + path
 		case "remove-layer":
 			if len(args) < 2 {
-				return "err stage remove-layer: expected a path"
+				return "err stage remove-layer: expected an index"
 			}
-			if err := d.stageRemoveLayer(restField(line, 3)); err != nil {
+			if err := d.stageRemoveLayer(args[1]); err != nil {
 				return "err stage remove-layer: " + err.Error()
 			}
 			return "ok"
