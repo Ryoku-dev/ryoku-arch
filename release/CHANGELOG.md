@@ -2,7 +2,33 @@
 
 ## Unreleased
 
+### Added
+- **`ryoku-keysounds`: the key sounds compositor plugin.** Built from
+  `ryoku/hyprland/plugins/keysounds` (depends on `hyprland`, `libcanberra`),
+  it installs `keysounds.so` under `/usr/lib/hyprland/plugins/`, eleven
+  sample profiles cut at build time from the pinned MIT-licensed Mechvibes
+  packs under `/usr/share/ryoku/keysounds/` (the licence beside them), and the
+  plugin source under `/usr/share/ryoku/hypr-plugins/keysounds/` so a box with
+  no checkout can rebuild it for a newer Hyprland. `ryoku-desktop` pins it like
+  the other plugin packages.
+
 ### Changed
+- **Every Hyprland plugin package lays an `.abi` receipt beside its `.so`.**
+  `hypr-dynamic-cursors`, `ryoku-hypr-plugins`, `hyprglass`, `imgborders` and
+  `ryoku-keysounds` write `<name>.abi` from the build host's `version.h`, the
+  plugin ABI string Hyprland checks on load (commit plus the major.minor of
+  aquamarine, hyprutils, hyprgraphics, hyprcursor, hyprlang). The Hub's Plugins
+  page, the generated `settings.lua` and `ryoku doctor` read it to tell a copy
+  an Arch bump left behind from a working one without loading it, and rebuild
+  it locally until the next publish ships a fresh package.
+- **`ryotunes` 2.4.1-7 tracks neur0map/ryotunes `43d063f`.** SoundCloud as a
+  third provider (guest, waveform seek bar, Orange-style artist pages), the
+  Discover home, the skin system (ten shipped skins under
+  `/usr/share/ryotunes/skins`, the matugen template under
+  `/usr/share/ryotunes/matugen`, RyoStore's `ryotunes-skins` category as the
+  store source), the static cover wash (the client dropped from ~35 % of a core
+  to ~2 % while playing), pause-to-quit (client after a minute parked, daemon a
+  minute later), and the Spotify Premium gate that says why a sign-in failed.
 - **`ryotunes` 2.4.1-4 ships the native client.** The package now tracks
   neur0map/ryotunes `73e4e96` and carries `ryotunesd` (socket-activated daemon
   owning playback, MPRIS and the tray), `ryotunes-cli`, and the pure-QML

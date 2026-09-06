@@ -23,7 +23,7 @@
 # pkgver when src-tauri/tauri.conf.json's version moves) to ship a new build.
 pkgname=ryotunes
 pkgver=2.4.1
-pkgrel=6
+pkgrel=7
 pkgdesc="Ryotunes: the Ryoku music app (YouTube Music client with native playback)"
 arch=('x86_64')
 url="https://github.com/neur0map/ryotunes"
@@ -45,7 +45,7 @@ conflicts=("${_legacy[@]}")
 replaces=("${_legacy[@]}")
 # Rust already strips with the release profile; the debug split has nothing.
 options=('!lto' '!debug')
-_commit=0e6951f196771c2a07ccf42c74abcaf13be26d43
+_commit=43d063f2a3fc3f10ee466c74f9025df321fbcd6d
 source=("$pkgname::git+https://github.com/neur0map/ryotunes.git#commit=$_commit")
 sha256sums=('SKIP')
 
@@ -78,6 +78,13 @@ package() {
   rm -rf "$pkgdir/usr/share/ryotunes/client/tests"
   find "$pkgdir/usr/share/ryotunes/client" -type d -exec chmod 755 {} +
   find "$pkgdir/usr/share/ryotunes/client" -type f -exec chmod 644 {} +
+  # Shipped skins and the matugen template (docs/SKINS.md): Ryotunes reads
+  # /usr/share/ryotunes/skins as its shipped source, the desktop's matugen
+  # pass renders the template into ~/.config/ryotunes/skins/matugen.
+  cp -r skins "$pkgdir/usr/share/ryotunes/skins"
+  find "$pkgdir/usr/share/ryotunes/skins" -type d -exec chmod 755 {} +
+  find "$pkgdir/usr/share/ryotunes/skins" -type f -exec chmod 644 {} +
+  install -Dm644 matugen/ryotunes.json "$pkgdir/usr/share/ryotunes/matugen/ryotunes.json"
   install -Dm644 packaging/linux/dev.ryoku.ryotunes.metainfo.xml \
     "$pkgdir/usr/share/metainfo/dev.ryoku.ryotunes.metainfo.xml"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
