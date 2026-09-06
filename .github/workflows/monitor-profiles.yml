@@ -2,20 +2,24 @@ name: Monitor profiles
 
 # guards ryoku-monitor's Ryoku Settings surface: explicit layout apply (keep
 # chosen modes, not highrr), hardware-keyed named profiles, identity remap that
-# survives a connector rename. fixture mode -> no compositor needed.
-# tests/monitor-profiles.sh.
+# survives a connector rename, and display persistence across a reboot / a
+# power-cycled TV (absent output, drifting serial, renamed connector).
+# fixture mode -> no compositor needed.
+# tests/monitor-profiles.sh, tests/monitor-persist.sh.
 
 on:
   pull_request:
     paths:
       - 'system/hardware/display/ryoku-monitor'
       - 'tests/monitor-profiles.sh'
+      - 'tests/monitor-persist.sh'
   push:
     branches:
       - main
     paths:
       - 'system/hardware/display/ryoku-monitor'
       - 'tests/monitor-profiles.sh'
+      - 'tests/monitor-persist.sh'
   workflow_dispatch:
 
 permissions:
@@ -39,3 +43,7 @@ jobs:
       - name: Run monitor-profiles test
         shell: bash
         run: bash tests/monitor-profiles.sh
+
+      - name: Run monitor-persist test
+        shell: bash
+        run: bash tests/monitor-persist.sh

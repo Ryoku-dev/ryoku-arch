@@ -60,6 +60,21 @@ jq_scale_lib='
     | if length == 0 then [1] else . end;
 '
 
+# jq prelude for hardware identity, shared by every layout-matching path. mon_id
+# keys a monitor by make|model|serial when the EDID carries any of them, and
+# falls back to the connector name for a display that reports nothing at all (a
+# cheap HDMI dongle, a TV whose EDID has not been read yet), so a match key is
+# never the bare "||" that every EDID-less output would collide on. id_mm strips
+# the serial off a stored id: an LG TV that reports its serial differently (or
+# empty) between boots still resolves to itself by make|model.
+# shellcheck disable=SC2016  # jq program: $id is a jq arg, not shell
+jq_id_lib='
+  def mon_id:
+    ((.make // "") + "|" + (.model // "") + "|" + (.serial // "")) as $mms
+    | if $mms == "||" then (.name // "") else $mms end;
+  def id_mm($id): ($id | split("|") | .[0:2] | join("|"));
+'
+
 # names pinned in monitors_user.lua, one per line. empty if none.
 pinned_outputs() {
   [[ -f $monitors_user ]] || return 0
@@ -76,9 +91,9 @@ known_output_names() {
   local ids
   ids="$(jq -c '[ .monitors[].id ]' "$applied_layout" 2>/dev/null || echo '[]')"
   [[ -n $ids && $ids != '[]' ]] || return 0
-  monitors_json | jq -r --argjson known "$ids" '
+  monitors_json | jq -r --argjson known "$ids" "$jq_id_lib"'
     .[] | . as $m
-    | (($m.make // "") + "|" + ($m.model // "") + "|" + ($m.serial // "")) as $id
+    | ($m | mon_id) as $id
     | select(($known | index($id)) != null)
     | $m.name' 2>/dev/null || true
 }
@@ -182,8 +197,10 @@ write_monitors_conf() {
   {
     printf '%s\n' "-- Managed by ryoku-monitor. Scale and position are captured from the live"
     printf '%s\n' "-- session (DPI-derived, never hardcoded); refresh is always highrr so a"
-    printf '%s\n' "-- slow-training link cannot pin a low rate. Edits may be overwritten;"
-    printf '%s\n' "-- re-run ryoku-monitor autoscale to regenerate."
+    printf '%s\n' "-- slow-training link cannot pin a low rate. This file is regenerated on"
+    printf '%s\n' "-- every login and hotplug, so edits here are lost: put durable manual"
+    printf '%s\n' "-- overrides in ~/.config/hypr/monitors_user.lua (see monitors_user.lua.example),"
+    printf '%s\n' "-- which is loaded after this file, wins, and is never rewritten."
     printf '\n'
     monitors_json | jq -r --argjson pinned "$pinned_json" '
       .[] | select(.name as $n | ($pinned | index($n)) == null) |
@@ -447,9 +464,9 @@ cmd_list() {
       "$applied_layout" 2>/dev/null || echo '{}')"
     [[ -n $vrrmap ]] || vrrmap='{}'
   fi
-  monitors_json | jq -c --argjson vrrmap "$vrrmap" "$jq_scale_lib"'[ .[] | {
+  monitors_json | jq -c --argjson vrrmap "$vrrmap" "$jq_id_lib$jq_scale_lib"'[ .[] | {
     name, description, make, model, serial,
-    id: ((.make // "") + "|" + (.model // "") + "|" + (.serial // "")),
+    id: mon_id,
     width, height, refresh: (.refreshRate | round),
     x, y, scale, transform, disabled, focused,
     vrr: ($vrrmap[.name] // (if .vrr then 1 else 0 end)),
@@ -565,7 +582,9 @@ write_monitors_explicit() {
   mkdir -p "$(dirname "$monitors_conf")"
   {
     printf '%s\n' "-- Managed by ryoku-monitor (Ryoku Settings layout). The per-output modes are"
-    printf '%s\n' "-- the ones chosen in the Displays section; edits here may be overwritten."
+    printf '%s\n' "-- the ones chosen in the Displays section. This file is regenerated, so edits"
+    printf '%s\n' "-- here are lost: put durable manual overrides in ~/.config/hypr/monitors_user.lua"
+    printf '%s\n' "-- (see monitors_user.lua.example), which is loaded after this file and wins."
     printf '\n'
     printf '%s' "$specs" | jq -r '
       .[] |
@@ -649,22 +668,55 @@ cmd_save() {
   echo "ryoku-monitor: saved profile $name"
 }
 
-# hardware identities of the connected monitors, sorted + de-duped. the
-# profile-match key.
-connected_ids() {
-  monitors_json | jq -r '[ .[] | ((.make // "") + "|" + (.model // "") + "|" + (.serial // "")) ] | sort | unique | .[]'
+# resolve a saved layout ({monitors:[...]}) against the live outputs. $1 = live
+# monitor JSON, $2 = the layout file. each saved monitor is mapped to the
+# connector now carrying its identity: exact make|model|serial first, then
+# make|model alone when that is unambiguous on both sides (an LG TV that reports
+# its serial differently, or empty, between boots still matches itself). match is
+# by identity, never by connector alone, so booting the same disk on another
+# machine does not drape one panel's settings over a different panel on the same
+# port. a no-EDID display is keyed on its connector by mon_id, so it still
+# resolves exactly. a saved monitor no live output matches keeps its saved
+# connector, so its stanza is never dropped just because the display is asleep,
+# unplugged, or slow to probe at that instant. emits { cover, monitors }: cover
+# is true when every live output is claimed by some saved monitor, i.e. the saved
+# layout still governs what is connected -- the signal to recall it instead of
+# recomputing scale from DPI.
+resolve_layout() {
+  local live="$1" file="$2"
+  jq -n --argjson live "$live" --slurpfile prof "$file" "$jq_id_lib"'
+    ($prof[0].monitors // []) as $saved
+    | ($live | map({ name: .name, id: mon_id, mm: ((.make // "") + "|" + (.model // "")) })) as $L
+    | ($saved | group_by(id_mm(.id)) | map({ key: id_mm(.[0].id), value: length }) | from_entries) as $smm
+    | ($L | group_by(.mm) | map({ key: .[0].mm, value: length }) | from_entries) as $lmm
+    | ($saved | map(
+        . as $m
+        | (id_mm($m.id)) as $mm
+        | ( (first($L[] | select(.id == $m.id) | .name))
+            // (if ($smm[$mm] == 1) and ($lmm[$mm] == 1) and ($mm != "|")
+                  then (first($L[] | select(.mm == $mm) | .name)) else empty end)
+            // null ) as $out
+        | $m + { output: ($out // $m.output), resolved: ($out != null) } )) as $rs
+    | { cover: (($L | length) > 0 and ((($L | map(.name)) - ($rs | map(select(.resolved) | .output))) | length == 0)),
+        monitors: ($rs | map(del(.resolved))) }' 2>/dev/null
 }
 
-# name of the first saved profile whose monitor set matches the connected one
-# (by hardware identity), or nothing.
+# true when a saved layout still governs the live output set (see resolve_layout).
+layout_covers() {
+  local live="$1" file="$2"
+  [[ -f $file ]] || return 1
+  [[ "$(resolve_layout "$live" "$file" | jq -r '.cover // false' 2>/dev/null)" == "true" ]]
+}
+
+# name of the first saved profile that still governs the connected set (its
+# displays cover what is connected now, absent members tolerated), or nothing.
 matching_profile() {
   [[ -d $monitors_dir ]] || return 1
-  local conn f pids
-  conn="$(connected_ids)"
+  local live f
+  live="$(monitors_json)"
   for f in "$monitors_dir"/*.json; do
     [[ -e $f ]] || continue
-    pids="$(jq -r '[ .monitors[].id ] | sort | unique | .[]' "$f" 2>/dev/null)"
-    if [[ -n $pids && "$pids" == "$conn" ]]; then
+    if layout_covers "$live" "$f"; then
       basename "$f" .json
       return 0
     fi
@@ -672,17 +724,14 @@ matching_profile() {
   return 1
 }
 
-# apply a saved layout file ({monitors:[...]}), mapping each saved monitor to
-# the connector now carrying its hardware identity, so DP-1/DP-2 swaps don't
-# matter. shared by named-profile load and the implicit applied-layout recall.
+# apply a saved layout file ({monitors:[...]}), mapping each saved monitor to the
+# connector now carrying its identity (so DP-1/DP-2 swaps don't matter) and
+# keeping a stanza for any saved display absent right now, so an asleep or
+# power-cycled TV comes back to its own settings instead of the hotplug catch-all.
+# shared by named-profile load and the implicit applied-layout recall.
 load_layout_file() {
   local file="$1" resolved
-  resolved="$(jq -n --argjson live "$(monitors_json)" --slurpfile prof "$file" '
-    [ $prof[0].monitors[]
-      | . as $m
-      | (first($live[] | select(((.make // "") + "|" + (.model // "") + "|" + (.serial // "")) == $m.id) | .name)) as $out
-      | select($out != null)
-      | $m + { output: $out } ]' | sanitize_layout)"
+  resolved="$(resolve_layout "$(monitors_json)" "$file" | jq -c '.monitors' | sanitize_layout)"
   printf '%s' "$resolved" | apply_specs
   printf '%s' "$resolved" | write_monitors_explicit
 }
@@ -698,28 +747,25 @@ cmd_load() {
   echo "ryoku-monitor: loaded profile $name"
 }
 
-# true when the implicit applied layout exists and matches the connected set.
+# true when the implicit applied layout still governs the connected set (absent
+# members tolerated), so a login/hotplug recalls it instead of rescaling by DPI.
 applied_matches() {
   [[ -f $applied_layout ]] || return 1
-  local conn pids
-  conn="$(connected_ids)"
-  pids="$(jq -r '[ .monitors[].id ] | sort | unique | .[]' "$applied_layout" 2>/dev/null)"
-  [[ -n $pids && "$pids" == "$conn" ]]
+  layout_covers "$(monitors_json)" "$applied_layout"
 }
 
-# saved profiles as JSON, each tagged with whether it matches the connected set.
+# saved profiles as JSON, each tagged with whether it governs the connected set.
 cmd_profiles() {
   require_jq
-  local conn arr f name pids match
-  conn="$(connected_ids 2>/dev/null)"
+  local live arr f name match
+  live="$(monitors_json 2>/dev/null || echo '[]')"
   arr="[]"
   if [[ -d $monitors_dir ]]; then
     for f in "$monitors_dir"/*.json; do
       [[ -e $f ]] || continue
       name="$(basename "$f" .json)"
-      pids="$(jq -r '[ .monitors[].id ] | sort | unique | .[]' "$f" 2>/dev/null)"
       match=false
-      [[ -n $pids && "$pids" == "$conn" ]] && match=true
+      layout_covers "$live" "$f" && match=true
       arr="$(jq --arg n "$name" --argjson m "$match" --slurpfile p "$f" \
         '. + [ { name: $n, matches: $m, monitors: $p[0].monitors } ]' <<<"$arr")"
     done

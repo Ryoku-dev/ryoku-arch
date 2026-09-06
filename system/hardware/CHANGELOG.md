@@ -11,6 +11,21 @@
   `tests/monitor-custom-mode.sh`.
 
 ### Fixed
+- `display/ryoku-monitor`: **display settings survive a reboot and a power-cycled
+  TV; an HDMI output no longer reverts as if freshly connected.** A saved layout
+  was recalled only when the connected identity set matched the saved one
+  exactly, so an LG TV that reports a different (or empty) serial between boots,
+  or is still asleep when `autoscale` runs at login, invalidated the whole layout
+  and dropped it to DPI scaling; `monitors.lua` was then regenerated from the
+  live outputs alone, dropping the missing display's stanza entirely. Matching is
+  now per-display and identity-first: make/model/serial, then make/model when a
+  serial drifts, with an EDID-less display keyed on its connector. A saved
+  display absent at that instant keeps its stanza, and a connector rename remaps
+  it; booting the same disk on another machine still falls back to DPI rather
+  than draping one panel's settings over a different panel on the same port. The
+  generated `monitors.lua` header now points hand edits at
+  `~/.config/hypr/monitors_user.lua`, which is loaded after it and never
+  rewritten. Covered by `tests/monitor-persist.sh` (#152).
 - `bluetooth/ryoku-bluetooth-reset.service`: **a Bluetooth audio device that
   connected then dropped a second later now stays connected.** BlueZ 5.83+
   actively disconnects a device whose authentication is retried mid-stream (an
