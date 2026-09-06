@@ -16,8 +16,8 @@ import "components"
 import "modules/wallpaper"
 import "modules/desktop"
 import "modules/visualizer"
-import "modules/parallax"
-import "modules/parallax/Singletons" as ParallaxCfg
+import "modules/stage"
+import "modules/stage/Singletons" as StageCfg
 import "modules/bar"
 import "modules/dock"
 import "modules/launcher"
@@ -174,7 +174,6 @@ ShellRoot {
                 wallpaperUrl: wallpaper.wallpaperUrl
                 wallpaperPath: wallpaper.wallpaperPath
                 wallpaperFit: wallpaper.fit
-                depthUrl: wallpaper.depthUrl
                 wallpaperTransition: wallpaper.transition
                 videoUrl: wallpaper.videoUrl
                 wallpaperLive: wallpaper.live
@@ -182,10 +181,10 @@ ShellRoot {
                 videoVolume: wallpaper.videoVolume
             }
 
-            // The parallax composition lives at WlrLayer.Background, below
-            // this slice: its own surface draws the wallpaper + layers while
-            // the desktop window above only carries widgets and chrome.
-            ParallaxBackground {
+            // The Stage parallax composition lives at WlrLayer.Background, below
+            // this slice: its own surface draws the wallpaper + recoloured
+            // backdrop while the desktop window above carries widgets and bands.
+            StageBackground {
                 screen: perScreen.modelData
                 wallpaperUrl: wallpaper.wallpaperUrl
                 wallpaperPath: wallpaper.wallpaperPath
@@ -199,8 +198,7 @@ ShellRoot {
                 mode: !VizCfg.Config.enabled ? "off"
                     : (perScreen.st && perScreen.st.visualizerOverlay ? "overlay" : "desktop")
                 placing: perScreen.st ? perScreen.st.visualizerPlacing : false
-                suppressed: ParallaxCfg.Config.enabled
-                    && ParallaxCfg.Config.wallActiveForPath(wallpaper.wallpaperPath)
+                suppressed: StageCfg.StageBackend.isParallaxFor(wallpaper.wallpaperPath)
                     && VizCfg.Config.enabled && !perScreenViz.placing
                 onPlacingDone: if (perScreen.st) perScreen.st.visualizerPlacing = false
             }

@@ -4,16 +4,14 @@
 
 ### Added
 
-- **A parallax module that cuts the wallpaper into movable layers.** A
-  standalone engine (`ryoku-parallax-engine`) cuts the subject and recolours
-  the cutout's hole with the surrounding colour, and every artifact lives in
-  the wallpaper's own folder under `~/Pictures/Parallax/`; a Parallax tab in
-  the Super+Esc quick settings cuts or lists layers per wallpaper, tunes each
-  layer (parallax speed, depth, opacity, offsets, feather, lift, shadow with
-  a draggable direction dial, audio reactivity and idle animation), and the
-  scene order editor really reorders layers, widgets and the audio visualizer
-  on screen (`ipc/parallax.go`, `scripts/ryoku-parallax-engine`,
-  `modules/parallax/`, `docs/parallax.md`).
+- **Depth and Parallax are one feature now: Stage.** The old Depth (a still
+  subject cut in front of the widgets) and the unreleased Parallax (the subject
+  and extra layers drifting with the cursor over a recoloured backdrop) are the
+  two effects of one **Stage** tab, backed by one engine (`scripts/ryostage`),
+  one settings file (`~/.config/ryoku/stage.json`), one per-wallpaper registry
+  (`stage-walls.json`) and one artifact folder (`~/Pictures/Stage/<stem>/`). The
+  doctor migrates every old settings file, state cache and quick-settings rail in
+  place (`ipc/stage.go`, `modules/stage/`, `docs/stage.md`).
 
 ### Removed
 - **The Spotify Canvas relay is gone.** The music daemon no longer runs a

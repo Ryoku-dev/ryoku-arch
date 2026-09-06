@@ -13,6 +13,10 @@
   the other plugin packages.
 
 ### Changed
+- **`ryoku-shell` ships `ryostage`, not the two old engines.** Depth and Parallax
+  merged into one engine: the package installs `/usr/bin/ryostage` and no longer
+  ships `ryoku-depth` or `ryoku-parallax-engine`. `deploy.sh` removes the two old
+  binaries from checkout boxes (pacman drops them from packaged boxes on upgrade).
 - **The apps Ryoku ships are optdepends, not depends.** pacman re-satisfies a
   dependency list on every upgrade of the package that carries it, so a hard
   depend meant `ryoku update` reinstalled kitty, Nautilus, Ryotunes or the

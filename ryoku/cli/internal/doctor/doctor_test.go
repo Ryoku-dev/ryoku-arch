@@ -2404,9 +2404,9 @@ func TestStrayRyokuFilesSelectsUnownedOnly(t *testing.T) {
 	}
 	got := strayRyokuFiles(ryokuSystemGlobs, glob, owned)
 	want := map[string]bool{
-		"/usr/bin/ryoku-dns":                             true,
-		"/usr/share/polkit-1/rules.d/50-ryoku-dns.rules": true,
-		"/usr/share/plymouth/themes/ryoku/bullet.png":    true,
+		"/usr/bin/ryoku-dns":                                       true,
+		"/usr/share/polkit-1/rules.d/50-ryoku-dns.rules":           true,
+		"/usr/share/plymouth/themes/ryoku/bullet.png":              true,
 		"/usr/lib/systemd/system/ryoku-network-kill-guard.service": true,
 		"/usr/share/ryoku/boot/default.conf":                       true,
 	}

@@ -12,11 +12,12 @@ import Quickshell.Io
  * {default: ENTRY, outputs: {connector: ENTRY}} per revision on the `wallpaper`
  * topic of $XDG_RUNTIME_DIR/ryogami.sock. This bridge subscribes and re-exposes
  * this output's entry (outputs[screen.name] or, absent an override, default)
- * as the wallpaper/depth/video urls and fit that the desktop's backdrop
+ * as the wallpaper/video urls and fit that the desktop's backdrop
  * (modules/desktop -> WallpaperMod.Backdrop) paints: stills with the reveal
- * transition, live clips through the in-shell QtMultimedia player, and the
- * depth-cutout foreground (modules/depth/DepthForeground) composites against.
- * Contract 08 sec 1, 2.6, 5, 7.
+ * transition and live clips through the in-shell QtMultimedia player. Stage
+ * cuts and renders its own subject from the daemon `stage` topic; the frame's
+ * `depth` fold stays ryogami's pixel-lock subject, unchanged on the wire
+ * (docs/stage.md). Contract 08 sec 1, 2.6, 5, 7.
  *
  * The ryogami wallpaper picker (Super+W) sets wallpapers through ryogami,
  * which feeds this same topic.
@@ -35,8 +36,6 @@ Item {
     readonly property string wallpaperUrl: frame.path.length > 0
         ? "file://" + frame.path + "?v=" + frame.revision : ""
     readonly property string wallpaperPath: frame.path
-    readonly property string depthUrl: frame.depth.length > 0
-        ? "file://" + frame.depth + "?v=" + frame.depthRev : ""
     readonly property string fit: frame.fit
     // The reveal preset for the current revision (null = plain crossfade).
     readonly property var transition: frame.transition

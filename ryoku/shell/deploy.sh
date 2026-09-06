@@ -144,8 +144,10 @@ mkdir -p "$bindir"
 install -m755 "$here/ipc/ryoku-shell" "$bindir/ryoku-shell"
 say "installed $bindir/ryoku-shell"
 install -m755 "$here/scripts/ryoku-reload-cover" "$bindir/ryoku-reload-cover"
-install -m755 "$here/scripts/ryoku-depth" "$bindir/ryoku-depth"
-install -m755 "$here/scripts/ryoku-parallax-engine" "$bindir/ryoku-parallax-engine"
+install -m755 "$here/scripts/ryostage" "$bindir/ryostage"
+# Depth and Parallax merged into ryostage; a checkout box that installed the old
+# helpers keeps them on PATH forever otherwise (pacman drops them on packaged boxes).
+rm -f "$bindir"/ryoku-{depth,parallax-engine}
 
 # Every hyprland leaf script the config calls by bare name (ryoku-app, the
 # ryoku-cmd-*, ...). The package ships them to /usr/bin; a checkout must put the

@@ -20,9 +20,10 @@ Names, so the parts are findable:
 | Artifacts | `~/Pictures/Stage/<stem>/` | the user's files, one folder per wallpaper |
 | Engine runtime and models | `~/.local/state/ryoku/ryostage/` | one venv, one model cache |
 
-`ryoku-depth`, `ryoku-parallax-engine`, `depth.json`, `parallax.json`,
-`depth-walls.json`, `~/Pictures/Depth`, `~/Pictures/Parallax` and the
-`depth`/`parallax` tabs are retired; the doctor migrates all of them (below).
+The two retired engine helpers (the old Depth and Parallax segmentation
+scripts), `depth.json`, `parallax.json`, `depth-walls.json`, `~/Pictures/Depth`,
+`~/Pictures/Parallax` and the `depth`/`parallax` tabs are retired; the doctor
+migrates all of them (below).
 
 ## The mental model a user needs
 
@@ -72,7 +73,7 @@ header and here, so a packager can check them.
 ## Engine: `ryostage`
 
 One bash helper, the only place model logic lives. Backend resolution is
-unchanged from `ryoku-depth` (the managed venv first, then a system Python in
+unchanged from the old Depth engine (the managed venv first, then a system Python in
 rembg's range, `uv` provisioning a managed 3.13 otherwise).
 
 | Subcommand | Contract |
@@ -103,9 +104,10 @@ One worker, one registry, one topic. It replaces `depth.go` and `parallax.go`.
   `layer-NN.png` (manual layers), `.index.json` (mtime reuse). The old
   `~/Pictures/Depth/<wallpaper>-depth.png` becomes `subject.png` of its stem;
   `~/Pictures/Parallax/<stem>/` is moved whole.
-- **Topic** `stage`: `{ "wall": <path>, "effect": ..., "busy": bool, "stage": "cut|inpaint",
-  "percent": n, "subject": "<path>", "background": "<path>", "layers": [...],
-  "scene": [...], "rev": mtime }`. QML renders from this and nothing else.
+- **Topic** `stage` (per-wallpaper-keyed; QML renders from this and nothing else):
+  `{ "current": <path>, "busy": bool, "stage": "cut|inpaint", "percent": n,
+  "walls": { "<path>": { "effect": ..., "mode": ..., "subject": "<path>",
+  "background": "<path>", "rev": mtime, "scene": [...], "layers": [...] } } }`.
   ryogami keeps folding the subject as `depth` in the wallpaper frame for
   pixel-lock, unchanged on the wire.
 - **Verbs** (`ryoku-shell stage ...`): `set-effect <off|subject|parallax>`,
@@ -130,12 +132,54 @@ Global only; anything per-wallpaper is in the registry.
 | `preset` | `none` | `none`, `softdepth`, `audiopulse`, `cinematic` |
 | `front` | `[]` | widget ids drawn above the subject when no per-wall scene exists (migrated from depth) |
 
-Migration is a doctor check (`stage settings`): `depth.json` and
-`parallax.json` fold into `stage.json`, `depth-walls.json` and `layers.pz`
-into `stage-walls.json`, the two picture folders into `~/Pictures/Stage`,
-the two quick-settings tabs into one `stage` tab in the same position, and the
-two state caches into one. Every step is idempotent and leaves the user's
-files where they were on failure.
+Migration runs in two places, each idempotent and leaving the user's files where
+they were on any failure. The daemon does the fold once at startup, gated on a
+marker `~/.local/state/ryoku/migrations/ryostage` (present = done): `depth.json`
+and `parallax.json` into `stage.json`, `depth-walls.json` and `layers.pz` into
+`stage-walls.json`, and `~/Pictures/Depth` + `~/Pictures/Parallax` into
+`~/Pictures/Stage/<stem>/` (renamed, never copied). The doctor then converges the
+rest: `quick-settings stage tab` folds the two sidebar tabs into one `stage` tab in
+the same position; `ryostage cache` reclaims the leftover
+`~/.local/state/ryoku/{depth,parallax}` engine trees once the shared `ryostage`
+venv exists; and `stage migration leftovers` reclaims the superseded `depth.json`,
+`parallax.json`, `depth-walls.json` and `layers.pz` once the marker is set. A
+leftover `~/Pictures/Depth` PNG (a wall enabled in both effects keeps its depth
+cut) is the user's and is left in place.
+
+## Scene: the per-layer knobs
+
+Each entry in a wall's `layers[]` is one cut-out band. The daemon owns its artifact
+refs (`out`, `rev`, `label`) and the detected `depth` / `area`; every other field is
+a knob the Scene level of the Stage tab writes live, indexed back-to-front (layer 0
+= back of the scene). `feather`, `lift`, `shadow` and `shadowAngle` are `null` to
+inherit the global `stage.json` look and a number to override it per layer; the rest
+are per-layer only. Manual layers are `layer-NN.png` files in
+`~/Pictures/Stage/<stem>/`, `NN` at least two digits, sorted ascending (lowest `NN`
+= back of the scene).
+
+Per-layer object (shell-owned unless noted): `out` / `rev` / `label` (daemon),
+`enabled`, `opacity`, `feather`, `lift`, `shadow`, `shadowAngle`, `parallax`,
+`depthFactor`, `offsetX`, `offsetY`, `mouseMax`, `audioLevel`, `animType`,
+`animSpeed`, `animAmplitude`, plus detected `depth` / `area`.
+
+| Knob | Default | What it does |
+|---|---|---|
+| `enabled` | `true` | Layer visible on the desktop. |
+| `parallax` | `1.0` | Cursor strength multiplier (0..2). |
+| `depthFactor` | `0.5` | Depth factor (0..1); deeper layers drift more. |
+| `mouseMax` | `32` | Max cursor drift in px per axis (0..96). |
+| `opacity` | `1.0` | Layer alpha (0..1). |
+| `offsetX` / `offsetY` | `0` | Manual positional offset in px. |
+| `shadow` | `null` (inherit) | Drop-shadow strength 0..1; a number overrides the global look. |
+| `shadowAngle` | `null` (inherit) | Shadow direction in degrees (0 = right, 90 = down), a draggable dial. |
+| `feather` | `null` (inherit) | Edge blur 0..1; a number overrides the global look. |
+| `lift` | `null` (inherit) | Subject pop 0..1; a number overrides the global look. |
+| `audioLevel` | `0` | Audio reactivity 0..1 via the shared spectrum. |
+| `animType` | `none` | Idle motion: `none`, `float`, `pulse`, `scale`, `wiggle`, `rotate`. |
+| `animSpeed` / `animAmplitude` | `0.5` / `10` | Animation speed (0.1..3) and amplitude (px or deg). |
+
+Scene z-order tokens (a wall's `scene[]`): `"wallpaper"`, `"layer:N"` (1-based),
+`"widget:<id>"`, `"visualizer"`. Empty means the program computes the default.
 
 ## Rendering: `modules/stage/`
 
@@ -162,3 +206,19 @@ floating inspectors, no second settings surface.
 the QML in `ryoku-desktop`. `tests/shell-tool-availability.sh` gates
 `[stage-engine]=ryostage` is not needed (the runtime is opt-in), but the helper
 must be on both install paths, which the delivery check enforces.
+
+## Verification
+
+- Daemon: `go build ./...` and its unit tests: the `stage` topic carries the
+  frame fields, the worker coalesces off the wallpaper hot path, and the registry
+  parses.
+- Doctor: hermetic Go tests for the rail migration (retired `depth`/`parallax`
+  fold to one `stage` tab, idempotent), the settings migration, and the
+  `ryostage cache` reclaim.
+- QML: `qmllint` on the new and edited `modules/stage/` files.
+- Engine: `bash -n` + shellcheck on `ryostage`; `check`, `models --json` and a
+  `cut` against a provisioned cache.
+- Delivery: `ryostage` is on both install paths (`deploy.sh` and the
+  `ryoku-shell` PKGBUILD), enforced by the delivery check.
+- The live visual result and real cut quality need a running session with the
+  engine provisioned, exercised on the dev box via `dev-run.sh`.

@@ -3,13 +3,13 @@
 ## Unreleased
 
 ### Changed
-- **The Parallax tab reaches a box that already had a quick-settings rail.** A new
-  panel is a module in the catalogue default, so only a fresh install saw it: a
-  machine that had persisted its rail (ending at Depth) got the new QML and no way
-  to open it. `quick-settings parallax tab` appends the module to any persisted
-  rail carrying Home, the way the capture and depth checks already did, and the
-  three now share one append helper
-  (`internal/doctor/reconcile_parallax_module.go`, `reconcile_depth_module.go`).
+- **The Depth and Parallax tabs fold into one Stage tab, and the doctor migrates a
+  persisted rail.** Depth and Parallax became one feature, so `quick-settings stage
+  tab` replaces the retired `depth`/`parallax` modules of a persisted quick-settings
+  rail with a single `stage` where the first of them sat (and appends `stage` to an
+  older rail that had neither), while `ryostage cache` reclaims a leftover
+  `~/.local/state/ryoku/{depth,parallax}` runtime tree once the unified `ryostage`
+  cache exists (`internal/doctor/reconcile_stage_module.go`).
 - **`ryoku track unstable-dev` means testing packages, `ryoku track main` means
   stable.** A branch name now selects a package channel: `unstable-dev` is the
   `testing` channel (rebuilt on every push to `unstable-dev`, delivered as signed

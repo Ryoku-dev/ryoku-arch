@@ -100,48 +100,45 @@ func componentDisabled(name string) bool {
 }
 
 type daemon struct {
-	mu            sync.Mutex
-	sup           map[string]bool      // components that already have a supervisor goroutine
-	proc          map[string]*exec.Cmd // current live process per component
-	paintSig      chan struct{}        // coalescing wake for the palette/border worker
-	depthSig      chan struct{}        // coalescing wake for the depth-cutout worker
-	depthForce    atomic.Bool          // a pending forced regenerate (detail change / refresh)
-	depthGen      atomic.Bool          // a pending enable: reuse a saved cutout, else generate
-	depthBusy     atomic.Bool          // a cutout generation is in flight (for status)
-	parallaxSig   chan struct{}        // coalescing wake for the parallax worker
-	parallaxForce atomic.Bool          // a pending forced parallax regenerate
-	parallaxBusy  atomic.Bool          // a parallax cut is in flight (for status)
-	ledsSig       chan struct{}        // coalescing wake for the OpenRGB worker
-	widgetSig     chan struct{}        // coalescing wake for the widget-occupancy gate
-	quit          chan struct{}
-	closed        bool
-	ln            net.Listener
-	lock          *os.File // exclusive single-daemon guard, held until exit
-	failMu        sync.Mutex
-	lastFail      map[string]string        // component -> last line it died with
-	voiceMu       sync.Mutex               // serializes voice (Super+`) toggles
-	voiceOn       bool                     // dictation active; guarded by voiceMu
-	prompter      *prompter                // GNOME keyring system prompter (nil when unavailable)
-	monMu         sync.Mutex               // guards activeMon
-	activeMon     string                   // focused monitor, kept warm by watchHyprland
-	monFallback   func() string            // monitor source when the cache is cold; tests swap it
-	gateMu        sync.Mutex               // guards gateWant / gateWake
-	gateWant      map[string]bool          // component -> may run now (absent = yes)
-	gateWake      map[string]chan struct{} // wakes a parked supervisor when its gate opens
-	parkMu        sync.Mutex               // guards hiddenSince
-	hiddenSince   map[string]time.Time     // parkable palette -> when it last went hidden (absent = shown)
-	topicsMu      sync.Mutex               // guards topics
-	topics        map[string]*stateTopic   // subsystem name -> pub/sub state topic
-	callsMu       sync.Mutex               // guards calls
-	calls         map[string]callFunc      // "topic.method" -> control handler
-	clip          *clipState               // clipboard history state (nil until started)
-	tray          *trayState               // system tray watcher/host state (nil until started)
-	ryoWallMu     sync.Mutex               // guards ryoWall
-	ryoWall       ryogamiFrame             // last wallpaper frame seen from ryogami; feeds the depth worker
-	polkit        *polkitAgent             // PolicyKit1 authentication agent (nil until started)
-	settings      *settingsStore           // shell.json store (nil until startSettings); theme apply patches through it
-	pp            *powerProfilesState      // power-profiles-daemon bus state; nil until startPowerProfiles
-	keypress      *keypressManager         // evdev key stream; opens devices only while the overlay is enabled
+	mu          sync.Mutex
+	sup         map[string]bool      // components that already have a supervisor goroutine
+	proc        map[string]*exec.Cmd // current live process per component
+	paintSig    chan struct{}        // coalescing wake for the palette/border worker
+	stageSig    chan struct{}        // coalescing wake for the unified stage worker
+	stageForce  atomic.Bool          // a pending forced regenerate (effect/quality change, refresh, re-cut)
+	stageGen    atomic.Bool          // a pending enable: reuse an existing cut, else generate
+	stageBusy   atomic.Bool          // a cut/inpaint is in flight (for the status/topic)
+	ledsSig     chan struct{}        // coalescing wake for the OpenRGB worker
+	widgetSig   chan struct{}        // coalescing wake for the widget-occupancy gate
+	quit        chan struct{}
+	closed      bool
+	ln          net.Listener
+	lock        *os.File // exclusive single-daemon guard, held until exit
+	failMu      sync.Mutex
+	lastFail    map[string]string        // component -> last line it died with
+	voiceMu     sync.Mutex               // serializes voice (Super+`) toggles
+	voiceOn     bool                     // dictation active; guarded by voiceMu
+	prompter    *prompter                // GNOME keyring system prompter (nil when unavailable)
+	monMu       sync.Mutex               // guards activeMon
+	activeMon   string                   // focused monitor, kept warm by watchHyprland
+	monFallback func() string            // monitor source when the cache is cold; tests swap it
+	gateMu      sync.Mutex               // guards gateWant / gateWake
+	gateWant    map[string]bool          // component -> may run now (absent = yes)
+	gateWake    map[string]chan struct{} // wakes a parked supervisor when its gate opens
+	parkMu      sync.Mutex               // guards hiddenSince
+	hiddenSince map[string]time.Time     // parkable palette -> when it last went hidden (absent = shown)
+	topicsMu    sync.Mutex               // guards topics
+	topics      map[string]*stateTopic   // subsystem name -> pub/sub state topic
+	callsMu     sync.Mutex               // guards calls
+	calls       map[string]callFunc      // "topic.method" -> control handler
+	clip        *clipState               // clipboard history state (nil until started)
+	tray        *trayState               // system tray watcher/host state (nil until started)
+	ryoWallMu   sync.Mutex               // guards ryoWall
+	ryoWall     ryogamiFrame             // last wallpaper frame seen from ryogami; feeds the stage worker
+	polkit      *polkitAgent             // PolicyKit1 authentication agent (nil until started)
+	settings    *settingsStore           // shell.json store (nil until startSettings); theme apply patches through it
+	pp          *powerProfilesState      // power-profiles-daemon bus state; nil until startPowerProfiles
+	keypress    *keypressManager         // evdev key stream; opens devices only while the overlay is enabled
 }
 
 func runDaemon() error {
@@ -194,8 +191,7 @@ func runDaemon() error {
 		sup:         map[string]bool{},
 		proc:        map[string]*exec.Cmd{},
 		paintSig:    make(chan struct{}, 1),
-		depthSig:    make(chan struct{}, 1),
-		parallaxSig: make(chan struct{}, 1),
+		stageSig:    make(chan struct{}, 1),
 		ledsSig:     make(chan struct{}, 1),
 		widgetSig:   make(chan struct{}, 1),
 		quit:        make(chan struct{}),
@@ -345,8 +341,7 @@ func (d *daemon) bootstrap() {
 	d.startPolkit()
 	d.startUpdates()
 	go d.paintWorker()
-	go d.depthWorker()
-	go d.parallaxWorker()
+	d.startStage()
 	go d.watchRyogami()
 	go d.watchMatugenKnobs()
 	go d.ledsWorker()
@@ -997,87 +992,89 @@ func (d *daemon) dispatch(line string) string {
 			return d.hub(args[0], args[1])
 		}
 		return "err hub: expected open [section] or close"
-	case "depth":
-		// refresh forces a regenerate for the current wallpaper (model change);
-		// the worker no-ops when depth is off for it or the engine is absent.
-		// status reports generation progress and the current cutout to the UI.
-		// set-enabled records the per-wall opt-in (daemon-owned, persisted).
-		// clear deletes every saved cutout and the reuse index, freeing the space.
-		if len(args) >= 1 && args[0] == "refresh" {
-			d.depthForce.Store(true)
-			d.scheduleDepth()
-			return "ok"
+	case "stage":
+		// One verb surface for the unified Depth/Parallax feature (docs/stage.md):
+		// set-effect records the three-way effect per wallpaper; set-mode picks
+		// the parallax mode; refresh forces a re-cut; cancel kills a running
+		// engine child; set-scene stores the cast order; set-layer merges a
+		// layer's knobs; add-layer / remove-layer manage manual layers; clear
+		// drops the current wall's generated artifacts; status snapshots the
+		// topic; models proxies the engine catalogue. QML normally subscribes
+		// to the `stage` topic; these verbs carry intent the other way.
+		if len(args) == 0 {
+			return "err stage: expected a verb"
 		}
-		if len(args) >= 1 && args[0] == "status" {
-			return d.depthStatusJSON()
-		}
-		if len(args) >= 2 && args[0] == "set-enabled" {
-			d.depthSetEnabled(args[1] == "1" || args[1] == "true")
-			return "ok"
-		}
-		if len(args) >= 1 && args[0] == "clear" {
-			d.depthClearCache()
-			return "ok"
-		}
-		return "ok"
-	case "parallax":
-		// set-enabled records the per-wall opt-in; set-mode switches between
-		// auto (engine-cut subject + LaMa inpaint) and manual (user-placed
-		// numbered layers); add-layer / remove-layer manage the manual
-		// folder; refresh forces a regenerate; set-scene stores the per-wall
-		// scene order; cancel kills a running cut; status reports the
-		// worker's busy flag, the layer count, the mode and the latest
-		// stage + percent. The module keeps its own file
-		// (~/Pictures/Parallax/layers.pz).
-		// The trailing path or scene argument may contain spaces; recover it
-		// from the raw line with a 3-field limit instead of the whitespace-
-		// split args, which would truncate at the first space.
-		rest := ""
-		if parts := strings.SplitN(line, " ", 3); len(parts) == 3 {
-			rest = parts[2]
-		}
-		if len(args) >= 2 && args[0] == "set-enabled" {
-			d.parallaxSetEnabled(args[1] == "1" || args[1] == "true")
-			return "ok"
-		}
-		if len(args) >= 2 && args[0] == "set-mode" {
-			mode := parallaxMode(args[1])
-			if mode != parallaxModeAuto && mode != parallaxModeManual {
-				return "err parallax set-mode: expected auto or manual"
+		// Trailing path / scene / json arguments may contain spaces, so recover
+		// them from the raw line by fixed-field split instead of the whitespace
+		// args, which would truncate at the first space.
+		switch args[0] {
+		case "set-effect":
+			if len(args) < 2 {
+				return "err stage set-effect: expected off|subject|parallax"
 			}
-			d.parallaxSetMode(mode)
+			eff := stageEffect(args[1])
+			if eff != stageEffectOff && eff != stageEffectSubject && eff != stageEffectParallax {
+				return "err stage set-effect: expected off|subject|parallax"
+			}
+			d.stageSetEffect(eff)
 			return "ok"
-		}
-		if len(args) >= 2 && args[0] == "add-layer" {
-			path, err := d.parallaxAddManualLayer(rest)
+		case "set-mode":
+			if len(args) < 2 {
+				return "err stage set-mode: expected auto|manual"
+			}
+			m := stageMode(args[1])
+			if m != stageModeAuto && m != stageModeManual {
+				return "err stage set-mode: expected auto|manual"
+			}
+			d.stageSetMode(m)
+			return "ok"
+		case "refresh":
+			d.stageForce.Store(true)
+			d.scheduleStage()
+			return "ok"
+		case "cancel":
+			stageCancel()
+			return "ok"
+		case "status":
+			return d.stageStatusJSON()
+		case "models":
+			return stageModelsJSON()
+		case "set-scene":
+			if len(args) < 2 {
+				return "err stage set-scene: expected a json array"
+			}
+			d.stageSetScene(restField(line, 3))
+			return "ok"
+		case "set-layer":
+			if len(args) < 3 {
+				return "err stage set-layer: expected <index> <json>"
+			}
+			if err := d.stageSetLayer(args[1], restField(line, 4)); err != nil {
+				return "err stage set-layer: " + err.Error()
+			}
+			return "ok"
+		case "add-layer":
+			if len(args) < 2 {
+				return "err stage add-layer: expected a path"
+			}
+			path, err := d.stageAddLayer(restField(line, 3))
 			if err != nil {
-				return "err parallax add-layer: " + err.Error()
+				return "err stage add-layer: " + err.Error()
 			}
 			return "ok " + path
-		}
-		if len(args) >= 2 && args[0] == "remove-layer" {
-			if err := d.parallaxRemoveManualLayer(rest); err != nil {
-				return "err parallax remove-layer: " + err.Error()
+		case "remove-layer":
+			if len(args) < 2 {
+				return "err stage remove-layer: expected a path"
+			}
+			if err := d.stageRemoveLayer(restField(line, 3)); err != nil {
+				return "err stage remove-layer: " + err.Error()
 			}
 			return "ok"
-		}
-		if len(args) >= 1 && args[0] == "refresh" {
-			d.parallaxForce.Store(true)
-			d.scheduleParallax()
+		case "clear":
+			d.stageClear()
 			return "ok"
 		}
-		if len(args) >= 2 && args[0] == "set-scene" {
-			d.parallaxSetScene(rest)
-			return "ok"
-		}
-		if len(args) >= 1 && args[0] == "cancel" {
-			parallaxCancel()
-			return "ok"
-		}
-		if len(args) >= 1 && args[0] == "status" {
-			return d.parallaxStatusJSON()
-		}
-		return "ok"
+		return "err stage: unknown verb " + args[0]
 	case "theme":
 		// Apply a colour scheme by writing theme.theme through the settings store
 		// (the sole writer of shell.json), which validates the name, persists,
