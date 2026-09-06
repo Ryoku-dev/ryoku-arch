@@ -951,14 +951,14 @@ func reconcileRyokuChannel(checkOnly bool) recResult {
 		// a private mirror is deliberate, but it means no release reaches here.
 		switch ch := sys.ChannelOfServer(sys.RyokuServer()); {
 		case ch == sys.ChannelStable:
-			return okRes("ryoku package channel: stable (named releases)")
+			return okRes("ryoku channel: stable packages (named releases); `ryoku track unstable-dev` follows testing")
 		case ch == sys.ChannelTesting:
-			return okRes("ryoku package channel: testing (every unstable-dev push); `ryoku track stable` returns to releases")
+			return okRes("ryoku channel: testing packages (rebuilt on every unstable-dev push); `ryoku track main` returns to stable releases")
 		case sys.IsReleaseTag(ch):
-			return okRes("ryoku package channel: pinned to release %s; `ryoku track stable` follows releases again", ch)
+			return okRes("ryoku channel: pinned to release %s (packages); `ryoku track main` follows releases again", ch)
 		default:
 			return warnRes("the [ryoku] repo points at %s, which Ryoku does not publish; releases will not arrive from it", sys.RyokuServer()).
-				withFix("ryoku track stable")
+				withFix("ryoku track main")
 		}
 	}
 	// the keyring is here but the repo stanza is gone (a pacnew merge or a

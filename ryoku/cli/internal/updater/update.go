@@ -739,8 +739,8 @@ func Rollback(args []string) error {
 func printReleases() {
 	if sys.ResolveRepo() != "" {
 		fmt.Println("RELEASES  not on this box")
-		fmt.Printf("  this box runs a checkout of %s; releases apply to packaged installs.\n", ryokuChannel())
-		fmt.Println("  ryoku track main|unstable-dev   picks the branch `ryoku update` follows")
+		fmt.Printf("  this box builds from a source checkout of %s; releases apply to packaged installs.\n", ryokuChannel())
+		fmt.Println("  ryoku track main|unstable-dev   moves it onto stable|testing packages (with releases)")
 		return
 	}
 	ch := sys.PackagedChannel()

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# ryoku track: point a Ryoku box at an update channel and make `ryoku update`
-# follow it. It installs the build tools, clones/updates the repo, checks out the
-# channel branch, records the channel, and rebuilds + redeploys the desktop from
-# the checkout. Non-destructive: your user_edits overlay and Hub settings survive
-# (deploy re-applies them). `ryoku recovery` is the heavy factory reset to main.
+# ryoku track --source: build a Ryoku box from a git checkout and make `ryoku
+# update` follow the branch. Installs build tools, clones/updates the repo,
+# checks out the branch, records it, and rebuilds + redeploys from the checkout.
+# The developer path; plain `ryoku track main|unstable-dev` tracks packages.
+# Non-destructive: user_edits and Hub settings survive. `ryoku recovery` resets.
 #
-#   main          the stable channel everyone runs (packages)
-#   unstable-dev  the bleeding edge, rebuilt from source (at your own risk)
+#   main          build from the stable branch
+#   unstable-dev  build from the bleeding edge (at your own risk)
 #
 #   curl -fsSL https://raw.githubusercontent.com/neur0map/ryoku-arch/main/bin/ryoku-track | bash -s -- unstable-dev
 set -euo pipefail
@@ -16,7 +16,7 @@ case "$CHANNEL" in
   main | unstable-dev) ;;
   -h | --help)
     sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'
-    echo "usage: ryoku track <main|unstable-dev>"
+    echo "usage: ryoku track <main|unstable-dev> --source"
     exit 0
     ;;
   *) echo "ryoku-track: unknown channel '$CHANNEL' (use: main or unstable-dev)" >&2; exit 1 ;;

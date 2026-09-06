@@ -143,6 +143,7 @@ func TestReconcileRepoPointerRepoints(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Setenv("HOME", home)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config"))
 	t.Setenv("XDG_STATE_HOME", filepath.Join(root, "state"))
 	state := sys.StateDir()
 	if err := os.MkdirAll(state, 0o755); err != nil {
@@ -153,6 +154,9 @@ func TestReconcileRepoPointerRepoints(t *testing.T) {
 	}
 	track := filepath.Join(home, "ryoku-arch")
 	mkRyokuArch(t, root, track)
+	// the box still opts into source tracking (a recorded RYOKU_CHANNEL), so a
+	// lost pointer self-heals to the clone.
+	writeTrackedChannel(t, home, "unstable-dev")
 	if r := reconcileRepoPointer(true); r.status != recWouldFix {
 		t.Fatalf("checkOnly: got %s, want would-fix", r.status.label())
 	}
@@ -161,6 +165,46 @@ func TestReconcileRepoPointerRepoints(t *testing.T) {
 	}
 	if b, err := os.ReadFile(filepath.Join(state, "repo")); err != nil || strings.TrimSpace(string(b)) != track {
 		t.Fatalf("pointer = %q (err=%v), want %s", b, err, track)
+	}
+}
+
+// A box migrated onto packages carries no tracked channel and left its
+// ~/ryoku-arch clone on disk deliberately; the pointer reconciler must not
+// re-adopt it, or the doctor would undo the migration.
+func TestReconcileRepoPointerLeavesMigratedClone(t *testing.T) {
+	t.Setenv("RYOKU_REPO", "")
+	root := t.TempDir()
+	home := filepath.Join(root, "home")
+	if err := os.MkdirAll(home, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("HOME", home)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(home, ".config")) // no environment.d channel
+	t.Setenv("XDG_STATE_HOME", filepath.Join(root, "state"))
+	state := sys.StateDir()
+	if err := os.MkdirAll(state, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	track := filepath.Join(home, "ryoku-arch")
+	mkRyokuArch(t, root, track) // the clone is present but not tracked
+	if r := reconcileRepoPointer(false); r.status != recOK {
+		t.Fatalf("got %s (%s), want ok (clone left alone)", r.status.label(), r.detail)
+	}
+	if _, err := os.Stat(filepath.Join(state, "repo")); !os.IsNotExist(err) {
+		t.Fatalf("pointer was recorded (err=%v); the migrated clone must not be re-adopted", err)
+	}
+}
+
+// writeTrackedChannel records ch in home's environment.d, the source-tracking
+// opt-in ResolveRepo's fallback and the pointer reconciler gate on.
+func writeTrackedChannel(t *testing.T, home, ch string) {
+	t.Helper()
+	dir := filepath.Join(home, ".config", "environment.d")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "ryoku.conf"), []byte("RYOKU_CHANNEL="+ch+"\n"), 0o644); err != nil {
+		t.Fatal(err)
 	}
 }
 

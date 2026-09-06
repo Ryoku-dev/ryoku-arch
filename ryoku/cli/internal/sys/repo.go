@@ -32,9 +32,13 @@ func ResolveRepo() string {
 			return p
 		}
 	}
-	// Fallback: the checkout `ryoku track` clones to, so a lost or broken recorded
-	// pointer still self-heals. Gated on the origin so an unrelated repo at that
-	// path is never adopted as the update channel.
+	// Fallback to the ~/ryoku-arch clone for a lost or broken recorded pointer,
+	// but only when the box still opts into source tracking (a recorded
+	// RYOKU_CHANNEL): a box migrated onto packages leaves the clone on disk
+	// deliberately and must never have it resurrected as the update source.
+	if TrackedChannel() == "" {
+		return ""
+	}
 	track := filepath.Join(Home(), "ryoku-arch")
 	if _, err := RunOut("git", "-C", track, "rev-parse", "--git-dir"); err == nil {
 		if url, e := RunOut("git", "-C", track, "remote", "get-url", "origin"); e == nil && strings.Contains(url, "ryoku-arch") {
@@ -61,4 +65,78 @@ func TrackedChannel() string {
 		}
 	}
 	return ""
+}
+
+// SourceTracked reports whether this box takes its updates from a source
+// checkout rather than packages: an explicit RYOKU_REPO, a recorded repo
+// pointer (deploy.sh), or a tracked RYOKU_CHANNEL in environment.d
+// (bin/ryoku-track). `ryoku track <channel>` migrates such a box onto packages.
+func SourceTracked() bool {
+	if strings.TrimSpace(os.Getenv("RYOKU_REPO")) != "" {
+		return true
+	}
+	if recordedRepo() != "" {
+		return true
+	}
+	return TrackedChannel() != ""
+}
+
+// RetireSourceTracking stops a box taking its updates from a source checkout:
+// it drops the recorded repo pointer and the RYOKU_CHANNEL line from both
+// environment.d and hypr/user.lua. The ~/ryoku-arch clone is left on disk (the
+// user's data); ResolveRepo's fallback is gated on the tracked channel this
+// clears, so the clone is not re-adopted. Clearing the running session env is
+// the caller's job: it needs a live user manager this package must not assume.
+func RetireSourceTracking() error {
+	if err := os.Remove(repoPathFile()); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	if err := dropEnvChannel(filepath.Join(ConfigHome(), "environment.d", "ryoku.conf")); err != nil {
+		return err
+	}
+	return dropLuaChannel(filepath.Join(ConfigHome(), "hypr", "user.lua"))
+}
+
+// dropEnvChannel removes the RYOKU_CHANNEL= line from an environment.d file,
+// deleting the file when that leaves it empty (bin/ryoku-track writes nothing
+// else into it). Absent file: nothing to do.
+func dropEnvChannel(path string) error {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	var kept []string
+	for _, line := range strings.Split(string(b), "\n") {
+		if strings.HasPrefix(strings.TrimSpace(line), "RYOKU_CHANNEL=") {
+			continue
+		}
+		kept = append(kept, line)
+	}
+	if strings.TrimSpace(strings.Join(kept, "\n")) == "" {
+		return os.Remove(path)
+	}
+	return os.WriteFile(path, []byte(strings.Join(kept, "\n")), 0o644)
+}
+
+// dropLuaChannel removes the hl.env("RYOKU_CHANNEL", ...) line bin/ryoku-track
+// appends to hypr/user.lua, leaving the rest of the user's file intact.
+func dropLuaChannel(path string) error {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	var kept []string
+	for _, line := range strings.Split(string(b), "\n") {
+		if strings.Contains(line, `hl.env("RYOKU_CHANNEL"`) {
+			continue
+		}
+		kept = append(kept, line)
+	}
+	return os.WriteFile(path, []byte(strings.Join(kept, "\n")), 0o644)
 }

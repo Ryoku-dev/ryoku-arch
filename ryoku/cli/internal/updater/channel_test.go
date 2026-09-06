@@ -62,7 +62,8 @@ func TestChannelStatus(t *testing.T) {
 
 	t.Setenv("RYOKU_REPO", work)
 	t.Setenv("RYOKU_CHANNEL", "main")
-	t.Setenv("XDG_STATE_HOME", t.TempDir()) // baseline falls back to HEAD, no recorded deploy
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir()) // isolate TrackedChannel from the host's environment.d
+	t.Setenv("XDG_STATE_HOME", t.TempDir())  // baseline falls back to HEAD, no recorded deploy
 
 	// A fresh checkout in sync with its channel: nothing behind.
 	r, ok := channelStatus()
@@ -135,6 +136,7 @@ func TestChannelStatusUsesDeployedBaseline(t *testing.T) {
 
 	t.Setenv("RYOKU_REPO", work)
 	t.Setenv("RYOKU_CHANNEL", "main")
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir()) // isolate TrackedChannel from the host's environment.d
 	t.Setenv("XDG_STATE_HOME", state)
 	writeFile(t, filepath.Join(state, "ryoku", "deployed"), deployed+"\n")
 
@@ -167,6 +169,7 @@ func TestChannelStatusVersionIsChannelTip(t *testing.T) {
 
 	t.Setenv("RYOKU_REPO", work)
 	t.Setenv("RYOKU_CHANNEL", "main")
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir()) // isolate TrackedChannel from the host's environment.d
 	t.Setenv("XDG_STATE_HOME", t.TempDir())
 
 	r, ok := channelStatus()
@@ -324,6 +327,7 @@ func TestChannelUpdateReconcilesDivergence(t *testing.T) {
 
 	t.Setenv("RYOKU_REPO", work)
 	t.Setenv("RYOKU_CHANNEL", "main")
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir()) // isolate TrackedChannel from the host's environment.d
 	t.Setenv("XDG_RUNTIME_DIR", root)
 	t.Setenv("XDG_STATE_HOME", t.TempDir())
 
@@ -342,8 +346,12 @@ func TestChannelUpdateReconcilesDivergence(t *testing.T) {
 
 func TestRyokuChannelDefaultAndOverride(t *testing.T) {
 	cfg := t.TempDir()
-	t.Setenv("XDG_CONFIG_HOME", cfg) // no persisted environment.d channel, so default applies
+	t.Setenv("HOME", t.TempDir())
+	t.Setenv("RYOKU_REPO", "")
+	t.Setenv("XDG_STATE_HOME", t.TempDir()) // no recorded checkout
+	t.Setenv("XDG_CONFIG_HOME", cfg)        // no persisted environment.d channel, so default applies
 	t.Setenv("RYOKU_CHANNEL", "")
+	packagedConf(t, "") // no [ryoku] stanza: not packaged, so the tracked/env/default path applies
 	if got := ryokuChannel(); got != "main" {
 		t.Errorf("default channel = %q, want main", got)
 	}
@@ -541,6 +549,7 @@ func TestUpdateClearsBehindOnDevBranch(t *testing.T) {
 
 	t.Setenv("RYOKU_REPO", work)
 	t.Setenv("RYOKU_CHANNEL", "main")
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir()) // isolate TrackedChannel from the host's environment.d
 	state := t.TempDir()
 	t.Setenv("XDG_STATE_HOME", state)
 
@@ -622,7 +631,11 @@ func TestSyncChannelErrorsOnUntrackedCollision(t *testing.T) {
 // status under the session env) report the old channel until a relogin.
 func TestChannelUsesPersistedChannel(t *testing.T) {
 	cfg := t.TempDir()
+	t.Setenv("HOME", t.TempDir())
+	t.Setenv("RYOKU_REPO", "")
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
 	t.Setenv("XDG_CONFIG_HOME", cfg)
+	packagedConf(t, "") // no packaged channel, so the persisted RYOKU_CHANNEL is authoritative
 	writeFile(t, filepath.Join(cfg, "environment.d", "ryoku.conf"), "RYOKU_CHANNEL=unstable-dev\n")
 
 	t.Setenv("RYOKU_CHANNEL", "")
@@ -632,5 +645,22 @@ func TestChannelUsesPersistedChannel(t *testing.T) {
 	t.Setenv("RYOKU_CHANNEL", "main") // the stale session env from before the switch
 	if got := ryokuChannel(); got != "unstable-dev" {
 		t.Fatalf("stale env: got %q, want the persisted unstable-dev", got)
+	}
+}
+
+// A migrated box carries a stale RYOKU_CHANNEL=unstable-dev in environment.d
+// (and the login env) but a packaged testing Server. The packaged channel is
+// authoritative, so status/version/doctor report testing, not unstable-dev.
+func TestRyokuChannelPrefersPackagedOverStaleEnv(t *testing.T) {
+	cfg := t.TempDir()
+	t.Setenv("HOME", t.TempDir())
+	t.Setenv("RYOKU_REPO", "")
+	t.Setenv("XDG_STATE_HOME", t.TempDir()) // no checkout: this box is packaged
+	t.Setenv("XDG_CONFIG_HOME", cfg)
+	packagedConf(t, "testing")
+	writeFile(t, filepath.Join(cfg, "environment.d", "ryoku.conf"), "RYOKU_CHANNEL=unstable-dev\n")
+	t.Setenv("RYOKU_CHANNEL", "unstable-dev") // the stale login env
+	if got := ryokuChannel(); got != "testing" {
+		t.Fatalf("ryokuChannel = %q, want testing (the packaged Server wins over the stale env)", got)
 	}
 }
