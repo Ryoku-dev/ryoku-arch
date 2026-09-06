@@ -169,7 +169,9 @@ Scope {
         visible: root.active
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
-        WlrLayershell.layer: WlrLayer.Bottom
+        // Editing lifts the desktop above open windows so the stage is never
+        // obscured by whatever was in front; Done drops it back under them.
+        WlrLayershell.layer: root.stageComposing ? WlrLayer.Top : WlrLayer.Bottom
         WlrLayershell.namespace: "ryoku-widgets"
         // None while nothing on this layer wants the keyboard, so this
         // full-screen Bottom layer never holds focus on an empty workspace

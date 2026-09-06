@@ -209,6 +209,8 @@ ShellRoot {
             DockSurface {
                 id: perScreenDock
                 screen: perScreen.modelData
+                // The stage toolbar docks where the dock lives; editing hides it.
+                visible: Dock.cfg("enabled", false) && !(perScreen.st && perScreen.st.stageComposing)
             }
 
             // The dock's right-click context menu: a full-screen overlay on the
