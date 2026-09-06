@@ -1,0 +1,387 @@
+#!/usr/bin/env bash
+# Standalone parallax cutout engine (docs/parallax.md): `cutout` produces the
+# subject's alpha-matted PNG and `inpaint` recolours the cutout's hole with
+# the surrounding colour, so a drifted subject reveals the backdrop instead
+# of its own ghost. Own venv and model cache; no dependency on ryoku-depth.
+set -euo pipefail
+
+state="${XDG_STATE_HOME:-$HOME/.local/state}/ryoku/parallax"
+venv="$state/venv"
+models="$state/models"
+export REMBG_HOME="$models"
+export U2NET_HOME="$models" # older rembg reads this name
+
+curated=(u2netp birefnet-general-lite)
+default_model="u2netp"
+
+is_curated() {
+    local m
+    for m in "${curated[@]}"; do
+        [[ "$1" == "$m" ]] && return 0
+    done
+    return 1
+}
+
+rembg_python() {
+    if [[ -x "$venv/bin/python" ]] && "$venv/bin/python" -c "import rembg" 2>/dev/null; then
+        PY="$venv/bin/python"
+        return 0
+    fi
+    local p
+    for p in python3.13 python3.12 python3.11 python3; do
+        command -v "$p" >/dev/null 2>&1 || continue
+        if "$p" -c "import rembg" 2>/dev/null; then
+            PY="$p"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# inpaint imports numpy, PIL and scipy (not rembg), so gate on those directly.
+inpaint_python() {
+    if [[ -x "$venv/bin/python" ]] && "$venv/bin/python" -c "import numpy, PIL, scipy" 2>/dev/null; then
+        PY="$venv/bin/python"
+        return 0
+    fi
+    local p
+    for p in python3.13 python3.12 python3.11 python3; do
+        command -v "$p" >/dev/null 2>&1 || continue
+        if "$p" -c "import numpy, PIL, scipy" 2>/dev/null; then
+            PY="$p"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# rembg's cache layout varies by version, so find the onnx rather than assume a path.
+model_cached() { [[ -n "$(find "$models" -name "$1.onnx" -print -quit 2>/dev/null)" ]]; }
+
+cmd_check() {
+    if rembg_python && model_cached "$default_model"; then
+        printf 'available\n'
+        return 0
+    fi
+    printf 'missing\n'
+    return 1
+}
+
+cmd_models() {
+    rembg_python || return 1
+    local m any=0
+    for m in "${curated[@]}"; do
+        if model_cached "$m"; then
+            printf '%s\n' "$m"
+            any=1
+        fi
+    done
+    [[ $any == 1 ]]
+}
+
+cmd_cutout() {
+    local in="" out="" model="$default_model" matting=0
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+        -m | --model)
+            model="${2:-}"
+            shift 2
+            ;;
+        --alpha-matting)
+            matting=1
+            shift
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -*)
+            printf 'ryoku-parallax-engine: unknown option %s\n' "$1" >&2
+            return 2
+            ;;
+        *)
+            if [[ -z $in ]]; then in="$1"; elif [[ -z $out ]]; then out="$1"; fi
+            shift
+            ;;
+        esac
+    done
+    [[ -z $in && $# -gt 0 ]] && {
+        in="$1"
+        shift
+    }
+    [[ -z $out && $# -gt 0 ]] && {
+        out="$1"
+        shift
+    }
+
+    if [[ -z $in || -z $out ]]; then
+        printf 'usage: ryoku-parallax-engine cutout <in> <out.png> [--model <id>] [--alpha-matting]\n' >&2
+        return 2
+    fi
+    [[ -f "$in" ]] || {
+        printf 'ryoku-parallax-engine: input not found: %s\n' "$in" >&2
+        return 1
+    }
+    is_curated "$model" || model="$default_model"
+
+    rembg_python || {
+        printf 'ryoku-parallax-engine: engine not installed (run: ryoku-parallax-engine install)\n' >&2
+        return 1
+    }
+    model_cached "$model" || {
+        printf 'ryoku-parallax-engine: model %s not downloaded\n' "$model" >&2
+        return 1
+    }
+
+    mkdir -p "$(dirname -- "$out")"
+    local tmp
+    tmp="$(mktemp "${out}.XXXXXX")"
+    if "$PY" - "$in" "$tmp" "$model" "$matting" <<'PY'
+import sys
+from rembg import new_session, remove
+inp, out, model = sys.argv[1], sys.argv[2], sys.argv[3]
+matting = sys.argv[4] == "1"
+try:
+    session = new_session(model, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+except TypeError:  # rembg too old for providers=
+    session = new_session(model)
+with open(inp, "rb") as f:
+    data = f.read()
+kw = dict(session=session)
+if matting:
+    # Alpha matting refines the silhouette (hair, fur, soft edges) at some cost
+    # in time; the thresholds are rembg's, tuned for a clean foreground.
+    kw.update(alpha_matting=True, alpha_matting_foreground_threshold=240,
+              alpha_matting_background_threshold=10, alpha_matting_erode_size=10)
+with open(out, "wb") as f:
+    f.write(remove(data, **kw))
+PY
+    then
+        if [[ -s "$tmp" ]]; then
+            mv -f "$tmp" "$out"
+            printf '%s\n' "$out"
+            return 0
+        fi
+    fi
+    rm -f "$tmp"
+    printf 'ryoku-parallax-engine: cutout failed\n' >&2
+    return 1
+}
+
+# Hole recolouring: takes the original wallpaper + the subject cutout's alpha
+# channel as the hole mask and writes an RGB PNG whose hole pixels carry the
+# mean colour of the surrounding background ring (the "recoloured background").
+# No AI here: one dilate + one mean over the ring, so the pass is a couple of
+# seconds and fully deterministic; the parallax surface renders this as its
+# base and the drifted subject reveals the backdrop, not its own silhouette.
+cmd_inpaint() {
+    local in="" mask="" out=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+        --)
+            shift
+            break
+            ;;
+        -*)
+            printf 'ryoku-parallax-engine inpaint: unknown option %s\n' "$1" >&2
+            return 2
+            ;;
+        *)
+            if [[ -z $in ]]; then in="$1"; elif [[ -z $mask ]]; then mask="$1"; elif [[ -z $out ]]; then out="$1"; fi
+            shift
+            ;;
+        esac
+    done
+
+    if [[ -z $in || -z $mask || -z $out ]]; then
+        printf 'usage: ryoku-parallax-engine inpaint <image> <mask> <out.png>\n' >&2
+        return 2
+    fi
+    [[ -f "$in" ]] || {
+        printf 'ryoku-parallax-engine: image not found: %s\n' "$in" >&2
+        return 1
+    }
+    [[ -f "$mask" ]] || {
+        printf 'ryoku-parallax-engine: mask not found: %s\n' "$mask" >&2
+        return 1
+    }
+    inpaint_python || {
+        printf 'ryoku-parallax-engine: engine not installed (run: ryoku-parallax-engine install)\n' >&2
+        return 1
+    }
+
+    mkdir -p "$(dirname -- "$out")"
+    local tmp
+    tmp="$(mktemp "${out}.XXXXXX")"
+    if "$PY" - "$in" "$mask" "$tmp" <<'PY'
+import sys
+import numpy as np
+from PIL import Image
+from scipy import ndimage
+
+image_path, mask_path, out_path = sys.argv[1:4]
+
+img = Image.open(image_path).convert("RGB")
+mask_rgba = Image.open(mask_path).convert("RGBA")
+if mask_rgba.size != img.size:
+    mask_rgba = mask_rgba.resize(img.size, Image.BILINEAR)
+
+alpha = np.asarray(mask_rgba, dtype=np.uint8)[..., 3]
+# Solid blob for the hole: fill interior fragments, close gaps, then widen
+# the rim so nothing dark survives (the subject PNG covers the margin).
+hole = ndimage.binary_fill_holes(alpha > 25)
+hole = ndimage.binary_closing(hole, iterations=8)
+hole = ndimage.binary_dilation(hole, iterations=4)
+src = np.asarray(img, dtype=np.uint8)
+
+ring = ndimage.binary_dilation(hole, iterations=14) & ~hole
+if ring.sum() > 0:
+    fill = src[ring].mean(axis=0).astype(np.uint8)
+else:
+    fill = np.array([128, 128, 128], dtype=np.uint8)
+
+result = src.copy()
+result[hole] = fill
+Image.fromarray(result, "RGB").save(out_path, "PNG")
+PY
+    then
+        if [[ -s "$tmp" ]]; then
+            mv -f "$tmp" "$out"
+            printf '%s\n' "$out"
+            return 0
+        fi
+    fi
+    rm -f "$tmp"
+    printf 'ryoku-parallax-engine: inpaint failed\n' >&2
+    return 1
+}
+
+pick_python() {
+    # rembg needs Python 3.11-3.13; the system python3 may be newer.
+    local p ver
+    for p in python3.13 python3.12 python3.11 python3; do
+        command -v "$p" >/dev/null 2>&1 || continue
+        ver="$("$p" -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null)" || continue
+        case "$ver" in
+        3.11 | 3.12 | 3.13)
+            printf '%s\n' "$p"
+            return 0
+            ;;
+        esac
+    done
+    return 1
+}
+
+# A system Python 3.11-3.13 is the fast path; otherwise uv provisions one.
+ensure_venv() {
+    [[ -x "$venv/bin/python" ]] && return 0
+    local py
+    if py="$(pick_python)"; then
+        printf 'Creating engine environment (%s)...\n' "$py"
+        "$py" -m venv "$venv"
+        return 0
+    fi
+    if command -v uv >/dev/null 2>&1; then
+        printf 'Provisioning Python 3.13 via uv...\n'
+        uv python install 3.13 && uv venv --python 3.13 "$venv"
+        [[ -x "$venv/bin/python" ]] && return 0
+    fi
+    printf 'ryoku-parallax-engine: needs Python 3.11-3.13 or uv (install it: sudo pacman -S uv)\n' >&2
+    return 1
+}
+
+venv_pip() {
+    if [[ -x "$venv/bin/pip" ]]; then
+        "$venv/bin/pip" install --quiet "$@"
+        return
+    fi
+    uv pip install --quiet --python "$venv/bin/python" "$@"
+}
+
+cmd_install() {
+    local want=("$@")
+    [[ ${#want[@]} -eq 0 ]] && want=("$default_model")
+
+    mkdir -p "$state" "$models"
+    ensure_venv || return 1
+
+    printf 'Installing rembg (CPU)...\n'
+    [[ -x "$venv/bin/pip" ]] && venv_pip --upgrade pip
+    if ! venv_pip "rembg[cpu]"; then
+        printf 'ryoku-parallax-engine: could not install rembg (no onnxruntime wheel for this Python?)\n' >&2
+        return 1
+    fi
+
+    local m
+    for m in "${want[@]}"; do
+        is_curated "$m" || continue
+        printf 'Downloading model %s...\n' "$m"
+        "$venv/bin/python" - "$m" <<'PY'
+import sys
+from rembg import new_session
+model = sys.argv[1]
+try:
+    new_session(model, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+except Exception:
+    new_session(model)
+PY
+    done
+
+    if cmd_check >/dev/null; then
+        printf 'done\n'
+        return 0
+    fi
+    printf 'ryoku-parallax-engine: install finished but the engine is still unavailable\n' >&2
+    return 1
+}
+
+cmd_remove() {
+    local m="${1:-}"
+    [[ -n $m ]] || {
+        printf 'usage: ryoku-parallax-engine remove <model>\n' >&2
+        return 2
+    }
+    is_curated "$m" || {
+        printf 'ryoku-parallax-engine: not a curated model: %s\n' "$m" >&2
+        return 2
+    }
+    local f found=0
+    while IFS= read -r -d '' f; do
+        rm -f "$f"
+        found=1
+    done < <(find "$models" -name "$m.onnx" -print0 2>/dev/null)
+    if [[ $found -eq 1 ]]; then
+        printf 'removed %s\n' "$m"
+    else
+        printf '%s was not installed\n' "$m"
+    fi
+    return 0
+}
+
+case "${1:-}" in
+check) cmd_check ;;
+models)
+    shift
+    cmd_models
+    ;;
+cutout)
+    shift
+    cmd_cutout "$@"
+    ;;
+inpaint)
+    shift
+    cmd_inpaint "$@"
+    ;;
+install)
+    shift
+    cmd_install "$@"
+    ;;
+remove)
+    shift
+    cmd_remove "$@"
+    ;;
+*)
+    printf 'usage: ryoku-parallax-engine check | models | cutout <in> <out.png> [--model <id>] [--alpha-matting] | inpaint <image> <mask> <out.png> | install [model...] | remove <model>\n' >&2
+    exit 2
+    ;;
+esac

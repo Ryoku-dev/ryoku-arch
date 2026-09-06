@@ -16,6 +16,8 @@ import "components"
 import "modules/wallpaper"
 import "modules/desktop"
 import "modules/visualizer"
+import "modules/parallax"
+import "modules/parallax/Singletons" as ParallaxCfg
 import "modules/bar"
 import "modules/dock"
 import "modules/launcher"
@@ -170,6 +172,7 @@ ShellRoot {
                 screen: perScreen.modelData
                 active: true
                 wallpaperUrl: wallpaper.wallpaperUrl
+                wallpaperPath: wallpaper.wallpaperPath
                 wallpaperFit: wallpaper.fit
                 depthUrl: wallpaper.depthUrl
                 wallpaperTransition: wallpaper.transition
@@ -178,11 +181,27 @@ ShellRoot {
                 videoMuted: wallpaper.videoMuted
                 videoVolume: wallpaper.videoVolume
             }
+
+            // The parallax composition lives at WlrLayer.Background, below
+            // this slice: its own surface draws the wallpaper + layers while
+            // the desktop window above only carries widgets and chrome.
+            ParallaxBackground {
+                screen: perScreen.modelData
+                wallpaperUrl: wallpaper.wallpaperUrl
+                wallpaperPath: wallpaper.wallpaperPath
+                wallpaperFit: wallpaper.fit
+                videoUrl: wallpaper.videoUrl
+                wallpaperLive: wallpaper.live
+            }
             Visualizer {
+                id: perScreenViz
                 screen: perScreen.modelData
                 mode: !VizCfg.Config.enabled ? "off"
                     : (perScreen.st && perScreen.st.visualizerOverlay ? "overlay" : "desktop")
                 placing: perScreen.st ? perScreen.st.visualizerPlacing : false
+                suppressed: ParallaxCfg.Config.enabled
+                    && ParallaxCfg.Config.wallActiveForPath(wallpaper.wallpaperPath)
+                    && VizCfg.Config.enabled && !perScreenViz.placing
                 onPlacingDone: if (perScreen.st) perScreen.st.visualizerPlacing = false
             }
 

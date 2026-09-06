@@ -26,6 +26,7 @@ Item {
     // own surface (Placer), and rides the top layer so it is not buried while
     // being aimed.
     property bool placing: false
+    property bool suppressed: false
     signal placingDone
 
     readonly property bool active: root.mode !== "off"
@@ -43,7 +44,7 @@ Item {
     Binding {
         target: Spectrum
         property: "active"
-        value: root.active
+        value: root.active || root.suppressed
     }
 
     // one shared cava for every instance, at the largest band count any of them
@@ -74,7 +75,7 @@ Item {
         id: win
 
         screen: root.screen
-        visible: root.active
+        visible: root.active && !root.suppressed
         color: "transparent"
 
         // The curtain hangs off the bar, so its surface honours the bar's
