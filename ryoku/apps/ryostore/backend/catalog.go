@@ -28,6 +28,7 @@ func providers() []Provider {
 		newColorschemeProvider(c),
 		newBarProvider(c),
 		newFastfetchProvider(c),
+		newRyotunesSkinsProvider(c),
 		pluginProvider{cache: c},
 		bundleProvider{cache: c, status: defaultBundleStatus, launch: launchBundleInstall},
 		newDecorProvider(c),

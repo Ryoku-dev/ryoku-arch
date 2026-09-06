@@ -9,7 +9,7 @@ import (
 var storeSections = map[string]struct{}{
 	"discover": {}, "library": {}, "rices": {}, "lockscreens": {},
 	"barstyles": {}, "fastfetch": {}, "plugins": {}, "bundles": {}, "decors": {},
-	"launcher-images": {}, "fastfetch-emblems": {},
+	"launcher-images": {}, "fastfetch-emblems": {}, "ryotunes-skins": {},
 }
 
 func storeSection(section string) bool {

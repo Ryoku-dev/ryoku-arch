@@ -22,7 +22,7 @@ func TestSettingsSectionRoutesStoreCategories(t *testing.T) {
 	}
 	// Today has no Settings page; lockscreen and the app launcher are edit-only,
 	// and the flat-image categories have no page, so none routes to Settings.
-	for _, edit := range []string{"today", "lockscreens", "decors", "launcher-images"} {
+	for _, edit := range []string{"today", "lockscreens", "decors", "launcher-images", "ryotunes-skins"} {
 		if _, ok := settingsSection(edit); ok {
 			t.Fatalf("%q should have no Settings route", edit)
 		}
@@ -30,7 +30,7 @@ func TestSettingsSectionRoutesStoreCategories(t *testing.T) {
 }
 
 func TestStoreSectionIncludesShowroomRoutesAndEveryCategory(t *testing.T) {
-	for _, section := range []string{"discover", "library", "rices", "lockscreens", "barstyles", "fastfetch", "plugins", "bundles"} {
+	for _, section := range []string{"discover", "library", "rices", "lockscreens", "barstyles", "fastfetch", "plugins", "bundles", "ryotunes-skins"} {
 		if !storeSection(section) {
 			t.Fatalf("storeSection(%q) = false", section)
 		}

@@ -3,6 +3,15 @@
 ## Unreleased
 
 ### Added
+- **Ryotunes skins are a RyoStore category.** RyoStore serves the community
+  Ryotunes-skin catalogue as `ryotunes-skins` (group `wear`): a skin installs
+  as a generic product into `~/.local/share/ryoku/ryotunes-skins/<id>/` with a
+  receipt, and Ryotunes searches it as its "store" skin source. The store only
+  installs and removes; the worn skin is chosen in Ryotunes (Settings ›
+  Appearance, or `ryotunes-cli skin use`), and an item reads as active when
+  `~/.config/ryotunes/client.json` `skin` equals its id. `ryostore open
+  ryotunes-skins` opens the store on it
+  (`apps/ryostore/backend/provider_ryotunes_skins.go`).
 - **A documented fix for TVs and ultrawides that refuse a resolution.** Some
   panels (LG ultrawides, TVs over HDMI) list a mode but snap back to a smaller
   one, with Hyprland logging "REJECTED available mode" beside "atomic drm

@@ -990,6 +990,10 @@ func (fastfetchProvider) Remove(ctx context.Context, id string) error {
 	return removeProduct(ctx, "fastfetch", id)
 }
 
+func (ryotunesSkinsProvider) Remove(ctx context.Context, id string) error {
+	return removeProduct(ctx, "ryotunes-skins", id)
+}
+
 func (pluginProvider) Remove(ctx context.Context, id string) error {
 	return removeProduct(ctx, "plugins", id)
 }
