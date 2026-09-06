@@ -1076,8 +1076,6 @@ func templateGroup(block string) string {
 		return "discord"
 	case "qt6ct", "kde":
 		return "qt"
-	case "qt5ct":
-		return "qt5"
 	case "hypr":
 		return "hyprland"
 	default:
@@ -1748,7 +1746,6 @@ func matugenEnsureDirs() {
 		filepath.Join(cfg, "kitty"),
 		filepath.Join(cfg, "btop", "themes"),
 		filepath.Join(cfg, "qt6ct", "colors"),
-		filepath.Join(cfg, "qt5ct", "colors"),
 		filepath.Join(cfg, "gtk-3.0"),
 		filepath.Join(cfg, "gtk-4.0"),
 		filepath.Join(cfg, "vesktop", "themes"),
@@ -1762,7 +1759,6 @@ func matugenEnsureDirs() {
 		filepath.Join(cfg, "ghostty"),
 		filepath.Join(cfg, "micro", "colorschemes"),
 		filepath.Join(cfg, "matugen", "generated"),
-		filepath.Join(cfg, "Kvantum", "ryoku"),
 		filepath.Join(cfg, "zathura"),
 		filepath.Join(cfg, "alacritty"),
 		filepath.Join(cfg, "tmux"),

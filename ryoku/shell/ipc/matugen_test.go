@@ -266,7 +266,7 @@ func TestTemplateGroup(t *testing.T) {
 	cases := map[string]string{
 		"gtk3": "gtk", "gtk4": "gtk",
 		"vesktop": "discord", "equibop": "discord",
-		"qt6ct": "qt", "kde": "qt", "qt5ct": "qt5", "hypr": "hyprland",
+		"qt6ct": "qt", "kde": "qt", "hypr": "hyprland",
 		"kitty": "kitty", "btop": "btop", "papirus": "papirus", "cava": "cava",
 	}
 	for block, want := range cases {
@@ -484,10 +484,10 @@ output_path = "~/g3"
 output_path = "~/g4"
 [templates.vesktop]
 output_path = "~/v"
-[templates.qt5ct]
-output_path = "~/q5"
+[templates.kde]
+output_path = "~/kde"
 `
-	on := map[string]bool{"gtk": false, "discord": true, "qt5": true}
+	on := map[string]bool{"gtk": false, "discord": true, "qt": true}
 	got := filterMatugenConfig(apps, func(g string) bool { return on[g] })
 	if strings.Contains(got, "[templates.gtk3]") || strings.Contains(got, "[templates.gtk4]") {
 		t.Errorf("gtk disabled but a gtk block rendered:\n%s", got)
@@ -495,8 +495,8 @@ output_path = "~/q5"
 	if !strings.Contains(got, "[templates.vesktop]") {
 		t.Errorf("discord enabled but vesktop dropped:\n%s", got)
 	}
-	if !strings.Contains(got, "[templates.qt5ct]") {
-		t.Errorf("qt5 enabled but qt5ct dropped:\n%s", got)
+	if !strings.Contains(got, "[templates.kde]") {
+		t.Errorf("qt enabled but the kde block dropped:\n%s", got)
 	}
 }
 

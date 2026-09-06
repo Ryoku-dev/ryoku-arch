@@ -137,7 +137,6 @@ func defaultMatugenConfig() matugenConfig {
 		Templates: map[string]bool{
 			"btop":      true,
 			"qt":        true,
-			"qt5":       true,
 			"gtk":       true,
 			"discord":   true,
 			"obs":       true,
@@ -154,7 +153,6 @@ func defaultMatugenConfig() matugenConfig {
 			"micro":     true,
 			"papirus":   true,
 			"obsidian":  true,
-			"kvantum":   true,
 			"zathura":   true,
 			"alacritty": true,
 			"tmux":      true,
@@ -309,8 +307,6 @@ func renderActiveTemplates(cfg matugenConfig, pal map[string]string) {
 				switch appName {
 				case "gtk3", "gtk4":
 					groupKey = "gtk"
-				case "qt5ct":
-					groupKey = "qt5"
 				case "vesktop", "equibop":
 					groupKey = "discord"
 				}
