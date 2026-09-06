@@ -1202,6 +1202,16 @@ func defaultStageSettings() map[string]any {
 	}
 }
 
+func qualityRank(t string) int {
+	switch t {
+	case "fine":
+		return 2
+	case "standard":
+		return 1
+	}
+	return 0
+}
+
 // qualityTierForModel maps a legacy model + matting pair back to a quality tier.
 func qualityTierForModel(model string, matting bool) string {
 	switch {
@@ -1227,7 +1237,10 @@ func migrateStageSettings() {
 	stagePath := filepath.Join(dir, "stage.json")
 	result := defaultStageSettings()
 	foundLegacy := false
-	for _, name := range []string{"depth.json", "parallax.json"} {
+	// parallax.json first, depth.json last: the global look is the subject's, and
+	// parallax stores feather/lift/shadow per layer (arrays), which must not land
+	// where a scalar is expected.
+	for _, name := range []string{"parallax.json", "depth.json"} {
 		b, err := os.ReadFile(filepath.Join(dir, name))
 		if err != nil {
 			continue
@@ -1238,15 +1251,21 @@ func migrateStageSettings() {
 		}
 		foundLegacy = true
 		for _, k := range stageSettingKeys {
-			if v, ok := m[k]; ok {
+			if v, ok := m[k]; ok && sameJSONKind(v, result[k]) {
 				result[k] = v
 			}
 		}
-		if model, ok := m["model"].(string); ok {
-			matting, _ := m["alphaMatting"].(bool)
-			result["quality"] = qualityTierForModel(model, matting)
-		} else if matting, ok := m["alphaMatting"].(bool); ok {
-			result["quality"] = qualityTierForModel("u2netp", matting)
+		// Two files may disagree on quality; the higher tier is what the user
+		// paid the download for.
+		model, _ := m["model"].(string)
+		if matting, ok := m["alphaMatting"].(bool); ok || model != "" {
+			if model == "" {
+				model = "u2netp"
+			}
+			tier := qualityTierForModel(model, matting)
+			if qualityRank(tier) > qualityRank(result["quality"].(string)) {
+				result["quality"] = tier
+			}
 		}
 	}
 	if !foundLegacy {
@@ -1264,6 +1283,30 @@ func migrateStageSettings() {
 	if err := writeJSONFileAtomic(stagePath, result); err != nil {
 		logStage("migrate settings", err)
 	}
+}
+
+// sameJSONKind reports whether a legacy value has the shape of the default it
+// would replace (number, bool, string, list, object), so a per-layer array
+// never lands in a scalar slot.
+func sameJSONKind(v, def any) bool {
+	switch def.(type) {
+	case float64, int:
+		_, ok := v.(float64)
+		return ok
+	case bool:
+		_, ok := v.(bool)
+		return ok
+	case string:
+		_, ok := v.(string)
+		return ok
+	case []any, []string:
+		_, ok := v.([]any)
+		return ok
+	case map[string]any:
+		_, ok := v.(map[string]any)
+		return ok
+	}
+	return false
 }
 
 // startStage registers the topic, runs the one-time migration, publishes the

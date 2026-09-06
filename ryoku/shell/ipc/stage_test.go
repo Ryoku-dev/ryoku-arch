@@ -529,3 +529,30 @@ func TestStageRyogamiFrameWake(t *testing.T) {
 		t.Fatal("a live claim did not wake the worker")
 	}
 }
+
+// parallax.json keeps feather/lift/shadow per layer (arrays); depth.json keeps
+// the scalars. The fold must take the scalar and the higher quality tier.
+func TestStageMigrationSettingsKinds(t *testing.T) {
+	home := stageHome(t)
+	cfg := filepath.Join(home, ".config", "ryoku")
+	if err := os.MkdirAll(cfg, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	os.WriteFile(filepath.Join(cfg, "parallax.json"), []byte(`{"feather":[0],"lift":[0],"shadow":[0],"shadowAngle":[331],"model":"u2netp"}`), 0o644)
+	os.WriteFile(filepath.Join(cfg, "depth.json"), []byte(`{"feather":0.15,"lift":1,"shadow":0.85,"model":"birefnet-general-lite","alphaMatting":true}`), 0o644)
+	migrateStageSettings()
+	b, err := os.ReadFile(filepath.Join(cfg, "stage.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got map[string]any
+	if err := json.Unmarshal(b, &got); err != nil {
+		t.Fatal(err)
+	}
+	if got["shadow"] != 0.85 || got["feather"] != 0.15 || got["quality"] != "fine" {
+		t.Fatalf("stage.json = %s", b)
+	}
+	if _, isList := got["shadowAngle"].([]any); isList {
+		t.Fatalf("shadowAngle folded as a list: %s", b)
+	}
+}
