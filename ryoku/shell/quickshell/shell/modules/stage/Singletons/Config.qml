@@ -30,6 +30,15 @@ Singleton {
     readonly property bool music: !!(root.motion && root.motion.music === true)
     readonly property real amountFactor: root.amount === "subtle" ? 0.5 : root.amount === "strong" ? 1.8 : 1.0
 
+    // Parallax pointer + backdrop knobs the Edit shell Parallax tab drives. The
+    // v2 settings table folded the old motion.{mouse,sensitivity,range} into
+    // motion.amount, but the ribbon exposes them directly, so they live back
+    // under `motion` as their own keys (default: a plain follow with unit gain).
+    readonly property bool followMouse: !!(root.motion && root.motion.mouse === true)
+    readonly property real sensitivity: (root.motion && typeof root.motion.sensitivity === "number") ? root.motion.sensitivity : 1.0
+    readonly property real range: (root.motion && typeof root.motion.range === "number") ? root.motion.range : 1.0
+    readonly property real backdrop: (root.motion && typeof root.motion.backdrop === "number") ? root.motion.backdrop : 1.0
+
     // `front` is read-only now: the layer owns whether it sits behind or in
     // front of the widgets, so the desktop editor never writes a per-widget
     // lift. Kept only so an existing stage.json that pinned widgets still
@@ -65,6 +74,22 @@ Singleton {
     function setIdle(i) { if (["none", "float", "breathe"].indexOf(i) >= 0) root._setMotion("idle", i); }
     function setMusic(on) { root._setMotion("music", on === true); }
 
+    // Live (coalesced) motion writes for the drag sliders: update the in-memory
+    // object now so the renderer reacts this frame, and settle one file write.
+    function _setMotionLive(key, v) {
+        var m = {};
+        var src = adapter.motion || {};
+        for (var k in src)
+            m[k] = src[k];
+        m[key] = v;
+        adapter.motion = m;
+        settle.restart();
+    }
+    function setMouse(on) { root._setMotion("mouse", on === true); }
+    function setSensitivity(v) { root._setMotionLive("sensitivity", Math.max(0, Math.min(2, v))); }
+    function setRange(v) { root._setMotionLive("range", Math.max(0, Math.min(2, v))); }
+    function setBackdrop(v) { root._setMotionLive("backdrop", Math.max(0, Math.min(1, v))); }
+
     Timer {
         id: settle
         interval: 400
@@ -86,7 +111,7 @@ Singleton {
             property real edge: 0.15
             property real shadow: 0.0
             property int shadowAngle: 90
-            property var motion: ({ amount: "normal", idle: "none", music: false })
+            property var motion: ({ amount: "normal", idle: "none", music: false, mouse: false, sensitivity: 1.0, range: 1.0, backdrop: 1.0 })
             property var front: []
         }
     }

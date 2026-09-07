@@ -4,230 +4,175 @@ import shell.services
 import "Singletons"
 import "../../components"
 
-// The Edit widgets session (docs/stage.md): the island with its three scopes
-// (Depth, Widgets, Visualizer) and the floating panels each scope opens. The
-// desktop draws the outlines and runs the drag/resize; this owns the island, the
-// second row, and the panels, and reports host-specific actions as signals.
+// The Edit widgets toolbar (docs/stage.md, "Edit widgets"): one row docked
+// top-centre while the desktop is lifted. Title, Add widget (drops a panel
+// under the button), Visualizer... (hands off to Customize visualizer), Reset
+// (only once something changed) and the filled Done. The desktop draws the
+// per-widget frames and runs the drag/resize; this owns the toolbar and the Add
+// drop-down and reports its host actions as signals.
 Item {
     id: ed
     anchors.fill: parent
 
     property string monitor: ""
-    property var elements: []
-    property bool vizOverlay: false
-    property var vizStyles: []
-    property string vizStyle: ""
-    property rect selectedBox: Qt.rect(0, 0, 0, 0)
+    // The Add drop-down's model: every widget with its current on/off state:
+    // [{ id, label, icon, enabled }].
+    property var items: []
 
     signal done()
-    signal widgetLockToggle(string id)
-    signal widgetSettings(string id)
-    signal widgetRemove(string id)
-    signal vizFlip()
-    signal vizRemove()
-    signal addEnable(string id)
-    signal vizStyleChose(string key)
+    signal visualizer()
+    signal addToggle(string id)
 
     readonly property var ses: StageSession
-    readonly property var sb: StageBackend
-    readonly property string effect: ed.sb.effect
-    readonly property string sel: ed.ses.selected
-    readonly property var selItem: (ed.elements || []).find(e => e.id === ed.sel) || null
-
-    function setEffect(e) { ed.sb.setEffect(e); }
-    function setQuality(id) {
-        Config.setQuality(id);
-        if (ed.sb.qualityInstalled(id) && ed.effect !== "off")
-            ed.sb.refresh();
-    }
 
     onVisibleChanged: if (ed.visible) ed.forceActiveFocus()
+    // Escape unwinds one level (drop-down, then selection, then leave).
     Keys.onEscapePressed: e => { if (ed.ses.escapeStep() === "leave") ed.done(); e.accepted = true; }
     Keys.onReturnPressed: e => { ed.done(); e.accepted = true; }
 
-    // A compact action pill for the second row.
-    component Act: Rectangle {
-        id: ab
+    // A compact toolbar button: an optional leading icon, a label, an optional
+    // trailing chevron. Quiet by default, a faint fill on hover, the one accent
+    // when `on` (a drop-down is open) or `filled` (Done).
+    component Tool: Rectangle {
+        id: tb
         property string icon: ""
         property string label: ""
+        property string trailingIcon: ""
         property bool on: false
+        property bool filled: false
         signal act()
-        width: abRow.implicitWidth + 22
-        height: 34
-        radius: Theme.radiusWidget
-        color: ab.on ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.85)
-            : abMa.containsMouse ? Qt.rgba(Theme.onSurface.r, Theme.onSurface.g, Theme.onSurface.b, 0.1) : "transparent"
-        border.width: ab.on ? 0 : 1
+        readonly property bool accent: tb.filled || tb.on
+        implicitWidth: tbRow.implicitWidth + 24
+        width: implicitWidth
+        height: 36
+        radius: 9
+        color: tb.accent
+            ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b,
+                tbMa.containsMouse ? 0.95 : (tb.filled ? 0.9 : 0.82))
+            : tbMa.containsMouse ? Qt.rgba(Theme.onSurface.r, Theme.onSurface.g, Theme.onSurface.b, 0.10) : "transparent"
+        border.width: tb.accent ? 0 : 1
         border.color: Qt.rgba(Theme.outline.r, Theme.outline.g, Theme.outline.b, 0.35)
         Behavior on color { ColorAnimation { duration: Motion.fast } }
         Row {
-            id: abRow
+            id: tbRow
             anchors.centerIn: parent
-            spacing: 6
+            spacing: 7
             MaterialIcon {
                 anchors.verticalCenter: parent.verticalCenter
-                visible: ab.icon.length > 0
-                text: ab.icon
-                font.pixelSize: 16
-                color: ab.on ? Theme.inkOn(Theme.primary, Theme.onPrimary) : Theme.onSurface
+                visible: tb.icon.length > 0
+                text: tb.icon
+                font.pixelSize: 17
+                fill: tb.accent ? 1 : 0
+                color: tb.accent ? Theme.inkOn(Theme.primary, Theme.onPrimary) : Theme.onSurface
             }
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: ab.label
-                color: ab.on ? Theme.inkOn(Theme.primary, Theme.onPrimary) : Theme.onSurface
+                text: tb.label
+                color: tb.accent ? Theme.inkOn(Theme.primary, Theme.onPrimary) : Theme.onSurface
                 font.family: Theme.fontPrimary
-                font.pixelSize: Theme.fontSm - 1
+                font.pixelSize: Theme.fontSm
                 font.weight: Font.DemiBold
             }
+            MaterialIcon {
+                anchors.verticalCenter: parent.verticalCenter
+                visible: tb.trailingIcon.length > 0
+                text: tb.trailingIcon
+                font.pixelSize: 16
+                color: tb.accent ? Theme.inkOn(Theme.primary, Theme.onPrimary) : Theme.onSurfaceVariant
+            }
         }
-        MouseArea { id: abMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: ab.act() }
-    }
-
-    Component {
-        id: depthRow
-        Row {
-            spacing: 16
-            StageSwitch {
-                anchors.verticalCenter: parent.verticalCenter
-                label: "Depth"; checked: ed.effect !== "off"
-                onToggled: ed.setEffect(ed.effect === "off" ? "depth" : "off")
-            }
-            StageSwitch {
-                anchors.verticalCenter: parent.verticalCenter
-                label: "Parallax"; checked: ed.effect === "parallax"; switchEnabled: ed.effect !== "off"
-                onToggled: ed.setEffect(ed.effect === "parallax" ? "depth" : "parallax")
-            }
-            StageQuality {
-                anchors.verticalCenter: parent.verticalCenter
-                width: 400
-                current: Config.quality
-                onChose: id => ed.setQuality(id)
-            }
+        MouseArea {
+            id: tbMa
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: tb.act()
         }
     }
 
-    Component {
-        id: widgetsRow
+    // The toolbar bar itself, docked 12 px from the top, centred.
+    Rectangle {
+        id: bar
+        x: Math.round((ed.width - width) / 2)
+        y: 12
+        height: 52
+        width: Math.round(left.implicitWidth + right.implicitWidth + 72)
+        radius: 12
+        color: Theme.surface
+        border.width: 1
+        border.color: Qt.rgba(Theme.outline.r, Theme.outline.g, Theme.outline.b, 0.35)
+
+        // Swallow presses on the bar chrome so a click between buttons never
+        // leaks to a widget or the wallpaper beneath the lifted desktop. Sits
+        // under the button rows, so the buttons keep their own clicks.
+        MouseArea { anchors.fill: parent; acceptedButtons: Qt.AllButtons }
+
         Row {
-            spacing: 10
-            Act {
-                anchors.verticalCenter: parent.verticalCenter
-                visible: ed.selItem !== null
-                icon: (ed.selItem && ed.selItem.locked) ? "lock" : "lock_open"
-                label: "Lock"; on: ed.selItem ? ed.selItem.locked === true : false
-                onAct: ed.widgetLockToggle(ed.sel)
-            }
-            Act {
-                anchors.verticalCenter: parent.verticalCenter
-                visible: ed.selItem !== null
-                icon: "tune"; label: "Settings"; onAct: ed.widgetSettings(ed.sel)
-            }
-            Act {
-                anchors.verticalCenter: parent.verticalCenter
-                visible: ed.selItem !== null
-                icon: "visibility_off"; label: "Hide"
-                onAct: { ed.widgetRemove(ed.sel); ed.ses.deselect(); }
-            }
+            id: left
+            anchors.left: parent.left
+            anchors.leftMargin: 16
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 12
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                visible: ed.selItem !== null && ed.selectedBox.width > 1
-                text: Math.round(ed.selectedBox.width) + " \u00d7 " + Math.round(ed.selectedBox.height)
-                color: Theme.onSurfaceVariant
+                text: "Edit widgets"
+                color: Theme.onSurface
                 font.family: Theme.fontPrimary
-                font.pixelSize: Theme.fontSm - 2
+                font.pixelSize: Theme.fontMd
+                font.weight: Font.DemiBold
             }
             Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
-                visible: ed.selItem !== null
-                width: 1; height: 24
+                width: 1
+                height: 26
                 color: Qt.rgba(Theme.onSurface.r, Theme.onSurface.g, Theme.onSurface.b, 0.14)
             }
-            Act {
+            Tool {
+                id: addBtn
                 anchors.verticalCenter: parent.verticalCenter
-                icon: "add"; label: "Add widget"; on: ed.ses.panel === "add"
-                onAct: ed.ses.panel === "add" ? ed.ses.closePanel() : ed.ses.openPanel("add")
+                icon: "add"
+                label: "Add widget"
+                trailingIcon: "expand_more"
+                on: ed.ses.panel === "add"
+                onAct: ed.ses.togglePanel("add")
+            }
+            Tool {
+                anchors.verticalCenter: parent.verticalCenter
+                icon: "graphic_eq"
+                label: "Visualizer..."
+                onAct: ed.visualizer()
             }
         }
-    }
 
-    Component {
-        id: vizRow
         Row {
-            spacing: 12
-            StageSeg {
+            id: right
+            anchors.right: parent.right
+            anchors.rightMargin: 16
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 10
+            Tool {
                 anchors.verticalCenter: parent.verticalCenter
-                width: 240
-                options: [{ id: "desktop", label: "On desktop" }, { id: "above", label: "Above windows" }]
-                current: ed.vizOverlay ? "above" : "desktop"
-                onChose: id => { if ((id === "above") !== ed.vizOverlay) ed.vizFlip(); }
+                visible: ed.ses.dirty
+                icon: "restart_alt"
+                label: "Reset"
+                onAct: ed.ses.reset()
             }
-            Act {
+            Tool {
                 anchors.verticalCenter: parent.verticalCenter
-                icon: "palette"; label: "Style"; on: ed.ses.panel === "style"
-                onAct: ed.ses.panel === "style" ? ed.ses.closePanel() : ed.ses.openPanel("style")
-            }
-            Act {
-                anchors.verticalCenter: parent.verticalCenter
-                icon: "visibility_off"; label: "Hide"; onAct: ed.vizRemove()
+                label: "Done"
+                filled: true
+                onAct: ed.done()
             }
         }
     }
 
-    StageIsland {
-        id: island
-        title: "Edit desktop"
-        monitor: ed.monitor
-        scopes: [
-            { id: "depth", label: "Depth" },
-            { id: "widgets", label: "Widgets" },
-            { id: "visualizer", label: "Visualizer" }
-        ]
-        scope: ed.ses.scope
-        showReset: ed.ses.dirty
-        onScopeChose: id => {
-            ed.ses.setScope(id);
-            if (id === "depth")
-                ed.ses.panel = "depth";
-        }
-        onReset: ed.ses.reset()
-        onDone: ed.done()
-
-        Loader {
-            width: implicitWidth
-            sourceComponent: ed.ses.scope === "depth" ? depthRow
-                : ed.ses.scope === "visualizer" ? vizRow : widgetsRow
-        }
-    }
-
-    StageDepthPanel {
-        monitor: ed.monitor
-        visible: ed.ses.scope === "depth" && ed.ses.panel === "depth"
-        pinned: ed.ses.panelPinned
-        defaultY: island.y + island.height + 16
-        onCloseRequested: ed.ses.closePanel()
-        onPinToggled: ed.ses.togglePin()
-    }
-
+    // The Add widget drop-down, left-aligned under the Add widget button.
     StageAddPanel {
-        monitor: ed.monitor
         visible: ed.ses.panel === "add"
-        pinned: ed.ses.panelPinned
-        items: ed.elements
-        defaultY: island.y + island.height + 16
+        items: ed.items
+        anchorX: Math.round(bar.x + left.x + addBtn.x)
+        anchorY: Math.round(bar.y + bar.height + 8)
         onCloseRequested: ed.ses.closePanel()
-        onPinToggled: ed.ses.togglePin()
-        onEnable: id => ed.addEnable(id)
-    }
-
-    StageStylePanel {
-        monitor: ed.monitor
-        visible: ed.ses.panel === "style"
-        pinned: ed.ses.panelPinned
-        styles: ed.vizStyles
-        current: ed.vizStyle
-        defaultY: island.y + island.height + 16
-        onCloseRequested: ed.ses.closePanel()
-        onPinToggled: ed.ses.togglePin()
-        onChose: key => ed.vizStyleChose(key)
+        onToggle: id => ed.addToggle(id)
     }
 }

@@ -25,6 +25,10 @@ Item {
     property real radius: Theme.radius
     property real gridSize: 32
     property real scaleCfg: 1             // persisted scale, bound from the host
+    // Keep the resize bracket present while an Edit widgets session is on: the
+    // frame overlay above intercepts hover, so a hover-only bracket would never
+    // reveal (see WidgetSlot).
+    property bool composing: false
 
     signal moved(real x, real y)
     signal resized(real scale)
@@ -240,7 +244,7 @@ Item {
         height: 22
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        opacity: ((slotHover.hovered && !slot.locked && !slot.dragging) || slot.resizing) ? 1 : 0
+        opacity: (((slotHover.hovered || slot.composing) && !slot.locked && !slot.dragging) || slot.resizing) ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: 120 } }
 

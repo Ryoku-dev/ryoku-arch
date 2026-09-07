@@ -1,13 +1,15 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import shell.services
 import "Singletons"
 
-// A stage layer's on-desktop selection affordance (docs/stage.md): the same
-// hover/selected outline + name chip every element wears, sized to the layer's
-// opaque bounding box so the subject reads as one clickable thing. The box is
-// scanned once per rev from a small downscaled alpha probe, falling back to a
-// stacked centre band when there is no image yet. Layers never drag, so the
-// outline owns the click that selects them.
+// A stage layer's on-desktop selection affordance (docs/stage.md): a hover /
+// selected outline plus a name chip sized to the layer's opaque bounding box, so
+// the subject reads as one clickable thing. The box is scanned once per rev from
+// a small downscaled alpha probe, with a stacked centre-band fallback until the
+// image lands. The subject slot draws the engine's cut ring while it runs.
+// Self-contained (it inlines the outline + chip + ring) so it depends on nothing
+// the widgets editor owns.
 Item {
     id: lo
     anchors.fill: parent
@@ -21,6 +23,7 @@ Item {
 
     readonly property var sb: StageBackend
     readonly property string url: lo.sb.layerUrlFor(lo.wallPath, lo.slot)
+    readonly property int ringPercent: (lo.slot === 0 && lo.sb.busy && lo.sb.stage === "cut") ? lo.sb.percent : -1
 
     // Normalised opaque bounds from the probe; a stacked fallback until it lands.
     property real bx0: 0.3
@@ -38,6 +41,8 @@ Item {
         return Qt.rect(lo.width * x0, lo.height * y0,
             lo.width * (x1 - x0), lo.height * (y1 - y0));
     }
+
+    visible: lo.box.width > 1 && lo.box.height > 1
 
     Canvas {
         id: probe
@@ -84,14 +89,71 @@ Item {
         }
     }
 
-    StageOutline {
-        anchors.fill: parent
-        box: lo.box
-        title: lo.sb.layerLabel(lo.wallPath, lo.slot)
-        selected: lo.selected
-        clickable: true
-        // The subject (slot 0) shows the engine's cut progress as a ring.
-        ringPercent: (lo.slot === 0 && lo.sb.busy && lo.sb.stage === "cut") ? lo.sb.percent : -1
-        onPicked: lo.picked()
+    Rectangle {
+        id: frame
+        x: lo.box.x
+        y: lo.box.y
+        width: lo.box.width
+        height: lo.box.height
+        radius: Theme.radiusWidget
+        color: lo.ringPercent >= 0 ? Qt.rgba(0, 0, 0, 0.28) : "transparent"
+        border.width: lo.selected ? 2 : 1
+        border.color: lo.selected
+            ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.9)
+            : hover.hovered ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.45)
+            : Qt.rgba(Theme.onSurface.r, Theme.onSurface.g, Theme.onSurface.b, 0.28)
+        Behavior on border.color { ColorAnimation { duration: Motion.fast } }
+
+        HoverHandler { id: hover }
+        TapHandler { onTapped: lo.picked() }
+
+        Canvas {
+            id: ring
+            anchors.centerIn: parent
+            width: 54
+            height: 54
+            visible: lo.ringPercent >= 0
+            onPaint: {
+                const ctx = getContext("2d");
+                ctx.reset();
+                const cx = width / 2, cy = height / 2, r = width / 2 - 3;
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = Qt.rgba(Theme.onSurface.r, Theme.onSurface.g, Theme.onSurface.b, 0.25);
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                ctx.stroke();
+                const frac = Math.max(0.04, Math.min(1, lo.ringPercent / 100));
+                ctx.strokeStyle = Theme.primary;
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + frac * Math.PI * 2);
+                ctx.stroke();
+            }
+            Connections {
+                target: lo
+                function onRingPercentChanged() { ring.requestPaint(); }
+            }
+            Component.onCompleted: ring.requestPaint()
+        }
+    }
+
+    Rectangle {
+        id: chip
+        visible: (lo.selected || lo.ringPercent >= 0)
+        x: Math.round(Math.max(8, Math.min(lo.width - width - 8,
+            lo.box.x + lo.box.width / 2 - width / 2)))
+        y: Math.round(lo.box.y > 40 ? lo.box.y - height - 6 : lo.box.y + lo.box.height + 6)
+        width: label.implicitWidth + 22
+        height: 28
+        radius: 14
+        color: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.92)
+        Text {
+            id: label
+            anchors.centerIn: parent
+            text: lo.sb.layerLabel(lo.wallPath, lo.slot)
+            color: Theme.inkOn(Theme.primary, Theme.onPrimary)
+            font.family: Theme.fontPrimary
+            font.pixelSize: Theme.fontSm - 1
+            font.weight: Font.DemiBold
+        }
     }
 }

@@ -1,2 +1,10 @@
 ShellLayoutEditor ShellLayoutEditor.qml
 ShellLayoutCanvas ShellLayoutCanvas.qml
+ShellRibbon ShellRibbon.qml
+RibbonGroup RibbonGroup.qml
+RibbonDropdown RibbonDropdown.qml
+BarTab BarTab.qml
+DockTab DockTab.qml
+MenusTab MenusTab.qml
+DepthTab DepthTab.qml
+ParallaxTab ParallaxTab.qml
