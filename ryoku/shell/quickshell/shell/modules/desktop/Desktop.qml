@@ -362,10 +362,10 @@ Scope {
         WallpaperMod.Backdrop {
             id: backdrop
             anchors.fill: parent
-            // The base wallpaper always draws now (no separate stage surface):
-            // Parallax's StageBackdrop covers its baked subject, and Depth locks
-            // the still cut over it (docs/stage.md).
-            visible: true
+            // The base wallpaper draws under the stage (Parallax's StageBackdrop
+            // covers its baked subject, Depth locks the still cut over it), and
+            // yields to the ryogami-live player on its own `live` rule: forcing
+            // it visible painted the still over every video wallpaper.
             readonly property real screenDpr: (root.screen && root.screen.devicePixelRatio) ? root.screen.devicePixelRatio : 1
             dpr: screenDpr
             // Keep the still decoded while a video plays: the frame path is

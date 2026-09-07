@@ -321,6 +321,35 @@ func (d *daemon) dispatchJSON(cmd string, events *chan string) string {
 	return string(b)
 }
 
+// resetCache drops every derived artifact (thumbnails, colour data, animated
+// previews, transcoded clips and stills) and the catalogue itself, then scans
+// the folders from nothing. The picker's Refresh button: for a library the
+// mtime-gated rescan cannot mend (a thumb that failed, a clip transcoded with
+// flags livewall no longer expects, a file the watcher missed).
+func (d *daemon) resetCache() {
+	cfg := d.config()
+	cacheDir := cfg.cacheDir()
+	for _, sub := range []string{"wallpaper/thumbs", "wallpaper/thumbs-sm", "wallpaper/video-thumbs", "wallpaper/anim"} {
+		if err := os.RemoveAll(filepath.Join(cacheDir, sub)); err != nil {
+			fmt.Fprintf(os.Stderr, "ryogami: cache reset: %v\n", err)
+		}
+	}
+	// A playing clip reads its transcode from this cache: stop it first, then
+	// restore the stored wallpaper after the wipe so the clip is transcoded
+	// afresh and plays again.
+	playing := d.video.Playing()
+	if playing {
+		d.video.Stop()
+	}
+	pruneLivewallCache(0)
+	d.store.replaceAll(map[string]Entry{})
+	d.broadcast("ryogami.wall.cache", map[string]interface{}{"status": "started", "progress": 0, "total": 0})
+	if playing {
+		d.restoreOutputs()
+	}
+	d.rescan(true)
+}
+
 // rescan rebuilds the catalog off the connection path; force regenerates
 // nothing extra today (thumbs are mtime-gated), it only bypasses the
 // one-at-a-time gate's early return so an explicit rebuild always runs.
