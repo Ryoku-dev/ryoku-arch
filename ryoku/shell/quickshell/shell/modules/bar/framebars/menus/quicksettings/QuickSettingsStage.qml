@@ -235,32 +235,25 @@ Item {
         MouseArea { anchors.fill: parent; z: -1; onClicked: sr.toggled() }
     }
 
-    // A labelled choice: caption on the left, the segmented control taking the
-    // rest, so a row reads "Amount   Subtle | Normal | Strong".
-    component ChoiceRow: Item {
+    // A labelled choice: the caption on its own line, the segmented control
+    // taking the full width beneath, so four options still breathe at 410 px.
+    component ChoiceRow: Column {
         id: chr
         property string label: ""
         property var options: []
         property string current: ""
-        property real labelW: 74
         signal chose(string id)
         width: parent ? parent.width : 0
-        implicitHeight: 38
+        spacing: 5
         Text {
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-            width: chr.labelW
             text: I18n.tr(chr.label)
             color: root.ink
             font.family: Theme.fontPrimary
             font.pixelSize: Theme.fontSm
             font.weight: Font.DemiBold
-            elide: Text.ElideRight
         }
         Menus.QsSeg {
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            width: parent.width - chr.labelW
+            width: parent.width
             options: chr.options
             current: chr.current
             onChose: id => chr.chose(id)
