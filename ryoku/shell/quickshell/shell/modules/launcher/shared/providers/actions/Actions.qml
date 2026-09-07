@@ -24,7 +24,7 @@ Provider {
     function rowFor(entry) {
         return {
             id: "action:" + entry.id,
-            title: entry.name,
+            title: I18n.tr(entry.name),
             subtitle: "",
             icon: "",
             type: entry.category,
@@ -32,7 +32,7 @@ Provider {
             category: entry.category,
             actions: [{
                 id: "run",
-                name: "Run",
+                name: I18n.tr("Run"),
                 icon: "",
                 execute: function () { Spawn.run(entry.exec); }
             }]

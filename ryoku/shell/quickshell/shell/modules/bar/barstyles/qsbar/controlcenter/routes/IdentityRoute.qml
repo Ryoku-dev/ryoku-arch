@@ -78,7 +78,7 @@ Item {
                 index: 0
                 SettingCard {
                     width: page.colW
-                    title: "Mark"
+                    title: I18n.tr("Mark")
                     kana: "\u5370"
 
                     Row {
@@ -87,8 +87,8 @@ Item {
 
                         Repeater {
                             model: [
-                                { mode: "text", label: "Wordmark", glyph: "RYOKU" },
-                                { mode: "icon", label: "Glyph",    glyph: "\u529b" }
+                                { mode: "text", label: I18n.tr("Wordmark"), glyph: "RYOKU" },
+                                { mode: "icon", label: I18n.tr("Glyph"),    glyph: "\u529b" }
                             ]
 
                             delegate: Rectangle {
@@ -174,7 +174,7 @@ Item {
                 index: 1
                 SettingCard {
                     width: page.colW
-                    title: page.mode === "icon" ? "GLYPH" : "WORDMARK"
+                    title: page.mode === "icon" ? I18n.tr("GLYPH") : I18n.tr("WORDMARK")
                     kana: page.mode === "icon" ? "\u7d0b" : "\u6587\u5b57"
 
                     Grid {

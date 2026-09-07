@@ -15,6 +15,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 const mimeDefaultsSection = "Default Applications"
@@ -48,11 +50,11 @@ func reconcileMimeDefaults(checkOnly bool) recResult {
 	path := userMimeList()
 	raw, err := os.ReadFile(path)
 	if errors.Is(err, os.ErrNotExist) {
-		return okRes("no user mimeapps.list; default apps come from the shipped map")
+		return okRes(i18n.T("no user mimeapps.list; default apps come from the shipped map"))
 	}
 	if err != nil {
-		return warnRes("could not read %s: %v", path, err).
-			withFix("fix the file permissions, then run `ryoku doctor`")
+		return warnRes(i18n.T("could not read %s: %v"), path, err).
+			withFix(i18n.T("fix the file permissions, then run `ryoku doctor`"))
 	}
 
 	vendor := map[string]string{}
@@ -68,29 +70,29 @@ func reconcileMimeDefaults(checkOnly bool) recResult {
 		}
 	}
 	if len(vendor) == 0 {
-		return okRes("no shipped default-app map is installed; the user's mimeapps.list is left alone")
+		return okRes(i18n.T("no shipped default-app map is installed; the user's mimeapps.list is left alone"))
 	}
 
 	next, dropped := stripRedundantDefaults(string(raw), vendor)
 	if dropped == 0 {
-		return okRes("mimeapps.list holds only the defaults you chose")
+		return okRes(i18n.T("mimeapps.list holds only the defaults you chose"))
 	}
 	if checkOnly {
-		return wouldRes("mimeapps.list still carries %d default(s) copied from Ryoku's map", dropped).
-			withFix("ryoku doctor drops them, so your own picks are what remains and Ryoku's defaults come from the shipped map")
+		return wouldRes(i18n.T("mimeapps.list still carries %d default(s) copied from Ryoku's map"), dropped).
+			withFix(i18n.T("ryoku doctor drops them, so your own picks are what remains and Ryoku's defaults come from the shipped map"))
 	}
 
 	if strings.TrimSpace(stripComments(next)) == "" {
 		if err := os.Remove(path); err != nil {
-			return failRes("could not remove the stale %s: %v", path, err)
+			return failRes(i18n.T("could not remove the stale %s: %v"), path, err)
 		}
-		return fixedRes("removed a mimeapps.list that only copied Ryoku's map; default apps now follow the shipped one")
+		return fixedRes(i18n.T("removed a mimeapps.list that only copied Ryoku's map; default apps now follow the shipped one"))
 	}
 	if err := replaceFileKeepingMode(path, []byte(next)); err != nil {
-		return failRes("could not rewrite %s: %v", path, err).
-			withFix("fix the file permissions, then run `ryoku doctor`")
+		return failRes(i18n.T("could not rewrite %s: %v"), path, err).
+			withFix(i18n.T("fix the file permissions, then run `ryoku doctor`"))
 	}
-	return fixedRes("dropped %d default(s) copied from Ryoku's map; the apps you picked yourself are untouched", dropped)
+	return fixedRes(i18n.T("dropped %d default(s) copied from Ryoku's map; the apps you picked yourself are untouched"), dropped)
 }
 
 // mimeDefaults reads the [Default Applications] table out of a mimeapps.list.
@@ -228,7 +230,7 @@ func replaceFileKeepingMode(path string, data []byte) error {
 		return err
 	}
 	if err := os.Rename(tmpPath, path); err != nil {
-		return fmt.Errorf("replace %s: %w", path, err)
+		return fmt.Errorf(i18n.T("replace %s: %w"), path, err)
 	}
 	return nil
 }

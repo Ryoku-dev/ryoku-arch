@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 QtObject {
     id: client
@@ -134,7 +135,7 @@ QtObject {
         var weCount = 0
         for (var w in weIdSet) weCount++
         if (byKey["we:*"] && weCount > 1) {
-            byKey["we:*"].name = "Wallpaper Engine · " + weCount + " wallpapers"
+            byKey["we:*"].name = I18n.tr("Wallpaper Engine · %1 wallpapers").arg(weCount)
         }
         var arr = []
         for (var gk in byKey) {
@@ -150,14 +151,14 @@ QtObject {
     function _audioDisplayName(entry) {
         if ((entry.type || "") === "we") {
             var id = entry.we_id || ""
-            return id !== "" ? ("Wallpaper Engine · " + id) : "Wallpaper Engine"
+            return id !== "" ? I18n.tr("Wallpaper Engine · %1").arg(id) : I18n.tr("Wallpaper Engine")
         }
         var p = entry.path || ""
         var idx = p.lastIndexOf("/")
         var name = idx >= 0 ? p.substring(idx + 1) : p
         var dot = name.lastIndexOf(".")
         if (dot > 0) name = name.substring(0, dot)
-        return name || "Untitled"
+        return name || I18n.tr("Untitled")
     }
 
     function call(method, params, callback) {

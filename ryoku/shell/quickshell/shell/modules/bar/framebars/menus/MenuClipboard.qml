@@ -4,6 +4,7 @@ import QtQuick
 import "../.." as Pill
 import shell.services
 import "../../../../components"
+import Ryoku.Ui.Singletons
 
 // Clipboard history panel (contract 07 sec 2.2/4.2): a "Clipboard History"
 // header with a "Clear all" action, an "Empty" placeholder when there is no
@@ -53,7 +54,7 @@ Item {
                 id: titleText
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("Clipboard History")
+                text: I18n.tr("Clipboard History")
                 color: Theme.onSurface
                 font.family: Theme.fontPrimary
                 font.pixelSize: Theme.fontMd
@@ -63,7 +64,7 @@ Item {
                 id: clearBtn
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("Clear all")
+                text: I18n.tr("Clear all")
                 color: clearHov.hovered ? Theme.primary : Theme.onSurfaceVariant
                 font.family: Theme.fontPrimary
                 font.pixelSize: Theme.fontSm
@@ -80,7 +81,7 @@ Item {
         Text {
             width: parent.width
             visible: root.entries.length === 0
-            text: qsTr("Empty")
+            text: I18n.tr("Empty")
             color: Theme.onSurfaceVariant
             font.family: Theme.fontPrimary
             font.pixelSize: Theme.fontMd

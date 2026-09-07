@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 )
 
 // The boot guard reverts a packaged update whose next boots never bring the
@@ -83,19 +84,19 @@ func armBootGuard(snapshot string) {
 		_ = sys.Sudo(append([]string{"rm", "-f"}, matches...)...)
 	}
 	if err := sys.WriteRootFile(pendingFile, string(b)+"\n", "0644"); err != nil {
-		fmt.Fprintf(os.Stderr, "note: boot guard not armed: %v\n", err)
+		fmt.Fprintf(os.Stderr, i18n.T("note: boot guard not armed: %v\n"), err)
 		return
 	}
-	progress.logf("Boot guard armed: %s -> %s", from, to)
+	progress.logf(i18n.T("Boot guard armed: %s -> %s"), from, to)
 }
 
 // BootGuard is `ryoku boot-guard`, run as root by ryoku-boot-guard.service.
 func BootGuard(args []string) error {
 	if os.Geteuid() != 0 {
-		return fmt.Errorf("ryoku boot-guard runs as root (ryoku-boot-guard.service)")
+		return fmt.Errorf(i18n.T("ryoku boot-guard runs as root (ryoku-boot-guard.service)"))
 	}
 	if len(args) > 0 && args[0] == "--disarm" {
-		return disarmBootGuard("disarmed by hand")
+		return disarmBootGuard(i18n.T("disarmed by hand"))
 	}
 	raw, err := os.ReadFile(pendingFile)
 	if err != nil {
@@ -107,13 +108,13 @@ func BootGuard(args []string) error {
 		return nil
 	}
 	if provenAfter(p.ArmedBoot) {
-		fmt.Printf("boot guard: %s came up after the update; disarmed\n", p.To)
+		fmt.Printf(i18n.T("boot guard: %s came up after the update; disarmed\n"), p.To)
 		return disarmBootGuard("")
 	}
 	p.Boots++
 	b, _ := json.MarshalIndent(p, "", "  ")
 	_ = os.WriteFile(pendingFile, append(b, '\n'), 0o644)
-	fmt.Printf("boot guard: boot %d after %s -> %s without the desktop coming up\n", p.Boots, p.From, p.To)
+	fmt.Printf(i18n.T("boot guard: boot %d after %s -> %s without the desktop coming up\n"), p.Boots, p.From, p.To)
 	switch {
 	case p.Boots < 2:
 		return nil
@@ -154,7 +155,7 @@ func disarmBootGuard(why string) error {
 // the channel is still unreachable it hands the boot back so the next one
 // retries the revert instead of escalating to the snapshot.
 func revertRelease(p pendingUpdate) error {
-	fmt.Printf("boot guard: reverting to %s\n", p.From)
+	fmt.Printf(i18n.T("boot guard: reverting to %s\n"), p.From)
 	if err := sys.SetPackagedChannel(p.From); err != nil {
 		return writeNotice(bootNotice{Action: "revert-failed", From: p.From, To: p.To, Snapshot: p.Snapshot, Detail: err.Error(), At: now()})
 	}
@@ -162,7 +163,7 @@ func revertRelease(p pendingUpdate) error {
 		_ = sys.Run("nm-online", "-q", "--timeout=90")
 	}
 	if err := sys.Run("pacman", "-Syy", "--noconfirm"); err != nil {
-		fmt.Println("boot guard: package channel unreachable; retrying the revert next boot")
+		fmt.Println(i18n.T("boot guard: package channel unreachable; retrying the revert next boot"))
 		p.Boots--
 		b, _ := json.MarshalIndent(p, "", "  ")
 		_ = os.WriteFile(pendingFile, append(b, '\n'), 0o644)

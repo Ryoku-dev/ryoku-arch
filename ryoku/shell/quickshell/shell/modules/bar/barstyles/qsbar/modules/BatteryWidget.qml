@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.UPower
 import shell.services
+import Ryoku.Ui.Singletons
 
 Item {
     id: rootMod
@@ -33,12 +34,13 @@ Item {
     }
 
     readonly property string statusText:
-        full ? "Full"
-        : charging ? "Charging"
-        : devState === UPowerDeviceState.Discharging ? "Discharging"
-        : "On battery"
-    readonly property string tooltipText: statusText + " · " + percent + "%"
-                                          + (timeText ? " · " + timeText : "")
+        full ? I18n.tr("Full")
+        : charging ? I18n.tr("Charging")
+        : devState === UPowerDeviceState.Discharging ? I18n.tr("Discharging")
+        : I18n.tr("On battery")
+    readonly property string tooltipText: timeText
+        ? I18n.tr("%1 · %2% · %3").arg(statusText).arg(percent).arg(timeText)
+        : I18n.tr("%1 · %2%").arg(statusText).arg(percent)
     readonly property color contentColor: root.widgetContentColor("G12", root.ink)
 
     // colour shared by the drawn battery body, fill and nub

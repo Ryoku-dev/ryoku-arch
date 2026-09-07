@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import "../.."
 import "../../components"
+import Ryoku.Ui.Singletons
 
 Column {
     id: root
@@ -19,7 +20,7 @@ Column {
         "mosaic_swell", "ember_burn", "pond_wake", "glass_scatter", "signal_tear",
         "cathode_wink", "shutter_sweep", "wax_descent", "page_turn"
     ].map(function(p) {
-        return { mode: p, label: p === "random" ? "Random"
+        return { mode: p, label: p === "random" ? I18n.tr("Random")
             : p.replace(/_/g, " ").replace(/^./, function(c) { return c.toUpperCase() }) }
     })
 
@@ -76,24 +77,24 @@ Column {
 
     SettingsCard {
         colors: root.colors
-        title: "Theme"
+        title: I18n.tr("Theme")
         width: parent.width
 
         RowDropdown {
             colors: root.colors
-            title: "Scheme type"
-            description: "Material 3 colour-generation algorithm."
+            title: I18n.tr("Scheme type")
+            description: I18n.tr("Material 3 colour-generation algorithm.")
             value: Config.matugenScheme.replace("scheme-", "")
             model: [
-                { mode: "content",     label: "Content" },
-                { mode: "expressive",  label: "Expressive" },
-                { mode: "fidelity",    label: "Fidelity" },
-                { mode: "fruit-salad", label: "Fruit salad" },
-                { mode: "monochrome",  label: "Monochrome" },
-                { mode: "neutral",     label: "Neutral" },
-                { mode: "rainbow",     label: "Rainbow" },
-                { mode: "tonal-spot",  label: "Tonal spot" },
-                { mode: "vibrant",     label: "Vibrant" }
+                { mode: "content",     label: I18n.tr("Content") },
+                { mode: "expressive",  label: I18n.tr("Expressive") },
+                { mode: "fidelity",    label: I18n.tr("Fidelity") },
+                { mode: "fruit-salad", label: I18n.tr("Fruit salad") },
+                { mode: "monochrome",  label: I18n.tr("Monochrome") },
+                { mode: "neutral",     label: I18n.tr("Neutral") },
+                { mode: "rainbow",     label: I18n.tr("Rainbow") },
+                { mode: "tonal-spot",  label: I18n.tr("Tonal spot") },
+                { mode: "vibrant",     label: I18n.tr("Vibrant") }
             ]
             onSelect: function(v) {
                 var full = "scheme-" + v
@@ -104,8 +105,8 @@ Column {
 
         RowTextInput {
             colors: root.colors
-            title: "Contrast"
-            description: "Matugen contrast. Range -1.0 to 1.0 (0 = standard, higher = more contrast)."
+            title: I18n.tr("Contrast")
+            description: I18n.tr("Matugen contrast. Range -1.0 to 1.0 (0 = standard, higher = more contrast).")
             value: Config.matugenContrast.toFixed(2)
             placeholder: "0.00"
             onCommit: function(v) {
@@ -120,7 +121,7 @@ Column {
 
     SettingsCard {
         colors: root.colors
-        title: "Colour generation"
+        title: I18n.tr("Colour generation")
         kana: "生成"
         width: parent.width
 
@@ -139,12 +140,12 @@ Column {
                 SettingsDropdown {
                     width: genGrid1.cellW
                     colors: root.colors
-                    label: "Mode"
+                    label: I18n.tr("Mode")
                     value: Config.matugenMode
                     model: [
-                        { mode: "dark",  label: "Dark" },
-                        { mode: "light", label: "Light" },
-                        { mode: "smart", label: "Smart" }
+                        { mode: "dark",  label: I18n.tr("Dark") },
+                        { mode: "light", label: I18n.tr("Light") },
+                        { mode: "smart", label: I18n.tr("Smart") }
                     ]
                     onSelect: function(v) {
                         if (root.saveConfigKey) root.saveConfigKey("matugen.mode", v)
@@ -155,10 +156,10 @@ Column {
                 SettingsDropdown {
                     width: genGrid1.cellW
                     colors: root.colors
-                    label: "Source index"
+                    label: I18n.tr("Source index")
                     value: String(root._mat.sourceColorIndex)
                     model: [
-                        { mode: "0", label: "0 (Primary)" },
+                        { mode: "0", label: I18n.tr("0 (Primary)") },
                         { mode: "1", label: "1" },
                         { mode: "2", label: "2" },
                         { mode: "3", label: "3" },
@@ -174,15 +175,15 @@ Column {
                 SettingsDropdown {
                     width: genGrid1.cellW
                     colors: root.colors
-                    label: "Preference"
+                    label: I18n.tr("Preference")
                     value: root._mat.prefer
                     model: [
-                        { mode: "darkness",            label: "Darkness" },
-                        { mode: "lightness",           label: "Lightness" },
-                        { mode: "saturation",          label: "Saturation" },
-                        { mode: "less-saturation",     label: "Less saturation" },
-                        { mode: "value",               label: "Value" },
-                        { mode: "closest-to-fallback", label: "Closest to fallback" }
+                        { mode: "darkness",            label: I18n.tr("Darkness") },
+                        { mode: "lightness",           label: I18n.tr("Lightness") },
+                        { mode: "saturation",          label: I18n.tr("Saturation") },
+                        { mode: "less-saturation",     label: I18n.tr("Less saturation") },
+                        { mode: "value",               label: I18n.tr("Value") },
+                        { mode: "closest-to-fallback", label: I18n.tr("Closest to fallback") }
                     ]
                     onSelect: function(v) { root._matugenSet({ prefer: v }) }
                 }
@@ -197,7 +198,7 @@ Column {
                 SettingsSlider {
                     width: genGrid2.cellW
                     colors: root.colors
-                    label: "Lightness (dark)"
+                    label: I18n.tr("Lightness (dark)")
                     min: -100; max: 100
                     resettable: true; defaultValue: 0
                     value: Math.round(root._mat.lightnessDark * 100)
@@ -207,7 +208,7 @@ Column {
                 SettingsSlider {
                     width: genGrid2.cellW
                     colors: root.colors
-                    label: "Lightness (light)"
+                    label: I18n.tr("Lightness (light)")
                     min: -100; max: 100
                     resettable: true; defaultValue: 0
                     value: Math.round(root._mat.lightnessLight * 100)
@@ -219,54 +220,54 @@ Column {
 
     SettingsCard {
         colors: root.colors
-        title: "App theming"
+        title: I18n.tr("App theming")
         kana: "配色"
         width: parent.width
 
         RowToggle {
             colors: root.colors
-            title: "Theme apps"
-            description: "Recolour GTK and app themes to match the scheme."
+            title: I18n.tr("Theme apps")
+            description: I18n.tr("Recolour GTK and app themes to match the scheme.")
             checked: root._theme.themeApps
             onToggle: function(v) { root._theme.themeApps = v; root._runHub(["hypr", "theme-apps", v ? "on" : "off"]) }
         }
 
         RowDropdown {
             colors: root.colors
-            title: "GTK theme"
-            description: "Base GTK theme that apps build on."
+            title: I18n.tr("GTK theme")
+            description: I18n.tr("Base GTK theme that apps build on.")
             value: root._theme.gtkTheme
-            model: [ { mode: "adw", label: "Adw" }, { mode: "adwaita", label: "Adwaita" }, { mode: "system", label: "System" } ]
+            model: [ { mode: "adw", label: "Adw" }, { mode: "adwaita", label: "Adwaita" }, { mode: "system", label: I18n.tr("System") } ]
             onSelect: function(v) { root._theme.gtkTheme = v; root._runHub(["hypr", "gtk-theme", v]) }
         }
 
         RowToggle {
             colors: root.colors
-            title: "GNOME accent"
-            description: "Sync the GNOME accent colour to the scheme."
+            title: I18n.tr("GNOME accent")
+            description: I18n.tr("Sync the GNOME accent colour to the scheme.")
             checked: root._theme.gnomeAccent
             onToggle: function(v) { root._theme.gnomeAccent = v; root._runHub(["hypr", "gnome-accent", v ? "on" : "off"]) }
         }
 
         RowAction {
             colors: root.colors
-            title: "Ryoku signature"
-            description: "Apply the Ryoku theme: frame bars, zero roundness, mono scheme."
-            valueLabel: "APPLY"
+            title: I18n.tr("Ryoku signature")
+            description: I18n.tr("Apply the Ryoku theme: frame bars, zero roundness, mono scheme.")
+            valueLabel: I18n.tr("APPLY")
             onClicked: root._runHub(["hypr", "ryoku-theme"])
         }
     }
 
     SettingsCard {
         colors: root.colors
-        title: "Wallpaper"
+        title: I18n.tr("Wallpaper")
         kana: "壁"
         width: parent.width
 
         RowDropdown {
             colors: root.colors
-            title: "Reveal"
-            description: "The transition played when the wallpaper changes."
+            title: I18n.tr("Reveal")
+            description: I18n.tr("The transition played when the wallpaper changes.")
             value: root._reveal
             model: root._revealModel
             onSelect: function(v) {

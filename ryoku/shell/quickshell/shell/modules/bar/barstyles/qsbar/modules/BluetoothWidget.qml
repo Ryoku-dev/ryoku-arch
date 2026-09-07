@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Bluetooth
 import Quickshell.Io
 import "../IconMap.js" as IconMap
+import Ryoku.Ui.Singletons
 
 Item {
     id: rootMod
@@ -30,8 +31,8 @@ Item {
         : (connected ? "bluetooth_connected" : "bluetooth")
 
     readonly property string tooltipText: connected
-        ? "Bluetooth · " + numConnected + " connected"
-        : (btOn ? "Bluetooth on" : "Bluetooth off")
+        ? I18n.tr("Bluetooth · %1 connected").arg(numConnected)
+        : (btOn ? I18n.tr("Bluetooth on") : I18n.tr("Bluetooth off"))
 
     // The widget's own toggle is authoritative, and a machine with no controller
     // keeps a clean bar either way.

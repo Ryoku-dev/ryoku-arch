@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // Depth and Parallax merged into one Stage tab, so a machine that persisted a
@@ -20,24 +22,24 @@ func reconcileStageModule(checkOnly bool) recResult {
 	path := filepath.Join(sys.ConfigHome(), "ryoku", "shell.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return okRes("no shell.json yet (seeded on first shell run)")
+		return okRes(i18n.T("no shell.json yet (seeded on first shell run)"))
 	}
 	migrated, changed, err := replaceQuickSettingsModules(raw, []string{"depth", "parallax"}, "stage")
 	if err != nil {
-		return warnRes("shell.json does not parse (%v); the shell falls back to defaults", err).
-			withFix("delete %s to re-seed it", path)
+		return warnRes(i18n.T("shell.json does not parse (%v); the shell falls back to defaults"), err).
+			withFix(i18n.T("delete %s to re-seed it"), path)
 	}
 	if !changed {
-		return okRes("quick-settings rail carries the stage tab (or a custom module list)")
+		return okRes(i18n.T("quick-settings rail carries the stage tab (or a custom module list)"))
 	}
 	if checkOnly {
-		return wouldRes("quick-settings rail predates the Stage tab (retired depth/parallax, or missing entirely)").
-			withFix("ryoku doctor puts a single stage tab on the rail")
+		return wouldRes(i18n.T("quick-settings rail predates the Stage tab (retired depth/parallax, or missing entirely)")).
+			withFix(i18n.T("ryoku doctor puts a single stage tab on the rail"))
 	}
 	if err := writeShellStore(path, migrated); err != nil {
 		return failRes("%v", err)
 	}
-	return fixedRes("put a single stage tab on the quick-settings rail")
+	return fixedRes(i18n.T("put a single stage tab on the quick-settings rail"))
 }
 
 // replaceQuickSettingsModules folds the retired `from` modules of a quick-settings
@@ -173,11 +175,11 @@ func writeQuickSettingsRail(top, frame, menus, qs map[string]json.RawMessage, mo
 func writeShellStore(path string, body []byte) error {
 	tmp := path + ".ryoku-tmp"
 	if err := os.WriteFile(tmp, body, 0o644); err != nil {
-		return fmt.Errorf("could not write %s: %w", tmp, err)
+		return fmt.Errorf(i18n.T("could not write %s: %w"), tmp, err)
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		os.Remove(tmp)
-		return fmt.Errorf("could not replace %s: %w", path, err)
+		return fmt.Errorf(i18n.T("could not replace %s: %w"), path, err)
 	}
 	return nil
 }
@@ -191,7 +193,7 @@ func writeShellStore(path string, body []byte) error {
 func reconcileRyostageCache(checkOnly bool) recResult {
 	state := sys.StateDir()
 	if !sys.Exists(filepath.Join(state, "ryostage", "venv", "bin", "python")) {
-		return okRes("no ryostage runtime yet; legacy caches left untouched")
+		return okRes(i18n.T("no ryostage runtime yet; legacy caches left untouched"))
 	}
 	var leftover []string
 	for _, legacy := range []string{"depth", "parallax"} {
@@ -200,18 +202,18 @@ func reconcileRyostageCache(checkOnly bool) recResult {
 		}
 	}
 	if len(leftover) == 0 {
-		return okRes("no legacy depth/parallax runtime cache to reclaim")
+		return okRes(i18n.T("no legacy depth/parallax runtime cache to reclaim"))
 	}
 	if checkOnly {
-		return wouldRes("legacy %s runtime cache under %s is reclaimable now ryostage is provisioned", joinLegacy(leftover), state).
-			withFix("ryoku doctor removes it")
+		return wouldRes(i18n.T("legacy %s runtime cache under %s is reclaimable now ryostage is provisioned"), joinLegacy(leftover), state).
+			withFix(i18n.T("ryoku doctor removes it"))
 	}
 	for _, legacy := range leftover {
 		if err := os.RemoveAll(filepath.Join(state, legacy)); err != nil {
-			return failRes("could not remove %s: %v", filepath.Join(state, legacy), err)
+			return failRes(i18n.T("could not remove %s: %v"), filepath.Join(state, legacy), err)
 		}
 	}
-	return fixedRes("reclaimed the legacy %s runtime cache under %s", joinLegacy(leftover), state)
+	return fixedRes(i18n.T("reclaimed the legacy %s runtime cache under %s"), joinLegacy(leftover), state)
 }
 
 // joinLegacy renders one or two legacy cache names for a message ("depth" or
@@ -232,7 +234,7 @@ func joinLegacy(names []string) string {
 func reconcileStageLeftovers(checkOnly bool) recResult {
 	state := sys.StateDir()
 	if !sys.Exists(filepath.Join(state, "migrations", "ryostage")) {
-		return okRes("stage migration has not run; superseded settings left untouched")
+		return okRes(i18n.T("stage migration has not run; superseded settings left untouched"))
 	}
 	cfg := filepath.Join(sys.ConfigHome(), "ryoku")
 	candidates := []string{
@@ -248,16 +250,16 @@ func reconcileStageLeftovers(checkOnly bool) recResult {
 		}
 	}
 	if len(present) == 0 {
-		return okRes("no superseded stage settings to reclaim")
+		return okRes(i18n.T("no superseded stage settings to reclaim"))
 	}
 	if checkOnly {
-		return wouldRes("superseded stage settings remain after migration: %s", strings.Join(present, ", ")).
-			withFix("ryoku doctor removes them")
+		return wouldRes(i18n.T("superseded stage settings remain after migration: %s"), strings.Join(present, ", ")).
+			withFix(i18n.T("ryoku doctor removes them"))
 	}
 	for _, p := range present {
 		if err := os.Remove(p); err != nil {
-			return failRes("could not remove %s: %v", p, err)
+			return failRes(i18n.T("could not remove %s: %v"), p, err)
 		}
 	}
-	return fixedRes("reclaimed %d superseded stage file(s) after migration", len(present))
+	return fixedRes(i18n.T("reclaimed %d superseded stage file(s) after migration"), len(present))
 }

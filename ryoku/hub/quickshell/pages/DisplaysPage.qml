@@ -291,7 +291,7 @@ Item {
     }
     function mirrorOptions() {
         void pg.tick;
-        var out = [{ "key": "", "label": "None" }];
+        var out = [{ "key": "", "label": I18n.tr("None") }];
         for (var i = 0; i < pg.draft.length; i++) {
             if (i === pg.selected || pg.draft[i].disabled)
                 continue;
@@ -615,7 +615,7 @@ Item {
         Text {
             id: detected
             anchors.left: parent.left; anchors.top: parent.top
-            text: (pg.monCount === 1 ? I18n.tr("1 DISPLAY DETECTED") : pg.monCount + I18n.tr(" DISPLAYS DETECTED"))
+            text: (pg.monCount === 1 ? I18n.tr("1 DISPLAY DETECTED") : I18n.tr("%1 DISPLAYS DETECTED").arg(pg.monCount))
             color: Tokens.inkMuted; font.family: Tokens.ui
             font.pixelSize: Tokens.fMicro; font.weight: Font.Medium
             font.letterSpacing: Tokens.trackLabel
@@ -964,7 +964,7 @@ Item {
                         PickBar {
                             anchors.left: parent.left; anchors.right: parent.right
                             anchors.verticalCenter: parent.verticalCenter
-                            value: { void pg.tick; return pg.sel ? (pg.labelForKey(pg.mirrorOptions(), pg.sel.mirror) || "None") : "None"; }
+                            value: { void pg.tick; return pg.sel ? (pg.labelForKey(pg.mirrorOptions(), pg.sel.mirror) || I18n.tr("None")) : I18n.tr("None"); }
                             count: { void pg.tick; return pg.mirrorOptions().length; }
                             onOpened: pg.openPick("mirror")
                         }
@@ -981,7 +981,7 @@ Item {
 
                     SettingRow {
                         anchors.left: parent.left; anchors.right: parent.right
-                        label: I18n.tr("X")
+                        label: "X"
                         controlWidth: 128
                         Row {
                             anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
@@ -1005,7 +1005,7 @@ Item {
                     SettingRow {
                         anchors.left: parent.left; anchors.right: parent.right
                         divider: true
-                        label: I18n.tr("Y")
+                        label: "Y"
                         controlWidth: 128
                         Row {
                             anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
@@ -1282,7 +1282,7 @@ Item {
                     Field { id: cwField; width: 74; tabular: true; placeholder: I18n.tr("Width"); onAccepted: addBtn.submit() }
                     Text { text: "\u00d7"; color: Tokens.inkDim; font.family: Tokens.ui; font.pixelSize: Tokens.fBody; anchors.verticalCenter: parent.verticalCenter }
                     Field { id: chField; width: 74; tabular: true; placeholder: I18n.tr("Height"); onAccepted: addBtn.submit() }
-                    Field { id: chzField; width: 56; tabular: true; placeholder: I18n.tr("Hz"); onAccepted: addBtn.submit() }
+                    Field { id: chzField; width: 56; tabular: true; placeholder: "Hz"; onAccepted: addBtn.submit() }
                 }
                 Row {
                     spacing: Tokens.s3
@@ -1326,7 +1326,7 @@ Item {
             spacing: Tokens.s4
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: I18n.tr("Keep this resolution? Reverting in") + " " + pg.revertSecs + "s"
+                text: I18n.tr("Keep this resolution? Reverting in %1s").arg(pg.revertSecs)
                 color: Tokens.ink
                 font.family: Tokens.ui; font.pixelSize: Tokens.fSmall
             }

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import ".."
 import "../services"
+import Ryoku.Ui.Singletons
 
 Item {
     id: folderFilter
@@ -17,10 +18,10 @@ Item {
     height: 24 * Config.uiScale
 
     readonly property string _currentLabel: {
-        if (!service) return "Main"
+        if (!service) return I18n.tr("Main")
         var f = service.selectedFolder
-        if (f === "*") return "All folders"
-        if (f === "") return "Main"
+        if (f === "*") return I18n.tr("All folders")
+        if (f === "") return I18n.tr("Main")
         return f
     }
     readonly property bool _engaged: service && service.selectedFolder !== ""
@@ -96,7 +97,7 @@ Item {
     }
 
     function _menuModel() {
-        var out = [{ label: "Main", value: "" }, { label: "All folders", value: "*" }]
+        var out = [{ label: I18n.tr("Main"), value: "" }, { label: I18n.tr("All folders"), value: "*" }]
         for (var i = 0; i < _folders.length; i++) out.push({ label: _folders[i], value: _folders[i] })
         return out
     }
@@ -148,7 +149,7 @@ Item {
                         anchors.right: parent.right
                         anchors.rightMargin: 8 * Config.uiScale
                         anchors.verticalCenter: parent.verticalCenter
-                        text: _menuRow.modelData.label
+                        text: I18n.tr(_menuRow.modelData.label)
                         elide: Text.ElideRight
                         font.family: Style.fontFamily
                         font.pixelSize: 11 * Config.uiScale

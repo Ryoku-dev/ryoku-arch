@@ -1,4 +1,5 @@
 import QtQuick
+import Ryoku.Ui.Singletons
 
 Item {
     id: rootMod

@@ -1,6 +1,7 @@
 import QtQuick
 import "../.."
 import "../../components"
+import Ryoku.Ui.Singletons
 
 Column {
     id: root
@@ -25,20 +26,20 @@ Column {
 
     SettingsCard {
         colors: root.colors
-        title: "Behaviour"
+        title: I18n.tr("Behaviour")
 
         RowToggle {
             colors: root.colors
-            title: "Disable internal wallpaper application"
-            description: "When enabled, Ryogami will not apply wallpapers itself. Use the post-processing commands below to drive your own setter."
+            title: I18n.tr("Disable internal wallpaper application")
+            description: I18n.tr("When enabled, Ryogami will not apply wallpapers itself. Use the post-processing commands below to drive your own setter.")
             checked: Config.pickOnlyMode
             onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("pickOnlyMode", v) }
         }
 
         RowToggle {
             colors: root.colors
-            title: "Run on startup restore"
-            description: "Re-run the post-processing commands when the daemon restores the last wallpaper at startup."
+            title: I18n.tr("Run on startup restore")
+            description: I18n.tr("Re-run the post-processing commands when the daemon restores the last wallpaper at startup.")
             checked: Config.postProcessOnRestore
             onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("postProcessOnRestore", v) }
         }
@@ -46,8 +47,8 @@ Column {
 
     SettingsCard {
         colors: root.colors
-        title: "Commands"
-        subtitle: "Shell commands to run after every wallpaper change. The pills filter by type ALL fires for every change.\nPlaceholders: %path% = wallpaper file or WE folder · %thumb% = always an image · %type% = image/video/we · %name% = basename"
+        title: I18n.tr("Commands")
+        subtitle: I18n.tr("Shell commands to run after every wallpaper change. The pills filter by type ALL fires for every change.\nPlaceholders: %path% = wallpaper file or WE folder · %thumb% = always an image · %type% = image/video/we · %name% = basename")
 
         Repeater {
             id: postCmdRepeater
@@ -82,7 +83,7 @@ Column {
                                 : (root.colors ? Qt.rgba(root.colors.surfaceContainer.r, root.colors.surfaceContainer.g, root.colors.surfaceContainer.b, 0.6) : Qt.rgba(0.15, 0.15, 0.2, 0.6))
                             Text {
                                 anchors.centerIn: parent
-                                text: modelData.label
+                                text: I18n.tr(modelData.label)
                                 font.family: Style.fontFamily
                                 font.pixelSize: 10 * Config.uiScale
                                 font.weight: Font.Bold
@@ -175,8 +176,8 @@ Column {
 
         RowAction {
             colors: root.colors
-            title: "Add command"
-            description: "Append a new empty command row."
+            title: I18n.tr("Add command")
+            description: I18n.tr("Append a new empty command row.")
             onClicked: {
                 var cmds = root._snapshotCmds()
                 cmds.push({ command: "", type: "all" })

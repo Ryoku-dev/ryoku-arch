@@ -4,6 +4,7 @@ import QtQuick.Effects
 import QtQuick.Shapes
 import ".."
 import "../services"
+import Ryoku.Ui.Singletons
 
 Rectangle {
   id: monitorPicker
@@ -143,7 +144,7 @@ Rectangle {
 
     Text {
       anchors.horizontalCenter: parent.horizontalCenter
-      text: "SELECT MONITORS"
+      text: I18n.tr("SELECT MONITORS")
       font.family: Style.fontFamily; font.pixelSize: 14; font.weight: Font.Bold; font.letterSpacing: 1.5
       color: monitorPicker.colors ? monitorPicker.colors.surfaceText : "#fff"
     }
@@ -151,7 +152,7 @@ Rectangle {
     Text {
       width: parent.width
       horizontalAlignment: Text.AlignHCenter
-      text: "Choose which monitors to apply the wallpaper to."
+      text: I18n.tr("Choose which monitors to apply the wallpaper to.")
       font.family: Style.fontFamily; font.pixelSize: 11; font.letterSpacing: 0.2
       color: monitorPicker.colors ? Qt.rgba(monitorPicker.colors.surfaceText.r, monitorPicker.colors.surfaceText.g, monitorPicker.colors.surfaceText.b, 0.6)
                                   : Qt.rgba(1, 1, 1, 0.5)
@@ -557,7 +558,7 @@ Rectangle {
         Text {
           anchors.left: parent.left
           anchors.verticalCenter: parent.verticalCenter
-          text: "THEME"
+          text: I18n.tr("THEME")
           font.family: Style.fontFamily; font.pixelSize: 11; font.weight: Font.Bold; font.letterSpacing: 1.4
           color: monitorPicker.colors ? monitorPicker.colors.surfaceText : "#fff"
         }
@@ -689,7 +690,7 @@ Rectangle {
 
       FilterButton {
         colors: monitorPicker.colors
-        label: "CANCEL"
+        label: I18n.tr("CANCEL")
         skew: 8; height: 26
         onClicked: { monitorPicker.cancelled(); monitorPicker.close() }
       }
@@ -702,7 +703,7 @@ Rectangle {
           return false
         }
         colors: monitorPicker.colors
-        label: "ACCEPT"
+        label: I18n.tr("ACCEPT")
         skew: 8; height: 26
         hasActiveColor: true
         activeColor: canAccept ? (monitorPicker.colors ? monitorPicker.colors.primary : "#7986cb") : Qt.rgba(0.5, 0.5, 0.5, 0.3)

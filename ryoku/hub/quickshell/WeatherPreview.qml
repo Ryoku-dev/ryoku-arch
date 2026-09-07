@@ -33,7 +33,7 @@ Item {
         spacing: 1
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: parent.label
+            text: I18n.tr(parent.label)
             color: Tokens.inkMuted
             font.family: Tokens.ui
             font.pixelSize: 11
@@ -73,7 +73,7 @@ Item {
         }
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "Portland"
+            text: I18n.tr("Portland")
             color: Tokens.inkMuted
             font.family: Tokens.ui
             font.pixelSize: 20
@@ -87,7 +87,7 @@ Item {
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "Partly Cloudy"
+                text: I18n.tr("Partly Cloudy")
                 color: Tokens.ink
                 font.family: Tokens.ui
                 font.pixelSize: 24
@@ -97,9 +97,9 @@ Item {
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: 22
-                Metric { label: "Humidity"; value: "54%" }
-                Metric { label: "Wind"; value: "12" }
-                Metric { label: "Feels"; value: "70\u00b0" }
+                Metric { label: I18n.tr("Humidity"); value: "54%" }
+                Metric { label: I18n.tr("Wind"); value: "12" }
+                Metric { label: I18n.tr("Feels"); value: "70\u00b0" }
             }
 
             Row {

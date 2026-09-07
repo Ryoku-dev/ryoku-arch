@@ -6,6 +6,7 @@ import Quickshell.Io
 import ".."
 import shell.services
 import "../../../components"
+import Ryoku.Ui.Singletons
 
 // The focused device as a compact instrument row: a boxed class glyph, the name
 // and one mono status line, then a battery gauge and -- for the active audio
@@ -80,13 +81,13 @@ Item {
             return [];
         const out = [];
         if (t.indexOf("Audio Sink") >= 0 || t.indexOf("Advanced Audio") >= 0)
-            out.push({ g: "speaker", l: qsTr("Audio") });
+            out.push({ g: "speaker", l: I18n.tr("Audio") });
         if (t.indexOf("Handsfree") >= 0 || t.indexOf("Headset") >= 0)
-            out.push({ g: "mic", l: qsTr("Mic") });
+            out.push({ g: "mic", l: I18n.tr("Mic") });
         if (t.indexOf("A/V Remote Control") >= 0)
-            out.push({ g: "play-s", l: qsTr("Media") });
+            out.push({ g: "play-s", l: I18n.tr("Media") });
         if (t.indexOf("Human Interface Device") >= 0)
-            out.push({ g: "keyboard", l: qsTr("Input") });
+            out.push({ g: "keyboard", l: I18n.tr("Input") });
         return out;
     }
 
@@ -171,15 +172,15 @@ Item {
                 Text {
                     width: parent.width
                     text: {
-                        if (root.disconnecting) return qsTr("Disconnecting…");
-                        if (root.pairing) return qsTr("Pairing…");
-                        if (root.connecting) return qsTr("Connecting…");
+                        if (root.disconnecting) return I18n.tr("Disconnecting…");
+                        if (root.pairing) return I18n.tr("Pairing…");
+                        if (root.connecting) return I18n.tr("Connecting…");
                         if (root.connected) {
                             const age = BtLink.durationText(BtLink.durationFor(root.device ? root.device.address : ""));
-                            return age.length ? qsTr("Connected · %1").arg(age) : qsTr("Connected");
+                            return age.length ? I18n.tr("Connected · %1").arg(age) : I18n.tr("Connected");
                         }
-                        if (root.paired) return qsTr("Paired");
-                        return qsTr("Not paired");
+                        if (root.paired) return I18n.tr("Paired");
+                        return I18n.tr("Not paired");
                     }
                     color: root.inkDim
                     font.family: Theme.mono
@@ -298,12 +299,12 @@ Item {
             width: parent.width
             s: root.s
             enabled: !root.connecting && !root.disconnecting
-            label: root.disconnecting ? qsTr("Disconnecting…")
-                : root.pairing ? qsTr("Pairing…")
-                : root.connecting ? qsTr("Connecting…")
-                : root.connected ? qsTr("Disconnect")
-                : root.paired ? qsTr("Connect")
-                : qsTr("Pair")
+            label: root.disconnecting ? I18n.tr("Disconnecting…")
+                : root.pairing ? I18n.tr("Pairing…")
+                : root.connecting ? I18n.tr("Connecting…")
+                : root.connected ? I18n.tr("Disconnect")
+                : root.paired ? I18n.tr("Connect")
+                : I18n.tr("Pair")
             onClicked: root.primaryActed()
         }
 
@@ -313,7 +314,7 @@ Item {
             visible: root.connected && root.audioCapable && !root.isCurrentSink && root.sinkNodeFor(root.device) !== null
             s: root.s
             destructive: true
-            label: qsTr("Set as output")
+            label: I18n.tr("Set as output")
             onClicked: Audio.setOutput(root.sinkNodeFor(root.device))
         }
 
@@ -335,20 +336,20 @@ Item {
                 Rectangle { width: parent.width; height: Theme.borderWidth; color: root.line }
                 Item { width: 1; height: 4 * root.s }
 
-                PopoutDetailRow { width: parent.width; s: root.s; label: qsTr("Type"); value: BtLink.typeLabel(root.device) }
-                PopoutDetailRow { width: parent.width; s: root.s; label: qsTr("Address"); value: root.present ? root.device.address : "" }
-                PopoutDetailRow { width: parent.width; s: root.s; label: qsTr("State"); value: root.present ? BluetoothDeviceState.toString(root.device.state) : "" }
+                PopoutDetailRow { width: parent.width; s: root.s; label: I18n.tr("Type"); value: BtLink.typeLabel(root.device) }
+                PopoutDetailRow { width: parent.width; s: root.s; label: I18n.tr("Address"); value: root.present ? root.device.address : "" }
+                PopoutDetailRow { width: parent.width; s: root.s; label: I18n.tr("State"); value: root.present ? BluetoothDeviceState.toString(root.device.state) : "" }
                 PopoutDetailRow {
                     width: parent.width
                     visible: root.connected
                     s: root.s
-                    label: qsTr("Connected")
+                    label: I18n.tr("Connected")
                     value: BtLink.durationText(BtLink.durationFor(root.present ? root.device.address : ""))
                 }
                 PopoutDetailRow {
                     width: parent.width
                     s: root.s
-                    label: qsTr("Trusted")
+                    label: I18n.tr("Trusted")
                     toggle: true
                     on: root.present && root.device.trusted
                     onToggled: if (root.present) root.device.trusted = !root.device.trusted
@@ -356,7 +357,7 @@ Item {
                 PopoutDetailRow {
                     width: parent.width
                     s: root.s
-                    label: qsTr("Wake host")
+                    label: I18n.tr("Wake host")
                     toggle: true
                     on: root.present && root.device.wakeAllowed
                     onToggled: if (root.present) root.device.wakeAllowed = !root.device.wakeAllowed
@@ -365,7 +366,7 @@ Item {
                     width: parent.width
                     visible: root.present && root.device.blocked
                     s: root.s
-                    label: qsTr("Blocked")
+                    label: I18n.tr("Blocked")
                     toggle: true
                     on: root.present && root.device.blocked
                     onToggled: if (root.present) root.device.blocked = !root.device.blocked
@@ -393,7 +394,7 @@ Item {
                     visible: root.paired
                     s: root.s
                     destructive: true
-                    label: qsTr("Forget this device")
+                    label: I18n.tr("Forget this device")
                     onClicked: root.forgetActed()
                 }
             }

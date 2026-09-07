@@ -24,7 +24,7 @@ PanelWindow {
     property string action: ""               // "logout" | "reboot" | "shutdown" | ""
     property string message: ""
     property string positiveLabel: ""
-    property string negativeLabel: "Cancel"
+    property string negativeLabel: I18n.tr("Cancel")
     signal confirmed(string action)
     signal cancelled(string action)
 

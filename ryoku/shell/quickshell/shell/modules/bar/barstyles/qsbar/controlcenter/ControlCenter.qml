@@ -61,56 +61,56 @@ PanelWindow {
         var out = [];
         for (var i = 0; i < Routes.ROUTES.length; i++) {
             var r = Routes.ROUTES[i];
-            out.push({ id: r.id, name: r.label, route: r.id, category: r.label,
-                       searchTags: String(r.keywords || "").split(/\s+/), description: r.desc });
+            out.push({ id: r.id, name: I18n.tr(r.label), route: r.id, category: I18n.tr(r.label),
+                       searchTags: String(r.keywords || "").split(/\s+/), description: I18n.tr(r.desc) });
         }
         return out.concat([
-            { id: "bars.position", name: "Bar position", route: "bars", category: "Bar",
-              searchTags: ["top", "bottom", "edge"], description: "Which edge the bar docks to." },
-            { id: "bars.form", name: "Bar form", route: "bars", category: "Bar",
-              searchTags: ["full", "fit", "dock", "notch", "islands", "shape"], description: "The shell shape the bar takes." },
-            { id: "bars.surface", name: "Bar surface", route: "bars", category: "Bar",
-              searchTags: ["border", "corners", "frost", "shadow", "depth", "tooltip"], description: "Border, corners, frost, shadow and tooltip border." },
-            { id: "bars.gaps", name: "Bar gaps", route: "bars", category: "Bar",
-              searchTags: ["gap", "margin", "edge", "top", "bottom", "left", "right"], description: "How far the bar stays off each output edge." },
-            { id: "bars.accent", name: "Accent colour", route: "bars", category: "Bar",
-              searchTags: ["colour", "color", "seal", "palette", "slot"], description: "Which palette slot the bar draws its accent from." },
-            { id: "bars.motion", name: "Gap animation", route: "bars", category: "Bar",
-              searchTags: ["motion", "stream", "reactor", "animation"], description: "The stream that flows in the gaps between widgets." },
-            { id: "bars.scale", name: "Bar size", route: "bars", category: "Bar",
-              searchTags: ["scale", "size", "height", "bigger"], description: "Scale the bar without changing display scaling." },
-            { id: "layout.arrange", name: "Arrange widgets", route: "layout", category: "Layout",
-              searchTags: ["move", "reorder", "order", "left", "center", "right", "lane"], description: "Move widgets across the three lanes." },
-            { id: "layout.add", name: "Add a widget", route: "layout", category: "Layout",
-              searchTags: ["add", "hidden", "plugin", "ryostore", "more"], description: "Add a hidden built-in or an installed plugin to the bar." },
-            { id: "layout.unlock", name: "Unlock the bar", route: "layout", category: "Layout",
-              searchTags: ["unlock", "drag", "rearrange", "in place"], description: "Drag the widgets around on the bar itself." },
-            { id: "layout.reset", name: "Reset layout", route: "layout", category: "Layout",
-              searchTags: ["reset", "restore", "default"], description: "Restore the shipped order and visibility." },
-            { id: "widgets.visibility", name: "Widget visibility", route: "widgets", category: "Widgets",
-              searchTags: ["show", "hide", "on", "off"], description: "Which widgets the bar carries." },
-            { id: "widgets.density", name: "Widget density", route: "widgets", category: "Widgets",
-              searchTags: ["density", "icon", "compact", "full"], description: "Draw a widget icon-only or in full." },
-            { id: "widgets.colour", name: "Per-widget colour", route: "widgets", category: "Widgets",
-              searchTags: ["colour", "color", "tint", "fill", "frame"], description: "Give one widget its own accent." },
-            { id: "widgets.launcher", name: "Launcher mark", route: "widgets", category: "Widgets",
-              searchTags: ["launcher", "logo", "wordmark", "kanji", "glyph", "brand"], description: "The mark in the launcher pill." },
-            { id: "widgets.workspaces", name: "Workspace marker", route: "widgets", category: "Widgets",
-              searchTags: ["workspace", "spaces", "marker", "dots", "numbers", "kanji", "pacman", "aurora", "count"], description: "How many workspaces the bar shows and the marker each wears." },
-            { id: "widgets.ai", name: "AI usage tools", route: "widgets", category: "Widgets",
-              searchTags: ["ai", "claude", "codex", "opencode", "usage"], description: "Which coding-agent meters the AI pill shows." },
-            { id: "dock.enabled", name: "Dock", route: "dock", category: "Dock",
-              searchTags: ["dock", "apps", "pinned"], description: "The app dock on the opposite edge." },
-            { id: "dock.edge", name: "Dock edge", route: "dock", category: "Dock",
-              searchTags: ["edge", "top", "bottom", "left", "right", "auto"], description: "Which edge the dock sits on." },
-            { id: "dock.autohide", name: "Dock auto-hide", route: "dock", category: "Dock",
-              searchTags: ["hide", "peek", "reveal"], description: "Keep the dock as a peek strip until hovered." },
-            { id: "dock.pinned", name: "Pinned apps", route: "dock", category: "Dock",
-              searchTags: ["pin", "pinned", "app", "add", "remove"], description: "The apps the dock always shows." },
-            { id: "community.installed", name: "Community widgets", route: "community", category: "Community",
-              searchTags: ["plugin", "plugins", "installed", "third", "party", "remove", "uninstall"], description: "Bar widgets installed from outside Ryoku." },
-            { id: "community.add", name: "Add from git or Ryostore", route: "community", category: "Community",
-              searchTags: ["git", "url", "ryostore", "store", "install", "add"], description: "Install a community bar widget." }
+            { id: "bars.position", name: I18n.tr("Bar position"), route: "bars", category: I18n.tr("Bar"),
+              searchTags: ["top", "bottom", "edge"], description: I18n.tr("Which edge the bar docks to.") },
+            { id: "bars.form", name: I18n.tr("Bar form"), route: "bars", category: I18n.tr("Bar"),
+              searchTags: ["full", "fit", "dock", "notch", "islands", "shape"], description: I18n.tr("The shell shape the bar takes.") },
+            { id: "bars.surface", name: I18n.tr("Bar surface"), route: "bars", category: I18n.tr("Bar"),
+              searchTags: ["border", "corners", "frost", "shadow", "depth", "tooltip"], description: I18n.tr("Border, corners, frost, shadow and tooltip border.") },
+            { id: "bars.gaps", name: I18n.tr("Bar gaps"), route: "bars", category: I18n.tr("Bar"),
+              searchTags: ["gap", "margin", "edge", "top", "bottom", "left", "right"], description: I18n.tr("How far the bar stays off each output edge.") },
+            { id: "bars.accent", name: I18n.tr("Accent colour"), route: "bars", category: I18n.tr("Bar"),
+              searchTags: ["colour", "color", "seal", "palette", "slot"], description: I18n.tr("Which palette slot the bar draws its accent from.") },
+            { id: "bars.motion", name: I18n.tr("Gap animation"), route: "bars", category: I18n.tr("Bar"),
+              searchTags: ["motion", "stream", "reactor", "animation"], description: I18n.tr("The stream that flows in the gaps between widgets.") },
+            { id: "bars.scale", name: I18n.tr("Bar size"), route: "bars", category: I18n.tr("Bar"),
+              searchTags: ["scale", "size", "height", "bigger"], description: I18n.tr("Scale the bar without changing display scaling.") },
+            { id: "layout.arrange", name: I18n.tr("Arrange widgets"), route: "layout", category: I18n.tr("Layout"),
+              searchTags: ["move", "reorder", "order", "left", "center", "right", "lane"], description: I18n.tr("Move widgets across the three lanes.") },
+            { id: "layout.add", name: I18n.tr("Add a widget"), route: "layout", category: I18n.tr("Layout"),
+              searchTags: ["add", "hidden", "plugin", "ryostore", "more"], description: I18n.tr("Add a hidden built-in or an installed plugin to the bar.") },
+            { id: "layout.unlock", name: I18n.tr("Unlock the bar"), route: "layout", category: I18n.tr("Layout"),
+              searchTags: ["unlock", "drag", "rearrange", "in place"], description: I18n.tr("Drag the widgets around on the bar itself.") },
+            { id: "layout.reset", name: I18n.tr("Reset layout"), route: "layout", category: I18n.tr("Layout"),
+              searchTags: ["reset", "restore", "default"], description: I18n.tr("Restore the shipped order and visibility.") },
+            { id: "widgets.visibility", name: I18n.tr("Widget visibility"), route: "widgets", category: I18n.tr("Widgets"),
+              searchTags: ["show", "hide", "on", "off"], description: I18n.tr("Which widgets the bar carries.") },
+            { id: "widgets.density", name: I18n.tr("Widget density"), route: "widgets", category: I18n.tr("Widgets"),
+              searchTags: ["density", "icon", "compact", "full"], description: I18n.tr("Draw a widget icon-only or in full.") },
+            { id: "widgets.colour", name: I18n.tr("Per-widget colour"), route: "widgets", category: I18n.tr("Widgets"),
+              searchTags: ["colour", "color", "tint", "fill", "frame"], description: I18n.tr("Give one widget its own accent.") },
+            { id: "widgets.launcher", name: I18n.tr("Launcher mark"), route: "widgets", category: I18n.tr("Widgets"),
+              searchTags: ["launcher", "logo", "wordmark", "kanji", "glyph", "brand"], description: I18n.tr("The mark in the launcher pill.") },
+            { id: "widgets.workspaces", name: I18n.tr("Workspace marker"), route: "widgets", category: I18n.tr("Widgets"),
+              searchTags: ["workspace", "spaces", "marker", "dots", "numbers", "kanji", "pacman", "aurora", "count"], description: I18n.tr("How many workspaces the bar shows and the marker each wears.") },
+            { id: "widgets.ai", name: I18n.tr("AI usage tools"), route: "widgets", category: I18n.tr("Widgets"),
+              searchTags: ["ai", "claude", "codex", "opencode", "usage"], description: I18n.tr("Which coding-agent meters the AI pill shows.") },
+            { id: "dock.enabled", name: I18n.tr("Dock"), route: "dock", category: I18n.tr("Dock"),
+              searchTags: ["dock", "apps", "pinned"], description: I18n.tr("The app dock on the opposite edge.") },
+            { id: "dock.edge", name: I18n.tr("Dock edge"), route: "dock", category: I18n.tr("Dock"),
+              searchTags: ["edge", "top", "bottom", "left", "right", "auto"], description: I18n.tr("Which edge the dock sits on.") },
+            { id: "dock.autohide", name: I18n.tr("Dock auto-hide"), route: "dock", category: I18n.tr("Dock"),
+              searchTags: ["hide", "peek", "reveal"], description: I18n.tr("Keep the dock as a peek strip until hovered.") },
+            { id: "dock.pinned", name: I18n.tr("Pinned apps"), route: "dock", category: I18n.tr("Dock"),
+              searchTags: ["pin", "pinned", "app", "add", "remove"], description: I18n.tr("The apps the dock always shows.") },
+            { id: "community.installed", name: I18n.tr("Community widgets"), route: "community", category: I18n.tr("Community"),
+              searchTags: ["plugin", "plugins", "installed", "third", "party", "remove", "uninstall"], description: I18n.tr("Bar widgets installed from outside Ryoku.") },
+            { id: "community.add", name: I18n.tr("Add from git or Ryostore"), route: "community", category: I18n.tr("Community"),
+              searchTags: ["git", "url", "ryostore", "store", "install", "add"], description: I18n.tr("Install a community bar widget.") }
         ]);
     }
 
@@ -229,9 +229,9 @@ PanelWindow {
                 anchors { top: parent.top; left: parent.left; right: parent.right }
                 root: cc.root
                 tk: tk
-                title: cc.routeDef ? cc.routeDef.label : ""
+                title: cc.routeDef ? I18n.tr(cc.routeDef.label) : ""
                 gloss: cc.routeDef ? cc.routeDef.gloss : ""
-                desc: cc.routeDef ? cc.routeDef.desc : ""
+                desc: cc.routeDef ? I18n.tr(cc.routeDef.desc) : ""
                 index: Routes.indexOf(cc.route)
                 onClosed: cc.close()
             }

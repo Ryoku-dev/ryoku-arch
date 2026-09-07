@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 )
 
 const (
@@ -74,7 +75,7 @@ func readPolicy() policy {
 
 func writePolicy(p policy) error {
 	if !validMode(p.Mode) {
-		return fmt.Errorf("invalid security-key mode %q", p.Mode)
+		return fmt.Errorf(i18n.T("invalid security-key mode %q"), p.Mode)
 	}
 	path := policyPath()
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
@@ -94,7 +95,7 @@ func writePolicy(p policy) error {
 func parseMode(mode string) (string, error) {
 	mode = strings.ToLower(strings.TrimSpace(mode))
 	if !validMode(mode) {
-		return "", fmt.Errorf("expected mode %q or %q, got %q", ModeEither, ModeMFA, mode)
+		return "", fmt.Errorf(i18n.T("expected mode %q or %q, got %q"), ModeEither, ModeMFA, mode)
 	}
 	return mode, nil
 }

@@ -38,35 +38,35 @@ Grid {
     }
 
     SliderCell {
-        label: qsTr("Bar height")
+        label: I18n.tr("Bar height")
         key: "height"
         minimum: 32
         maximum: 56
         setting: root.config.height
     }
     SliderCell {
-        label: qsTr("Island opacity")
+        label: I18n.tr("Island opacity")
         key: "opacity"
         minimum: 0.45
         maximum: 1
         setting: root.config.opacity
     }
     SliderCell {
-        label: qsTr("Island padding")
+        label: I18n.tr("Island padding")
         key: "padding"
         minimum: 6
         maximum: 24
         setting: root.config.padding
     }
     SliderCell {
-        label: qsTr("Widget spacing")
+        label: I18n.tr("Widget spacing")
         key: "spacing"
         minimum: 2
         maximum: 18
         setting: root.config.spacing
     }
     SliderCell {
-        label: qsTr("Island gap")
+        label: I18n.tr("Island gap")
         key: "islandGap"
         minimum: 6
         maximum: 32
@@ -74,7 +74,7 @@ Grid {
     }
     SliderCell {
         objectName: "nacre-frame-size"
-        label: qsTr("Frame size")
+        label: I18n.tr("Frame size")
         key: "frameSize"
         minimum: 2
         maximum: 24
@@ -82,7 +82,7 @@ Grid {
     }
     SliderCell {
         objectName: "nacre-frame-roundness"
-        label: qsTr("Frame roundness")
+        label: I18n.tr("Frame roundness")
         key: "frameRoundness"
         minimum: 0
         maximum: 32
@@ -90,7 +90,7 @@ Grid {
     }
     SliderCell {
         objectName: "nacre-edge-melt"
-        label: qsTr("Edge melt")
+        label: I18n.tr("Edge melt")
         key: "edgeMelt"
         minimum: 1
         maximum: 32
@@ -98,7 +98,7 @@ Grid {
     }
     SliderCell {
         objectName: "nacre-island-size"
-        label: qsTr("Island size")
+        label: I18n.tr("Island size")
         key: "islandScale"
         minimum: 0.65
         maximum: 1.25
@@ -106,7 +106,7 @@ Grid {
     }
     SliderCell {
         objectName: "nacre-osd-size"
-        label: qsTr("OSD / popup size")
+        label: I18n.tr("OSD / popup size")
         key: "osdScale"
         minimum: 0.65
         maximum: 1.25
@@ -116,8 +116,8 @@ Grid {
         width: (root.width - Tokens.s2) / 2
         height: implicitHeight
         controlWidth: 54
-        label: qsTr("Desktop frame")
-        value: root.config.frame ? qsTr("ON") : qsTr("OFF")
+        label: I18n.tr("Desktop frame")
+        value: root.config.frame ? I18n.tr("ON") : I18n.tr("OFF")
         source: "shell.json"
 
         Sw {
@@ -132,8 +132,8 @@ Grid {
         width: (root.width - Tokens.s2) / 2
         height: implicitHeight
         controlWidth: 54
-        label: qsTr("Occupied workspaces")
-        value: root.config.occupiedWorkspaces ? qsTr("ON") : qsTr("OFF")
+        label: I18n.tr("Occupied workspaces")
+        value: root.config.occupiedWorkspaces ? I18n.tr("ON") : I18n.tr("OFF")
         source: "shell.json"
 
         Sw {
@@ -148,8 +148,8 @@ Grid {
         width: (root.width - Tokens.s2) / 2
         height: implicitHeight
         controlWidth: 174
-        label: qsTr("Workspace style")
-        value: root.config.workspaceStyle.toUpperCase()
+        label: I18n.tr("Workspace style")
+        value: I18n.tr(root.config.workspaceStyle.toUpperCase())
         source: "shell.json"
 
         Seg {

@@ -13,6 +13,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	i18n "ryoku-i18n"
 )
 
 // shellInstance is one live Quickshell process that renders a Ryoku config.
@@ -28,16 +30,16 @@ const shellUnit = "ryoku-shell.service"
 func reconcileShellInstances(checkOnly bool) recResult {
 	found := liveShellInstances()
 	if len(found) < 2 {
-		return okRes("one desktop instance is running")
+		return okRes(i18n.T("one desktop instance is running"))
 	}
 
 	keep, strays := pickLiveShell(found, userUnitMainPID(shellUnit), daemonPids())
 	if len(strays) == 0 {
-		return okRes("one desktop instance is running")
+		return okRes(i18n.T("one desktop instance is running"))
 	}
 	if checkOnly {
-		return wouldRes("%d duplicate desktop instance(s) are running beside the live one (pid %d)", len(strays), keep).
-			withFix("ryoku doctor stops the duplicates; the desktop you are using stays up")
+		return wouldRes(i18n.T("%d duplicate desktop instance(s) are running beside the live one (pid %d)"), len(strays), keep).
+			withFix(i18n.T("ryoku doctor stops the duplicates; the desktop you are using stays up"))
 	}
 
 	pids := make([]int, 0, len(strays))
@@ -46,10 +48,10 @@ func reconcileShellInstances(checkOnly bool) recResult {
 	}
 	killShellInstances(pids)
 	if left := livePids(pids); len(left) > 0 {
-		return failRes("could not stop duplicate desktop instance(s) %v", left).
-			withFix("log out and back in; a wedged Quickshell cannot be signalled away")
+		return failRes(i18n.T("could not stop duplicate desktop instance(s) %v"), left).
+			withFix(i18n.T("log out and back in; a wedged Quickshell cannot be signalled away"))
 	}
-	return fixedRes("stopped %d duplicate desktop instance(s); pid %d keeps the desktop", len(pids), keep)
+	return fixedRes(i18n.T("stopped %d duplicate desktop instance(s); pid %d keeps the desktop"), len(pids), keep)
 }
 
 // liveShellInstances lists the running Quickshell processes that render a Ryoku

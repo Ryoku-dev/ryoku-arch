@@ -416,7 +416,7 @@ PillSurface {
                         width: evRow.hasRange ? 72 * root.s : 36 * root.s
                         text: evRow.modelData.time && evRow.modelData.time.length > 0
                             ? (evRow.hasRange ? evRow.modelData.time + "-" + evRow.modelData.endTime : evRow.modelData.time)
-                            : "all"
+                            : I18n.tr("all")
                         color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
                         font.family: Theme.fontPrimary
                         font.pixelSize: 10 * root.s
@@ -498,7 +498,7 @@ PillSurface {
                         color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurface)
                         font.family: Theme.fontPrimary
                         font.pixelSize: 11 * root.s
-                        placeholderText: "Add for this day (e.g. 09:30 standup)"
+                        placeholderText: I18n.tr("Add for this day (e.g. 09:30 standup)")
                         placeholderTextColor: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
                         selectByMouse: true
                         selectionColor: Theme.primary

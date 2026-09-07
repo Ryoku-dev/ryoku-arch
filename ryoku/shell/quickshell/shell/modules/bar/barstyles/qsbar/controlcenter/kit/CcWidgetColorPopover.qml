@@ -52,7 +52,7 @@ Item {
                     Behavior on color { ColorAnimation { duration: pop.tk ? Tokens.snap : 90 } }
                     UiText {
                         anchors.centerIn: parent
-                        text: modelData.label
+                        text: I18n.tr(modelData.label)
                         color: parent.sel ? (pop.tk ? Tokens.inkOnBone : "#000000") : (pop.tk ? Tokens.ink : "#cdc4ba")
                         font.family: pop.tk ? Tokens.mono : "monospace"
                         font.pixelSize: pop.tk ? Tokens.fSmall : 13
@@ -103,7 +103,7 @@ Item {
                     Behavior on color { ColorAnimation { duration: pop.tk ? Tokens.snap : 90 } }
                     UiText {
                         anchors.centerIn: parent
-                        text: modelData.label
+                        text: I18n.tr(modelData.label)
                         color: parent.sel ? (pop.tk ? Tokens.inkOnBone : "#000000") : (pop.tk ? Tokens.ink : "#cdc4ba")
                         font.family: pop.tk ? Tokens.mono : "monospace"
                         font.pixelSize: pop.tk ? Tokens.fSmall : 13
@@ -166,7 +166,7 @@ Item {
                         anchors.centerIn: parent
                         text: parent.labelled
                             ? (modelData === "inherit" ? I18n.tr("Auto") : I18n.tr("Fill"))
-                            : (modelData === "foreground" ? I18n.tr("F") : modelData.slice(-1))
+                            : (modelData === "foreground" ? "F" : modelData.slice(-1))
                         color: parent.labelled
                             ? (parent.selected ? (pop.tk ? Tokens.inkOnBone : "#000000") : (pop.tk ? Tokens.ink : "#cdc4ba"))
                             : pop.root.paletteContrastColor(modelData)
@@ -222,7 +222,7 @@ Item {
                 UiText {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    text: pop.label.toUpperCase() + I18n.tr(" APPEARANCE")
+                    text: I18n.tr("%1 APPEARANCE").arg(pop.label.toUpperCase())
                     color: pop.tk ? Tokens.inkMuted : "#958f87"
                     font.family: pop.tk ? Tokens.mono : "monospace"
                     font.pixelSize: pop.tk ? Tokens.fMicro : 11
@@ -274,7 +274,7 @@ Item {
                         Behavior on scale { NumberAnimation { duration: pop.tk ? Tokens.snap : 90; easing.type: Easing.OutCubic } }
                         UiText {
                             anchors.centerIn: parent
-                            text: modelData === "foreground" ? I18n.tr("F") : modelData.slice(-1)
+                            text: modelData === "foreground" ? "F" : modelData.slice(-1)
                             color: pop.root.paletteContrastColor(modelData)
                             font.family: pop.tk ? Tokens.mono : "monospace"
                             font.pixelSize: pop.tk ? Tokens.fTiny : 9
@@ -339,7 +339,7 @@ Item {
                 visible: pop.root.widgetHasFill(pop.gid)
                 Repeater {
                     model: [
-                        { id: "auto",       label: "Auto" },
+                        { id: "auto",       label: I18n.tr("Auto") },
                         { id: "background", label: "BG" },
                         { id: "foreground", label: "FG" }
                     ]
@@ -375,17 +375,17 @@ Item {
 
             Rectangle { width: parent.width; height: 1; color: pop.tk ? Tokens.line : "#333333" }
             GeomRow {
-                glabel: "OPACITY"
+                glabel: I18n.tr("OPACITY")
                 gkey: "opacity"
                 opts: [{ v: 1, label: "100" }, { v: 0.85, label: "85" }, { v: 0.7, label: "70" }, { v: 0.5, label: "50" }]
             }
             GeomRow {
-                glabel: "CORNERS"
+                glabel: I18n.tr("CORNERS")
                 gkey: "radius"
                 opts: [{ v: 0, label: "0" }, { v: 4, label: "4" }, { v: 8, label: "8" }, { v: 12, label: "12" }]
             }
             GeomRow {
-                glabel: "PADDING"
+                glabel: I18n.tr("PADDING")
                 gkey: "pad"
                 opts: [{ v: 0, label: "0" }, { v: 2, label: "2" }, { v: 4, label: "4" }, { v: 6, label: "6" }]
             }

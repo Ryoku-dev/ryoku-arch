@@ -142,7 +142,7 @@ Item {
             }
             UiText {
                 anchors.verticalCenter: parent.verticalCenter
-                text: "QS BAR SETTINGS"
+                text: I18n.tr("QS BAR SETTINGS")
                 color: Tokens.inkFaint
                 font.family: Tokens.mono
                 font.pixelSize: Tokens.fTiny
@@ -238,7 +238,7 @@ Item {
                     anchors.right: parent.right
                     anchors.rightMargin: rail.tk.gap / 2
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "CTRL K"
+                    text: I18n.tr("CTRL K")
                     us: 0.5
                     dark: !Tokens.light
                 }

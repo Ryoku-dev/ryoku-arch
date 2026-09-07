@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: discrete GPU idle drain -------------------------------------
@@ -350,18 +352,24 @@ func rtd3Off(v string) bool {
 // dgpuMuxFix is the one remedy: route the panel through the iGPU by switching the
 // hardware MUX to hybrid, then reboot. Report-only, because it changes display
 // routing and needs a reboot -- doctor must never apply it under the user's feet.
-const dgpuMuxFix = "switch the hardware MUX to hybrid so the panel routes through the iGPU and the dGPU can runtime-suspend: `ryoku-gpu-mux set hybrid`, then reboot. This is a display-routing change that needs a reboot, so doctor never applies it automatically."
+func dgpuMuxFix() string {
+	return i18n.T("switch the hardware MUX to hybrid so the panel routes through the iGPU and the dGPU can runtime-suspend: `ryoku-gpu-mux set hybrid`, then reboot. This is a display-routing change that needs a reboot, so doctor never applies it automatically.")
+}
 
 // dgpuRtd3OffFix applies when the driver itself reports runtime D3 off. Then no
 // amount of closing applications will help: the feature is switched off.
-const dgpuRtd3OffFix = "the NVIDIA driver reports runtime D3 power management off for this card, so it can never power down. Enable fine-grained control with `NVreg_DynamicPowerManagement=0x02` in a /etc/modprobe.d/nvidia.conf `options nvidia` line, rebuild the initramfs (`sudo mkinitcpio -P`), and reboot."
+func dgpuRtd3OffFix() string {
+	return i18n.T("the NVIDIA driver reports runtime D3 power management off for this card, so it can never power down. Enable fine-grained control with `NVreg_DynamicPowerManagement=0x02` in a /etc/modprobe.d/nvidia.conf `options nvidia` line, rebuild the initramfs (`sudo mkinitcpio -P`), and reboot.")
+}
 
 // dgpuHeldFix applies when the driver says runtime D3 is on yet the card has still
 // never slept. NVIDIA documents the blockers as driving a display or a running
 // CUDA application -- NOT merely having the device open, which fine-grained mode
 // tolerates by tracking real usage. So the listed holders are leads to check, not
 // a verdict, and this must not tell the user to go kill their compositor.
-const dgpuHeldFix = "runtime D3 is enabled yet the card has never slept, so something is genuinely keeping it busy. NVIDIA documents the blockers as driving a display or a running CUDA application: check for an attached external display on the dGPU and for a CUDA/compute process. The processes listed are the ones with the card open, which is a lead rather than proof, since fine-grained mode tolerates an idle open device."
+func dgpuHeldFix() string {
+	return i18n.T("runtime D3 is enabled yet the card has never slept, so something is genuinely keeping it busy. NVIDIA documents the blockers as driving a display or a running CUDA application: check for an attached external display on the dGPU and for a CUDA/compute process. The processes listed are the ones with the card open, which is a lead rather than proof, since fine-grained mode tolerates an idle open device.")
+}
 
 // planDgpuPanel turns observed state into a result. pure, so every branch is
 // unit-testable without hardware. The draw is quoted only when it was actually
@@ -369,46 +377,46 @@ const dgpuHeldFix = "runtime D3 is enabled yet the card has never slept, so some
 // a fabricated wattage.
 func planDgpuPanel(s dgpuState) recResult {
 	if !s.laptop {
-		return okRes("desktop: no internal panel a discrete GPU could pin awake")
+		return okRes(i18n.T("desktop: no internal panel a discrete GPU could pin awake"))
 	}
 	if !s.present {
-		return okRes("single-GPU laptop: no discrete GPU to idle")
+		return okRes(i18n.T("single-GPU laptop: no discrete GPU to idle"))
 	}
 	if !s.panelOnDgpu {
 		if dgpuCanSuspend(s.status, s.suspended) {
-			return okRes("the internal panel is driven by the integrated GPU and the discrete GPU can runtime-suspend")
+			return okRes(i18n.T("the internal panel is driven by the integrated GPU and the discrete GPU can runtime-suspend"))
 		}
 		// The MUX is already right, so the panel is not what pins the card. Left
 		// unreported, a box that switched the MUX and gained nothing would look
 		// clean while still paying the full idle draw.
 		draw := ""
 		if s.watts >= 0 {
-			draw = fmt.Sprintf(" and is drawing %.1f W", s.watts)
+			draw = fmt.Sprintf(i18n.T(" and is drawing %.1f W"), s.watts)
 		}
 		if rtd3Off(s.rtd3) {
-			return noteRes("the discrete GPU does not drive the panel yet has never runtime-suspended%s: the driver reports runtime D3 %q", draw, s.rtd3).
-				withFix(dgpuRtd3OffFix)
+			return noteRes(i18n.T("the discrete GPU does not drive the panel yet has never runtime-suspended%s: the driver reports runtime D3 %q"), draw, s.rtd3).
+				withFix(dgpuRtd3OffFix())
 		}
 		held := ""
 		if len(s.holders) > 0 {
-			held = ", with the card open in " + strings.Join(s.holders, ", ")
+			held = i18n.Tf(", with the card open in %s", strings.Join(s.holders, ", "))
 		}
-		return noteRes("the discrete GPU does not drive the panel yet has never runtime-suspended%s%s", draw, held).
-			withFix(dgpuHeldFix)
+		return noteRes(i18n.T("the discrete GPU does not drive the panel yet has never runtime-suspended%s%s"), draw, held).
+			withFix(dgpuHeldFix())
 	}
 	if dgpuCanSuspend(s.status, s.suspended) {
-		return okRes("the discrete GPU drives the panel but can still runtime-suspend, so it is not pinned awake")
+		return okRes(i18n.T("the discrete GPU drives the panel but can still runtime-suspend, so it is not pinned awake"))
 	}
 	slot := ""
 	if s.slot != "" {
 		slot = " (" + s.slot + ")"
 	}
 	if s.watts >= 0 {
-		return noteRes("the internal panel is wired to the discrete GPU%s, so it can never runtime-suspend and is drawing %.1f W, running hot at idle instead of powering down", slot, s.watts).
-			withFix(dgpuMuxFix)
+		return noteRes(i18n.T("the internal panel is wired to the discrete GPU%s, so it can never runtime-suspend and is drawing %.1f W, running hot at idle instead of powering down"), slot, s.watts).
+			withFix(dgpuMuxFix())
 	}
-	return noteRes("the internal panel is wired to the discrete GPU%s, so it can never runtime-suspend and stays awake burning power and running hot at idle instead of powering down", slot).
-		withFix(dgpuMuxFix)
+	return noteRes(i18n.T("the internal panel is wired to the discrete GPU%s, so it can never runtime-suspend and stays awake burning power and running hot at idle instead of powering down"), slot).
+		withFix(dgpuMuxFix())
 }
 
 func reconcileDgpuPanel(_ bool) recResult {

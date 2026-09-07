@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Shapes
+import Ryoku.Ui.Singletons
 
 /**
  * A plain-QML preview of the desktop music sheet for the Desktop Widgets
@@ -82,11 +83,11 @@ Item {
         clip: true
 
         property var rows: [
-            { t: "I've been on my own", a: false },
-            { t: "for long enough, maybe", a: false },
-            { t: "You can turn me on", a: true },
-            { t: "with just a touch, baby", a: false },
-            { t: "I look around and", a: false }
+            { t: I18n.tr("I've been on my own"), a: false },
+            { t: I18n.tr("for long enough, maybe"), a: false },
+            { t: I18n.tr("You can turn me on"), a: true },
+            { t: I18n.tr("with just a touch, baby"), a: false },
+            { t: I18n.tr("I look around and"), a: false }
         ]
 
         Repeater {
@@ -167,14 +168,14 @@ Item {
         y: cover.y + cover.height + 10
         spacing: 1
         Text {
-            text: "Blinding Lights"
+            text: I18n.tr("Blinding Lights")
             color: preview.ink
             font.family: "Fraunces"
             font.pixelSize: 18
             font.weight: Font.DemiBold
         }
         Text {
-            text: "The Weeknd"
+            text: I18n.tr("The Weeknd")
             color: preview.dim
             font.family: "Space Grotesk"
             font.pixelSize: 12

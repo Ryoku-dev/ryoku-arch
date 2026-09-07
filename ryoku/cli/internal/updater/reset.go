@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 	"strings"
 )
 
@@ -32,14 +33,14 @@ func Reset(args []string) error {
 
 	edits := sys.UserEditsDir()
 	if _, err := os.Stat(edits); err != nil {
-		fmt.Println("no user edits to reset")
+		fmt.Println(i18n.T("no user edits to reset"))
 		return nil
 	}
 
 	var targets []string
 	if len(paths) == 0 {
-		if !yes && !confirmReset(fmt.Sprintf("Reset ALL user edits under %s to Ryoku defaults?", edits)) {
-			fmt.Println("cancelled")
+		if !yes && !confirmReset(fmt.Sprintf(i18n.T("Reset ALL user edits under %s to Ryoku defaults?"), edits)) {
+			fmt.Println(i18n.T("cancelled"))
 			return nil
 		}
 		rels, err := sys.UserEditFiles()
@@ -62,11 +63,11 @@ func Reset(args []string) error {
 	for _, rel := range targets {
 		p := filepath.Join(edits, rel)
 		if !sys.Exists(p) {
-			fmt.Printf("  not overridden: %s\n", rel)
+			fmt.Printf(i18n.T("  not overridden: %s\n"), rel)
 			continue
 		}
 		if err := os.Remove(p); err != nil {
-			return fmt.Errorf("reset %s: %w", rel, err)
+			return fmt.Errorf(i18n.T("reset %s: %w"), rel, err)
 		}
 		pruneEmptyParents(edits, filepath.Dir(rel))
 		// on a packaged box, clear the live copy so the re-materialize restores the
@@ -75,7 +76,7 @@ func Reset(args []string) error {
 			_ = os.Remove(filepath.Join(sys.ConfigHome(), rel))
 		}
 		removed++
-		fmt.Printf("  reset %s\n", rel)
+		fmt.Printf(i18n.T("  reset %s\n"), rel)
 	}
 	if removed == 0 {
 		return nil
@@ -85,15 +86,15 @@ func Reset(args []string) error {
 		if err := Materialize(); err != nil {
 			return err
 		}
-		fmt.Println("reverted; run `ryoku reload` to apply it to the running session")
+		fmt.Println(i18n.T("reverted; run `ryoku reload` to apply it to the running session"))
 		return nil
 	}
-	fmt.Println("run `ryoku deploy` (dev) or `ryoku materialize` to re-lay the base")
+	fmt.Println(i18n.T("run `ryoku deploy` (dev) or `ryoku materialize` to re-lay the base"))
 	return nil
 }
 
 func confirmReset(prompt string) bool {
-	fmt.Printf("%s [y/N] ", prompt)
+	fmt.Printf(i18n.T("%s [y/N] "), prompt)
 	line, _ := bufio.NewReader(os.Stdin).ReadString('\n')
 	line = strings.TrimSpace(strings.ToLower(line))
 	return line == "y" || line == "yes"

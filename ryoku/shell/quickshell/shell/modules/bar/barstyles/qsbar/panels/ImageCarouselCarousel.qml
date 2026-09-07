@@ -238,7 +238,7 @@ PanelWindow {
     }
 
     function currentLabel() {
-        if (imageArray.length === 0 || !Model.itemMatches(imageArray, selectedIndex, filterText)) return filterText ? "No matches" : ""
+        if (imageArray.length === 0 || !Model.itemMatches(imageArray, selectedIndex, filterText)) return filterText ? I18n.tr("No matches") : ""
         return Model.labelForPath(imageArray[selectedIndex].filePath)
     }
 
@@ -509,7 +509,7 @@ PanelWindow {
         visible: root.imagePickerVisible && panel.active && panel.ready && Model.matchCount(panel.imageArray, panel.filterText) === 0
         anchors.centerIn: parent
         horizontalAlignment: Text.AlignHCenter
-        text: I18n.tr("No matches: ") + panel.filterText + I18n.tr("\n\nBackspace to edit, or Esc to clear")
+        text: I18n.tr("No matches: %1").arg(panel.filterText) + I18n.tr("\n\nBackspace to edit, or Esc to clear")
         color: root.ink
         font.family: root.mono; font.pixelSize: 16; font.letterSpacing: 1
     }

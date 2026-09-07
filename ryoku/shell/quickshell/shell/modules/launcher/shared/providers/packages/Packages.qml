@@ -149,11 +149,11 @@ Provider {
     }
 
     function rowFor(pkg, op) {
-        var verb = op === "remove" ? "Remove" : (pkg.installed ? "Reinstall" : "Install");
+        var verb = op === "remove" ? I18n.tr("Remove") : (pkg.installed ? I18n.tr("Reinstall") : I18n.tr("Install"));
         return {
             id: "pkg:" + pkg.source + ":" + pkg.name,
             title: pkg.name + "  " + pkg.version,
-            subtitle: pkg.source + (pkg.installed ? "  (installed)" : "") + "  " + pkg.description,
+            subtitle: pkg.source + (pkg.installed ? "  " + I18n.tr("(installed)") : "") + "  " + pkg.description,
             icon: "",
             type: "Package",
             score: 0,

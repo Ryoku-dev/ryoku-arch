@@ -1,6 +1,10 @@
 package keyring
 
-import "fmt"
+import (
+	"fmt"
+
+	i18n "ryoku-i18n"
+)
 
 // Drift is what a convergence pass found: the safe user-side changes it made
 // (or would make in check-only), and the things it must not touch on its own --
@@ -28,11 +32,11 @@ func Reconcile(checkOnly bool) Drift {
 	// updates. Once written, later passes see it as configured and no-op.
 	if st.ModeSource == "inferred" {
 		if checkOnly {
-			d.Fixes = append(d.Fixes, fmt.Sprintf("record the inferred mode (%s) in keyring.json", st.Mode))
+			d.Fixes = append(d.Fixes, fmt.Sprintf(i18n.T("record the inferred mode (%s) in keyring.json"), st.Mode))
 		} else if err := writeConfig(st.Mode); err == nil {
-			d.Fixes = append(d.Fixes, fmt.Sprintf("recorded the inferred mode (%s) in keyring.json", st.Mode))
+			d.Fixes = append(d.Fixes, fmt.Sprintf(i18n.T("recorded the inferred mode (%s) in keyring.json"), st.Mode))
 		} else {
-			d.Warnings = append(d.Warnings, fmt.Sprintf("could not record the keyring mode: %v", err))
+			d.Warnings = append(d.Warnings, fmt.Sprintf(i18n.T("could not record the keyring mode: %v"), err))
 		}
 	}
 
@@ -41,11 +45,11 @@ func Reconcile(checkOnly bool) Drift {
 	// file write.
 	if st.Mode == ModeUnlockOnLogin && defaultKeyringName() != "login" {
 		if checkOnly {
-			d.Fixes = append(d.Fixes, "point the default keyring at login")
+			d.Fixes = append(d.Fixes, i18n.T("point the default keyring at login"))
 		} else if _, changed, err := pointDefaultAt("login"); err != nil {
-			d.Warnings = append(d.Warnings, fmt.Sprintf("could not point the default keyring at login: %v", err))
+			d.Warnings = append(d.Warnings, fmt.Sprintf(i18n.T("could not point the default keyring at login: %v"), err))
 		} else if changed {
-			d.Fixes = append(d.Fixes, "pointed the default keyring at login")
+			d.Fixes = append(d.Fixes, i18n.T("pointed the default keyring at login"))
 		}
 	}
 
@@ -53,18 +57,18 @@ func Reconcile(checkOnly bool) Drift {
 	// the exact privileged command.
 	wantPAM := st.Mode == ModeUnlockOnLogin
 	if st.PamPresent != wantPAM {
-		verb := "still carries"
+		verb := i18n.T("still carries")
 		if wantPAM {
-			verb = "does not carry"
+			verb = i18n.T("does not carry")
 		}
-		d.Warnings = append(d.Warnings, fmt.Sprintf("the SDDM PAM stack %s pam_gnome_keyring but mode is %s", verb, st.Mode))
+		d.Warnings = append(d.Warnings, fmt.Sprintf(i18n.T("the SDDM PAM stack %s pam_gnome_keyring but mode is %s"), verb, st.Mode))
 		d.Remedy = fmt.Sprintf("sudo ryoku keyring apply-pam %s", st.Mode)
 	}
 
 	// autologin + unlock-on-login cannot work: there is no login password for
 	// PAM to reuse under autologin.
 	if st.Autologin && st.Mode == ModeUnlockOnLogin {
-		d.Warnings = append(d.Warnings, "autologin is configured but mode is unlock-on-login, which has no login password to reuse; switch to never-ask")
+		d.Warnings = append(d.Warnings, i18n.T("autologin is configured but mode is unlock-on-login, which has no login password to reuse; switch to never-ask"))
 		if d.Remedy == "" {
 			d.Remedy = "ryoku keyring set never-ask"
 		}
@@ -75,7 +79,7 @@ func Reconcile(checkOnly bool) Drift {
 	if st.Mode == ModeNeverAsk {
 		for _, k := range st.Keyrings {
 			if k.Role == "default" && k.Format == fmtEncrypted {
-				d.Warnings = append(d.Warnings, fmt.Sprintf("the %q keyring is still password-protected but mode is never-ask; convert or reset it", k.Name))
+				d.Warnings = append(d.Warnings, fmt.Sprintf(i18n.T("the %q keyring is still password-protected but mode is never-ask; convert or reset it"), k.Name))
 				if d.Remedy == "" {
 					d.Remedy = "ryoku keyring set never-ask --convert  (or --reset to start fresh)"
 				}

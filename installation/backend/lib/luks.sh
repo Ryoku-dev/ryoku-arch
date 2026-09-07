@@ -8,7 +8,7 @@
 ryoku_luks() {
   if [[ ${RYOKU_ENCRYPT:-} != 1 ]]; then
     ROOT_DEV=$ROOT_PART
-    log "encryption: off (root on $ROOT_DEV)"
+    log 'encryption: off (root on %s)' "$ROOT_DEV"
     return 0
   fi
   [[ -n ${RYOKU_LUKS_PASSPHRASE:-} ]] || die "RYOKU_ENCRYPT=1 but RYOKU_LUKS_PASSPHRASE is unset"
@@ -18,11 +18,11 @@ ryoku_luks() {
   # something dangerous, so refuse. better to abort than to luksFormat a
   # Windows partition or the ESP.
   [[ -n ${ROOT_PART:-} ]] || die "LUKS: ROOT_PART is unset; refusing to format."
-  [[ $ROOT_PART != "${RYOKU_DISK:-}" ]] || die "LUKS: refusing to format whole disk ($ROOT_PART); ROOT_PART must be a partition."
-  [[ $ROOT_PART != "${ESP_DEV:-}" ]] || die "LUKS: refusing to format ESP ($ROOT_PART); ROOT_PART must be the new root partition."
+  [[ $ROOT_PART != "${RYOKU_DISK:-}" ]] || die 'LUKS: refusing to format whole disk (%s); ROOT_PART must be a partition.' "$ROOT_PART"
+  [[ $ROOT_PART != "${ESP_DEV:-}" ]] || die 'LUKS: refusing to format ESP (%s); ROOT_PART must be the new root partition.' "$ROOT_PART"
 
   LUKS_PART=$ROOT_PART
-  log "encryption: LUKS2 on $LUKS_PART -> /dev/mapper/root"
+  log 'encryption: LUKS2 on %s -> /dev/mapper/root' "$LUKS_PART"
 
   # free a /dev/mapper/root a prior run left open, else the open below aborts
   # with "Device root already exists".

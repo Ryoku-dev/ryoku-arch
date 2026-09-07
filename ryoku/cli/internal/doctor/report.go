@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- diagnostic report -------------------------------------------------------
@@ -53,10 +55,10 @@ func gatherReport(findings []finding) string {
 		line("%s", captureOut(name, args...))
 	}
 
-	line("Ryoku diagnostic report")
+	line(i18n.T("Ryoku diagnostic report"))
 	line("generated: %s", time.Now().Format(time.RFC3339))
-	line("Safe to share with the Ryoku maintainers: system state and recent error")
-	line("logs only, no passwords or keys. Open an issue: %s", ryokuIssuesURL)
+	line(i18n.T("Safe to share with the Ryoku maintainers: system state and recent error"))
+	line(i18n.T("logs only, no passwords or keys. Open an issue: %s"), ryokuIssuesURL)
 	line(strings.Repeat("=", 70))
 
 	section("doctor findings")
@@ -141,7 +143,7 @@ func gatherReport(findings []finding) string {
 func Debug(args []string) error {
 	for _, a := range args {
 		if a == "-h" || a == "--help" {
-			fmt.Println("Usage: ryoku debug   # print a shareable diagnostic bundle for bug reports")
+			fmt.Println(i18n.T("Usage: ryoku debug   # print a shareable diagnostic bundle for bug reports"))
 			return nil
 		}
 	}

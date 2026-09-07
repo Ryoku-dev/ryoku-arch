@@ -1,5 +1,6 @@
 import QtQuick
 import "../Singletons"
+import Ryoku.Ui.Singletons
 
 Item {
     id: root
@@ -47,7 +48,7 @@ Item {
         anchors.bottomMargin: 6 * root.s
         text: root.hasDetails
             ? [root.holidayText, root.eventText].filter(function(value) { return value.length > 0; }).join("   //   ")
-            : qsTr("No holidays or events")
+            : I18n.tr("No holidays or events")
         color: root.hasDetails ? root.ink : root.faint
         elide: Text.ElideRight
         font.family: Theme.font

@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 Singleton {
     id: root
@@ -140,7 +141,7 @@ Singleton {
         onExited: code => {
             root.loading = false;
             if (code !== 0) {
-                root.error = root._catalogError.trim() || "Catalogue failed";
+                root.error = root._catalogError.trim() || I18n.tr("Catalogue failed");
                 if (root._clearBusyAfterRefresh) {
                     root._clearBusyAfterRefresh = false;
                     root.busyKey = "";
@@ -169,7 +170,7 @@ Singleton {
                     root.busyKey = "";
                 }
             } catch (e) {
-                root.error = "Invalid catalogue: " + e;
+                root.error = I18n.tr("Invalid catalogue: %1").arg(e);
                 if (root._clearBusyAfterRefresh) {
                     root._clearBusyAfterRefresh = false;
                     root.busyKey = "";
@@ -186,7 +187,7 @@ Singleton {
         onExited: code => {
             if (code !== 0) {
                 root.installStage = "FAILED";
-                root.installError = root._installError.trim() || "Installation failed";
+                root.installError = root._installError.trim() || I18n.tr("Installation failed");
                 root.installErrorKey = root.busyKey;
                 root.busyKey = "";
                 root._queue = [];

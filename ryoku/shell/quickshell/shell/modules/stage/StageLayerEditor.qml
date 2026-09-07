@@ -1,6 +1,7 @@
 import QtQuick
 import shell.services
 import "Singletons"
+import Ryoku.Ui.Singletons
 
 // The per-layer knob panel under Scene (docs/stage.md): a collapsible header
 // (with an eye to enable/disable the layer) over the depth, parallax, look and
@@ -64,21 +65,21 @@ Item {
                 }
             }
 
-            StageSection { title: "Depth" }
+            StageSection { title: I18n.tr("Depth") }
             StageDragSlider {
-                title: "Feather"
+                title: I18n.tr("Feather")
                 value: StageBackend.layerFeather(ed.wallPath, ed.slot, Config.feather)
                 min: 0; max: 1; decimals: 2
                 onChanged: v => StageBackend.setLayer(ed.slot, { feather: Math.max(0, Math.min(1, v)) })
             }
             StageDragSlider {
-                title: "Lift"
+                title: I18n.tr("Lift")
                 value: StageBackend.layerLift(ed.wallPath, ed.slot, Config.lift)
                 min: 0; max: 1; decimals: 2
                 onChanged: v => StageBackend.setLayer(ed.slot, { lift: Math.max(0, Math.min(1, v)) })
             }
             StageDragSlider {
-                title: "Shadow strength"
+                title: I18n.tr("Shadow strength")
                 value: StageBackend.layerShadow(ed.wallPath, ed.slot, Config.shadow)
                 min: 0; max: 1; decimals: 2
                 onChanged: v => StageBackend.setLayer(ed.slot, { shadow: Math.max(0, Math.min(1, v)) })
@@ -95,14 +96,14 @@ Item {
                     width: parent.width - 84 - 12
                     spacing: 2
                     Text {
-                        text: "Shadow angle"
+                        text: I18n.tr("Shadow angle")
                         color: Theme.onSurface
                         font.family: Theme.fontPrimary
                         font.pixelSize: Theme.fontSm - 1
                         font.weight: Font.DemiBold
                     }
                     Text {
-                        text: StageBackend.layerShadowAngle(ed.wallPath, ed.slot, Config.shadowAngle) + "\u00B0 - Drag the dot to set where the shadow falls."
+                        text: I18n.tr("%1\u00B0 - Drag the dot to set where the shadow falls.").arg(StageBackend.layerShadowAngle(ed.wallPath, ed.slot, Config.shadowAngle))
                         wrapMode: Text.WordWrap
                         color: Theme.onSurfaceVariant
                         font.family: Theme.fontPrimary
@@ -112,76 +113,76 @@ Item {
                 }
             }
 
-            StageSection { title: "Parallax" }
+            StageSection { title: I18n.tr("Parallax") }
             StageDragSlider {
-                title: "Parallax speed"
+                title: I18n.tr("Parallax speed")
                 value: StageBackend.layerParallax(ed.wallPath, ed.slot)
                 min: 0; max: 2; decimals: 1
                 onChanged: v => StageBackend.setLayer(ed.slot, { parallax: Math.max(0, Math.min(2, v)) })
             }
             StageDragSlider {
-                title: "Depth factor"
+                title: I18n.tr("Depth factor")
                 value: StageBackend.layerDepthFactor(ed.wallPath, ed.slot)
                 min: 0; max: 1; decimals: 2
                 onChanged: v => StageBackend.setLayer(ed.slot, { depthFactor: Math.max(0, Math.min(1, v)) })
             }
             StageDragSlider {
-                title: "Max drift"
+                title: I18n.tr("Max drift")
                 value: StageBackend.layerMouseMax(ed.wallPath, ed.slot)
                 min: 0; max: 96; decimals: 0; unit: " px"
                 onChanged: v => StageBackend.setLayer(ed.slot, { mouseMax: Math.max(0, Math.min(96, Math.round(v))) })
             }
 
-            StageSection { title: "Look" }
+            StageSection { title: I18n.tr("Look") }
             StageDragSlider {
-                title: "Opacity"
+                title: I18n.tr("Opacity")
                 value: StageBackend.layerOpacity(ed.wallPath, ed.slot)
                 min: 0; max: 1; decimals: 2
                 onChanged: v => StageBackend.setLayer(ed.slot, { opacity: Math.max(0, Math.min(1, v)) })
             }
             StageDragSlider {
-                title: "Offset X"
+                title: I18n.tr("Offset X")
                 value: StageBackend.layerOffsetX(ed.wallPath, ed.slot)
                 min: -400; max: 400; decimals: 0; unit: " px"
                 onChanged: v => StageBackend.setLayer(ed.slot, { offsetX: Math.round(v) })
             }
             StageDragSlider {
-                title: "Offset Y"
+                title: I18n.tr("Offset Y")
                 value: StageBackend.layerOffsetY(ed.wallPath, ed.slot)
                 min: -400; max: 400; decimals: 0; unit: " px"
                 onChanged: v => StageBackend.setLayer(ed.slot, { offsetY: Math.round(v) })
             }
 
-            StageSection { title: "Motion" }
+            StageSection { title: I18n.tr("Motion") }
             StageField {
-                title: "Animation"
+                title: I18n.tr("Animation")
                 choices: [
-                    { id: "none", label: "None" },
-                    { id: "float", label: "Float" },
-                    { id: "pulse", label: "Pulse" },
-                    { id: "scale", label: "Scale" },
-                    { id: "wiggle", label: "Wiggle" },
-                    { id: "rotate", label: "Rotate" }
+                    { id: "none", label: I18n.tr("None") },
+                    { id: "float", label: I18n.tr("Float") },
+                    { id: "pulse", label: I18n.tr("Pulse") },
+                    { id: "scale", label: I18n.tr("Scale") },
+                    { id: "wiggle", label: I18n.tr("Wiggle") },
+                    { id: "rotate", label: I18n.tr("Rotate") }
                 ]
                 current: StageBackend.layerAnimType(ed.wallPath, ed.slot)
                 onChose: id => StageBackend.setLayer(ed.slot, { animType: id })
             }
             StageDragSlider {
-                title: "Animation speed"
+                title: I18n.tr("Animation speed")
                 value: StageBackend.layerAnimSpeed(ed.wallPath, ed.slot)
                 min: 0.1; max: 3; decimals: 1
                 visible: StageBackend.layerAnimType(ed.wallPath, ed.slot) !== "none"
                 onChanged: v => StageBackend.setLayer(ed.slot, { animSpeed: Math.max(0.1, Math.min(3, v)) })
             }
             StageDragSlider {
-                title: "Animation amplitude"
+                title: I18n.tr("Animation amplitude")
                 value: StageBackend.layerAnimAmplitude(ed.wallPath, ed.slot)
                 min: 0; max: 64; decimals: 0
                 visible: StageBackend.layerAnimType(ed.wallPath, ed.slot) !== "none"
                 onChanged: v => StageBackend.setLayer(ed.slot, { animAmplitude: Math.max(0, Math.min(64, Math.round(v))) })
             }
             StageDragSlider {
-                title: "Audio reactivity"
+                title: I18n.tr("Audio reactivity")
                 value: StageBackend.layerAudioLevel(ed.wallPath, ed.slot)
                 min: 0; max: 1; decimals: 2
                 onChanged: v => StageBackend.setLayer(ed.slot, { audioLevel: Math.max(0, Math.min(1, v)) })
@@ -190,7 +191,7 @@ Item {
                 visible: ed.removable
                 kind: "ghost"
                 icon: "delete"
-                label: "Remove this layer"
+                label: I18n.tr("Remove this layer")
                 onAct: ed.remove()
             }
         }

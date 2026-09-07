@@ -114,12 +114,26 @@ Item {
         if (d !== undefined) sheet.edited(r.key, d);
     }
 
+    // A row's option list. Most rows write theirs in the schema; a row whose
+    // list is really a system table (`set`) reads it from the singleton that
+    // owns it, so the table lives in exactly one place. Every consumer of
+    // `opts` goes through here.
+    function optsFor(r) {
+        if (r.set === "languages") return I18n.pickerOptions;
+        if (r.set === "locales") return I18n.localeOptions;
+        return r.opts || [];
+    }
+    function labelsFor(r) {
+        if (r.set === "languages") return I18n.pickerLabels;
+        return ({});
+    }
+
     // inline vs band, and how wide, decided once from the control kind. A
     // control that needs room (chips, a gallery, a segmented bar of 3+, a demo)
     // gets a band whose height is its own; a picker or field gets a fixed foot
     // band; everything else sits inline at the row's right.
     function ctlBlock(r) {
-        var c = r.ctl, n = (r.opts || []).length;
+        var c = r.ctl, n = sheet.optsFor(r).length;
         if (c === "chips" || c === "multi" || c === "gallery" || c === "layoutdemo" || c === "reload-cover") return true;
         if (c === "seg" && n >= 3) return true;
         return false;
@@ -130,7 +144,7 @@ Item {
         return 0;
     }
     function ctlWidth(r, w) {
-        var c = r.ctl, n = (r.opts || []).length;
+        var c = r.ctl, n = sheet.optsFor(r).length;
         if (c === "sw") return 54;
         if (c === "step") return 58;
         if (c === "slid") return Math.min(240, Math.max(160, Math.round(w * 0.34)));
@@ -383,7 +397,7 @@ Item {
                                     anchors.left: parent.left
                                     anchors.right: parent.right
                                     anchors.verticalCenter: parent.verticalCenter
-                                    options: srow.r.opts
+                                    options: sheet.optsFor(srow.r)
                                     current: String(sheet.val(srow.r))
                                     onChose: (k) => sheet.edited(srow.r.key, k)
                                 }
@@ -392,7 +406,7 @@ Item {
                                 id: chipsC
                                 Chips {
                                     anchors.fill: parent
-                                    options: srow.r.opts
+                                    options: sheet.optsFor(srow.r)
                                     current: String(sheet.val(srow.r))
                                     onChose: (k) => sheet.edited(srow.r.key, k)
                                 }
@@ -401,7 +415,7 @@ Item {
                                 id: multiC
                                 Multi {
                                     anchors.fill: parent
-                                    options: srow.r.opts
+                                    options: sheet.optsFor(srow.r)
                                     chosen: sheet.val(srow.r) || []
                                     onToggled: (k) => {
                                         var l = (sheet.val(srow.r) || []).slice();
@@ -448,7 +462,8 @@ Item {
                                 PickBar {
                                     anchors.fill: parent
                                     value: String(sheet.val(srow.r))
-                                    count: (srow.r.opts || []).length
+                                    count: sheet.optsFor(srow.r).length
+                                    labels: sheet.labelsFor(srow.r)
                                     onOpened: sheet.openPick(srow.r)
                                 }
                             }
@@ -521,13 +536,13 @@ Item {
                                     }
                                     Btn {
                                         anchors.verticalCenter: parent.verticalCenter
-                                        text: "CHOOSE…"
+                                        text: I18n.tr("CHOOSE…")
                                         onAct: sheet.imagePick(srow.r)
                                     }
                                     Btn {
                                         anchors.verticalCenter: parent.verticalCenter
                                         visible: String(sheet.val(srow.r)) !== ""
-                                        text: "CLEAR"
+                                        text: I18n.tr("CLEAR")
                                         onAct: sheet.edited(srow.r.key, "")
                                     }
                                 }
@@ -541,7 +556,7 @@ Item {
                                         anchors.right: parent.right
                                         anchors.verticalCenter: parent.verticalCenter
                                         visible: String(sheet.val(srow.r)) !== ""
-                                        text: "DEFAULT"
+                                        text: I18n.tr("DEFAULT")
                                         onAct: sheet.edited(srow.r.key, "")
                                     }
                                     Btn {
@@ -549,7 +564,7 @@ Item {
                                         anchors.right: defBtn.visible ? defBtn.left : parent.right
                                         anchors.rightMargin: defBtn.visible ? Tokens.s2 : 0
                                         anchors.verticalCenter: parent.verticalCenter
-                                        text: "CHOOSE…"
+                                        text: I18n.tr("CHOOSE…")
                                         onAct: sheet.appPick(srow.r)
                                     }
                                     Text {
@@ -559,7 +574,7 @@ Item {
                                         anchors.verticalCenter: parent.verticalCenter
                                         elide: Text.ElideRight
                                         readonly property string cmd: String(sheet.val(srow.r))
-                                        text: cmd.length ? cmd : "ryotunes (YouTube Music)"
+                                        text: cmd.length ? cmd : I18n.tr("ryotunes (YouTube Music)")
                                         color: cmd.length ? Tokens.ink : Tokens.inkMuted
                                         font.family: Tokens.ui
                                         font.pixelSize: 12
@@ -602,7 +617,7 @@ Item {
                                             anchors.left: parent.left
                                             anchors.leftMargin: 8
                                             visible: lti.text === "" && !lti.activeFocus
-                                            text: "Empty locates by IP"
+                                            text: I18n.tr("Empty locates by IP")
                                             color: Tokens.inkFaint
                                             font.family: Tokens.ui
                                             font.pixelSize: 12

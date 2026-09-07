@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import ".."
 import "../services"
+import Ryoku.Ui.Singletons
 
 Item {
   id: browser
@@ -53,12 +54,12 @@ Item {
 
         Repeater {
           model: [
-            { label: "General", bit: 0 },
-            { label: "Anime",   bit: 1 },
-            { label: "People",  bit: 2 }
+            { label: I18n.tr("General"), bit: 0 },
+            { label: I18n.tr("Anime"),   bit: 1 },
+            { label: I18n.tr("People"),  bit: 2 }
           ]
           FilterButton {
-            colors: browser.colors; label: modelData.label; skew: 8
+            colors: browser.colors; label: I18n.tr(modelData.label); skew: 8
             isActive: browser.whService ? browser.whService.categories.charAt(modelData.bit) === "1" : false
             onClicked: {
               var c = browser.whService.categories.split("")
@@ -74,13 +75,13 @@ Item {
 
         Repeater {
           model: [
-            { key: "toplist",    label: "Top" },
-            { key: "date_added", label: "New" },
-            { key: "views",      label: "Views" },
-            { key: "random",     label: "Random" }
+            { key: "toplist",    label: I18n.tr("Top") },
+            { key: "date_added", label: I18n.tr("New") },
+            { key: "views",      label: I18n.tr("Views") },
+            { key: "random",     label: I18n.tr("Random") }
           ]
           FilterButton {
-            colors: browser.colors; label: modelData.label; skew: 8
+            colors: browser.colors; label: I18n.tr(modelData.label); skew: 8
             isActive: browser.whService ? browser.whService.sorting === modelData.key : false
             onClicked: { browser.whService.sorting = modelData.key; browser.whService.search(1) }
           }
@@ -91,20 +92,20 @@ Item {
         FilterDropdown {
           visible: browser.whService && browser.whService.sorting === "toplist"
           colors: browser.colors; skew: 8
-          label: "PERIOD"
+          label: I18n.tr("PERIOD")
           value: browser.whService ? browser.whService.topRange : "1M"
           displayValue: {
-            if (!browser.whService) return "Month"
-            var map = { "1d": "Day", "1w": "Week", "1M": "Month", "3M": "3M", "6M": "6M", "1y": "Year" }
-            return map[browser.whService.topRange] || "Month"
+            if (!browser.whService) return I18n.tr("Month")
+            var map = { "1d": I18n.tr("Day"), "1w": I18n.tr("Week"), "1M": I18n.tr("Month"), "3M": "3M", "6M": "6M", "1y": I18n.tr("Year") }
+            return map[browser.whService.topRange] || I18n.tr("Month")
           }
           model: [
-            { key: "1d", label: "Day" },
-            { key: "1w", label: "Week" },
-            { key: "1M", label: "Month" },
+            { key: "1d", label: I18n.tr("Day") },
+            { key: "1w", label: I18n.tr("Week") },
+            { key: "1M", label: I18n.tr("Month") },
             { key: "3M", label: "3M" },
             { key: "6M", label: "6M" },
-            { key: "1y", label: "Year" }
+            { key: "1y", label: I18n.tr("Year") }
           ]
           onSelected: function(key) { browser.whService.topRange = key; browser.whService.search(1) }
         }
@@ -114,7 +115,7 @@ Item {
         spacing: 2
 
         Text {
-          text: "PURITY"
+          text: I18n.tr("PURITY")
           font.family: Style.fontFamily; font.pixelSize: 9 * Config.uiScale; font.weight: Font.Bold; font.letterSpacing: 1.2
           color: browser.colors ? Qt.rgba(browser.colors.surfaceText.r, browser.colors.surfaceText.g, browser.colors.surfaceText.b, 0.35) : Qt.rgba(1,1,1,0.25)
           anchors.verticalCenter: parent.verticalCenter
@@ -124,16 +125,16 @@ Item {
 
         Repeater {
           model: [
-            { label: "SFW",     bit: 0 },
-            { label: "Sketchy", bit: 1 },
-            { label: "NSFW",    bit: 2 }
+            { label: I18n.tr("SFW"),     bit: 0 },
+            { label: I18n.tr("Sketchy"), bit: 1 },
+            { label: I18n.tr("NSFW"),    bit: 2 }
           ]
           FilterButton {
-            colors: browser.colors; label: modelData.label; skew: 8
+            colors: browser.colors; label: I18n.tr(modelData.label); skew: 8
             isActive: browser.whService ? browser.whService.purity.charAt(modelData.bit) === "1" : false
             activeColor: "#e53935"; hasActiveColor: modelData.bit === 2
             activeOpacity: modelData.bit === 2 && (!browser.whService || !browser.whService.apiKey) && !isActive ? 0.4 : 1.0
-            tooltip: modelData.bit === 2 && (!browser.whService || !browser.whService.apiKey) ? "NSFW requires an API key" : ""
+            tooltip: modelData.bit === 2 && (!browser.whService || !browser.whService.apiKey) ? I18n.tr("NSFW requires an API key") : ""
             onClicked: {
               var p = browser.whService.purity.split("")
               p[modelData.bit] = p[modelData.bit] === "1" ? "0" : "1"
@@ -148,15 +149,15 @@ Item {
 
         FilterDropdown {
           colors: browser.colors; skew: 8
-          label: "MIN RES"
+          label: I18n.tr("MIN RES")
           value: browser.whService ? browser.whService.atleast : ""
           displayValue: {
-            if (!browser.whService || browser.whService.atleast === "") return "Any"
+            if (!browser.whService || browser.whService.atleast === "") return I18n.tr("Any")
             var map = { "1920x1080": "1080p", "2560x1440": "2K", "3840x2160": "4K", "5120x2880": "5K", "7680x4320": "8K" }
             return map[browser.whService.atleast] || browser.whService.atleast
           }
           model: [
-            { key: "",           label: "Any" },
+            { key: "",           label: I18n.tr("Any") },
             { key: "1920x1080", label: "1080p" },
             { key: "2560x1440", label: "2K" },
             { key: "3840x2160", label: "4K" },
@@ -170,15 +171,15 @@ Item {
 
         FilterDropdown {
           colors: browser.colors; skew: 8
-          label: "RATIO"
+          label: I18n.tr("RATIO")
           value: browser.whService ? browser.whService.ratios : ""
           displayValue: {
-            if (!browser.whService || browser.whService.ratios === "") return "Any"
+            if (!browser.whService || browser.whService.ratios === "") return I18n.tr("Any")
             var map = { "16x9": "16:9", "16x10": "16:10", "21x9": "21:9", "32x9": "32:9", "4x3": "4:3" }
             return map[browser.whService.ratios] || browser.whService.ratios
           }
           model: [
-            { key: "",     label: "Any" },
+            { key: "",     label: I18n.tr("Any") },
             { key: "16x9", label: "16:9" },
             { key: "16x10", label: "16:10" },
             { key: "21x9", label: "21:9" },
@@ -480,8 +481,8 @@ Item {
                 ActionButton {
                   colors: browser.colors
                   icon: (thumbDelegate.dlStatus === "done" || thumbDelegate.isLocal) ? "\u{f012c}" : (thumbDelegate.dlStatus === "error" ? "\u{f0159}" : "\u{f01da}")
-                  label: (thumbDelegate.dlStatus === "done" || thumbDelegate.isLocal) ? "Saved" : (thumbDelegate.dlStatus === "error" ? "Error" : "Save")
-                  tooltip: "Download to wallpaper folder"
+                  label: (thumbDelegate.dlStatus === "done" || thumbDelegate.isLocal) ? I18n.tr("Saved") : (thumbDelegate.dlStatus === "error" ? I18n.tr("Error") : I18n.tr("Save"))
+                  tooltip: I18n.tr("Download to wallpaper folder")
                   onClicked: {
                     if (thumbDelegate.dlStatus === "done" || thumbDelegate.isLocal || !thumbDelegate.wp) return
                     browser.whService.downloadWallpaper(thumbDelegate.wp.id, thumbDelegate.wp.path)
@@ -490,8 +491,8 @@ Item {
 
                 ActionButton {
                   colors: browser.colors
-                  icon: "\u{f0e56}"; label: "Apply"
-                  tooltip: "Download and set as wallpaper"
+                  icon: "\u{f0e56}"; label: I18n.tr("Apply")
+                  tooltip: I18n.tr("Download and set as wallpaper")
                   visible: thumbDelegate.dlStatus !== "done" && !thumbDelegate.isLocal
                   onClicked: {
                     if (!thumbDelegate.wp || thumbDelegate.dlStatus === "downloading") return
@@ -502,8 +503,8 @@ Item {
 
                 ActionButton {
                   colors: browser.colors
-                  icon: "\u{f0e56}"; label: "Apply"
-                  tooltip: "Set as wallpaper"
+                  icon: "\u{f0e56}"; label: I18n.tr("Apply")
+                  tooltip: I18n.tr("Set as wallpaper")
                   visible: thumbDelegate.dlStatus === "done" || thumbDelegate.isLocal
                   onClicked: {
                     if (!thumbDelegate.wp) return
@@ -513,9 +514,9 @@ Item {
 
                 ActionButton {
                   colors: browser.colors
-                  icon: "\u{f01b4}"; label: "Delete"
+                  icon: "\u{f01b4}"; label: I18n.tr("Delete")
                   danger: true
-                  tooltip: "Delete from wallpaper folder"
+                  tooltip: I18n.tr("Delete from wallpaper folder")
                   visible: thumbDelegate.dlStatus === "done" || thumbDelegate.isLocal
                   onClicked: {
                     if (!thumbDelegate.wp) return
@@ -527,7 +528,7 @@ Item {
               Text {
                 visible: thumbDelegate.dlStatus === "downloading"
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "Downloading..."
+                text: I18n.tr("Downloading...")
                 font.family: Style.fontFamily; font.pixelSize: 11
                 color: browser.colors ? browser.colors.primary : Style.fallbackAccent
               }
@@ -571,7 +572,7 @@ Item {
                 color: browser.colors ? browser.colors.primaryText : "#000"
               }
               Text {
-                text: "Saved"; font.family: Style.fontFamily; font.pixelSize: 8; font.weight: Font.Medium
+                text: I18n.tr("Saved"); font.family: Style.fontFamily; font.pixelSize: 8; font.weight: Font.Medium
                 color: browser.colors ? browser.colors.primaryText : "#000"
               }
             }
@@ -611,7 +612,7 @@ Item {
 
   Text {
     visible: browser.whService && !browser.whService.loading && resultsModel.count === 0 && browser.whService.errorText === ""
-    text: "Search wallhaven.cc for wallpapers, or browse the top list"
+    text: I18n.tr("Search wallhaven.cc for wallpapers, or browse the top list")
     font.family: Style.fontFamily; font.pixelSize: 12
     color: browser.colors ? Qt.rgba(browser.colors.surfaceText.r, browser.colors.surfaceText.g, browser.colors.surfaceText.b, 0.4)
                           : Qt.rgba(1, 1, 1, 0.3)
@@ -729,7 +730,7 @@ Item {
         id: previewCloseMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
         onClicked: browser._previewWp = null
       }
-      StyledToolTip { visible: previewCloseMouse.containsMouse; text: "Close preview"; delay: 400 }
+      StyledToolTip { visible: previewCloseMouse.containsMouse; text: I18n.tr("Close preview"); delay: 400 }
     }
 
     Rectangle {
@@ -822,8 +823,8 @@ Item {
           ActionButton {
             colors: browser.colors
             icon: (parent._dlSt === "done" || parent._isLocal) ? "\u{f012c}" : (parent._dlSt === "error" ? "\u{f0159}" : "\u{f01da}")
-            label: (parent._dlSt === "done" || parent._isLocal) ? "Saved" : (parent._dlSt === "downloading" ? "Downloading..." : (parent._dlSt === "error" ? "Error" : "Download"))
-            tooltip: "Save to wallpaper folder"
+            label: (parent._dlSt === "done" || parent._isLocal) ? I18n.tr("Saved") : (parent._dlSt === "downloading" ? I18n.tr("Downloading...") : (parent._dlSt === "error" ? I18n.tr("Error") : I18n.tr("Download")))
+            tooltip: I18n.tr("Save to wallpaper folder")
             onClicked: {
               if (parent._dlSt === "done" || parent._isLocal || parent._dlSt === "downloading" || !browser._previewWp) return
               browser.whService.downloadWallpaper(browser._previewWp.id, browser._previewWp.path)
@@ -832,8 +833,8 @@ Item {
 
           ActionButton {
             colors: browser.colors
-            icon: "\u{f0e56}"; label: "Apply"
-            tooltip: "Download and set as wallpaper"
+            icon: "\u{f0e56}"; label: I18n.tr("Apply")
+            tooltip: I18n.tr("Download and set as wallpaper")
             visible: parent._dlSt !== "done" && !parent._isLocal
             onClicked: {
               if (!browser._previewWp || parent._dlSt === "downloading") return
@@ -844,8 +845,8 @@ Item {
 
           ActionButton {
             colors: browser.colors
-            icon: "\u{f0e56}"; label: "Apply"
-            tooltip: "Set as wallpaper"
+            icon: "\u{f0e56}"; label: I18n.tr("Apply")
+            tooltip: I18n.tr("Set as wallpaper")
             visible: parent._dlSt === "done" || parent._isLocal
             onClicked: {
               if (!browser._previewWp) return
@@ -855,9 +856,9 @@ Item {
 
           ActionButton {
             colors: browser.colors
-            icon: "\u{f01b4}"; label: "Delete"
+            icon: "\u{f01b4}"; label: I18n.tr("Delete")
             danger: true
-            tooltip: "Delete from wallpaper folder"
+            tooltip: I18n.tr("Delete from wallpaper folder")
             visible: parent._dlSt === "done" || parent._isLocal
             onClicked: {
               if (!browser._previewWp) return

@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"ryoku-cli/internal/sys"
 	"strings"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: stale window-border pin ------------------------------------
@@ -89,24 +91,24 @@ var repairBorderPin = func() error {
 // planBorderPin turns observed state into a result. pure.
 func planBorderPin(s borderPinState, checkOnly bool, repair func() error) recResult {
 	if !s.paletteDriven {
-		return okRes("window colours are user-fixed; a pinned border is the chosen look")
+		return okRes(i18n.T("window colours are user-fixed; a pinned border is the chosen look"))
 	}
 	if !strings.Contains(s.settingsLua, "col.active_border") {
-		return okRes("no stale border pin; the palette drives the window border")
+		return okRes(i18n.T("no stale border pin; the palette drives the window border"))
 	}
 	if !s.hubPresent {
-		return warnRes("hypr/settings.lua pins col.active_border while colours follow the palette, and ryoku-hub is not installed to regenerate it; the border is stuck on a stale colour").
+		return warnRes(i18n.T("hypr/settings.lua pins col.active_border while colours follow the palette, and ryoku-hub is not installed to regenerate it; the border is stuck on a stale colour")).
 			withFix("ryoku update")
 	}
 	if checkOnly {
-		return wouldRes("hypr/settings.lua pins col.active_border while colours follow the palette, so the window border is stuck on a stale colour").
-			withFix("ryoku doctor regenerates it via ryoku-hub")
+		return wouldRes(i18n.T("hypr/settings.lua pins col.active_border while colours follow the palette, so the window border is stuck on a stale colour")).
+			withFix(i18n.T("ryoku doctor regenerates it via ryoku-hub"))
 	}
 	if err := repair(); err != nil {
-		return failRes("could not regenerate hypr/settings.lua: %v", err).
-			withFix("run `ryoku-hub hypr get` by hand, then `hyprctl reload config-only`")
+		return failRes(i18n.T("could not regenerate hypr/settings.lua: %v"), err).
+			withFix(i18n.T("run `ryoku-hub hypr get` by hand, then `hyprctl reload config-only`"))
 	}
-	return fixedRes("regenerated hypr/settings.lua; the window border follows the palette again")
+	return fixedRes(i18n.T("regenerated hypr/settings.lua; the window border follows the palette again"))
 }
 
 func reconcileBorderPin(checkOnly bool) recResult {

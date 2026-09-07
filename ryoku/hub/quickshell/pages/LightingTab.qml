@@ -177,7 +177,7 @@ Item {
         Text {
             id: chipLabel
             anchors.centerIn: parent
-            text: chip.label
+            text: I18n.tr(chip.label)
             color: chip.on ? Tokens.inkOnBone : Tokens.ink
             font.family: Tokens.ui; font.pixelSize: Tokens.fMicro
             font.weight: Font.Medium; font.letterSpacing: Tokens.trackLabel
@@ -263,7 +263,7 @@ Item {
                     model: card.dev.effects || []
                     delegate: Chip {
                         required property var modelData
-                        label: modelData.label
+                        label: I18n.tr(modelData.label)
                         on: card.dev.effect === modelData.id
                         onPicked: lt.patch(card.devKey, { "effect": modelData.id })
                     }

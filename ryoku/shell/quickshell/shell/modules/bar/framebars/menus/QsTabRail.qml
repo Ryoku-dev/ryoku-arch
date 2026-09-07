@@ -6,6 +6,7 @@ import "../.." as Pill
 import Ryoku.FrameBars
 import shell.services
 import "../../../../components"
+import Ryoku.Ui.Singletons
 
 // Icon rail for the configured quick-settings modules. Module metadata comes
 // from the shared frame catalog, so the rail and loader cannot drift.
@@ -42,7 +43,7 @@ Item {
                 readonly property var metadata: MenuCatalog.quickSettingsModule(modelData)
 
                 icon: metadata ? metadata.icon : ""
-                tipText: metadata ? qsTr(metadata.label) : ""
+                tipText: metadata ? I18n.tr(metadata.label) : ""
                 active: root.activeModule === modelData
                 badge: modelData === "notifications" ? root.notifCount : 0
                 onActivated: root.moduleActivated(modelData)
@@ -57,23 +58,23 @@ Item {
         spacing: 6
 
         RailIconBtn {
-            icon: "search"; tipText: qsTr("Lens search")
+            icon: "search"; tipText: I18n.tr("Lens search")
             onClicked: { Quickshell.execDetached(["ryoku-cmd-google-lens"]); root.requestClose(); }
         }
         RailIconBtn {
-            icon: "document_scanner"; tipText: qsTr("Copy text on screen")
+            icon: "document_scanner"; tipText: I18n.tr("Copy text on screen")
             onClicked: { Quickshell.execDetached(["ryoku-cmd-ocr"]); root.requestClose(); }
         }
         RailIconBtn {
-            icon: "qr_code_scanner"; tipText: qsTr("Scan a QR code")
+            icon: "qr_code_scanner"; tipText: I18n.tr("Scan a QR code")
             onClicked: { Quickshell.execDetached(["ryoku-cmd-qr-scan"]); root.requestClose(); }
         }
         RailIconBtn {
-            icon: "settings"; tipText: qsTr("Ryoku Hub")
+            icon: "settings"; tipText: I18n.tr("Ryoku Hub")
             onClicked: { Quickshell.execDetached(["ryoku-shell", "hub", "open"]); root.requestClose(); }
         }
         RailIconBtn {
-            icon: "colorize"; tipText: qsTr("Pick a color")
+            icon: "colorize"; tipText: I18n.tr("Pick a color")
             onClicked: { Quickshell.execDetached(["ryoku-cmd-color-picker"]); root.requestClose(); }
         }
     }

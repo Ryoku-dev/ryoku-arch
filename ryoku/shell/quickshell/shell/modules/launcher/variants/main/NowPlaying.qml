@@ -36,7 +36,7 @@ Item {
     readonly property string title: radio ? rawTitle.slice(RadioLib.TITLE_PREFIX.length)
         : (rawTitle.length > 0 && !rawIsUrl ? rawTitle : I18n.tr("Nothing playing"))
     readonly property string artist: radio
-        ? (Radio.fellBack ? "internet radio · fallback station" : "internet radio · 24/7 live")
+        ? (Radio.fellBack ? I18n.tr("internet radio · fallback station") : I18n.tr("internet radio · 24/7 live"))
         : (hasPlayer ? Theme.joinArtists(player.trackArtists, player.trackArtist) : "")
     readonly property string artUrl:
         hasPlayer && player.trackArtUrl ? player.trackArtUrl : ""

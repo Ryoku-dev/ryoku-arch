@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import "../.." as Pill
 import shell.services
+import Ryoku.Ui.Singletons
 
 // Power profiles entry (contract 06 sec 2.9): a RevealerRow whose inert action
 // button carries the active-profile icon and whose label reads
@@ -23,9 +24,9 @@ Item {
 
     function labelFor(name) {
         switch (name) {
-        case "power-saver": return qsTr("Power Saver");
-        case "balanced": return qsTr("Balanced");
-        case "performance": return qsTr("Performance");
+        case "power-saver": return I18n.tr("Power Saver");
+        case "balanced": return I18n.tr("Balanced");
+        case "performance": return I18n.tr("Performance");
         }
         return name;
     }
@@ -46,8 +47,8 @@ Item {
         middle: RevealerRowLabel {
             anchors.fill: parent
             label: PowerProfiles.profile.length > 0
-                ? qsTr("Power Profile: %1").arg(root.labelFor(PowerProfiles.profile))
-                : qsTr("Power Profile")
+                ? I18n.tr("Power Profile: %1").arg(root.labelFor(PowerProfiles.profile))
+                : I18n.tr("Power Profile")
         }
 
         Column {
@@ -57,7 +58,7 @@ Item {
             Text {
                 width: parent.width
                 visible: !PowerProfiles.available
-                text: qsTr("Power profiles unavailable")
+                text: I18n.tr("Power profiles unavailable")
                 color: Theme.onSurfaceVariant
                 font.family: Theme.fontPrimary
                 font.pixelSize: Theme.fontSm

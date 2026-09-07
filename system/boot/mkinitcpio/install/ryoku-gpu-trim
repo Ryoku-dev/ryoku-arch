@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Keep the denylisted nouveau driver, and the firmware it drags along, out of
+# the initramfs.
+#
+# nvidia.sh denylists nouveau and forces the proprietary module, but autodetect
+# still matches nouveau against the card, so the kms hook pulls nouveau.ko in
+# together with every nvidia/*/gsp blob linux-firmware ships for it. Those blobs
+# are already compressed, so mkinitcpio puts them in the uncompressed early
+# cpio: ~100 MiB per kernel image, on a 2 GiB boot partition that also holds one
+# UKI plus one history image per kernel. When that partition runs out, the hook
+# that copies the new image fails while pacman still reports success, and the
+# box keeps booting the previous kernel against a module tree the upgrade
+# removed (issue #140). A driver the cmdline can never load is pure weight.
+#
+# Runs after autodetect and before kms: it edits autodetect's module allowlist,
+# which is what add_checked_modules (kms) filters against. ryoku-nvidia-guard
+# lifts the denylist when no nvidia module exists for a kernel and rebuilds the
+# initramfs, so that recovery path gets nouveau back on the next build.
+
+build() {
+    # No autodetect allowlist means nothing is being filtered (a fallback
+    # image): leave it whole, it is the recovery image.
+    (( ${#_autodetect_cache[@]} )) || return 0
+    [[ -v '_autodetect_cache[nouveau]' ]] || return 0
+    nouveau_denylisted || return 0
+    nvidia_module_present || return 0
+
+    unset '_autodetect_cache[nouveau]'
+}
+
+# nouveau_denylisted: does the merged modprobe config deny nouveau? Read through
+# modprobe so /etc, /run and /usr/lib drop-ins all count, the same config the
+# built image boots under.
+nouveau_denylisted() {
+    modprobe --showconfig 2>/dev/null |
+        grep -qE '^blacklist[[:space:]]+nouveau[[:space:]]*$'
+}
+
+# nvidia_module_present: is the proprietary module actually built for the kernel
+# being imaged? Without it nouveau is the only driver that can light the panel,
+# so it stays in.
+nvidia_module_present() {
+    modprobe -S "$KERNELVERSION" -qn nvidia 2>/dev/null
+}
+
+help() {
+    cat <<HELPEOF
+Drops nouveau from the autodetected module set when it is denylisted and the
+proprietary NVIDIA module is installed, which also drops the nouveau GSP
+firmware. Place it after autodetect and before kms.
+HELPEOF
+}

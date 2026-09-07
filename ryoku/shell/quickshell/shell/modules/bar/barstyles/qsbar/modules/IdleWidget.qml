@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 Item {
     id: rootMod
@@ -15,7 +16,7 @@ Item {
     implicitHeight: 28
 
 
-    readonly property string tooltipText: "Idle lock disabled"
+    readonly property string tooltipText: I18n.tr("Idle lock disabled")
 
     Text {
         anchors.centerIn: parent

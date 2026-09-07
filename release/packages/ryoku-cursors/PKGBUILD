@@ -14,7 +14,7 @@
 # a flaky AUR build came up with no configured cursor and only a manual
 # `ryoku doctor` to notice. Building it here as a signed [ryoku] package makes it
 # resolve as a hard ryoku-desktop dependency and reach every box on install and
-# on `ryoku update`, exactly like awww.
+# on `ryoku update`, exactly like the other upstream rebuilds.
 #
 # fixed-version package: it tracks upstream Bibata releases, not the monorepo
 # RYOKU_PKGVER. To follow a new Bibata release, bump pkgver + sha256sums and

@@ -53,7 +53,7 @@ Item {
     }
 
     property string hostName: Quickshell.env("HOSTNAME") || ""
-    property string userName: Quickshell.env("USER") || "operator"
+    property string userName: Quickshell.env("USER") || I18n.tr("operator")
     Process {
         running: true
         command: ["sh", "-c", "hostname 2>/dev/null || cat /etc/hostname 2>/dev/null"]
@@ -127,7 +127,7 @@ Item {
 
                     Text {
                         width: parent.width
-                        text: dash.hostName.length > 0 ? dash.hostName : "harbour"
+                        text: dash.hostName.length > 0 ? dash.hostName : I18n.tr("harbour")
                         color: Tokens.ink
                         font.family: Tokens.display
                         font.pixelSize: 56
@@ -156,10 +156,10 @@ Item {
                         spacing: Tokens.s6
                         Repeater {
                             model: [
-                                { k: "MACHINES", v: String(Vm.vms.length).padStart(2, "0") },
-                                { k: "RUNNING", v: String(dash.runningCount).padStart(2, "0") },
-                                { k: "REMOTES", v: String(Remotes.hostCount).padStart(2, "0") },
-                                { k: "REACHABLE", v: String(Remotes.upCount).padStart(2, "0") }
+                                { k: I18n.tr("MACHINES"), v: String(Vm.vms.length).padStart(2, "0") },
+                                { k: I18n.tr("RUNNING"), v: String(dash.runningCount).padStart(2, "0") },
+                                { k: I18n.tr("REMOTES"), v: String(Remotes.hostCount).padStart(2, "0") },
+                                { k: I18n.tr("REACHABLE"), v: String(Remotes.upCount).padStart(2, "0") }
                             ]
                             Column {
                                 id: vital
@@ -191,7 +191,7 @@ Item {
                     sub: "みなと"
                     tate: "力 を 統 べ る"
                     caption: I18n.tr("A working harbour: local iron and distant ports, one console.")
-                    code: "RYOPORT-COMMAND"
+                    code: I18n.tr("RYOPORT-COMMAND")
                     seal: "力"
                     seed: 0
                     images: ["lighthouse.png", "compass.gif", "moon.png", "earth.gif"]
@@ -241,18 +241,18 @@ Item {
                                 width: (machBody.width - Tokens.s2 * 2) / 3
                                 title: modelData.name
                                 sub: (modelData.running ? I18n.tr("RUNNING") : I18n.tr("STOPPED"))
-                                    + "  ·  " + (modelData.cores === "auto" || !modelData.cores ? "auto" : modelData.cores + "c")
-                                    + " · " + (modelData.ram || "auto")
+                                    + "  ·  " + (modelData.cores === "auto" || !modelData.cores ? I18n.tr("auto") : modelData.cores + "c")
+                                    + " · " + (modelData.ram || I18n.tr("auto"))
                                 on: modelData.running === true
                                 slug: modelData.os || ""
                                 onTapped: dash.openMachine(modelData.name)
-                                primaryLabel: modelData.running ? "STOP" : "LAUNCH"
+                                primaryLabel: modelData.running ? I18n.tr("STOP") : I18n.tr("LAUNCH")
                                 onPrimary: {
                                     if (modelData.running) Vm.stop(modelData.name);
                                     else if (Vm.caps.quickemu === true)
                                         Vm.launch(modelData.name, ({ "gtk": "window", "spice": "spice", "none": "headless" })[modelData.display] || "window");
                                 }
-                                secondaryLabel: modelData.running ? "CONSOLE" : ""
+                                secondaryLabel: modelData.running ? I18n.tr("CONSOLE") : ""
                                 onSecondary: Vm.openConsole(modelData.name)
                             }
                         }
@@ -427,7 +427,7 @@ Item {
                 Text {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "// ONE CONSOLE FOR EVERY MACHINE"
+                    text: I18n.tr("// ONE CONSOLE FOR EVERY MACHINE")
                     color: Tokens.inkFaint
                     font.family: Tokens.mono; font.pixelSize: 9; font.letterSpacing: 1.4
                 }

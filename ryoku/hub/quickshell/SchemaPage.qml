@@ -23,7 +23,7 @@ Item {
     property var draft: null
     property var defaults: ({})
     property string title: ""
-    property string eyebrow: "DESKTOP"
+    property string eyebrow: I18n.tr("DESKTOP")
     property string blurb: ""
     property string query: ""
     property alias tab: sheet.tab
@@ -174,7 +174,7 @@ Item {
     // full-page overlay so it covers the tabs, not just the sheet.
     PickFile {
         id: imgPick
-        title: "Choose an image"
+        title: I18n.tr("Choose an image")
         onPicked: (p) => {
             if (page.pendingImageRow) page.edited(page.pendingImageRow.key, ("" + p).replace("file://", ""));
             imgPick.active = false;

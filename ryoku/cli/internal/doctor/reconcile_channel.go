@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // reconcileUpdateChannel heals a box moved between update channels with
@@ -20,32 +22,32 @@ import (
 func reconcileUpdateChannel(checkOnly bool) recResult {
 	repo := sys.ResolveRepo()
 	if repo == "" {
-		return okRes("packaged install; no update-channel checkout to reconcile")
+		return okRes(i18n.T("packaged install; no update-channel checkout to reconcile"))
 	}
 	ch := sys.TrackedChannel()
 	if ch == "" {
-		return okRes("no tracked update channel recorded")
+		return okRes(i18n.T("no tracked update channel recorded"))
 	}
 	head, _ := sys.RunOut("git", "-C", repo, "symbolic-ref", "--short", "--quiet", "HEAD")
 	head = strings.TrimSpace(head)
 	if head == ch {
-		return okRes("updates come from the source checkout on %q; `ryoku track %s` moves this box onto packages", ch, ch)
+		return okRes(i18n.T("updates come from the source checkout on %q; `ryoku track %s` moves this box onto packages"), ch, ch)
 	}
 	if checkOnly {
-		return wouldRes("the update checkout %s is on %q but the tracked channel is %q; `ryoku update` measures against the wrong branch", repo, head, ch).
+		return wouldRes(i18n.T("the update checkout %s is on %q but the tracked channel is %q; `ryoku update` measures against the wrong branch"), repo, head, ch).
 			withFix("ryoku doctor")
 	}
 	if dirty, _ := sys.RunOut("git", "-C", repo, "status", "--porcelain", "--untracked-files=no"); strings.TrimSpace(dirty) != "" {
-		return warnRes("%s is on %q, not the tracked channel %q, and has uncommitted changes, so its branch was left as-is", repo, head, ch).
-			withFix("commit or stash in %s, then run `ryoku track %s`", repo, ch)
+		return warnRes(i18n.T("%s is on %q, not the tracked channel %q, and has uncommitted changes, so its branch was left as-is"), repo, head, ch).
+			withFix(i18n.T("commit or stash in %s, then run `ryoku track %s`"), repo, ch)
 	}
 	_, _ = sys.RunOut("git", "-C", repo, "fetch", "origin", ch)
 	if _, err := sys.RunOut("git", "-C", repo, "checkout", ch); err != nil {
-		return warnRes("could not switch %s onto the tracked channel %q: %v", repo, ch, err).
+		return warnRes(i18n.T("could not switch %s onto the tracked channel %q: %v"), repo, ch, err).
 			withFix("ryoku track %s", ch)
 	}
 	_, _ = sys.RunOut("git", "-C", repo, "reset", "--hard", "origin/"+ch)
-	return fixedRes("switched the update checkout onto the tracked channel %q; run `ryoku update` to redeploy", ch)
+	return fixedRes(i18n.T("switched the update checkout onto the tracked channel %q; run `ryoku update` to redeploy"), ch)
 }
 
 // reconcileRepoPointer unsticks a box whose update-checkout record broke: it
@@ -58,14 +60,14 @@ func reconcileRepoPointer(checkOnly bool) recResult {
 
 	if fi, err := os.Lstat(state); err == nil && fi.Mode()&os.ModeSymlink != 0 {
 		if checkOnly {
-			return wouldRes("the state dir %s is a symlink (retired dev-switch layout); it must be a real directory or the update pointer cannot be recorded", state).
+			return wouldRes(i18n.T("the state dir %s is a symlink (retired dev-switch layout); it must be a real directory or the update pointer cannot be recorded"), state).
 				withFix("ryoku doctor")
 		}
 		if err := desymlinkStateDir(state); err != nil {
-			return failRes("could not convert the state dir symlink %s to a directory: %v", state, err).
-				withFix("remove the symlink and recreate %s as a directory by hand", state)
+			return failRes(i18n.T("could not convert the state dir symlink %s to a directory: %v"), state, err).
+				withFix(i18n.T("remove the symlink and recreate %s as a directory by hand"), state)
 		}
-		actions = append(actions, "converted the state dir symlink to a real directory")
+		actions = append(actions, i18n.T("converted the state dir symlink to a real directory"))
 	}
 
 	repoFile := filepath.Join(state, "repo")
@@ -80,26 +82,26 @@ func reconcileRepoPointer(checkOnly bool) recResult {
 	// the migration.
 	if sys.TrackedChannel() != "" && !isRyokuArchTree(recorded) && isRyokuArchTree(track) {
 		if checkOnly {
-			what := "missing"
+			what := i18n.T("missing")
 			if recorded != "" {
-				what = "stale (" + recorded + ")"
+				what = i18n.Tf("stale (%s)", recorded)
 			}
-			return wouldRes("the update-checkout pointer is %s but the tracking checkout at %s is healthy; update/status report no channel and never advance", what, track).
+			return wouldRes(i18n.T("the update-checkout pointer is %s but the tracking checkout at %s is healthy; update/status report no channel and never advance"), what, track).
 				withFix("ryoku doctor")
 		}
 		if err := os.MkdirAll(state, 0o755); err != nil {
-			return failRes("could not create the state dir %s: %v", state, err)
+			return failRes(i18n.T("could not create the state dir %s: %v"), state, err)
 		}
 		if err := os.WriteFile(repoFile, []byte(track+"\n"), 0o644); err != nil {
-			return failRes("could not record the update-checkout pointer at %s: %v", repoFile, err)
+			return failRes(i18n.T("could not record the update-checkout pointer at %s: %v"), repoFile, err)
 		}
-		actions = append(actions, "repointed the update checkout to "+track)
+		actions = append(actions, i18n.Tf("repointed the update checkout to %s", track))
 	}
 
 	if len(actions) == 0 {
-		return okRes("update-checkout pointer and state dir are healthy")
+		return okRes(i18n.T("update-checkout pointer and state dir are healthy"))
 	}
-	return fixedRes("%s; run `ryoku update` to advance", strings.Join(actions, "; "))
+	return fixedRes(i18n.T("%s; run `ryoku update` to advance"), strings.Join(actions, "; "))
 }
 
 // isRyokuArchTree reports whether p is a git work tree whose origin is a

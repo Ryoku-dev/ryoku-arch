@@ -4,6 +4,7 @@ import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import shell.services
+import Ryoku.Ui.Singletons
 import "core"
 import "Palette.js" as Palette
 
@@ -107,15 +108,15 @@ Item {
         return paletteColorValid(id) || id === "red" || id === "accent"
     }
     function barColorLabel(id) {
-        if (id === "color01" || id === "red" || id === "accent") return "Color 01"
-        if (id === "color02") return "Color 02"
-        if (id === "color03") return "Color 03"
-        if (id === "color04") return "Color 04"
-        if (id === "color05") return "Color 05"
-        if (id === "color06") return "Color 06"
-        if (id === "color07") return "Color 07"
-        if (id === "foreground") return "Foreground"
-        return "Color 01"
+        if (id === "color01" || id === "red" || id === "accent") return I18n.tr("Color 01")
+        if (id === "color02") return I18n.tr("Color 02")
+        if (id === "color03") return I18n.tr("Color 03")
+        if (id === "color04") return I18n.tr("Color 04")
+        if (id === "color05") return I18n.tr("Color 05")
+        if (id === "color06") return I18n.tr("Color 06")
+        if (id === "color07") return I18n.tr("Color 07")
+        if (id === "foreground") return I18n.tr("Foreground")
+        return I18n.tr("Color 01")
     }
 
     readonly property string mono:  "JetBrainsMono Nerd Font"
@@ -1115,10 +1116,10 @@ Item {
 
     function aiWindowLabel(minutes) {
         if (minutes === 300) return "5h"
-        if (minutes === 10080) return "Weekly"
+        if (minutes === 10080) return I18n.tr("Weekly")
         if (minutes > 0 && minutes % 1440 === 0) return (minutes / 1440) + "d"
         if (minutes > 0 && minutes % 60 === 0) return (minutes / 60) + "h"
-        return minutes > 0 ? minutes + "m" : "window"
+        return minutes > 0 ? minutes + "m" : I18n.tr("window")
     }
 
     function aiResetCodexUsage() {
@@ -1161,7 +1162,7 @@ Item {
         if (has5 || parseInt(d["5h-reset"]) > 0)
             out.push({ kind: "primary", minutes: 300, label: "5h", pct: theme.aiPct(d["5h-utilization"]), resetTs: parseInt(d["5h-reset"]) || 0 })
         if (has7 || parseInt(d["7d-reset"]) > 0)
-            out.push({ kind: "secondary", minutes: 10080, label: "Weekly", pct: theme.aiPct(d["7d-utilization"]), resetTs: parseInt(d["7d-reset"]) || 0 })
+            out.push({ kind: "secondary", minutes: 10080, label: I18n.tr("Weekly"), pct: theme.aiPct(d["7d-utilization"]), resetTs: parseInt(d["7d-reset"]) || 0 })
         return out
     }
 
@@ -1202,13 +1203,13 @@ Item {
 
     function aiPlanLabel(plan) {
         var p = String(plan || "").toLowerCase()
-        if (p === "prolite") return "Pro Lite"
-        if (p === "pro") return "Pro"
-        if (p === "plus") return "Plus"
-        if (p === "team" || p === "business") return "Business"
-        if (p === "enterprise") return "Enterprise"
-        if (p === "edu") return "Edu"
-        if (p === "free") return "Free"
+        if (p === "prolite") return I18n.tr("Pro Lite")
+        if (p === "pro") return I18n.tr("Pro")
+        if (p === "plus") return I18n.tr("Plus")
+        if (p === "team" || p === "business") return I18n.tr("Business")
+        if (p === "enterprise") return I18n.tr("Enterprise")
+        if (p === "edu") return I18n.tr("Edu")
+        if (p === "free") return I18n.tr("Free")
         return String(plan || "")
     }
 
@@ -1238,7 +1239,7 @@ Item {
             else if (w.minutes === 10080) { theme.aiCxPct7d = w.pct; theme.aiCxReset7dTs = w.resetTs }
             if (w.pct > theme.aiCxQuotaPct) {
                 theme.aiCxQuotaPct = w.pct
-                theme.aiCxQuotaLabel = String(general.label || "Codex") + " " + String(w.label || "window")
+                theme.aiCxQuotaLabel = String(general.label || "Codex") + " " + String(w.label || I18n.tr("window"))
             }
         }
         if (windows.length === 0) {
@@ -1255,10 +1256,10 @@ Item {
 
     function aiCodexStatusLabel(status, reachedType) {
         if (status === "rejected")
-            return reachedType ? "reached (" + reachedType + ")" : "reached"
-        if (status === "allowed_warning") return "warning"
-        if (status === "allowed") return "ok (not reached)"
-        return "unknown"
+            return reachedType ? I18n.tr("reached (%1)").arg(reachedType) : I18n.tr("reached")
+        if (status === "allowed_warning") return I18n.tr("warning")
+        if (status === "allowed") return I18n.tr("ok (not reached)")
+        return I18n.tr("unknown")
     }
 
     function aiFmtReset(ts) {
@@ -1322,8 +1323,8 @@ Item {
     function aiPaceText(pct7d, resetTs) {
         if (!(resetTs > 0)) return ""
         var pts = Math.round(Math.abs(aiPaceDiff(pct7d, resetTs)) * 100)
-        if (pts === 0) return "on pace"
-        return pts + "% " + (aiBehindPace(pct7d, resetTs) ? "behind pace" : "ahead of pace")
+        if (pts === 0) return I18n.tr("on pace")
+        return aiBehindPace(pct7d, resetTs) ? I18n.tr("%1% behind pace").arg(pts) : I18n.tr("%1% ahead of pace").arg(pts)
     }
 
     // ── LAST 7 DAYS token chart helpers (ported from omarchy-agent-usage) ──
@@ -1569,11 +1570,11 @@ Item {
             || source === "nvme" || source === "memory"
     }
     function barTemperatureSourceLabel(source) {
-        if (source === "core") return "Hottest CPU core"
+        if (source === "core") return I18n.tr("Hottest CPU core")
         if (source === "gpu") return "GPU"
         if (source === "nvme") return "NVMe"
-        if (source === "memory") return "Memory"
-        return "CPU package"
+        if (source === "memory") return I18n.tr("Memory")
+        return I18n.tr("CPU package")
     }
     function barTemperatureSourceAvailable(source) {
         if (source === "core") return cpuCoreMaxTemperatureC > 0
@@ -1888,7 +1889,7 @@ Item {
                 : device.rota === true ? (transport !== "" ? transport + " HDD" : "HDD")
                 : (transport !== "" ? transport + " SSD" : "SSD")
             var state = mountedAt !== "" ? mountedAt
-                : (fileSystems.length > 0 ? "Not mounted" : "No filesystem")
+                : (fileSystems.length > 0 ? I18n.tr("Not mounted") : I18n.tr("No filesystem"))
 
             drives.push({
                 name: name,
@@ -2564,13 +2565,13 @@ Item {
     // The marker styles this variant offers (continuous V2 adds Kanji, Frame,
     // Aurora; "rings" is the persisted cache token for the Frame style).
     readonly property var workspaceStyleOptions: [
-        { key: "default", label: "Dots" },
-        { key: "numbers", label: "Numbers" },
-        { key: "magic",   label: "Glyph" },
-        { key: "kanji",   label: "Kanji" },
-        { key: "rings",   label: "Frame" },
-        { key: "aurora",  label: "Aurora" },
-        { key: "pacman",  label: "Pacman" }
+        { key: "default", label: I18n.tr("Dots") },
+        { key: "numbers", label: I18n.tr("Numbers") },
+        { key: "magic",   label: I18n.tr("Glyph") },
+        { key: "kanji",   label: I18n.tr("Kanji") },
+        { key: "rings",   label: I18n.tr("Frame") },
+        { key: "aurora",  label: I18n.tr("Aurora") },
+        { key: "pacman",  label: I18n.tr("Pacman") }
     ]
 
     // ── bar screen position (persisted) ──
@@ -3558,7 +3559,7 @@ Item {
     property string trayMenuIcon: ""
 
     function trayDisplayName(item) {
-        if (!item) return "Tray App"
+        if (!item) return I18n.tr("Tray App")
 
         var title = String(item.title || "").trim()
         if (title !== "") return title
@@ -3572,7 +3573,7 @@ Item {
             fallback = fallback.substring(slash + 1)
         fallback = fallback.replace(/^org\.(kde|ayatana|freedesktop)\./i, "")
                            .replace(/[_-]+/g, " ")
-        return fallback !== "" ? fallback : "Tray App"
+        return fallback !== "" ? fallback : I18n.tr("Tray App")
     }
 
     function trayDescription(item, displayName) {

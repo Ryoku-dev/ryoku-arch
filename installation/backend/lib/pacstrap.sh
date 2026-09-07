@@ -41,7 +41,7 @@ ryoku_ensure_keyring() {
 ryoku_pacstrap() {
   local base_file="$RYOKU_REPO/system/packages/base.packages"
   local hw_file="$RYOKU_REPO/system/packages/hardware.packages"
-  [[ -f $base_file ]] || die "missing package list: $base_file"
+  [[ -f $base_file ]] || die 'missing package list: %s' "$base_file"
 
   local -a pkgs=()
   mapfile -t pkgs < <(grep -vE '^[[:space:]]*(#|$)' "$base_file")
@@ -52,7 +52,7 @@ ryoku_pacstrap() {
     intel) sections=(intel) ;;
     amd-nvidia) sections=(amd intel nvidia) ;;
     vm) sections=(vm) ;;
-    *) die "unknown RYOKU_PROFILE: $RYOKU_PROFILE (want amd-nvidia|amd|intel|vm)" ;;
+    *) die 'unknown RYOKU_PROFILE: %s (want amd-nvidia|amd|intel|vm)' "$RYOKU_PROFILE" ;;
   esac
 
   local -a hw=()
@@ -96,7 +96,7 @@ ryoku_pacstrap() {
   fi
 
   ryoku_ensure_keyring
-  log "installing ${#pkgs[@]} packages (profile=$RYOKU_PROFILE)"
+  log 'installing %d packages (profile=%s)' "${#pkgs[@]}" "$RYOKU_PROFILE"
   ryoku_pacstrap_install "${pkgs[@]}"
 
   log "writing /etc/fstab"
@@ -145,11 +145,12 @@ ryoku_pacstrap_install() {
       return 0
     fi
     [[ $olog == /dev/null ]] || cat -- "$olog"
-    local conflict=""
+    local conflict="" conflict_msg=""
     [[ $olog == /dev/null ]] \
       || conflict=$(grep -aoE "[^ ]+ exists in filesystem" "$olog" 2>/dev/null | tail -n1) || conflict=""
     rm -f -- "$olog" 2>/dev/null || true
-    die "the offline install could not lay the base system from the ISO's baked package set.${conflict:+ File conflict: $conflict.} No network or mirror is involved (every package is on the disc), so this is either a defect in the baked closure or something the installer put at a path a package owns. Report the file conflict above with /var/log/ryoku-install.log; re-running the installer will not help."
+    [[ -n $conflict ]] && conflict_msg=$(tf ' File conflict: %s.' "$conflict")
+    die 'the offline install could not lay the base system from the ISO'\''s baked package set.%s No network or mirror is involved (every package is on the disc), so this is either a defect in the baked closure or something the installer put at a path a package owns. Report the file conflict above with /var/log/ryoku-install.log; re-running the installer will not help.' "$conflict_msg"
   fi
 
   # online install: a wifi drop or corrupt download kills pacstrap with raw
@@ -169,9 +170,10 @@ ryoku_pacstrap_install() {
   fi
 
   [[ $paclog == /dev/null ]] || cat -- "$paclog"
-  local failinfo=""
+  local failinfo="" failinfo_msg=""
   [[ $paclog == /dev/null ]] \
     || failinfo=$(grep -aoE "failed retrieving file '?[^' ]+'? from [^ ]+" "$paclog" 2>/dev/null | tail -n1) || failinfo=""
   rm -f -- "$paclog" 2>/dev/null || true
-  die "pacstrap failed after retrying across mirror tiers (tried: ${RYOKU_MIRROR_TIERS_TRIED:-tier 1 (reflector)}).${failinfo:+ Last mirror error: $failinfo.} Check the connection (Wi-Fi can drop under sustained download) and re-run the installer."
+  [[ -n $failinfo ]] && failinfo_msg=$(tf ' Last mirror error: %s.' "$failinfo")
+  die 'pacstrap failed after retrying across mirror tiers (tried: %s).%s Check the connection (Wi-Fi can drop under sustained download) and re-run the installer.' "${RYOKU_MIRROR_TIERS_TRIED:-tier 1 (reflector)}" "$failinfo_msg"
 }

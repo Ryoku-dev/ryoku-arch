@@ -5,6 +5,7 @@ import "../.." as Pill
 import shell.services
 import "../../../../components"
 import "../widgets" as Widgets
+import Ryoku.Ui.Singletons
 
 Item {
     id: root
@@ -29,10 +30,10 @@ Item {
 
     function label(layout) {
         switch (layout) {
-        case "dwindle": return qsTr("Dwindle");
-        case "master": return qsTr("Master");
-        case "scrolling": return qsTr("Scrolling");
-        case "monocle": return qsTr("Monocle");
+        case "dwindle": return I18n.tr("Dwindle");
+        case "master": return I18n.tr("Master");
+        case "scrolling": return I18n.tr("Scrolling");
+        case "monocle": return I18n.tr("Monocle");
         }
         return layout;
     }
@@ -43,7 +44,7 @@ Item {
         width: root.width
         spacing: 8 * root.s
 
-        MicroLabel { label: qsTr("Layout"); s: root.s }
+        MicroLabel { label: I18n.tr("Layout"); s: root.s }
 
         Repeater {
             model: root.layouts

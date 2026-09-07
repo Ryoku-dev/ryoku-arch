@@ -158,7 +158,7 @@ Item {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 // an entry count is file-truth chrome, so mono (DESIGN.md section 2).
-                text: pg.overrides.length + (pg.overrides.length === 1 ? I18n.tr(" APP") : I18n.tr(" APPS"))
+                text: pg.overrides.length === 1 ? I18n.tr("%1 APP").arg(pg.overrides.length) : I18n.tr("%1 APPS").arg(pg.overrides.length)
                 color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: Tokens.fTiny
             }
             // a fire-once action wearing a button: opens the catalogue of open
@@ -350,35 +350,35 @@ Item {
                             width: parent.width
                             label: I18n.tr("Blur")
                             value: card.modelData.blur || "inherit"
-                            altKey: "off"; altLabel: "Off"
+                            altKey: "off"; altLabel: I18n.tr("Off")
                             onChose: (k) => pg.patch(card.index, "blur", k)
                         }
                         OvChoice {
                             width: parent.width
                             label: I18n.tr("Shadow")
                             value: card.modelData.shadow || "inherit"
-                            altKey: "off"; altLabel: "Off"
+                            altKey: "off"; altLabel: I18n.tr("Off")
                             onChose: (k) => pg.patch(card.index, "shadow", k)
                         }
                         OvChoice {
                             width: parent.width
                             label: I18n.tr("Dim inactive")
                             value: card.modelData.dim || "inherit"
-                            altKey: "off"; altLabel: "Off"
+                            altKey: "off"; altLabel: I18n.tr("Off")
                             onChose: (k) => pg.patch(card.index, "dim", k)
                         }
                         OvChoice {
                             width: parent.width
                             label: I18n.tr("Animations")
                             value: card.modelData.anim || "inherit"
-                            altKey: "off"; altLabel: "Off"
+                            altKey: "off"; altLabel: I18n.tr("Off")
                             onChose: (k) => pg.patch(card.index, "anim", k)
                         }
                         OvChoice {
                             width: parent.width
                             label: I18n.tr("Force opaque")
                             value: card.modelData.opaque || "inherit"
-                            altKey: "on"; altLabel: "On"
+                            altKey: "on"; altLabel: I18n.tr("On")
                             onChose: (k) => pg.patch(card.index, "opaque", k)
                         }
                     }
@@ -457,9 +457,9 @@ Item {
             anchors.left: ovLbl.right
             anchors.leftMargin: Tokens.s2
             anchors.verticalCenter: parent.verticalCenter
-            options: ["Inherit", "Custom"]
-            current: ov.custom ? "Custom" : "Inherit"
-            onChose: (k) => ov.changed(k === "Custom" ? (ov.value >= 0 ? ov.value : ov.customDefault) : -1)
+            options: [I18n.tr("Inherit"), I18n.tr("Custom")]
+            current: ov.custom ? I18n.tr("Custom") : I18n.tr("Inherit")
+            onChose: (k) => ov.changed(k === I18n.tr("Custom") ? (ov.value >= 0 ? ov.value : ov.customDefault) : -1)
         }
 
         Text {
@@ -510,7 +510,7 @@ Item {
         property string label: ""
         property string value: "inherit"
         property string altKey: "off"
-        property string altLabel: "Off"
+        property string altLabel: I18n.tr("Off")
         signal chose(string key)
 
         width: parent ? parent.width : 0
@@ -529,8 +529,8 @@ Item {
         Seg {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            options: ["Inherit", oc.altLabel]
-            current: oc.value === oc.altKey ? oc.altLabel : "Inherit"
+            options: [I18n.tr("Inherit"), oc.altLabel]
+            current: oc.value === oc.altKey ? oc.altLabel : I18n.tr("Inherit")
             onChose: (k) => oc.chose(k === oc.altLabel ? oc.altKey : "inherit")
         }
     }

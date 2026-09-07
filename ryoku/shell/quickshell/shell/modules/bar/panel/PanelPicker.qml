@@ -92,7 +92,7 @@ Item {
             anchors.left: backBtn.right
             anchors.leftMargin: 10 * root.s
             anchors.verticalCenter: parent.verticalCenter
-            text: root.mode === "install" ? qsTr("SELECT APPS TO INSTALL") : qsTr("SELECT VIDEOS OR IMAGES")
+            text: root.mode === "install" ? I18n.tr("SELECT APPS TO INSTALL") : I18n.tr("SELECT VIDEOS OR IMAGES")
             color: root.dim
             font.family: Theme.fontPrimary
             font.pixelSize: 8 * root.s
@@ -256,14 +256,14 @@ Item {
             MaterialIcon {
                 anchors.verticalCenter: parent.verticalCenter
                 font.pixelSize: 14 * root.s
-                text: root.mode === "install" ? I18n.tr("install_desktop") : "compress"
+                text: root.mode === "install" ? "install_desktop" : "compress"
                 color: footer.ready ? Theme.inkOn(Theme.primary, Theme.onPrimary) : root.ink
             }
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.selCount > 0
-                    ? (root.mode === "install" ? qsTr("Install %1").arg(root.selCount) : qsTr("Compress %1").arg(root.selCount))
-                    : (root.mode === "install" ? qsTr("Select apps to install") : qsTr("Select files to compress"))
+                    ? (root.mode === "install" ? I18n.tr("Install %1").arg(root.selCount) : I18n.tr("Compress %1").arg(root.selCount))
+                    : (root.mode === "install" ? I18n.tr("Select apps to install") : I18n.tr("Select files to compress"))
                 color: footer.ready ? Theme.inkOn(Theme.primary, Theme.onPrimary) : root.dim
                 font.family: Theme.fontPrimary
                 font.pixelSize: 10 * root.s

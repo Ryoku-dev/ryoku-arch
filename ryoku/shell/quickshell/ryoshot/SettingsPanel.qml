@@ -64,7 +64,7 @@ Item {
 
             Slider {
                 Layout.fillWidth: true
-                label: "Blur radius"
+                label: I18n.tr("Blur radius")
                 from: 16
                 to: 128
                 value: Config.blurRadius
@@ -74,7 +74,7 @@ Item {
 
             Slider {
                 Layout.fillWidth: true
-                label: "Mosaic block"
+                label: I18n.tr("Mosaic block")
                 from: 6
                 to: 32
                 value: Config.mosaicBlock
@@ -84,7 +84,7 @@ Item {
 
             Slider {
                 Layout.fillWidth: true
-                label: "Zoom factor"
+                label: I18n.tr("Zoom factor")
                 from: 1.5
                 to: 4.0
                 decimals: 1

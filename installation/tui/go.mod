@@ -32,3 +32,9 @@ require (
 	golang.org/x/term v0.13.0 // indirect
 	rsc.io/qr v0.2.0 // indirect
 )
+
+// the shared translation runtime + the catalogs compiled in: the ISO's TUI has
+// no installed Ryoku to read /usr/share/ryoku/i18n from.
+require ryoku-i18n v0.0.0
+
+replace ryoku-i18n => ../../ryoku/i18n

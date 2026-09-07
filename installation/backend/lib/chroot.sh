@@ -17,7 +17,7 @@ ryoku_configure() {
 }
 
 ryoku_cfg_locale() {
-  log "locale: $RYOKU_LOCALE"
+  log 'locale: %s' "$RYOKU_LOCALE"
   # dots escaped so en_US.UTF-8 can only match its own line.
   run sed -i "s|^#\(${RYOKU_LOCALE//./\\.} \)|\1|" /mnt/etc/locale.gen
   # a locale locale.gen does not list (a manual RYOKU_LOCALE, a slimmed file)
@@ -29,10 +29,10 @@ ryoku_cfg_locale() {
   if [[ -z ${RYOKU_DRYRUN:-} && $RYOKU_LOCALE == *.* ]] \
     && ! grep -q "^${RYOKU_LOCALE} " /mnt/etc/locale.gen; then
     if [[ -f /mnt/usr/share/i18n/locales/${RYOKU_LOCALE%%.*} ]]; then
-      log "locale: $RYOKU_LOCALE not listed in locale.gen, appending"
+      log 'locale: %s not listed in locale.gen, appending' "$RYOKU_LOCALE"
       printf '%s %s\n' "$RYOKU_LOCALE" "${RYOKU_LOCALE##*.}" >>/mnt/etc/locale.gen
     else
-      log "warn: $RYOKU_LOCALE has no source definition in the target; not appending (locale-gen would fail the install)"
+      log 'warn: %s has no source definition in the target; not appending (locale-gen would fail the install)' "$RYOKU_LOCALE"
     fi
   fi
   write_file /mnt/etc/locale.conf <<EOF
@@ -42,7 +42,7 @@ EOF
 }
 
 ryoku_cfg_keymap() {
-  log "console keymap: $RYOKU_KEYMAP"
+  log 'console keymap: %s' "$RYOKU_KEYMAP"
   write_file /mnt/etc/vconsole.conf <<EOF
 KEYMAP=$RYOKU_KEYMAP
 EOF
@@ -53,7 +53,7 @@ EOF
   local xkbl=${RYOKU_XKB_LAYOUT:-} xkbv=${RYOKU_XKB_VARIANT:-}
   [[ -n $xkbl ]] || xkbl=$RYOKU_KEYMAP
   if [[ $xkbl != us || -n $xkbv ]]; then
-    log "X11 keyboard layout: $xkbl${xkbv:+ ($xkbv)}"
+    log 'X11 keyboard layout: %s%s' "$xkbl" "${xkbv:+ ($xkbv)}"
     run install -d /mnt/etc/X11/xorg.conf.d
     write_file /mnt/etc/X11/xorg.conf.d/00-keyboard.conf <<EOF
 Section "InputClass"
@@ -90,17 +90,17 @@ ryoku_cfg_timezone() {
     fi
   fi
   if [[ -z ${RYOKU_DRYRUN:-} && ( -z $tz || ! -e /mnt/usr/share/zoneinfo/$tz ) ]]; then
-    log "warn: timezone '${tz:-empty}' is empty or unknown; falling back to UTC"
+    log 'warn: timezone '\''%s'\'' is empty or unknown; falling back to UTC' "${tz:-empty}"
     tz=UTC
   fi
-  log "timezone: $tz"
+  log 'timezone: %s' "$tz"
   run ln -sf "/usr/share/zoneinfo/$tz" /mnt/etc/localtime
   run arch-chroot /mnt hwclock --systohc
   run arch-chroot /mnt systemctl enable systemd-timesyncd.service
 }
 
 ryoku_cfg_hostname() {
-  log "hostname: $RYOKU_HOSTNAME"
+  log 'hostname: %s' "$RYOKU_HOSTNAME"
   write_file /mnt/etc/hostname <<EOF
 $RYOKU_HOSTNAME
 EOF
@@ -111,7 +111,7 @@ EOF
 }
 
 ryoku_cfg_user() {
-  log "user: $RYOKU_USERNAME (wheel,video,input; shell /usr/bin/fish)"
+  log 'user: %s (wheel,video,input; shell /usr/bin/fish)' "$RYOKU_USERNAME"
   # video -> write panel backlight (with 90-ryoku-backlight.rules); input ->
   # read game controllers / input devices without a per-login logind grant.
   run arch-chroot /mnt useradd -m -G wheel,video,input -s /usr/bin/fish "$RYOKU_USERNAME"
@@ -137,15 +137,26 @@ EOF
 ryoku_cfg_initramfs() {
   log "mkinitcpio HOOKS drop-in (/etc/mkinitcpio.conf.d/ryoku.conf)"
   local src="$RYOKU_REPO/system/boot/mkinitcpio/ryoku.conf"
+  local hook="$RYOKU_REPO/system/boot/mkinitcpio/install/ryoku-gpu-trim"
   local content
   if [[ -f $src ]]; then
     content=$(<"$src")
   else
-    content='HOOKS=(base udev plymouth keyboard autodetect microcode modconf kms keymap consolefont block encrypt resume filesystems fsck)'
+    content='HOOKS=(base udev plymouth keyboard autodetect ryoku-gpu-trim microcode modconf kms keymap consolefont block encrypt resume filesystems fsck)'
   fi
   # 'encrypt' hook only matters for a LUKS root; strip it on the HOOKS line
   # only, so the word "encrypted" anywhere in the comments above survives.
   [[ ${RYOKU_ENCRYPT:-} != 1 ]] && content=$(printf '%s\n' "$content" | sed -E '/^HOOKS=/ s/ encrypt\b//')
+
+  # ryoku-gpu-trim (a mkinitcpio install hook) keeps the denylisted nouveau, and
+  # the ~100 MiB of GSP firmware it drags in, out of every kernel image.
+  # ryoku-desktop owns the hook and deploy.sh seeds it when that set never
+  # installs; a HOOKS entry mkinitcpio cannot find aborts the build, so drop the
+  # name when even the repo has no copy to deliver.
+  if [[ ! -f $hook ]]; then
+    log 'warning: %s missing; leaving ryoku-gpu-trim out of HOOKS' "$hook"
+    content=$(printf '%s\n' "$content" | sed -E '/^HOOKS=/ s/ ryoku-gpu-trim\b//')
+  fi
 
   run mkdir -p /mnt/etc/mkinitcpio.conf.d
   write_file /mnt/etc/mkinitcpio.conf.d/ryoku.conf <<<"$content"
@@ -159,8 +170,8 @@ ryoku_cfg_initramfs() {
 ryoku_cfg_crypttab() {
   [[ ${RYOKU_ENCRYPT:-} == 1 ]] || return 0
   local luks_uuid
-  luks_uuid=$(dev_uuid "$LUKS_PART") || die "crypttab: could not read the LUKS UUID of $LUKS_PART (blkid returned nothing); refusing to write a crypttab the system cannot unlock at boot."
-  log "crypttab: root -> UUID=$luks_uuid"
+  luks_uuid=$(dev_uuid "$LUKS_PART") || die 'crypttab: could not read the LUKS UUID of %s (blkid returned nothing); refusing to write a crypttab the system cannot unlock at boot.' "$LUKS_PART"
+  log 'crypttab: root -> UUID=%s' "$luks_uuid"
   write_file /mnt/etc/crypttab <<EOF
 root UUID=$luks_uuid none luks
 EOF
@@ -198,7 +209,7 @@ ryoku_hooks_defer_mkinitcpio() {
   local h p
   for h in "${RYOKU_MKINITCPIO_HOOKS[@]}"; do
     p=/mnt/etc/pacman.d/hooks/$h
-    log "deferring the initramfs build to the bootloader step: masking $h"
+    log 'deferring the initramfs build to the bootloader step: masking %s' "$h"
     if [[ -f $p && ! -L $p ]]; then
       run mv -f "$p" "$p.ryoku-off"
     fi
@@ -210,7 +221,7 @@ ryoku_hooks_quiet() {
   run mkdir -p /mnt/etc/pacman.d/hooks
   local h
   for h in "${RYOKU_MASKED_HOOKS[@]}"; do
-    log "masking pacman hook for the install: $h"
+    log 'masking pacman hook for the install: %s' "$h"
     run ln -sf /dev/null "/mnt/etc/pacman.d/hooks/$h"
   done
 }
@@ -220,7 +231,7 @@ ryoku_hooks_restore() {
   for h in "${RYOKU_MASKED_HOOKS[@]}" "${RYOKU_MKINITCPIO_HOOKS[@]}"; do
     p=/mnt/etc/pacman.d/hooks/$h
     [[ -n ${RYOKU_DRYRUN:-} || -L $p || -f $p.ryoku-off ]] || continue
-    log "restoring pacman hook: $h"
+    log 'restoring pacman hook: %s' "$h"
     [[ -L $p ]] && run rm -f "$p"
     [[ -f $p.ryoku-off ]] && run mv -f "$p.ryoku-off" "$p"
   done

@@ -3,6 +3,7 @@ import QtQuick.Controls
 import ".."
 import "../components"
 import "../services"
+import Ryoku.Ui.Singletons
 
 // Generic remote-source browser: a search field over a thumbnail grid, backed
 // by a RyowallsSource (moewalls / motionbgs / ryostore). Clicking a tile
@@ -71,7 +72,7 @@ Item {
     Text {
         anchors.centerIn: parent
         visible: svc.loading || svc.results.length === 0
-        text: !browser.searchable ? browser.idleHint : (svc.loading ? "loading\u2026" : (svc.error ? svc.error : "nothing here"))
+        text: !browser.searchable ? browser.idleHint : (svc.loading ? I18n.tr("loading\u2026") : (svc.error ? svc.error : I18n.tr("nothing here")))
         font.family: Style.fontFamily; font.pixelSize: 13 * Config.uiScale
         color: browser._inkDim
     }
@@ -178,7 +179,7 @@ Item {
                         Text {
                             anchors.centerIn: parent
                             visible: card._downloading
-                            text: "applying\u2026"
+                            text: I18n.tr("applying\u2026")
                             font.family: Style.fontFamily; font.pixelSize: 12 * Config.uiScale; font.weight: Font.Medium
                             color: "#ffffff"
                         }

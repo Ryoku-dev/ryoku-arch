@@ -167,6 +167,14 @@ install -d "$AIROOTFS/usr/local/lib/ryoku/backend"
 install -m0755 "$BACKEND_DIR/ryoku-install" "$AIROOTFS/usr/local/lib/ryoku/backend/ryoku-install"
 cp -a "$BACKEND_DIR/lib" "$AIROOTFS/usr/local/lib/ryoku/backend/lib"
 
+# 3b. the translation catalog at the path the backend's i18n.sh and the CLI's
+#     Go runtime both look for. The TUI compiles its own copy in (it must work
+#     with nothing mounted), but the shell libs read it from here.
+log "Installing translation catalog -> /usr/share/ryoku/i18n"
+install -d "$AIROOTFS/usr/share/ryoku/i18n"
+install -m0644 "$REPO_ROOT"/ryoku/i18n/catalog/*.json "$AIROOTFS/usr/share/ryoku/i18n/"
+install -m0644 "$REPO_ROOT/ryoku/i18n/langs.json" "$AIROOTFS/usr/share/ryoku/i18n/langs.json"
+
 # 4. bake the repo payload at /usr/share/ryoku (RYOKU_REPO).
 log "Baking repo payload -> /usr/share/ryoku"
 stage_repo "$REPO_ROOT" "$AIROOTFS/usr/share/ryoku"

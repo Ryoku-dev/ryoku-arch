@@ -33,18 +33,18 @@ Item {
     property string interval: "daily"
 
     readonly property var intervalModel: [
-        { "key": "off",    "label": "Off" },
-        { "key": "hourly", "label": "Hourly" },
-        { "key": "daily",  "label": "Daily" },
-        { "key": "weekly", "label": "Weekly" }
+        { "key": "off",    "label": I18n.tr("Off") },
+        { "key": "hourly", "label": I18n.tr("Hourly") },
+        { "key": "daily",  "label": I18n.tr("Daily") },
+        { "key": "weekly", "label": I18n.tr("Weekly") }
     ]
-    readonly property var intervalLabels: ["Off", "Hourly", "Daily", "Weekly"]
+    readonly property var intervalLabels: [I18n.tr("Off"), I18n.tr("Hourly"), I18n.tr("Daily"), I18n.tr("Weekly")]
 
     function intervalLabel(k) {
         for (var i = 0; i < pg.intervalModel.length; i++)
             if (pg.intervalModel[i].key === k)
                 return pg.intervalModel[i].label;
-        return "Daily";
+        return I18n.tr("Daily");
     }
     function intervalKey(l) {
         for (var i = 0; i < pg.intervalModel.length; i++)
@@ -54,10 +54,10 @@ Item {
     }
     function intervalBlurb(k) {
         switch (k) {
-        case "off":    return "manual only";
-        case "hourly": return "every hour";
-        case "weekly": return "once a week";
-        default:       return "once a day";
+        case "off":    return I18n.tr("manual only");
+        case "hourly": return I18n.tr("every hour");
+        case "weekly": return I18n.tr("once a week");
+        default:       return I18n.tr("once a day");
         }
     }
     function setInterval(k) {
@@ -231,7 +231,7 @@ Item {
     // idle list: incoming commits when behind, else the recent history the
     // installed version contains, so the page is informative either way.
     readonly property var sectionModel: Updates.available ? Updates.updates : Updates.recent
-    readonly property string sectionLabel: Updates.available ? "INCOMING COMMITS" : "RECENT CHANGES"
+    readonly property string sectionLabel: Updates.available ? I18n.tr("INCOMING COMMITS") : I18n.tr("RECENT CHANGES")
 
     // ── head: eyebrow, Fraunces title, blurb (matches every settings page) ──
     Column {
@@ -373,8 +373,10 @@ Item {
 
                         Text {
                             text: Updates.available
-                                ? (Updates.behind + " commit" + (Updates.behind === 1 ? "" : "s") + I18n.tr(" behind  \u00b7  checked ") + Updates.checkedAgo)
-                                : ("on " + Updates.branch + I18n.tr("  \u00b7  checked ") + Updates.checkedAgo)
+                                ? (Updates.behind === 1
+                                    ? I18n.tr("%1 commit behind  \u00b7  checked %2").arg(Updates.behind).arg(Updates.checkedAgo)
+                                    : I18n.tr("%1 commits behind  \u00b7  checked %2").arg(Updates.behind).arg(Updates.checkedAgo))
+                                : I18n.tr("on %1  \u00b7  checked %2").arg(Updates.branch).arg(Updates.checkedAgo)
                             color: Tokens.inkMuted; font.family: Tokens.ui
                             font.pixelSize: Tokens.fSmall
                         }
@@ -562,6 +564,17 @@ Item {
                         anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                         height: 1; color: Tokens.lineSoft
                     }
+                }
+
+                // These come from Arch or CachyOS, not from Ryoku: `ryoku update`
+                // does not move them, so the section has to name what does.
+                Text {
+                    width: idleCol.width
+                    text: I18n.tr("From your distribution, kernel included. Take them with:  sudo pacman -Syu")
+                    color: Tokens.inkFaint
+                    font.family: Tokens.ui; font.pixelSize: Tokens.fTiny
+                    wrapMode: Text.WordWrap
+                    bottomPadding: Tokens.s2
                 }
 
                 Repeater {
@@ -800,7 +813,7 @@ Item {
 
                 Text {
                     width: parent.width
-                    text: pg.label !== "" ? I18n.tr("Update failed while ") + pg.label.toLowerCase() : I18n.tr("Update failed")
+                    text: pg.label !== "" ? I18n.tr("Update failed while %1").arg(pg.label.toLowerCase()) : I18n.tr("Update failed")
                     color: Tokens.ink; font.family: Tokens.ui
                     font.pixelSize: Tokens.fValue; font.weight: Font.DemiBold
                     wrapMode: Text.WordWrap

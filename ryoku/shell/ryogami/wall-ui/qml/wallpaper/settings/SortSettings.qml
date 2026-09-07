@@ -1,6 +1,7 @@
 import QtQuick
 import "../.."
 import "../../components"
+import Ryoku.Ui.Singletons
 
 Column {
     id: root
@@ -12,21 +13,21 @@ Column {
 
     SettingsCard {
         colors: root.colors
-        title: "Sort mode"
-        subtitle: "How wallpapers are ordered in the selector. The same option is also available as a quick toggle in the filter bar."
+        title: I18n.tr("Sort mode")
+        subtitle: I18n.tr("How wallpapers are ordered in the selector. The same option is also available as a quick toggle in the filter bar.")
 
         Repeater {
             model: [
-                { mode: "color",       label: "Default",      description: "Group by dominant color (red - orange - yellow - … - pink - neutral). Within each color, the most-saturated wallpapers come first." },
-                { mode: "pop",         label: "Color pop",    description: "Sort by how much vivid color the wallpaper actually contains, ignoring which color it is. Saturated, eye-catching wallpapers lead; muted and mostly-neutral ones drop to the back." },
-                { mode: "richness",    label: "Colourful",    description: "Sort by palette diversity - wallpapers using many distinct colors lead, monochrome scenes fall to the back. Good for finding maximalist artwork and detailed illustrations." },
-                { mode: "minimalist",  label: "Minimalist",   description: "Inverse of richness - fewest colors first. Solid backgrounds, clean gradients, and single-subject compositions surface; busy multi-color images drop to the back." },
-                { mode: "applied",     label: "Most applied", description: "Sorts by how often you've actually set this wallpaper. Your greatest hits lead; never-applied wallpapers fall back to newest-first within them." },
-                { mode: "date",        label: "Newest",       description: "Most recently added wallpapers first. Useful right after dropping new files into your wallpaper directory." }
+                { mode: "color",       label: I18n.tr("Default"),      description: I18n.tr("Group by dominant color (red - orange - yellow - … - pink - neutral). Within each color, the most-saturated wallpapers come first.") },
+                { mode: "pop",         label: I18n.tr("Color pop"),    description: I18n.tr("Sort by how much vivid color the wallpaper actually contains, ignoring which color it is. Saturated, eye-catching wallpapers lead; muted and mostly-neutral ones drop to the back.") },
+                { mode: "richness",    label: I18n.tr("Colourful"),    description: I18n.tr("Sort by palette diversity - wallpapers using many distinct colors lead, monochrome scenes fall to the back. Good for finding maximalist artwork and detailed illustrations.") },
+                { mode: "minimalist",  label: I18n.tr("Minimalist"),   description: I18n.tr("Inverse of richness - fewest colors first. Solid backgrounds, clean gradients, and single-subject compositions surface; busy multi-color images drop to the back.") },
+                { mode: "applied",     label: I18n.tr("Most applied"), description: I18n.tr("Sorts by how often you've actually set this wallpaper. Your greatest hits lead; never-applied wallpapers fall back to newest-first within them.") },
+                { mode: "date",        label: I18n.tr("Newest"),       description: I18n.tr("Most recently added wallpapers first. Useful right after dropping new files into your wallpaper directory.") }
             ]
             delegate: SettingsRow {
                 colors: root.colors
-                title: modelData.label
+                title: I18n.tr(modelData.label)
                 description: modelData.description
                 onClicked: {
                     if (!root.service) return

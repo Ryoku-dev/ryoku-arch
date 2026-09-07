@@ -13,19 +13,22 @@ var rows = [
         "group": "LANGUAGE & REGION",
         "key": "language",
         "label": "Language",
-        "desc": "Interface language; Auto follows your system locale.",
-        "ctl": "chips",
+        "desc": "Interface language; Auto follows your system locale. Every surface retranslates live, no relogin.",
+        "ctl": "pick",
         "src": "shell",
-        "opts": ["Auto", "English", "Español", "Français", "Português", "Português (BR)"]
+        // the list is not written here: `set` points the picker at the one
+        // language table (ryoku/i18n/langs.json, via I18n), so adding a
+        // language never means editing this file.
+        "set": "languages"
     }, {
         "tab": "",
         "group": "LANGUAGE & REGION",
         "key": "formatLocale",
         "label": "Regional formats",
         "desc": "Dates, numbers and month names use this region while the language above stays as-is. None = follow the system.",
-        "ctl": "chips",
+        "ctl": "pick",
         "src": "shell",
-        "opts": ["en_US", "en_GB", "pt_BR", "pt_PT", "es_ES", "es_MX", "de_DE", "fr_FR", "it_IT", "nl_NL", "sv_SE", "ja_JP", "zh_CN"]
+        "set": "locales"
     }, {
         "tab": "",
         "group": "LOCATION",

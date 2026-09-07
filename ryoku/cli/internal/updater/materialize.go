@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 	"sort"
 	"strings"
 )
@@ -69,10 +70,10 @@ func Materialize() error {
 	info, err := os.Stat(base)
 	if err != nil || !info.IsDir() {
 		if os.Getenv("RYOKU_CONFIG_BASE") != "" {
-			return fmt.Errorf("base config dir not found: %s (RYOKU_CONFIG_BASE points at a missing dir)", base)
+			return fmt.Errorf(i18n.T("base config dir not found: %s (RYOKU_CONFIG_BASE points at a missing dir)"), base)
 		}
-		return fmt.Errorf("base config dir not found: %s\n"+
-			"  `ryoku materialize` applies a packaged install's config; on a dev checkout run `ryoku deploy` instead", base)
+		return fmt.Errorf(i18n.T("base config dir not found: %s\n"+
+			"  `ryoku materialize` applies a packaged install's config; on a dev checkout run `ryoku deploy` instead"), base)
 	}
 
 	// ~/.config/ryoku is where the shell's JSON stores live (shell.json,
@@ -83,7 +84,7 @@ func Materialize() error {
 
 	current, err := walkRel(base)
 	if err != nil {
-		return fmt.Errorf("scan %s: %w", base, err)
+		return fmt.Errorf(i18n.T("scan %s: %w"), base, err)
 	}
 
 	// Lay down every shipped file, except seeds: those copy only when absent
@@ -109,14 +110,14 @@ func Materialize() error {
 		if generatedSeed[rel] {
 			if !sys.Exists(dst) {
 				if err := sys.CopyFile(filepath.Join(base, rel), dst); err != nil {
-					return fmt.Errorf("seed %s: %w", rel, err)
+					return fmt.Errorf(i18n.T("seed %s: %w"), rel, err)
 				}
 			}
 			continue
 		}
 		shipped, err := os.ReadFile(filepath.Join(base, rel))
 		if err != nil {
-			return fmt.Errorf("read %s: %w", rel, err)
+			return fmt.Errorf(i18n.T("read %s: %w"), rel, err)
 		}
 		hashes[rel] = hashBytes(shipped)
 		if forkable(rel) && !overlaid[rel] {
@@ -124,7 +125,7 @@ func Materialize() error {
 				if live, err := os.ReadFile(dst); err == nil {
 					if h := hashBytes(live); h != laid && h != hashes[rel] {
 						if err := sys.CopyFile(dst, filepath.Join(sys.UserEditsDir(), rel)); err != nil {
-							return fmt.Errorf("keep your edit of %s: %w", rel, err)
+							return fmt.Errorf(i18n.T("keep your edit of %s: %w"), rel, err)
 						}
 						kept = append(kept, rel)
 					}
@@ -132,7 +133,7 @@ func Materialize() error {
 			}
 		}
 		if err := sys.CopyFile(filepath.Join(base, rel), dst); err != nil {
-			return fmt.Errorf("copy %s: %w", rel, err)
+			return fmt.Errorf(i18n.T("copy %s: %w"), rel, err)
 		}
 		managed = append(managed, rel)
 	}
@@ -204,15 +205,15 @@ func Materialize() error {
 		}
 	}
 	if err := writeManifest(state, managed, hashes); err != nil {
-		return fmt.Errorf("record manifest: %w", err)
+		return fmt.Errorf(i18n.T("record manifest: %w"), err)
 	}
 	wirePlumberAfter, _ := os.ReadFile(filepath.Join(dest, wirePlumberPolicyRel))
 	if wpConfigPruned || !bytes.Equal(wirePlumberBefore, wirePlumberAfter) {
 		_ = exec.Command("systemctl", "--user", "try-restart", "wireplumber.service").Run()
 	}
-	fmt.Printf("materialized %d files -> %s\n", len(managed), dest)
+	fmt.Printf(i18n.T("materialized %d files -> %s\n"), len(managed), dest)
 	if len(kept) > 0 {
-		fmt.Printf("kept your edits to %d shipped file(s) as forks under %s (a fork wins over updates; delete it to take Ryoku's version again):\n", len(kept), sys.UserEditsDir())
+		fmt.Printf(i18n.T("kept your edits to %d shipped file(s) as forks under %s (a fork wins over updates; delete it to take Ryoku's version again):\n"), len(kept), sys.UserEditsDir())
 		for _, rel := range kept {
 			fmt.Printf("  %s\n", rel)
 		}
@@ -316,7 +317,7 @@ func writeManifest(path string, rels []string, hashes map[string]string) error {
 func overlayUserEdits(dest string) error {
 	rels, err := sys.UserEditFiles()
 	if err != nil {
-		return fmt.Errorf("scan overlay: %w", err)
+		return fmt.Errorf(i18n.T("scan overlay: %w"), err)
 	}
 	root := sys.UserEditsDir()
 	for _, rel := range rels {
@@ -328,7 +329,7 @@ func overlayUserEdits(dest string) error {
 			continue
 		}
 		if err := sys.CopyFile(filepath.Join(root, rel), filepath.Join(dest, rel)); err != nil {
-			return fmt.Errorf("overlay %s: %w", rel, err)
+			return fmt.Errorf(i18n.T("overlay %s: %w"), rel, err)
 		}
 	}
 	return nil

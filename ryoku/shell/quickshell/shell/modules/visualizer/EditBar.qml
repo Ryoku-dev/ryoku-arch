@@ -735,7 +735,7 @@ Item {
         enabled: !dim
         Behavior on opacity { NumberAnimation { duration: Tokens.snap } }
         Text {
-            text: parent.label
+            text: I18n.tr(parent.label)
             color: Tokens.inkMuted
             font.family: Tokens.ui
             font.pixelSize: Tokens.fTiny

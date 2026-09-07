@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 Item {
     id: rootMod
@@ -23,7 +24,7 @@ Item {
         function pad(n) { return n < 10 ? "0" + n : String(n) }
         return h > 0 ? (h + ":" + pad(m) + ":" + pad(s)) : (pad(m) + ":" + pad(s))
     }
-    readonly property string tooltipText: "Recording · " + elapsedStr + "\nClick to stop"
+    readonly property string tooltipText: I18n.tr("Recording · %1\nClick to stop").arg(elapsedStr)
 
     Row {
         id: row

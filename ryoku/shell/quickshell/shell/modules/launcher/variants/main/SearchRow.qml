@@ -4,6 +4,7 @@ import Quickshell
 import "../../shared/Singletons"
 import "metrics.js" as MainMetrics
 import "." as MainVariant
+import Ryoku.Ui.Singletons
 
 // The search row: the 力 brand glyph, the query field, an active-mode chip, and a
 // result counter. The mode chip names the command the current prefix routes to
@@ -52,7 +53,7 @@ Item {
         color: Theme.cream
         font.family: Theme.font
         font.pixelSize: MainMetrics.fontSearch * root.s
-        placeholderText: "Search apps, type / for commands"
+        placeholderText: I18n.tr("Search apps, type / for commands")
         placeholderTextColor: Theme.faint
         selectByMouse: true
         selectionColor: Theme.verm

@@ -23,17 +23,17 @@ ryoku_preflight() {
   # dry-run never touches the machine, so narrate and return; we'd just probe
   # hardware that might not be on the dev box.
   if [[ -n ${RYOKU_DRYRUN:-} ]]; then
-    log "preflight: would require root, UEFI (/sys/firmware/efi) with Secure Boot off (override RYOKU_ALLOW_SECUREBOOT=1), and $RYOKU_DISK a whole disk >= 32 GiB"
+    log 'preflight: would require root, UEFI (/sys/firmware/efi) with Secure Boot off (override RYOKU_ALLOW_SECUREBOOT=1), and %s a whole disk >= 32 GiB' "$RYOKU_DISK"
     log "preflight: would log the disk's logical sector size (blockdev --getss)"
-    log "preflight: would require the repo payload at $RYOKU_REPO and a working DNS resolver before any disk write"
+    log 'preflight: would require the repo payload at %s and a working DNS resolver before any disk write' "$RYOKU_REPO"
     if [[ ${RYOKU_DISK_STRATEGY:-} == alongside ]]; then
       if [[ -n ${RYOKU_RESIZE_PART:-} ]]; then
-        log "preflight: would also require GPT + a usable ESP to identify the existing OS, the shrink tool for ${RYOKU_RESIZE_PART}'s filesystem, and RYOKU_RESIZE_TAKE_MIB >= $(( (2 + $(ryoku_min_root_gib)) * 1024 )); auto mode uses a dedicated Ryoku ESP when the existing ESP has < 8 MiB free"
+        log 'preflight: would also require GPT + a usable ESP to identify the existing OS, the shrink tool for %s'\''s filesystem, and RYOKU_RESIZE_TAKE_MIB >= %s; auto mode uses a dedicated Ryoku ESP when the existing ESP has < 8 MiB free' "${RYOKU_RESIZE_PART}" "$(( (2 + $(ryoku_min_root_gib)) * 1024 ))"
       else
-        log "preflight: would also require GPT, a usable EF00 ESP to identify the existing OS, a free region >= $(( 2 + $(ryoku_min_root_gib) ))GiB, and warn on any BitLocker neighbor; auto mode shares the existing ESP with >= 8 MiB free and otherwise creates a dedicated Ryoku ESP"
+        log 'preflight: would also require GPT, a usable EF00 ESP to identify the existing OS, a free region >= %sGiB, and warn on any BitLocker neighbor; auto mode shares the existing ESP with >= 8 MiB free and otherwise creates a dedicated Ryoku ESP' "$(( 2 + $(ryoku_min_root_gib) ))"
       fi
     fi
-    log "preflight: ok (profile=$RYOKU_PROFILE, strategy=$RYOKU_DISK_STRATEGY, encrypt=${RYOKU_ENCRYPT:-0})"
+    log 'preflight: ok (profile=%s, strategy=%s, encrypt=%s)' "$RYOKU_PROFILE" "$RYOKU_DISK_STRATEGY" "${RYOKU_ENCRYPT:-0}"
     return 0
   fi
 
@@ -52,33 +52,33 @@ ryoku_preflight() {
   fi
 
   # target disk has to exist and be a block device.
-  [[ -b $RYOKU_DISK ]] || die "target $RYOKU_DISK is not a block device"
+  [[ -b $RYOKU_DISK ]] || die 'target %s is not a block device' "$RYOKU_DISK"
 
   # target must be a WHOLE disk, not a partition: repartitioning a partition
   # device is nonsense and 'whole' would wipe its parent's table. lsblk TYPE
   # separates a disk from a part/lvm/crypt node.
   local dtype
   dtype=$(lsblk -dno TYPE "$RYOKU_DISK" 2>/dev/null || true)
-  [[ $dtype == disk ]] || die "target $RYOKU_DISK is a '${dtype:-unknown}', not a whole disk. Pass a disk (e.g. /dev/nvme0n1 or /dev/sda), not a partition."
+  [[ $dtype == disk ]] || die 'target %s is a '\''%s'\'', not a whole disk. Pass a disk (e.g. /dev/nvme0n1 or /dev/sda), not a partition.' "$RYOKU_DISK" "${dtype:-unknown}"
 
   # target disk has to be >= 32 GiB.
   local size
   size=$(blockdev --getsize64 "$RYOKU_DISK")
   (( size >= RYOKU_MIN_DISK_BYTES )) || \
-    die "$RYOKU_DISK is $(( (size + 536870912) / 1073741824 )) GiB; need at least 32 GiB"
+    die '%s is %s GiB; need at least 32 GiB' "$RYOKU_DISK" "$(( (size + 536870912) / 1073741824 ))"
 
   # the pacstrap set and the whole desktop payload live under $RYOKU_REPO; without
   # it pacstrap dies at "missing package list". check HERE, before the disk is
   # wiped, so a missing or mispointed payload aborts with the disk intact instead
   # of after the wipe.
   local base_list="$RYOKU_REPO/system/packages/base.packages"
-  [[ -f $base_list ]] || die "repo payload missing: $base_list not found (RYOKU_REPO=$RYOKU_REPO). The installer image is incomplete or RYOKU_REPO is wrong; the disk has not been touched."
+  [[ -f $base_list ]] || die 'repo payload missing: %s not found (RYOKU_REPO=%s). The installer image is incomplete or RYOKU_REPO is wrong; the disk has not been touched.' "$base_list" "$RYOKU_REPO"
 
-  log "preflight: $RYOKU_DISK is $(( size / 1024 / 1024 / 1024 )) GiB, $(blockdev --getss "$RYOKU_DISK")-byte logical sectors"
+  log 'preflight: %s is %s GiB, %s-byte logical sectors' "$RYOKU_DISK" "$(( size / 1024 / 1024 / 1024 ))" "$(blockdev --getss "$RYOKU_DISK")"
   if [[ ${RYOKU_DISK_STRATEGY:-} == alongside ]]; then
     if [[ -n ${RYOKU_RESIZE_PART:-} ]]; then ryoku_preflight_resize; else ryoku_preflight_alongside; fi
   fi
-  log "preflight: ok (profile=$RYOKU_PROFILE, strategy=$RYOKU_DISK_STRATEGY, encrypt=${RYOKU_ENCRYPT:-0})"
+  log 'preflight: ok (profile=%s, strategy=%s, encrypt=%s)' "$RYOKU_PROFILE" "$RYOKU_DISK_STRATEGY" "${RYOKU_ENCRYPT:-0}"
 }
 
 ryoku_resolve_esp_mode() {
@@ -88,11 +88,11 @@ ryoku_resolve_esp_mode() {
       if (( avail_kib >= 8192 )); then printf 'shared\n'; else printf 'dedicated\n'; fi
       ;;
     shared)
-      (( avail_kib >= 8192 )) || die "the shared ESP has ${avail_kib} KiB free; shared mode needs >= 8 MiB. Use dedicated mode or free space on the ESP."
+      (( avail_kib >= 8192 )) || die 'the shared ESP has %s KiB free; shared mode needs >= 8 MiB. Use dedicated mode or free space on the ESP.' "${avail_kib}"
       printf 'shared\n'
       ;;
     dedicated) printf 'dedicated\n' ;;
-    *) die "RYOKU_ESP_MODE must be auto, shared, or dedicated (got '$RYOKU_ESP_MODE')" ;;
+    *) die 'RYOKU_ESP_MODE must be auto, shared, or dedicated (got '\''%s'\'')' "$RYOKU_ESP_MODE" ;;
   esac
 }
 
@@ -102,7 +102,7 @@ ryoku_resolve_esp_mode() {
 ryoku_require_existing_esp() {
   local disk=$RYOKU_DISK pttype ef_count espinfo esp kind boot avail_kib=0
   pttype=$(blkid -o value -s PTTYPE "$disk" 2>/dev/null || true)
-  [[ $pttype == gpt ]] || die "alongside needs a GPT disk; $disk has '${pttype:-no}' partition table. Use whole-disk, or convert to GPT."
+  [[ $pttype == gpt ]] || die 'alongside needs a GPT disk; %s has '\''%s'\'' partition table. Use whole-disk, or convert to GPT.' "$disk" "${pttype:-no}"
 
   # Scan every ESP to identify the existing system. Windows is preferred for
   # chainload metadata, but dedicated mode never writes the selected ESP.
@@ -111,11 +111,11 @@ ryoku_require_existing_esp() {
     # No existing ESP. dedicated mode creates its own in the free space, so there
     # is nothing to identify or share; any other mode still needs one to boot.
     [[ ${RYOKU_ESP_MODE:-auto} == dedicated ]] \
-      || die "no usable EFI System Partition on $disk to identify the existing OS. Use whole-disk, or create an ESP first."
+      || die 'no usable EFI System Partition on %s to identify the existing OS. Use whole-disk, or create an ESP first.' "$disk"
     RYOKU_RESOLVED_ESP_MODE=dedicated
     RYOKU_PF_ESP=""; RYOKU_PF_ESP_KIND=none; RYOKU_PF_ESP_BOOT=none
     export RYOKU_RESOLVED_ESP_MODE RYOKU_PF_ESP RYOKU_PF_ESP_KIND RYOKU_PF_ESP_BOOT
-    log "alongside boot mode: dedicated Ryoku ESP created in free space (no existing ESP on $disk)"
+    log 'alongside boot mode: dedicated Ryoku ESP created in free space (no existing ESP on %s)' "$disk"
     return 0
   fi
   read -r esp kind boot <<<"$espinfo"
@@ -125,10 +125,10 @@ ryoku_require_existing_esp() {
   RYOKU_RESOLVED_ESP_MODE=$(ryoku_resolve_esp_mode "$avail_kib")
   export RYOKU_RESOLVED_ESP_MODE
   if [[ $RYOKU_RESOLVED_ESP_MODE == shared ]]; then
-    log "alongside boot mode: shared ESP ($esp, ${avail_kib} KiB free)"
-    (( ef_count > 1 )) && log "WARNING: $disk has $ef_count EFI System Partitions; Ryoku shares the $kind ESP ($esp)."
+    log 'alongside boot mode: shared ESP (%s, %s KiB free)' "$esp" "${avail_kib}"
+    (( ef_count > 1 )) && log 'WARNING: %s has %s EFI System Partitions; Ryoku shares the %s ESP (%s).' "$disk" "$ef_count" "$kind" "$esp"
   else
-    log "alongside boot mode: dedicated Ryoku ESP (existing $kind ESP has ${avail_kib} KiB free and stays untouched)"
+    log 'alongside boot mode: dedicated Ryoku ESP (existing %s ESP has %s KiB free and stays untouched)' "$kind" "${avail_kib}"
   fi
   RYOKU_PF_ESP=$esp
   RYOKU_PF_ESP_KIND=$kind
@@ -140,7 +140,7 @@ ryoku_require_existing_esp() {
 # hold the key), but boot may later prompt for the recovery key.
 ryoku_bitlocker_warn() {
   if lsblk -rno FSTYPE "$1" 2>/dev/null | grep -qi bitlocker; then
-    log "WARNING: a BitLocker-encrypted partition is present on $1. Booting Windows via Ryoku may prompt for the BitLocker recovery key; have it ready. (Recorded, not blocking.)"
+    log 'WARNING: a BitLocker-encrypted partition is present on %s. Booting Windows via Ryoku may prompt for the BitLocker recovery key; have it ready. (Recorded, not blocking.)' "$1"
   fi
 }
 
@@ -150,29 +150,29 @@ ryoku_preflight_alongside() {
   ryoku_require_existing_esp
   need_gib=$(( 2 + $(ryoku_min_root_gib) ))
   region_mib=$(ryoku_free_regions "$disk" | sort -k3,3 -nr | awk 'NR==1{print $3+0}')
-  (( region_mib >= need_gib * 1024 )) || die "no unallocated region >= ${need_gib}GiB on $disk (largest is $(( region_mib / 1024 ))GiB). Shrink a partition first, then retry."
+  (( region_mib >= need_gib * 1024 )) || die 'no unallocated region >= %sGiB on %s (largest is %sGiB). Shrink a partition first, then retry.' "${need_gib}" "$disk" "$(( region_mib / 1024 ))"
   ryoku_bitlocker_warn "$disk"
-  log "preflight alongside: GPT ok, boot mode $RYOKU_RESOLVED_ESP_MODE, existing ESP $RYOKU_PF_ESP ($RYOKU_PF_ESP_KIND), free region $(( region_mib / 1024 ))GiB >= ${need_gib}GiB"
+  log 'preflight alongside: GPT ok, boot mode %s, existing ESP %s (%s), free region %sGiB >= %sGiB' "$RYOKU_RESOLVED_ESP_MODE" "$RYOKU_PF_ESP" "$RYOKU_PF_ESP_KIND" "$(( region_mib / 1024 ))" "${need_gib}"
 }
 
 # Carve uses the same boot-mode gate, then validates the shrink target and size.
 ryoku_preflight_resize() {
   local disk=$RYOKU_DISK part=$RYOKU_RESIZE_PART take=${RYOKU_RESIZE_TAKE_MIB:-0} fstype tool need_gib
   ryoku_require_existing_esp
-  [[ -b $part ]] || die "carve target RYOKU_RESIZE_PART=$part is not a block device."
+  [[ -b $part ]] || die 'carve target RYOKU_RESIZE_PART=%s is not a block device.' "$part"
   local parent; parent=$(lsblk -no PKNAME "$part" 2>/dev/null | head -n1)
-  [[ /dev/$parent == "$disk" ]] || die "carve target $part is not a partition of $disk (parent is ${parent:-unknown})."
+  [[ /dev/$parent == "$disk" ]] || die 'carve target %s is not a partition of %s (parent is %s).' "$part" "$disk" "${parent:-unknown}"
   fstype=$(blkid -o value -s TYPE "$part" 2>/dev/null || true)
   case $fstype in
     ntfs)           tool=ntfsresize ;;
     ext4|ext3|ext2) tool=resize2fs ;;
     btrfs)          tool=btrfs ;;
     swap)           tool=mkswap ;;
-    *)              die "carve does not support filesystem '${fstype:-none}' on $part (only ntfs, ext4, btrfs, swap)." ;;
+    *)              die 'carve does not support filesystem '\''%s'\'' on %s (only ntfs, ext4, btrfs, swap).' "${fstype:-none}" "$part" ;;
   esac
-  command -v "$tool" >/dev/null 2>&1 || die "carve of $fstype needs '$tool', which is not on the live image (ntfsresize ships in ntfsprogs)."
+  command -v "$tool" >/dev/null 2>&1 || die 'carve of %s needs '\''%s'\'', which is not on the live image (ntfsresize ships in ntfsprogs).' "$fstype" "$tool"
   need_gib=$(( 2 + $(ryoku_min_root_gib) ))
-  { [[ $take =~ ^[0-9]+$ ]] && (( take >= need_gib * 1024 )); } || die "RYOKU_RESIZE_TAKE_MIB='${take}' must free at least ${need_gib} GiB (2 GiB boot + $(ryoku_min_root_gib) GiB root) for Ryoku."
+  { [[ $take =~ ^[0-9]+$ ]] && (( take >= need_gib * 1024 )); } || die 'RYOKU_RESIZE_TAKE_MIB='\''%s'\'' must free at least %s GiB (2 GiB boot + %s GiB root) for Ryoku.' "${take}" "${need_gib}" "$(ryoku_min_root_gib)"
   ryoku_bitlocker_warn "$disk"
-  log "preflight carve: GPT ok, boot mode $RYOKU_RESOLVED_ESP_MODE, will carve ${take} MiB out of $part ($fstype) with $tool"
+  log 'preflight carve: GPT ok, boot mode %s, will carve %s MiB out of %s (%s) with %s' "$RYOKU_RESOLVED_ESP_MODE" "${take}" "$part" "$fstype" "$tool"
 }

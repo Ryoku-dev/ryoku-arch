@@ -4,6 +4,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/keyring"
+
+	i18n "ryoku-i18n"
 )
 
 // reconcileKeyring watches the GNOME keyring unlock policy for drift. It lets
@@ -18,7 +20,7 @@ func reconcileKeyring(checkOnly bool) recResult {
 	case len(d.Warnings) > 0:
 		detail := strings.Join(d.Warnings, "; ")
 		if len(d.Fixes) > 0 {
-			detail += " (converged: " + strings.Join(d.Fixes, "; ") + ")"
+			detail += i18n.Tf(" (converged: %s)", strings.Join(d.Fixes, "; "))
 		}
 		r := warnRes("%s", detail)
 		if d.Remedy != "" {
@@ -31,6 +33,6 @@ func reconcileKeyring(checkOnly bool) recResult {
 		}
 		return fixedRes("%s", strings.Join(d.Fixes, "; "))
 	default:
-		return okRes("keyring mode %s is consistent with the system wiring", d.Mode)
+		return okRes(i18n.T("keyring mode %s is consistent with the system wiring"), d.Mode)
 	}
 }

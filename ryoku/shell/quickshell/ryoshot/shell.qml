@@ -84,20 +84,20 @@ ShellRoot {
      * drift apart.
      */
     readonly property var toolDescriptors: [
-        { id: "select",    icon: "select",    label: "Select",     key: "v" },
-        { id: "rect",      icon: "rect",      label: "Rectangle",  key: "r" },
-        { id: "ellipse",   icon: "ellipse",   label: "Ellipse",    key: "o" },
-        { id: "line",      icon: "line",      label: "Line",       key: "l" },
-        { id: "arrow",     icon: "arrow",     label: "Arrow",      key: "a" },
-        { id: "pen",       icon: "pen",       label: "Pen",        key: "p" },
-        { id: "marker",    icon: "marker",    label: "Highlight",  key: "h" },
-        { id: "counter",   icon: "counter",   label: "Step",       key: "n" },
-        { id: "text",      icon: "text",      label: "Text",       key: "t" },
-        { id: "blur",      icon: "blur",      label: "Blur",       key: "b" },
-        { id: "redact",    icon: "redact",    label: "Redact",     key: "d" },
-        { id: "spotlight", icon: "spotlight", label: "Spotlight",  key: "s" },
-        { id: "magnify",   icon: "magnify",   label: "Zoom",       key: "z" },
-        { id: "ocr",       icon: "ocr",       label: "Copy text",  key: "g" }
+        { id: "select",    icon: "select",    label: I18n.tr("Select"),     key: "v" },
+        { id: "rect",      icon: "rect",      label: I18n.tr("Rectangle"),  key: "r" },
+        { id: "ellipse",   icon: "ellipse",   label: I18n.tr("Ellipse"),    key: "o" },
+        { id: "line",      icon: "line",      label: I18n.tr("Line"),       key: "l" },
+        { id: "arrow",     icon: "arrow",     label: I18n.tr("Arrow"),      key: "a" },
+        { id: "pen",       icon: "pen",       label: I18n.tr("Pen"),        key: "p" },
+        { id: "marker",    icon: "marker",    label: I18n.tr("Highlight"),  key: "h" },
+        { id: "counter",   icon: "counter",   label: I18n.tr("Step"),       key: "n" },
+        { id: "text",      icon: "text",      label: I18n.tr("Text"),       key: "t" },
+        { id: "blur",      icon: "blur",      label: I18n.tr("Blur"),       key: "b" },
+        { id: "redact",    icon: "redact",    label: I18n.tr("Redact"),     key: "d" },
+        { id: "spotlight", icon: "spotlight", label: I18n.tr("Spotlight"),  key: "s" },
+        { id: "magnify",   icon: "magnify",   label: I18n.tr("Zoom"),       key: "z" },
+        { id: "ocr",       icon: "ocr",       label: I18n.tr("Copy text"),  key: "g" }
     ]
 
     readonly property var toolKeys: {
@@ -609,8 +609,8 @@ ShellRoot {
         onTriggered: {
             if (root.framePainted) return;
             console.error("ryoshot: no frame rendered 15s after launch, giving up");
-            root.notifySend(qsTr("ryoshot could not draw its overlay"),
-                qsTr("graphics init failed, press the key again"));
+            root.notifySend(I18n.tr("ryoshot could not draw its overlay"),
+                I18n.tr("graphics init failed, press the key again"));
             quitFallback.start();
         }
     }
@@ -639,7 +639,7 @@ ShellRoot {
                 "mkdir -p \"$(dirname \"$2\")\"; [ \"$1\" = \"$2\" ] || cp -- \"$1\" \"$2\"", "sh", file, root.defaultPath]);
         }
         root.quitSoon();
-        root.notifySend(qsTr("Screenshot copied to clipboard"), "");
+        root.notifySend(I18n.tr("Screenshot copied to clipboard"), "");
     }
     function copyTextAndQuit(text) {
         if (root.exported) return;
@@ -658,7 +658,7 @@ ShellRoot {
             "mkdir -p \"$(dirname \"$2\")\"; [ \"$1\" = \"$2\" ] || cp -- \"$1\" \"$2\"", "sh", src, dest]);
         if (Config.copyOnSave)
             Quickshell.execDetached(["ryoku-shell", "clip-copy", "image/png", src]);
-        root.notifyShot(qsTr("Screenshot saved"), dest);
+        root.notifyShot(I18n.tr("Screenshot saved"), dest);
         root.quitSoon();
     }
 
@@ -677,7 +677,7 @@ ShellRoot {
             root.shutter();
             if (Config.copyOnSave)
                 Quickshell.execDetached(["ryoku-shell", "clip-copy", "image/png", auto]);
-            root.notifyShot(qsTr("Screenshot saved"), auto);
+            root.notifyShot(I18n.tr("Screenshot saved"), auto);
             root.quitSoon();
         });
     }
@@ -687,7 +687,7 @@ ShellRoot {
         grabTo(auto, function (ok) {
             if (!ok) { Qt.quit(); return; }
             root.shutter();
-            root.notifyShot(qsTr("Screenshot saved"), auto);
+            root.notifyShot(I18n.tr("Screenshot saved"), auto);
             root.copyImageAndQuit(auto);
         });
     }
@@ -735,7 +735,7 @@ ShellRoot {
         var s = ov.modelData;
         var tmp = "/tmp/ryoshot-ocr.png";
         ov.grabRegion({ x: gx - s.x, y: gy - s.y, w: w, h: h }, tmp, function (ok) {
-            if (!ok) { root.notifySend(qsTr("Could not read that region"), ""); return; }
+            if (!ok) { root.notifySend(I18n.tr("Could not read that region"), ""); return; }
             root.exported = true;
             Quickshell.execDetached(["ryoku-cmd-ocr", "--file", tmp]);
             root.quitSoon();

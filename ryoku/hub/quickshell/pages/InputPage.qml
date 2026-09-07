@@ -143,19 +143,19 @@ Item {
 
     // family key <-> visible label, offered choices per family.
     readonly property var capsMap: [
-        { "key": "", "label": "Default" },
-        { "key": "caps:escape", "label": "Escape" },
+        { "key": "", "label": I18n.tr("Default") },
+        { "key": "caps:escape", "label": I18n.tr("Escape") },
         { "key": "ctrl:nocaps", "label": "Ctrl" },
-        { "key": "caps:swapescape", "label": "Swap Esc" },
-        { "key": "caps:none", "label": "Off" }
+        { "key": "caps:swapescape", "label": I18n.tr("Swap Esc") },
+        { "key": "caps:none", "label": I18n.tr("Off") }
     ]
     readonly property var composeMap: [
-        { "key": "", "label": "Off" },
-        { "key": "compose:ralt", "label": "Right Alt" },
-        { "key": "compose:menu", "label": "Menu" }
+        { "key": "", "label": I18n.tr("Off") },
+        { "key": "compose:ralt", "label": I18n.tr("Right Alt") },
+        { "key": "compose:menu", "label": I18n.tr("Menu") }
     ]
     readonly property var grpMap: [
-        { "key": "", "label": "Off" },
+        { "key": "", "label": I18n.tr("Off") },
         { "key": "grp:alt_shift_toggle", "label": "Alt+Shift" },
         { "key": "grp:win_space_toggle", "label": "Super+Space" }
     ]
@@ -180,7 +180,7 @@ Item {
 
     // ── dynamic xkb catalogues ──────────────────────────────────────────────
     property var layoutOptions: []                                 // [{ code, name }]
-    property var variantOptions: [{ "code": "", "name": "Default" }]
+    property var variantOptions: [{ "code": "", "name": I18n.tr("Default") }]
 
     Process {
         id: layoutsProc
@@ -208,7 +208,7 @@ Item {
         command: ["ryoku-hub", "hypr", "variants", forLayout]
         stdout: StdioCollector {
             onStreamFinished: {
-                var out = [{ "code": "", "name": "Default" }];
+                var out = [{ "code": "", "name": I18n.tr("Default") }];
                 try {
                     var arr = JSON.parse(this.text);
                     for (var i = 0; i < arr.length; i++)
@@ -370,7 +370,7 @@ Item {
         // the numeric readout is a stepper's or slider's alone; a switch or a
         // segmented shows its own state, so it leaves the readout empty.
         value: (st.ctl === "step" || st.ctl === "slid") ? st.fmt(st.numV) : ""
-        def: st.ctl === "sw" ? (st.rawD === true ? "ON" : "OFF")
+        def: st.ctl === "sw" ? (st.rawD === true ? I18n.tr("ON") : I18n.tr("OFF"))
             : st.ctl === "seg" ? st.keyLabel(st.rawD)
             : st.fmt(st.numD)
         changed: (st.ctl === "sw" || st.ctl === "seg")
@@ -461,7 +461,7 @@ Item {
         label: oc.cellLabel
         desc: oc.cellDesc
         value: ""
-        def: oc.kind === "sw" ? (oc.defKey === oc.onKey ? "ON" : "OFF")
+        def: oc.kind === "sw" ? (oc.defKey === oc.onKey ? I18n.tr("ON") : I18n.tr("OFF"))
             : oc.kind === "chips" ? "" : pg.mapLabel(oc.map, oc.defKey)
         changed: oc.curKey !== oc.defKey
 
@@ -652,36 +652,36 @@ Item {
 
                 PickCell {
                     divider: false
-                    cellLabel: "Layout"
-                    cellDesc: "The main keyboard layout."
-                    pickTitle: "KEYBOARD LAYOUT"
+                    cellLabel: I18n.tr("Layout")
+                    cellDesc: I18n.tr("The main keyboard layout.")
+                    pickTitle: I18n.tr("KEYBOARD LAYOUT")
                     list: pg.layoutOptions
                     currentCode: pg.primaryLayout(false)
                     committedCode: pg.primaryLayout(true)
                     applyFn: function (code) { pg.setLayouts(code, pg.secondaryLayout(false)); }
                 }
                 PickCell {
-                    cellLabel: "Style"
-                    cellDesc: "A variant of the main layout, like Dvorak or intl."
-                    pickTitle: "LAYOUT STYLE"
+                    cellLabel: I18n.tr("Style")
+                    cellDesc: I18n.tr("A variant of the main layout, like Dvorak or intl.")
+                    pickTitle: I18n.tr("LAYOUT STYLE")
                     list: pg.variantOptions
                     currentCode: pg.primaryVariant(false)
                     committedCode: pg.primaryVariant(true)
                     applyFn: function (code) { pg.setVariant(code); }
                 }
                 PickCell {
-                    cellLabel: "Second layout"
-                    cellDesc: "A spare layout kept loaded; the chord below switches to it."
-                    pickTitle: "SECOND LAYOUT"
-                    list: [{ "code": "", "name": "None" }].concat(pg.layoutOptions)
+                    cellLabel: I18n.tr("Second layout")
+                    cellDesc: I18n.tr("A spare layout kept loaded; the chord below switches to it.")
+                    pickTitle: I18n.tr("SECOND LAYOUT")
+                    list: [{ "code": "", "name": I18n.tr("None") }].concat(pg.layoutOptions)
                     currentCode: pg.secondaryLayout(false)
                     committedCode: pg.secondaryLayout(true)
                     applyFn: function (code) { pg.setLayouts(pg.primaryLayout(false), code); }
                 }
                 OptCell {
                     gate: pg.secondaryLayout(false).length > 0
-                    cellLabel: "Switch layouts"
-                    cellDesc: "The chord that toggles between the two loaded layouts."
+                    cellLabel: I18n.tr("Switch layouts")
+                    cellDesc: I18n.tr("The chord that toggles between the two loaded layouts.")
                     ids: pg.grpIds
                     map: pg.grpMap
                     kind: "seg"
@@ -700,23 +700,23 @@ Item {
 
                 OptCell {
                     divider: false
-                    cellLabel: "Caps Lock"
-                    cellDesc: "Turn the Caps Lock key into something more useful."
+                    cellLabel: I18n.tr("Caps Lock")
+                    cellDesc: I18n.tr("Turn the Caps Lock key into something more useful.")
                     ids: pg.capsIds
                     map: pg.capsMap
                     kind: "chips"
                 }
                 OptCell {
-                    cellLabel: "Swap Alt and Super"
-                    cellDesc: "Exchange the Alt and Super modifier keys."
+                    cellLabel: I18n.tr("Swap Alt and Super")
+                    cellDesc: I18n.tr("Exchange the Alt and Super modifier keys.")
                     ids: [pg.swapId]
                     map: []
                     kind: "sw"
                     onKey: pg.swapId
                 }
                 OptCell {
-                    cellLabel: "Compose key"
-                    cellDesc: "A key that begins a compose sequence for accents and symbols."
+                    cellLabel: I18n.tr("Compose key")
+                    cellDesc: I18n.tr("A key that begins a compose sequence for accents and symbols.")
                     ids: pg.composeIds
                     map: pg.composeMap
                     kind: "seg"
@@ -780,8 +780,8 @@ Item {
                     divider: true
                     source: "vconsole"
                     label: I18n.tr("Login screen, TTY, and boot")
-                    value: pg.sysApplyState === "ok" ? "APPLIED"
-                        : pg.sysApplyState === "err" ? "FAILED" : "READY"
+                    value: pg.sysApplyState === "ok" ? I18n.tr("APPLIED")
+                        : pg.sysApplyState === "err" ? I18n.tr("FAILED") : I18n.tr("READY")
                     desc: pg.sysApplyState === "ok" ? I18n.tr("Applied to the login screen, console, and boot prompt.")
                         : pg.sysApplyState === "err" ? I18n.tr("Not applied. Cancelled or failed.")
                         : I18n.tr("They keep their own keymap until you apply.")
@@ -822,7 +822,7 @@ Item {
                 Setting {
                     path: "input.accelProfile"
                     ctl: "seg"
-                    opts: [{ "key": "", "label": "Default" }, { "key": "flat", "label": "Flat" }, { "key": "adaptive", "label": "Adaptive" }]
+                    opts: [{ "key": "", "label": I18n.tr("Default") }, { "key": "flat", "label": I18n.tr("Flat") }, { "key": "adaptive", "label": I18n.tr("Adaptive") }]
                     label: I18n.tr("Acceleration")
                     desc: I18n.tr("Flat ties travel to the hand; Adaptive speeds quick moves.")
                 }

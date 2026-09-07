@@ -18,7 +18,7 @@ base-devel
 git
 
 # Language toolchains. go and cmake/ninja build the monorepo components; rust
-# (cargo) builds awww, hyprland-preview-share-picker and asusctl; asusctl also
+# (cargo) builds hyprland-preview-share-picker and asusctl; asusctl also
 # needs clang, llvm and libusb. meson drives the two controller packages
 # (game-devices-udev, dualsensectl) through arch-meson; ninja alone does not
 # drive itself. gradle native-compiles the vendored limine-entry-tool stack.
@@ -40,8 +40,8 @@ qt6-multimedia
 
 # Compositor plugin packages (hypr-dynamic-cursors, ryoku-hypr-plugins,
 # hyprglass, imgborders, ryoku-keysounds) plus their makedepends: keysounds
-# links libcanberra. awww's common/build.rs probes liblz4;
-# hyprland-preview-share-picker needs gtk4 + gtk4-layer-shell.
+# links libcanberra. hyprland-preview-share-picker needs gtk4 +
+# gtk4-layer-shell.
 hyprland
 hyprcursor
 libcanberra
@@ -55,7 +55,6 @@ wayland
 wayland-protocols
 ffmpeg
 pkgconf
-lz4
 gtk4
 gtk4-layer-shell
 

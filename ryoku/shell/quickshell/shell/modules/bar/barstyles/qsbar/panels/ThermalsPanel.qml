@@ -20,9 +20,9 @@ PanelWindow {
     readonly property int gap: 6
 
     function status(value, maximum, critical) {
-        if (critical > 0 && value >= critical * 0.9) return "HOT"
-        if (maximum > 0 && value >= maximum * 0.8) return "WARM"
-        return maximum > 0 || critical > 0 ? "NORMAL" : "LIVE"
+        if (critical > 0 && value >= critical * 0.9) return I18n.tr("HOT")
+        if (maximum > 0 && value >= maximum * 0.8) return I18n.tr("WARM")
+        return maximum > 0 || critical > 0 ? I18n.tr("NORMAL") : I18n.tr("LIVE")
     }
 
     function statusColor(value, maximum, critical) {
@@ -72,7 +72,7 @@ PanelWindow {
             id: sensorValue
             anchors.right: parent.right
             anchors.top: parent.top
-            text: value + I18n.tr("°C · ") + thermalPanel.status(value, maximum, critical)
+            text: value + "°C · " + thermalPanel.status(value, maximum, critical)
             color: meterColor
             font.family: thermalPanel.root.mono
             font.pixelSize: 10
@@ -115,7 +115,7 @@ PanelWindow {
             width: 48
             anchors.right: parent.right
             anchors.bottom: parent.bottom
-            text: scaleMax + I18n.tr("° limit")
+            text: I18n.tr("%1° limit").arg(scaleMax)
             color: thermalPanel.root.sumi
             font.family: thermalPanel.root.mono
             font.pixelSize: 8
@@ -230,7 +230,7 @@ PanelWindow {
                 Repeater {
                     model: [
                         { id: "cpu", label: "CPU" },
-                        { id: "core", label: "CORE" },
+                        { id: "core", label: I18n.tr("CORE") },
                         { id: "gpu", label: "GPU" },
                         { id: "nvme", label: "NVME" },
                         { id: "memory", label: "RAM" }
@@ -289,7 +289,7 @@ PanelWindow {
                 critical: root.cpuTemperatureCriticalC
             }
             ThermalRow {
-                label: root.gpuName !== "" ? I18n.tr("GPU · ") + root.gpuName : I18n.tr("GPU")
+                label: root.gpuName !== "" ? "GPU · " + root.gpuName : "GPU"
                 value: root.gpuTemperatureC
             }
             ThermalRow {

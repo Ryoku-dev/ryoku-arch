@@ -1,6 +1,7 @@
 import QtQuick
 import "../.."
 import "../../components"
+import Ryoku.Ui.Singletons
 
 Flow {
     id: root
@@ -12,57 +13,57 @@ Flow {
 
     SettingsCard {
         colors: root.colors
-        title: "Directories"
+        title: I18n.tr("Directories")
         width: parent.width
 
         RowTextInput {
             colors: root.colors
-            title: "Wallpaper directory"
-            description: "Folder Ryogami scans for image and video wallpapers. Restart required after change."
+            title: I18n.tr("Wallpaper directory")
+            description: I18n.tr("Folder Ryogami scans for image and video wallpapers. Restart required after change.")
             value: Config.wallpaperDir
-            placeholder: "~/Pictures/Wallpapers"
+            placeholder: I18n.tr("~/Pictures/Wallpapers")
             onCommit: function(v) { if (root.saveConfigKey) root.saveConfigKey("paths.wallpaper", v) }
         }
 
         RowTextInput {
             colors: root.colors
-            title: "Video directory"
-            description: "Separate folder for video wallpapers. Defaults to the wallpaper directory."
+            title: I18n.tr("Video directory")
+            description: I18n.tr("Separate folder for video wallpapers. Defaults to the wallpaper directory.")
             value: Config.videoDir
-            placeholder: "(same as wallpaper directory)"
+            placeholder: I18n.tr("(same as wallpaper directory)")
             onCommit: function(v) { if (root.saveConfigKey) root.saveConfigKey("paths.videoWallpaper", v) }
         }
     }
 
     SettingsCard {
         colors: root.colors
-        title: "Steam"
+        title: I18n.tr("Steam")
         width: parent.width
 
         RowTextInput {
             colors: root.colors
-            title: "Workshop directory"
-            description: "Where Steam stores Workshop content."
+            title: I18n.tr("Workshop directory")
+            description: I18n.tr("Where Steam stores Workshop content.")
             value: Config.weDir
-            placeholder: "Steam Workshop content path"
+            placeholder: I18n.tr("Steam Workshop content path")
             onCommit: function(v) { if (root.saveConfigKey) root.saveConfigKey("paths.steamWorkshop", v) }
         }
 
         RowTextInput {
             colors: root.colors
-            title: "WE assets directory"
-            description: "Wallpaper Engine assets path."
+            title: I18n.tr("WE assets directory")
+            description: I18n.tr("Wallpaper Engine assets path.")
             value: Config.weAssetsDir
-            placeholder: "Wallpaper Engine assets path"
+            placeholder: I18n.tr("Wallpaper Engine assets path")
             onCommit: function(v) { if (root.saveConfigKey) root.saveConfigKey("paths.steamWeAssets", v) }
         }
 
         RowTextInput {
             colors: root.colors
-            title: "Steam directory"
-            description: "Steam install root."
+            title: I18n.tr("Steam directory")
+            description: I18n.tr("Steam install root.")
             value: Config.steamDir
-            placeholder: "Steam install path"
+            placeholder: I18n.tr("Steam install path")
             onCommit: function(v) { if (root.saveConfigKey) root.saveConfigKey("paths.steam", v) }
         }
     }

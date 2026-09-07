@@ -20,12 +20,12 @@ Item {
     // clipboard. heavy tools reinstall on every disposable boot, the steer
     // points those users at templates.
     property var toolDefs: [
-        { id: "git", label: "git" }, { id: "build", label: "build tools" },
+        { id: "git", label: "git" }, { id: "build", label: I18n.tr("build tools") },
         { id: "python", label: "python" }, { id: "node", label: "node/npm" },
         { id: "go", label: "go" }, { id: "rust", label: "rust" },
         { id: "docker", label: "docker", heavy: true }, { id: "podman", label: "podman", heavy: true },
         { id: "jq", label: "jq" }, { id: "net", label: "curl/wget" },
-        { id: "cli", label: "htop·tmux·vim·rg" }, { id: "spice", label: "SPICE clipboard" }
+        { id: "cli", label: "htop·tmux·vim·rg" }, { id: "spice", label: I18n.tr("SPICE clipboard") }
     ]
     readonly property var toolLabels: pane.toolDefs.map(t => t.label)
     property var pickedIds: (Vm.settings.tools || "").split(",").filter(s => s.length > 0)
@@ -147,7 +147,7 @@ Item {
                         block: false
                         controlWidth: Spans.inlineWidth("sw", 0, width)
                         label: I18n.tr("Disposable")
-                        value: pane.disposableRun ? "BURN" : "KEEP"
+                        value: pane.disposableRun ? I18n.tr("BURN") : I18n.tr("KEEP")
                         desc: pane.disposableRun
                             ? I18n.tr("Every boot re-provisions the ryoku account, factory-fresh.")
                             : I18n.tr("A normal machine you can seal and reuse.")
@@ -165,7 +165,7 @@ Item {
                         block: true
                         label: I18n.tr("Toolset")
                         value: String(pane.pickedIds.length)
-                        unit: "baked"
+                        unit: I18n.tr("baked")
                         desc: I18n.tr("Tools baked in on first boot, clip is always on.")
                         Multi {
                             anchors.fill: parent

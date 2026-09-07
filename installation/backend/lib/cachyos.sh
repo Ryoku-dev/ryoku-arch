@@ -16,7 +16,7 @@ ryoku_cachyos_repo() {
     log "DRYRUN: allow x86_64_v3, enable [multilib], add [cachyos-v3]/[cachyos-core-v3]/[cachyos-extra-v3]/[cachyos] above [core], populate the cachyos keyring in the target"
     return 0
   fi
-  [[ -f $conf ]] || { log "cachyos: no $conf in the target yet; skipping repo config"; return 0; }
+  [[ -f $conf ]] || { log 'cachyos: no %s in the target yet; skipping repo config' "$conf"; return 0; }
   log "cachyos: configuring the CachyOS repositories in the target"
   ryoku_cachyos_arch "$conf"
   ryoku_cachyos_multilib "$conf"
@@ -60,9 +60,9 @@ EOF
 ryoku_cachyos_repos() {
   local conf=$1
   grep -qE '^\[cachyos' "$conf" && { log "cachyos: repositories already present"; return 0; }
-  grep -qE '^\[core\]' "$conf" || { log "cachyos: no [core] anchor in $conf; appending the CachyOS repos"; ryoku_cachyos_repos_append "$conf"; return 0; }
+  grep -qE '^\[core\]' "$conf" || { log 'cachyos: no [core] anchor in %s; appending the CachyOS repos' "$conf"; ryoku_cachyos_repos_append "$conf"; return 0; }
   run sed -i "0,/^\[core\]/ s|^\[core\]|[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n\n[cachyos-core-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n\n[cachyos-extra-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n\n[core]|" "$conf"
-  grep -qE '^\[cachyos-v3\]' "$conf" || log "cachyos: warning, could not add the CachyOS repos to $conf"
+  grep -qE '^\[cachyos-v3\]' "$conf" || log 'cachyos: warning, could not add the CachyOS repos to %s' "$conf"
 }
 
 # fallback when the conf has no [core] to anchor above (unexpected): append the

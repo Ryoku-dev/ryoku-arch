@@ -112,14 +112,14 @@ PanelWindow {
     }
     function typeLabel(dev) {
         var ic = String(dev && dev.icon ? dev.icon : "").toLowerCase()
-        if (ic === "input-gaming") return "Controller"
-        if (ic === "audio-headphones") return "Headphones"
-        if (ic === "audio-headset") return "Headset"
-        if (ic === "audio-card") return "Speaker"
-        if (ic === "input-mouse") return "Mouse"
-        if (ic === "input-keyboard") return "Keyboard"
-        if (ic === "phone") return "Phone"
-        return ic ? ic : "Device"
+        if (ic === "input-gaming") return I18n.tr("Controller")
+        if (ic === "audio-headphones") return I18n.tr("Headphones")
+        if (ic === "audio-headset") return I18n.tr("Headset")
+        if (ic === "audio-card") return I18n.tr("Speaker")
+        if (ic === "input-mouse") return I18n.tr("Mouse")
+        if (ic === "input-keyboard") return I18n.tr("Keyboard")
+        if (ic === "phone") return I18n.tr("Phone")
+        return ic ? ic : I18n.tr("Device")
     }
 
     property real reveal: root.bluetoothVisible ? 1 : 0
@@ -343,7 +343,7 @@ PanelWindow {
                                         if (btPanel.pairingAddr === devTile.devMac) return I18n.tr("Pairing…")
                                         if (devTile.modelData.state === BluetoothDeviceState.Connecting) return I18n.tr("Connecting…")
                                         if (devTile.modelData.connected)
-                                            return devTile.batteryText !== "" ? I18n.tr("Connected · ") + devTile.batteryText : I18n.tr("Connected")
+                                            return devTile.batteryText !== "" ? I18n.tr("Connected · %1").arg(devTile.batteryText) : I18n.tr("Connected")
                                         return devTile.devPaired ? I18n.tr("Paired") : I18n.tr("Available")
                                     }
                                     color: root.ink
@@ -446,7 +446,7 @@ PanelWindow {
                                     border.color: forgetMa.containsMouse ? root.seal : root.sep
                                     border.width: 1
                                     opacity: btPanel.busy ? 0.45 : 1
-                                    UiText { id: forgetLabel; anchors.centerIn: parent; text: "Forget"; color: forgetMa.containsMouse ? root.seal : root.sumiHi; font.family: root.mono; font.pixelSize: 10 }
+                                    UiText { id: forgetLabel; anchors.centerIn: parent; text: I18n.tr("Forget"); color: forgetMa.containsMouse ? root.seal : root.sumiHi; font.family: root.mono; font.pixelSize: 10 }
                                     MouseArea { id: forgetMa; anchors.fill: parent; enabled: !btPanel.busy; hoverEnabled: true; cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor; onClicked: btPanel.forgetDevice(devTile.modelData) }
                                 }
                             }

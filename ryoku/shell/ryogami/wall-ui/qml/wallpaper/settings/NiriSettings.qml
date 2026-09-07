@@ -2,6 +2,7 @@ import QtQuick
 import "../.."
 import "../../components"
 import "../../services"
+import Ryoku.Ui.Singletons
 
 Flow {
     id: root
@@ -37,22 +38,22 @@ Flow {
 
     SettingsCard {
         colors: root.colors
-        title: "Overview backdrop"
-        subtitle: "Render the current wallpaper (optionally blurred) as the backdrop visible in niri's overview (Mod+O)."
+        title: I18n.tr("Overview backdrop")
+        subtitle: I18n.tr("Render the current wallpaper (optionally blurred) as the backdrop visible in niri's overview (Mod+O).")
         width: parent.width
 
         RowToggle {
             colors: root.colors
-            title: "Show wallpaper in overview"
-            description: "Serve a copy of the wallpaper as a layer-shell surface that niri places in the overview backdrop."
+            title: I18n.tr("Show wallpaper in overview")
+            description: I18n.tr("Serve a copy of the wallpaper as a layer-shell surface that niri places in the overview backdrop.")
             checked: Config.niriOverviewBackdrop
             onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("niri.overviewBackdrop", v) }
         }
 
         RowToggle {
             colors: root.colors
-            title: "Blur the backdrop"
-            description: "Apply a Gaussian blur to the overview backdrop. Turn off for a sharp backdrop."
+            title: I18n.tr("Blur the backdrop")
+            description: I18n.tr("Apply a Gaussian blur to the overview backdrop. Turn off for a sharp backdrop.")
             checked: Config.niriOverviewBackdropBlurEnabled
             enabled: Config.niriOverviewBackdrop
             onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("niri.overviewBackdropBlurEnabled", v) }
@@ -60,8 +61,8 @@ Flow {
 
         RowInput {
             colors: root.colors
-            title: "Blur radius"
-            description: "Gaussian blur radius applied to the copy. Higher is softer."
+            title: I18n.tr("Blur radius")
+            description: I18n.tr("Gaussian blur radius applied to the copy. Higher is softer.")
             value: Config.niriOverviewBackdropBlur
             min: 1; max: 200
             enabled: Config.niriOverviewBackdrop && Config.niriOverviewBackdropBlurEnabled
@@ -70,8 +71,8 @@ Flow {
 
         RowToggle {
             colors: root.colors
-            title: "Always use the current wallpaper"
-            description: "Force the backdrop to track whatever wallpaper is applied, overriding any per-card backdrop you've set."
+            title: I18n.tr("Always use the current wallpaper")
+            description: I18n.tr("Force the backdrop to track whatever wallpaper is applied, overriding any per-card backdrop you've set.")
             checked: Config.niriBackdropFollowWallpaper
             enabled: Config.niriOverviewBackdrop
             onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("niri.backdropFollowWallpaper", v) }
@@ -79,8 +80,8 @@ Flow {
 
         RowToggle {
             colors: root.colors
-            title: "Auto-theme the backdrop"
-            description: "Recolour the backdrop with a gowall theme palette."
+            title: I18n.tr("Auto-theme the backdrop")
+            description: I18n.tr("Recolour the backdrop with a gowall theme palette.")
             checked: Config.niriBackdropAutoTheme
             enabled: Config.niriOverviewBackdrop
             onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("niri.backdropAutoTheme", v) }
@@ -88,8 +89,8 @@ Flow {
 
         RowDropdown {
             colors: root.colors
-            title: "Backdrop theme"
-            description: "Palette used when auto-theming the backdrop."
+            title: I18n.tr("Backdrop theme")
+            description: I18n.tr("Palette used when auto-theming the backdrop.")
             value: Config.niriBackdropTheme
             model: root._backdropThemes
             enabled: Config.niriOverviewBackdrop && Config.niriBackdropAutoTheme
@@ -99,8 +100,8 @@ Flow {
 
         RowInput {
             colors: root.colors
-            title: "Backdrop dimming"
-            description: "Darken the overview backdrop. 0 = none, 100 = black."
+            title: I18n.tr("Backdrop dimming")
+            description: I18n.tr("Darken the overview backdrop. 0 = none, 100 = black.")
             value: Config.niriBackdropDim
             min: 0; max: 100; suffix: "%"
             enabled: Config.niriOverviewBackdrop
@@ -109,8 +110,8 @@ Flow {
 
         SettingsRow {
             colors: root.colors
-            title: "Required niri layer-rule"
-            description: "Paste this into your ~/.config/niri/config.kdl, then reload niri (e.g. niri msg action reload-config)."
+            title: I18n.tr("Required niri layer-rule")
+            description: I18n.tr("Paste this into your ~/.config/niri/config.kdl, then reload niri (e.g. niri msg action reload-config).")
         }
 
         Rectangle {
@@ -141,8 +142,8 @@ Flow {
 
         RowAction {
             colors: root.colors
-            title: _refreshState._busy ? "Regenerating..." : "Regenerate backdrop now"
-            description: "Re-blur the current wallpaper and respawn the backdrop renderer. Use this after toggling the feature on without applying a new wallpaper."
+            title: _refreshState._busy ? I18n.tr("Regenerating...") : I18n.tr("Regenerate backdrop now")
+            description: I18n.tr("Re-blur the current wallpaper and respawn the backdrop renderer. Use this after toggling the feature on without applying a new wallpaper.")
             enabled: Config.niriOverviewBackdrop && !_refreshState._busy
             opacity: enabled ? 1.0 : 0.5
             onClicked: {
@@ -165,8 +166,8 @@ Flow {
 
         RowAction {
             colors: root.colors
-            title: _copyState._copied ? "Copied!" : "Copy layer-rule to clipboard"
-            description: "Copies the snippet above so you can paste it directly into niri's config."
+            title: _copyState._copied ? I18n.tr("Copied!") : I18n.tr("Copy layer-rule to clipboard")
+            description: I18n.tr("Copies the snippet above so you can paste it directly into niri's config.")
             onClicked: {
                 snippetText.selectAll()
                 snippetText.copy()

@@ -31,9 +31,9 @@ Item {
     property string sub: "wifi"
 
     readonly property var tabs: [
-        { "key": "wifi", "label": "Wi-Fi" },
-        { "key": "bluetooth", "label": "Bluetooth" },
-        { "key": "hotspot", "label": "Hotspot" }
+        { "key": "wifi", "label": I18n.tr("Wi-Fi") },
+        { "key": "bluetooth", "label": I18n.tr("Bluetooth") },
+        { "key": "hotspot", "label": I18n.tr("Hotspot") }
     ]
     readonly property int tabW: 120
     function tabIndex(k) {
@@ -400,7 +400,7 @@ Item {
                 Text {
                     anchors.fill: parent
                     visible: crInput.text === ""
-                    text: cr.field === "pw" ? "8+ characters" : I18n.tr("Network name")
+                    text: cr.field === "pw" ? I18n.tr("8+ characters") : I18n.tr("Network name")
                     color: Tokens.inkMuted
                     font: crInput.font
                     horizontalAlignment: Text.AlignRight
@@ -1431,7 +1431,7 @@ Item {
             stderr: StdioCollector {}
             onExited: function(exitCode) {
                 if (exitCode !== 0) {
-                    bt.serviceError = "Could not start the bluetooth service.";
+                    bt.serviceError = I18n.tr("Could not start the bluetooth service.");
                     svcErrTimer.restart();
                 }
             }
@@ -1484,10 +1484,10 @@ Item {
                         text: {
                             var known = bt.devices.length;
                             if (known === 0)
-                                return bt.discovering ? "Scanning\u2026" : "No devices yet";
+                                return bt.discovering ? I18n.tr("Scanning\u2026") : I18n.tr("No devices yet");
                             if (bt.connectedCount > 0)
-                                return bt.connectedCount + " connected \u00b7 " + known + " known";
-                            return known + " known";
+                                return I18n.tr("%1 connected \u00b7 %2 known").arg(bt.connectedCount).arg(known);
+                            return I18n.tr("%1 known").arg(known);
                         }
                         color: Tokens.inkMuted
                         font.family: Tokens.ui
@@ -1681,7 +1681,7 @@ Item {
                                                 ? (dev.modelData.deviceName
                                                     || dev.modelData.name
                                                     || dev.addr
-                                                    || "Unknown")
+                                                    || I18n.tr("Unknown"))
                                                 : I18n.tr("Unknown")
                                             color: Tokens.ink
                                             font.family: Tokens.ui
@@ -1889,7 +1889,7 @@ Item {
             spacing: Tokens.s2
 
             Text {
-                text: I18n.tr("Share this machine's connection as a Wi-Fi hotspot. NetworkManager owns the profile (named ") + hs.hsCon + I18n.tr("); changes to the network name or password apply at once when the hotspot is live.")
+                text: I18n.tr("Share this machine's connection as a Wi-Fi hotspot. NetworkManager owns the profile (named %1); changes to the network name or password apply at once when the hotspot is live.").arg(hs.hsCon)
                 color: Tokens.inkMuted
                 font.family: Tokens.ui
                 font.pixelSize: Tokens.fSmall
@@ -1942,7 +1942,7 @@ Item {
                     }
                     Text {
                         text: hs.hsBusy ? I18n.tr("Working\u2026")
-                            : (hs.hsActive ? (I18n.tr("Active on ") + hs.hsIface) : I18n.tr("Off"))
+                            : (hs.hsActive ? I18n.tr("Active on %1").arg(hs.hsIface) : I18n.tr("Off"))
                         color: hs.hsActive ? Tokens.ink : Tokens.inkMuted
                         font.family: Tokens.ui
                         font.pixelSize: Tokens.fSmall
@@ -2000,7 +2000,7 @@ Item {
                     field: "name"
                     label: I18n.tr("Network name")
                     value: hs.hsName
-                    placeholder: I18n.tr("Ryoku")
+                    placeholder: "Ryoku"
                     editing: hs.hsEdit === "name"
                     draft: hs.hsDraft
                     onBeginEdit: { hs.hsDraft = value; hs.hsEdit = "name"; }

@@ -117,10 +117,10 @@ Item {
         Quickshell.execDetached(["ryoku-shell", "reload"]);
         menu.close();
     }
-    function videoLabel(v) { return v === "canvas" ? "Spotify Canvas" : v === "custom" ? "Custom" : "Off"; }
+    function videoLabel(v) { return v === "canvas" ? "Spotify Canvas" : v === "custom" ? I18n.tr("Custom") : I18n.tr("Off"); }
     function videoName(p) {
         if (!p || p.length === 0)
-            return "None";
+            return I18n.tr("None");
         const s = ("" + p).replace(/\/+$/, "");
         return decodeURIComponent(s.slice(s.lastIndexOf("/") + 1));
     }
@@ -164,7 +164,7 @@ Item {
         MenuRow {
             visible: !menu.isWidget
             label: I18n.tr("Clock")
-            value: Config.clockEnabled ? "On" : "Off"
+            value: Config.clockEnabled ? I18n.tr("On") : I18n.tr("Off")
             on: Config.clockEnabled
             closeOnTrigger: false
             onTriggered: Config.set("clockEnabled", !Config.clockEnabled)
@@ -172,7 +172,7 @@ Item {
         MenuRow {
             visible: !menu.isWidget
             label: I18n.tr("Calendar")
-            value: Config.calendarEnabled ? "On" : "Off"
+            value: Config.calendarEnabled ? I18n.tr("On") : I18n.tr("Off")
             on: Config.calendarEnabled
             closeOnTrigger: false
             onTriggered: Config.set("calendarEnabled", !Config.calendarEnabled)
@@ -180,7 +180,7 @@ Item {
         MenuRow {
             visible: !menu.isWidget
             label: I18n.tr("Music")
-            value: Config.musicEnabled ? "On" : "Off"
+            value: Config.musicEnabled ? I18n.tr("On") : I18n.tr("Off")
             on: Config.musicEnabled
             closeOnTrigger: false
             onTriggered: Config.set("musicEnabled", !Config.musicEnabled)
@@ -188,7 +188,7 @@ Item {
         MenuRow {
             visible: !menu.isWidget
             label: I18n.tr("All-in-one")
-            value: Config.aioEnabled ? "On" : "Off"
+            value: Config.aioEnabled ? I18n.tr("On") : I18n.tr("Off")
             on: Config.aioEnabled
             closeOnTrigger: false
             onTriggered: Config.set("aioEnabled", !Config.aioEnabled)
@@ -196,7 +196,7 @@ Item {
         MenuRow {
             visible: !menu.isWidget
             label: I18n.tr("System stats")
-            value: Config.statsEnabled ? "On" : "Off"
+            value: Config.statsEnabled ? I18n.tr("On") : I18n.tr("Off")
             on: Config.statsEnabled
             closeOnTrigger: false
             onTriggered: Config.set("statsEnabled", !Config.statsEnabled)
@@ -204,7 +204,7 @@ Item {
         MenuRow {
             visible: !menu.isWidget
             label: I18n.tr("Weather")
-            value: Config.weatherEnabled ? "On" : "Off"
+            value: Config.weatherEnabled ? I18n.tr("On") : I18n.tr("Off")
             on: Config.weatherEnabled
             closeOnTrigger: false
             onTriggered: Config.set("weatherEnabled", !Config.weatherEnabled)
@@ -212,7 +212,7 @@ Item {
         MenuRow {
             visible: !menu.isWidget
             label: I18n.tr("Notes")
-            value: Config.notesEnabled ? "On" : "Off"
+            value: Config.notesEnabled ? I18n.tr("On") : I18n.tr("Off")
             on: Config.notesEnabled
             closeOnTrigger: false
             onTriggered: Config.set("notesEnabled", !Config.notesEnabled)
@@ -245,7 +245,7 @@ Item {
         MenuRow {
             visible: menu.isClock
             label: I18n.tr("Date")
-            value: Config.dateShow ? "On" : "Off"
+            value: Config.dateShow ? I18n.tr("On") : I18n.tr("Off")
             on: Config.dateShow
             closeOnTrigger: false
             onTriggered: Config.toggle("dateShow")
@@ -253,7 +253,7 @@ Item {
         MenuRow {
             visible: menu.isMusic
             label: I18n.tr("Lyrics")
-            value: Config.musicLyrics ? "On" : "Off"
+            value: Config.musicLyrics ? I18n.tr("On") : I18n.tr("Off")
             on: Config.musicLyrics
             closeOnTrigger: false
             onTriggered: Config.toggle("musicLyrics")
@@ -261,7 +261,7 @@ Item {
         MenuRow {
             visible: menu.isMusic
             label: I18n.tr("Visualiser")
-            value: Config.musicViz === "wave" ? "Wave" : "Bars"
+            value: Config.musicViz === "wave" ? I18n.tr("Wave") : I18n.tr("Bars")
             on: Config.musicViz === "wave"
             closeOnTrigger: false
             onTriggered: Config.set("musicViz", Config.musicViz === "wave" ? "bars" : "wave")
@@ -269,7 +269,7 @@ Item {
         MenuRow {
             visible: menu.isMusic
             label: I18n.tr("Canvas")
-            value: Config.musicShape === "tall" ? "9:16" : "Wide"
+            value: Config.musicShape === "tall" ? "9:16" : I18n.tr("Wide")
             on: Config.musicShape === "tall"
             closeOnTrigger: false
             onTriggered: Config.set("musicShape", Config.musicShape === "tall" ? "wide" : "tall")
@@ -291,7 +291,7 @@ Item {
         MenuRow {
             visible: menu.isWidget
             label: I18n.tr("Lock")
-            value: menu.locked ? "On" : "Off"
+            value: menu.locked ? I18n.tr("On") : I18n.tr("Off")
             on: menu.locked
             closeOnTrigger: false
             onTriggered: Config.toggle(menu.scope + "Locked")
@@ -299,7 +299,7 @@ Item {
         MenuRow {
             visible: menu.isWidget && menu.stageActive
             label: I18n.tr("In front of the subject")
-            value: menu.isWidgetFront(menu.scope) ? "On" : "Off"
+            value: menu.isWidgetFront(menu.scope) ? I18n.tr("On") : I18n.tr("Off")
             on: menu.isWidgetFront(menu.scope)
             closeOnTrigger: false
             onTriggered: menu.setWidgetFront(menu.scope, true)
@@ -307,7 +307,7 @@ Item {
         MenuRow {
             visible: menu.isWidget && menu.stageActive
             label: I18n.tr("Behind the subject")
-            value: !menu.isWidgetFront(menu.scope) ? "On" : "Off"
+            value: !menu.isWidgetFront(menu.scope) ? I18n.tr("On") : I18n.tr("Off")
             on: !menu.isWidgetFront(menu.scope)
             closeOnTrigger: false
             onTriggered: menu.setWidgetFront(menu.scope, false)
@@ -361,17 +361,17 @@ Item {
                     readonly property real cw: (width - 2 * Theme.s1) / 3
                     MenuChip {
                         width: modeRow.cw; height: Theme.ctlH
-                        label: "Auto"; selected: menu.colorMode === "auto"
+                        label: I18n.tr("Auto"); selected: menu.colorMode === "auto"
                         onClicked: menu.setColorMode("auto")
                     }
                     MenuChip {
                         width: modeRow.cw; height: Theme.ctlH
-                        label: "Solid"; selected: menu.colorMode === "solid"
+                        label: I18n.tr("Solid"); selected: menu.colorMode === "solid"
                         onClicked: menu.setColorMode("solid")
                     }
                     MenuChip {
                         width: modeRow.cw; height: Theme.ctlH
-                        label: "Gradient"; selected: menu.colorMode === "gradient"
+                        label: I18n.tr("Gradient"); selected: menu.colorMode === "gradient"
                         onClicked: menu.setColorMode("gradient")
                     }
                 }
@@ -401,7 +401,7 @@ Item {
                 readonly property real cellSize: Theme.s6
                 readonly property real span: placer.cellSize * 3 + Theme.s1 * 2
                 MenuChip {
-                    label: "Auto"
+                    label: I18n.tr("Auto")
                     width: placer.span
                     height: Theme.ctlH
                     selected: menu.curAnchor === "auto"

@@ -2,25 +2,26 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import Ryoku.Ui.Singletons
 
 // The bar skins, drawn. Every skin's silhouette lives here once so the gallery
 // tile and the live preview cannot disagree about what a skin looks like.
 // Descriptions come from docs/bar.md and pill/Bar.qml, not from taste.
 Singleton {
     readonly property var skins: [
-        { key: "noctalia",  origin: "reference", draw: "noctalia",  what: "Capsule modules in a row, dot workspaces, the stacked clock" },
-        { key: "caelestia", origin: "reference", draw: "caelestia", what: "Numbered cell strip in one pill with a sliding indicator" },
-        { key: "aegis",     origin: "ryoku",     draw: "aegis",     what: "Flat modules with hairline accent underlines" },
-        { key: "stele",     origin: "ryoku",     draw: "stele",     what: "Engraved bracket cells" },
-        { key: "triptych",  origin: "ryoku",     draw: "triptych",  what: "Three rounded islands on the band" },
-        { key: "delos",     origin: "ryoku",     draw: "delos",     what: "The whole bar collapsed into one floating island" },
-        { key: "nacre",     origin: "ryoku",     draw: "nacre",     what: "Three islands with concave dips under a hairline top edge" },
-        { key: "inir",      origin: "inir",      draw: "inir",      what: "Flat frame-off panel with hairline cell separators" },
-        { key: "aurora",    origin: "inir",      draw: "aurora",    what: "Translucent frame-off glass with a soft top sheen" },
-        { key: "angel",     origin: "inir",      draw: "angel",     what: "Opaque brutalist panel, heavy base, bright inset top" },
-        { key: "washi",     origin: "ricelin",   draw: "washi",     what: "A floating pill that warps in place into full surfaces" },
-        { key: "atoll",     origin: "ilyamiro",  draw: "atoll",     what: "Floating dark islands, a bright active chip, a startup cascade" },
-        { key: "dyad",      origin: "jules3182", draw: "dyad",      what: "Floating islands riding both the top and bottom edges at once" }
+        { key: "noctalia",  origin: "reference", draw: "noctalia",  what: I18n.tr("Capsule modules in a row, dot workspaces, the stacked clock") },
+        { key: "caelestia", origin: "reference", draw: "caelestia", what: I18n.tr("Numbered cell strip in one pill with a sliding indicator") },
+        { key: "aegis",     origin: "ryoku",     draw: "aegis",     what: I18n.tr("Flat modules with hairline accent underlines") },
+        { key: "stele",     origin: "ryoku",     draw: "stele",     what: I18n.tr("Engraved bracket cells") },
+        { key: "triptych",  origin: "ryoku",     draw: "triptych",  what: I18n.tr("Three rounded islands on the band") },
+        { key: "delos",     origin: "ryoku",     draw: "delos",     what: I18n.tr("The whole bar collapsed into one floating island") },
+        { key: "nacre",     origin: "ryoku",     draw: "nacre",     what: I18n.tr("Three islands with concave dips under a hairline top edge") },
+        { key: "inir",      origin: "inir",      draw: "inir",      what: I18n.tr("Flat frame-off panel with hairline cell separators") },
+        { key: "aurora",    origin: "inir",      draw: "aurora",    what: I18n.tr("Translucent frame-off glass with a soft top sheen") },
+        { key: "angel",     origin: "inir",      draw: "angel",     what: I18n.tr("Opaque brutalist panel, heavy base, bright inset top") },
+        { key: "washi",     origin: "ricelin",   draw: "washi",     what: I18n.tr("A floating pill that warps in place into full surfaces") },
+        { key: "atoll",     origin: "ilyamiro",  draw: "atoll",     what: I18n.tr("Floating dark islands, a bright active chip, a startup cascade") },
+        { key: "dyad",      origin: "jules3182", draw: "dyad",      what: I18n.tr("Floating islands riding both the top and bottom edges at once") }
     ]
 
     function pill(c, x, y, w, h, r) {

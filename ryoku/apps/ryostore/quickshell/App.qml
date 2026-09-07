@@ -101,8 +101,8 @@ Rectangle {
     // everything else. The filter narrows the collection by StoreLogic.pluginKind.
     readonly property bool pluginsBrowse: app.categoryID === "plugins" && app.view === "discover" && !app.searchOpen
     readonly property var pluginTabs: [
-        { "key": "bar", "label": "BAR" },
-        { "key": "desktop", "label": "DESKTOP" }
+        { "key": "bar", "label": I18n.tr("BAR") },
+        { "key": "desktop", "label": I18n.tr("DESKTOP") }
     ]
     readonly property var themeProviders: {
         var seen = ({});
@@ -409,8 +409,8 @@ Rectangle {
         // Themes and Plugins each browse one catalogue, so both offer an All
         // plate; Themes also offers the installed library, while Decor's plates
         // are whole catalogues so it offers neither.
-        allLabel: app.themesBrowse || app.pluginsBrowse ? "ALL" : ""
-        trailingLabel: app.themesBrowse ? "MY THEMES" : ""
+        allLabel: app.themesBrowse || app.pluginsBrowse ? I18n.tr("ALL") : ""
+        trailingLabel: app.themesBrowse ? I18n.tr("MY THEMES") : ""
         trailingKey: app.themesBrowse ? "__mine__" : ""
         installableCount: app.themesBrowse ? app.themeInstallable : 0
         busy: Store.busyKey !== ""

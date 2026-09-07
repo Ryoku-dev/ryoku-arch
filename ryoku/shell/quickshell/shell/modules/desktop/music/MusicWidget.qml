@@ -7,6 +7,7 @@ import ".."
 import "../Singletons"
 import "../../../components"
 import "../../../utils/artcolor.js" as ArtColor
+import Ryoku.Ui.Singletons
 
 // The wallpaper's now-playing sheet: the sleeve leads, this song's lyrics run
 // beside it under the line being sung, and the track, its clock, a wavy seek rail
@@ -141,7 +142,7 @@ Item {
         }
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: qsTr("Nothing playing")
+            text: I18n.tr("Nothing playing")
             color: root.dim
             font.family: Theme.font
             font.pixelSize: 13 * root.s
@@ -288,7 +289,7 @@ Item {
                 anchors.rightMargin: 14 * root.s
                 anchors.verticalCenter: parent.verticalCenter
                 visible: !root.seekable
-                text: Media.radio ? qsTr("Live") : ""
+                text: Media.radio ? I18n.tr("Live") : ""
                 color: root.dim
                 elide: Text.ElideRight
                 font.family: Theme.mono

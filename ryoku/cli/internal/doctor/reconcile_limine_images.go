@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: limine per-kernel boot images -------------------------------
@@ -198,49 +200,49 @@ func pruneLimineStrayImages(names []string) error {
 // reconcileLimineKernelImages: a no-op while every image matches its kernel.
 func reconcileLimineKernelImages(checkOnly bool) recResult {
 	if !sys.PkgInstalled("limine") {
-		return okRes("not a limine-managed boot on this box")
+		return okRes(i18n.T("not a limine-managed boot on this box"))
 	}
 	installed := installedKernelVersions()
 	if len(installed) == 0 {
-		return okRes("no installed kernels to check")
+		return okRes(i18n.T("no installed kernels to check"))
 	}
 	entries := gatherLimineBootKernels(readFileSafe(limineESPConf), "/boot", installed)
 	if len(entries) == 0 {
-		return okRes("no tool-generated kernel entries yet; the boot tree reconciler owns that")
+		return okRes(i18n.T("no tool-generated kernel entries yet; the boot tree reconciler owns that"))
 	}
 	stale, stray := planLimineKernelImages(installed, entries)
 	if len(stale) == 0 && len(stray) == 0 {
-		return okRes("every installed kernel has a current boot image")
+		return okRes(i18n.T("every installed kernel has a current boot image"))
 	}
 	if checkOnly {
 		var parts []string
 		if len(stale) > 0 {
-			parts = append(parts, fmt.Sprintf("boot image missing, older than its kernel, or built for a version no longer installed: %s (boots into an emergency shell)", strings.Join(stale, ", ")))
+			parts = append(parts, fmt.Sprintf(i18n.T("boot image missing, older than its kernel, or built for a version no longer installed: %s (boots into an emergency shell)"), strings.Join(stale, ", ")))
 		}
 		if len(stray) > 0 {
-			parts = append(parts, fmt.Sprintf("boot entry for a kernel that is not installed: %s (a dead menu item)", strings.Join(stray, ", ")))
+			parts = append(parts, fmt.Sprintf(i18n.T("boot entry for a kernel that is not installed: %s (a dead menu item)"), strings.Join(stray, ", ")))
 		}
 		return wouldRes("%s", strings.Join(parts, "; ")).
-			withFix("ryoku doctor rebuilds the stale image(s) and prunes the stray entry")
+			withFix(i18n.T("ryoku doctor rebuilds the stale image(s) and prunes the stray entry"))
 	}
 	var done, problems []string
 	if len(stale) > 0 {
 		if err := rebuildInitramfs(); err != nil {
-			return failRes("kernel boot image stale for %s but the rebuild failed: %v", strings.Join(stale, ", "), err).
-				withFix("sudo limine-mkinitcpio  (or: sudo mkinitcpio -P)")
+			return failRes(i18n.T("kernel boot image stale for %s but the rebuild failed: %v"), strings.Join(stale, ", "), err).
+				withFix(i18n.T("sudo limine-mkinitcpio  (or: sudo mkinitcpio -P)"))
 		}
-		done = append(done, fmt.Sprintf("rebuilt the boot image for %s to match the installed kernel", strings.Join(stale, ", ")))
+		done = append(done, fmt.Sprintf(i18n.T("rebuilt the boot image for %s to match the installed kernel"), strings.Join(stale, ", ")))
 	}
 	if len(stray) > 0 {
 		if err := pruneLimineStrayImages(stray); err != nil {
-			problems = append(problems, fmt.Sprintf("could not prune the stray entry for %s: %v", strings.Join(stray, ", "), err))
+			problems = append(problems, fmt.Sprintf(i18n.T("could not prune the stray entry for %s: %v"), strings.Join(stray, ", "), err))
 		} else {
-			done = append(done, fmt.Sprintf("pruned the stray boot entry for %s (kernel not installed)", strings.Join(stray, ", ")))
+			done = append(done, fmt.Sprintf(i18n.T("pruned the stray boot entry for %s (kernel not installed)"), strings.Join(stray, ", ")))
 		}
 	}
 	if len(problems) > 0 {
 		return warnRes("%s", strings.Join(append(done, problems...), "; ")).
-			withFix("check the ESP and rerun sudo ryoku doctor")
+			withFix(i18n.T("check the ESP and rerun sudo ryoku doctor"))
 	}
 	return fixedRes("%s", strings.Join(done, "; "))
 }

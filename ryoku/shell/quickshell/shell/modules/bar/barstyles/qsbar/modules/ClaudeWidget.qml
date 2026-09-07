@@ -72,40 +72,40 @@ Item {
     readonly property string tooltipText: {
         var lines = []
         if (showCl) {
-            lines.push("Claude Code" + (clFresh ? "" : "  · stale, last refresh failed"))
+            lines.push(I18n.tr("Claude Code") + (clFresh ? "" : "  · " + I18n.tr("stale, last refresh failed")))
             var cr = root.aiFmtReset(clReset5hTs)
-            lines.push("5h: " + clPct5h + "%" + (cr ? "  (reset in " + cr + ")" : ""))
+            lines.push("5h: " + clPct5h + "%" + (cr ? "  (" + I18n.tr("reset in %1").arg(cr) + ")" : ""))
             var c7 = root.aiFmtReset(clReset7dTs)
-            if (clPct7d > 0) lines.push("7d: " + clPct7d + "%" + (c7 ? "  (reset in " + c7 + ")" : ""))
+            if (clPct7d > 0) lines.push("7d: " + clPct7d + "%" + (c7 ? "  (" + I18n.tr("reset in %1").arg(c7) + ")" : ""))
             var clp = root.aiPaceText(clPct7d, clReset7dTs)
-            if (clp) lines.push("pace: " + clp)
-            if (clTokens)    lines.push(clTokens + " tokens" + (clRate ? "  · " + clRate : ""))
-            if (clToday > 0) lines.push("today: " + (clToday / 1e6).toFixed(2) + "M tok")
+            if (clp) lines.push(I18n.tr("pace: %1").arg(clp))
+            if (clTokens)    lines.push(I18n.tr("%1 tokens").arg(clTokens) + (clRate ? "  · " + clRate : ""))
+            if (clToday > 0) lines.push(I18n.tr("today: %1M tok").arg((clToday / 1e6).toFixed(2)))
         }
         if (showCx) {
             if (lines.length) lines.push("")
-            lines.push("OpenAI Codex" + (cxPlan ? "  (" + cxPlan + ")" : "")
-                + (cxFresh ? "" : "  · stale, last refresh failed"))
+            lines.push(I18n.tr("OpenAI Codex") + (cxPlan ? "  (" + cxPlan + ")" : "")
+                + (cxFresh ? "" : "  · " + I18n.tr("stale, last refresh failed")))
             for (var i = 0; i < cxWindows.length; i++) {
                 var xw = cxWindows[i] || {}
                 var xr = root.aiFmtReset(xw.resetTs || 0)
-                lines.push(String(xw.label || "window") + ": " + (xw.pct || 0) + "%" + (xr ? "  (reset in " + xr + ")" : ""))
+                lines.push(String(xw.label || I18n.tr("window")) + ": " + (xw.pct || 0) + "%" + (xr ? "  (" + I18n.tr("reset in %1").arg(xr) + ")" : ""))
             }
             var cxp = root.aiPaceText(cxPct7d, cxReset7dTs)
-            if (cxp) lines.push("pace: " + cxp)
-            lines.push("General limit: " + root.aiCodexStatusLabel(cxLimitStatus, cxLimitReachedType))
-            if (cxRate) lines.push("Local activity (1h, incl. cached): " + cxRate)
+            if (cxp) lines.push(I18n.tr("pace: %1").arg(cxp))
+            lines.push(I18n.tr("General limit: %1").arg(root.aiCodexStatusLabel(cxLimitStatus, cxLimitReachedType)))
+            if (cxRate) lines.push(I18n.tr("Local activity (1h, incl. cached): %1").arg(cxRate))
         }
         if (showOc) {
             if (lines.length) lines.push("")
-            lines.push("OpenCode" + (ocPlan ? "  (" + ocPlan + ")" : "")
-                + (ocFresh ? "" : "  · stale, last refresh failed"))
+            lines.push(I18n.tr("OpenCode") + (ocPlan ? "  (" + ocPlan + ")" : "")
+                + (ocFresh ? "" : "  · " + I18n.tr("stale, last refresh failed")))
             lines.push("5h: " + ocPct5h + "%  ·  7d: " + ocPct7d + "%")
-            if (ocTokens) lines.push(ocTokens + " tokens" + (ocRate ? "  · " + ocRate : ""))
-            if (ocToday > 0) lines.push("today: " + (ocToday / 1e6).toFixed(2) + "M tok")
+            if (ocTokens) lines.push(I18n.tr("%1 tokens").arg(ocTokens) + (ocRate ? "  · " + ocRate : ""))
+            if (ocToday > 0) lines.push(I18n.tr("today: %1M tok").arg((ocToday / 1e6).toFixed(2)))
             if (ocModel) lines.push(ocModel)
         }
-        return lines.length ? lines.join("\n") : "AI usage"
+        return lines.length ? lines.join("\n") : I18n.tr("AI usage")
     }
 
     // keep rendered until the collapse animation finishes

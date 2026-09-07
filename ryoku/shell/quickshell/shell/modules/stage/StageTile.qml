@@ -1,6 +1,7 @@
 import QtQuick
 import shell.services
 import "../../components"
+import Ryoku.Ui.Singletons
 
 // A toggle tile: round icon, label + sub, and a switch (docs/stage.md).
 Rectangle {
@@ -40,7 +41,7 @@ Rectangle {
             spacing: 1
             Text {
                 width: parent.width
-                text: tile.label
+                text: I18n.tr(tile.label)
                 color: Theme.onSurface
                 font.family: Theme.fontPrimary
                 font.pixelSize: Theme.fontSm

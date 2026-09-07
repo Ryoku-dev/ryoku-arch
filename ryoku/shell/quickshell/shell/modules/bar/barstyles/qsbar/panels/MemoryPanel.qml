@@ -154,26 +154,26 @@ PanelWindow {
                 Row {
                     width: parent.width
                     UiText { text: I18n.tr("Used"); color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: memPanel.usedGiB.toFixed(1) + I18n.tr(" GiB"); color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
-                    UiText { text: memPanel.memUsed + I18n.tr(" MiB"); color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6); font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
+                    UiText { text: memPanel.usedGiB.toFixed(1) + " GiB"; color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
+                    UiText { text: memPanel.memUsed + " MiB"; color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6); font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
                 }
                 Row {
                     width: parent.width
                     UiText { text: I18n.tr("Available"); color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: (memPanel.memAvail / 1024).toFixed(1) + I18n.tr(" GiB"); color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
-                    UiText { text: memPanel.memAvail + I18n.tr(" MiB"); color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6); font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
+                    UiText { text: (memPanel.memAvail / 1024).toFixed(1) + " GiB"; color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
+                    UiText { text: memPanel.memAvail + " MiB"; color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6); font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
                 }
                 Row {
                     width: parent.width
                     UiText { text: I18n.tr("Total"); color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: memPanel.totalGiB.toFixed(1) + I18n.tr(" GiB"); color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
-                    UiText { text: memPanel.memTotal + I18n.tr(" MiB"); color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6); font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
+                    UiText { text: memPanel.totalGiB.toFixed(1) + " GiB"; color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
+                    UiText { text: memPanel.memTotal + " MiB"; color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6); font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
                 }
                 Row {
                     width: parent.width
                     visible: root.memorySpeedMTs > 0
                     UiText { text: I18n.tr("Speed"); color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: root.memorySpeedMTs + I18n.tr(" MT/s"); color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
+                    UiText { text: root.memorySpeedMTs + " MT/s"; color: root.ink; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
                     UiText { text: root.memoryType; color: Qt.rgba(root.ink.r, root.ink.g, root.ink.b, 0.6); font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.3 }
                 }
             }

@@ -129,8 +129,8 @@ Item {
 
         Column {
             y: 150; width: parent.width; spacing: 0
-            Row1 { label: Ui.I18n.tr("CPU"); value: (Sysinfo.cpu*100).toFixed(1)+"%"; tick: "#8fb7c9" }
-            Row1 { label: Ui.I18n.tr("GPU"); value: StatsFeed.gpuPct+"%"; tick: "#8fb7c9" }
+            Row1 { label: "CPU"; value: (Sysinfo.cpu*100).toFixed(1)+"%"; tick: "#8fb7c9" }
+            Row1 { label: "GPU"; value: StatsFeed.gpuPct+"%"; tick: "#8fb7c9" }
             Row1 { label: Ui.I18n.tr("Memory"); value: Sysinfo.memUsedGiB.toFixed(1)+" GiB" }
             Row1 { label: Ui.I18n.tr("GPU Power"); value: StatsFeed.gpuPowerW.toFixed(0)+" W" }
         }

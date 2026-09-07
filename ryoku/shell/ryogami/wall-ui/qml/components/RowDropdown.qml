@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import QtQuick.Shapes
 import ".."
+import Ryoku.Ui.Singletons
 
 SettingsRow {
   id: row
@@ -250,7 +251,7 @@ SettingsRow {
               anchors.left: parent.left
               anchors.leftMargin: 10 * Config.uiScale
               anchors.verticalCenter: parent.verticalCenter
-              text: optDelegate.modelData.label
+              text: I18n.tr(optDelegate.modelData.label)
               font.family: Style.fontFamily
               font.pixelSize: 12 * Config.uiScale
               font.weight: parent._isActive ? Font.Bold : Font.Normal
@@ -404,7 +405,7 @@ SettingsRow {
                 anchors.right: parent.right
                 anchors.rightMargin: 8 * Config.uiScale
                 anchors.verticalCenter: parent.verticalCenter
-                text: optDelegate2.modelData.label
+                text: I18n.tr(optDelegate2.modelData.label)
                 elide: Text.ElideRight
                 font.family: Style.fontFamily
                 font.pixelSize: 12 * Config.uiScale

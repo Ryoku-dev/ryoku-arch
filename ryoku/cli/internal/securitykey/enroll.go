@@ -7,18 +7,19 @@ import (
 	"time"
 
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 )
 
 func runEnroll(args []string) error {
 	if len(args) != 0 {
-		return fmt.Errorf("usage: ryoku security-key enroll")
+		return fmt.Errorf(i18n.T("usage: ryoku security-key enroll"))
 	}
 	var cred string
 	if fakeFIDO() {
 		cred = fakeEnrollment()
 	} else {
 		if !sys.Has("pamu2fcfg") {
-			return fmt.Errorf("pamu2fcfg is not installed; install pam-u2f first")
+			return fmt.Errorf(i18n.T("pamu2fcfg is not installed; install pam-u2f first"))
 		}
 		origin := defaultOrigin()
 		_, _, caps := probeDevice()
@@ -30,7 +31,7 @@ func runEnroll(args []string) error {
 			if msg == "" {
 				msg = err.Error()
 			}
-			return fmt.Errorf("pamu2fcfg failed: %s", msg)
+			return fmt.Errorf(i18n.T("pamu2fcfg failed: %s"), msg)
 		}
 		adoptPolicyFor(caps)
 		var err2 error
@@ -44,14 +45,14 @@ func runEnroll(args []string) error {
 		return err
 	}
 	if containsCred(a.creds, cred) {
-		fmt.Println("that security key is already enrolled")
+		fmt.Println(i18n.T("that security key is already enrolled"))
 		return nil
 	}
 	a.creds = append(a.creds, cred)
 	if err := writeAuthFile(a); err != nil {
 		return err
 	}
-	fmt.Printf("enrolled security key %d for %s\n", len(a.creds), currentUser())
+	fmt.Printf(i18n.T("enrolled security key %d for %s\n"), len(a.creds), currentUser())
 	return nil
 }
 
@@ -75,7 +76,7 @@ func adoptPolicyFor(caps Capabilities) {
 	p.PinVerification = true
 	p.TouchRequired = true
 	if err := writePolicy(p); err != nil {
-		fmt.Printf("warning: couldn't record security-key policy: %v\n", err)
+		fmt.Printf(i18n.T("warning: couldn't record security-key policy: %v\n"), err)
 	}
 }
 
@@ -95,21 +96,21 @@ func parseEnrollment(out string) (string, error) {
 		}
 		return strings.TrimSpace(parts[1]), nil
 	}
-	return "", fmt.Errorf("pamu2fcfg returned no credential line")
+	return "", fmt.Errorf(i18n.T("pamu2fcfg returned no credential line"))
 }
 
 func runRemove(args []string) error {
 	if len(args) != 1 {
-		return fmt.Errorf("usage: ryoku security-key remove <id|all>")
+		return fmt.Errorf(i18n.T("usage: ryoku security-key remove <id|all>"))
 	}
 	left, err := removeCredential(args[0])
 	if err != nil {
 		return err
 	}
 	if args[0] == "all" {
-		fmt.Println("removed all enrolled security keys")
+		fmt.Println(i18n.T("removed all enrolled security keys"))
 		return nil
 	}
-	fmt.Printf("removed security key %s (%d remaining)\n", args[0], left)
+	fmt.Printf(i18n.T("removed security key %s (%d remaining)\n"), args[0], left)
 	return nil
 }

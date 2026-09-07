@@ -180,7 +180,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
         }
         Text {
-            text: "PREVIEW_"
+            text: I18n.tr("PREVIEW_")
             color: Tokens.inkMuted
             font.family: Tokens.mono; font.pixelSize: Tokens.fMicro
             font.letterSpacing: Tokens.trackLabel
@@ -249,7 +249,7 @@ Item {
         Text {
             visible: root.vEnabled
             anchors { bottom: parent.bottom; horizontalCenter: parent.horizontalCenter; bottomMargin: Tokens.s2 }
-            text: "DRAG TO PLACE"
+            text: I18n.tr("DRAG TO PLACE")
             color: Tokens.inkFaint
             font.family: Tokens.mono; font.pixelSize: Tokens.fMicro
             font.letterSpacing: Tokens.trackLabel
@@ -280,7 +280,7 @@ Item {
     Text {
         anchors.centerIn: stage
         visible: !root.vEnabled
-        text: "VISUALIZER OFF"
+        text: I18n.tr("VISUALIZER OFF")
         color: Tokens.inkMuted
         font.family: Tokens.ui; font.pixelSize: Tokens.fMicro
         font.weight: Font.Medium; font.letterSpacing: 2

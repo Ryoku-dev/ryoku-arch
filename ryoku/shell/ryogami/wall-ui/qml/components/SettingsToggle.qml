@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Shapes
 import ".."
+import Ryoku.Ui.Singletons
 
 Item {
     id: root
@@ -78,7 +79,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: track.right
         anchors.leftMargin: 8 * Config.uiScale
-        text: root.label
+        text: I18n.tr(root.label)
         font.family: Style.fontFamily
         font.pixelSize: 11 * Config.uiScale
         font.weight: Font.Medium

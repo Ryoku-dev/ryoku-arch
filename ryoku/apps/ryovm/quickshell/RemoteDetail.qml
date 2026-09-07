@@ -118,7 +118,7 @@ Item {
                     spacing: 4
                     Annunciator {
                         anchors.right: parent.right
-                        label: ({ "up": "UP", "warn": "DEGRADED", "down": "DOWN", "unknown": "UNKNOWN" })[berth.state] || "UNKNOWN"
+                        label: ({ "up": I18n.tr("UP"), "warn": I18n.tr("DEGRADED"), "down": I18n.tr("DOWN"), "unknown": I18n.tr("UNKNOWN") })[berth.state] || I18n.tr("UNKNOWN")
                         lit: berth.state === "up" || berth.state === "warn"
                         warn: berth.state === "warn"
                         tileW: 74
@@ -166,7 +166,7 @@ Item {
                     Readout {
                         label: I18n.tr("CPU")
                         value: berth.probed ? String(berth.health.cpus) : ""
-                        unit: "cores"
+                        unit: I18n.tr("cores")
                     }
                 }
                 Row {
@@ -189,7 +189,7 @@ Item {
                     Readout {
                         label: I18n.tr("FAILED")
                         value: berth.probed ? String(berth.health.failedUnits) : ""
-                        unit: "units"
+                        unit: I18n.tr("units")
                         warn: berth.probed && berth.health.failedUnits > 0
                     }
                 }
@@ -321,7 +321,7 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 spacing: 1
                                 Text {
-                                    text: guestRow.modelData.name || ("guest " + guestRow.modelData.vmid)
+                                    text: guestRow.modelData.name || I18n.tr("guest %1").arg(guestRow.modelData.vmid)
                                     color: Tokens.ink
                                     font.family: Tokens.ui; font.pixelSize: 13; font.weight: Font.DemiBold
                                 }
@@ -371,7 +371,7 @@ Item {
                 spacing: Tokens.s2
                 visible: berth.probed && berth.health.services && Object.keys(berth.health.services).length > 0
                 Text {
-                    text: "// SERVICES_"; color: Tokens.inkMuted
+                    text: I18n.tr("// SERVICES_"); color: Tokens.inkMuted
                     font.family: Tokens.ui; font.pixelSize: Tokens.fMicro
                     font.weight: Font.Medium; font.letterSpacing: Tokens.trackMark
                 }
@@ -581,7 +581,7 @@ Item {
                 property bool armed: false
                 function arm() { armed = true; forgetDisarm.restart(); }
                 visible: armed
-                text: I18n.tr("Tap FORGET again to remove ") + berth.alias + I18n.tr(" (its ~/.ssh/config entry stays).")
+                text: I18n.tr("Tap FORGET again to remove %1 (its ~/.ssh/config entry stays).").arg(berth.alias)
                 color: Tokens.inkMuted
                 font.family: Tokens.ui; font.pixelSize: 11
                 Timer { id: forgetDisarm; interval: 3000; onTriggered: forget.armed = false }

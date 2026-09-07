@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 import ".."
+import Ryoku.Ui.Singletons
 
 QtObject {
   id: svc
@@ -143,7 +144,7 @@ QtObject {
     _batchRunning = true
     _batchRemaining = ids.length
     activeId = ids[0]
-    activeMessage = "Starting steamcmd..."
+    activeMessage = I18n.tr("Starting steamcmd...")
     var s = Object.assign({}, downloadStatus)
     s[ids[0]] = "downloading"
     downloadStatus = s
@@ -172,7 +173,7 @@ QtObject {
       var p = Object.assign({}, downloadProgress)
       p[id] = pct
       downloadProgress = p
-      activeMessage = "Downloading " + Math.round(pct * 100) + "%"
+      activeMessage = I18n.tr("Downloading %1%").arg(Math.round(pct * 100))
       _writeStatus()
     })
     proc.onStatusMessage.connect(function(id, msg) {
@@ -208,7 +209,7 @@ QtObject {
       var nextId = proc.currentId
       if (nextId && nextId !== id && _batchRemaining > 0) {
         activeId = nextId
-        activeMessage = "Downloading workshop item..."
+        activeMessage = I18n.tr("Downloading workshop item...")
         var st2 = Object.assign({}, downloadStatus)
         st2[nextId] = "downloading"
         downloadStatus = st2

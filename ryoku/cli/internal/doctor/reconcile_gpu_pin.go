@@ -3,6 +3,8 @@ package doctor
 import (
 	"os/exec"
 	"strings"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: stale GPU render pin ---------------------------------------
@@ -41,24 +43,24 @@ func planGpuPin(verdict string, verdictErr error, checkOnly bool, disable func()
 		// No ryoku-gpu on PATH (partial install) or the probe failed: there is
 		// nothing this check can safely audit, and inventing a fault helps no
 		// one. The GPU tooling has its own delivery checks.
-		return okRes("ryoku-gpu is not available to audit the render pin (%v)", verdictErr)
+		return okRes(i18n.T("ryoku-gpu is not available to audit the render pin (%v)"), verdictErr)
 	}
 	switch {
 	case verdict == "ok":
-		return okRes("the Hyprland GPU render pin matches ryoku-gpu policy")
+		return okRes(i18n.T("the Hyprland GPU render pin matches ryoku-gpu policy"))
 	case verdict == "forced":
-		return okRes("the GPU render pin is a deliberate RYOKU_GPU_FORCE override; kept")
+		return okRes(i18n.T("the GPU render pin is a deliberate RYOKU_GPU_FORCE override; kept"))
 	case strings.HasPrefix(verdict, "stale-pin"):
 		slot := strings.TrimSpace(strings.TrimPrefix(verdict, "stale-pin"))
 		if checkOnly {
-			return wouldRes("gpu.lua still pins %s as the primary renderer, but ryoku-gpu policy leaves this machine unpinned: the pin keeps the discrete GPU awake at idle. `ryoku-gpu disable` clears it (takes effect on the next Hyprland login; re-force with RYOKU_GPU_FORCE=1 ryoku-gpu persist)", slot)
+			return wouldRes(i18n.T("gpu.lua still pins %s as the primary renderer, but ryoku-gpu policy leaves this machine unpinned: the pin keeps the discrete GPU awake at idle. `ryoku-gpu disable` clears it (takes effect on the next Hyprland login; re-force with RYOKU_GPU_FORCE=1 ryoku-gpu persist)"), slot)
 		}
 		if err := disable(); err != nil {
-			return failRes("could not clear the stale GPU render pin: %v (clear it by hand with `ryoku-gpu disable`)", err)
+			return failRes(i18n.T("could not clear the stale GPU render pin: %v (clear it by hand with `ryoku-gpu disable`)"), err)
 		}
-		return fixedRes("cleared the stale GPU render pin on %s; the discrete GPU can runtime-suspend after the next Hyprland login (re-force with RYOKU_GPU_FORCE=1 ryoku-gpu persist)", slot)
+		return fixedRes(i18n.T("cleared the stale GPU render pin on %s; the discrete GPU can runtime-suspend after the next Hyprland login (re-force with RYOKU_GPU_FORCE=1 ryoku-gpu persist)"), slot)
 	default:
-		return warnRes("ryoku-gpu check-pin answered %q, which this ryoku version does not understand; update ryoku or run `ryoku-gpu status`", verdict)
+		return warnRes(i18n.T("ryoku-gpu check-pin answered %q, which this ryoku version does not understand; update ryoku or run `ryoku-gpu status`"), verdict)
 	}
 }
 

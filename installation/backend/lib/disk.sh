@@ -47,7 +47,7 @@ ryoku_partition() {
     whole)     ryoku_partition_whole ;;
     alongside) ryoku_partition_alongside ;;
     '')        die "RYOKU_DISK_STRATEGY is required (use 'whole' or 'alongside'); refusing to wipe disk on empty strategy." ;;
-    *)         die "disk strategy '$RYOKU_DISK_STRATEGY' not supported (use 'whole' or 'alongside')" ;;
+    *)         die 'disk strategy '\''%s'\'' not supported (use '\''whole'\'' or '\''alongside'\'')' "$RYOKU_DISK_STRATEGY" ;;
   esac
 }
 
@@ -59,7 +59,7 @@ ryoku_free_mapper() {
   local name=$1 node="/dev/mapper/$1" mp
   [[ -n $name ]] || return 0
   dmsetup info -- "$name" >/dev/null 2>&1 || return 0
-  log "freeing stale mapper /dev/mapper/$name held by a previous run"
+  log 'freeing stale mapper /dev/mapper/%s held by a previous run' "$name"
   # unmount and swapoff first (a swapfile inside the fs pins the mapper), then close.
   while IFS= read -r mp; do
     [[ -n $mp ]] || continue
@@ -126,7 +126,7 @@ ryoku_disk_swapfiles() {
 ryoku_release_disk() {
   local disk=$1
   [[ -b $disk || -n ${RYOKU_DRYRUN:-} ]] || return 0
-  log "releasing $disk before wipe (swapoff, unmount, close holders)"
+  log 'releasing %s before wipe (swapoff, unmount, close holders)' "$disk"
 
   local mounts_src=${RYOKU_PROC_MOUNTS:-/proc/mounts}
   local swaps_src=${RYOKU_PROC_SWAPS:-/proc/swaps}
@@ -229,12 +229,12 @@ ryoku_partition_whole() {
   # under dry-run the disk may be absent and ryoku_disk_populated fails closed,
   # so narrate the guard instead of probing; the real check stands in real mode.
   if [[ -n ${RYOKU_DRYRUN:-} ]]; then
-    log "DRYRUN: would refuse to wipe $disk if it holds partitions and RYOKU_WIPE_CONFIRMED != 1"
+    log 'DRYRUN: would refuse to wipe %s if it holds partitions and RYOKU_WIPE_CONFIRMED != 1' "$disk"
   elif [[ ${RYOKU_WIPE_CONFIRMED:-} != 1 ]] && ryoku_disk_populated "$disk"; then
-    die "refusing to wipe $disk: it already holds partitions and RYOKU_WIPE_CONFIRMED is not set. Pick 'alongside' to keep them, or set RYOKU_WIPE_CONFIRMED=1 to wipe explicitly."
+    die 'refusing to wipe %s: it already holds partitions and RYOKU_WIPE_CONFIRMED is not set. Pick '\''alongside'\'' to keep them, or set RYOKU_WIPE_CONFIRMED=1 to wipe explicitly.' "$disk"
   fi
 
-  log "partitioning $disk (whole disk, GPT: ${RYOKU_ESP_GIB}GiB ESP + root)"
+  log 'partitioning %s (whole disk, GPT: %sGiB ESP + root)' "$disk" "${RYOKU_ESP_GIB}"
 
   # free the disk before touching it: on the live medium the target may be held
   # by an auto-mounted partition (udisks), leftover state from a previous run,
@@ -269,16 +269,16 @@ ryoku_partition_whole() {
   # and the later mount fails with "unknown filesystem type".
   run wipefs --all "$ESP_DEV"
   run wipefs --all "$ROOT_PART"
-  log "ESP=$ESP_DEV root partition=$ROOT_PART"
+  log 'ESP=%s root partition=%s' "$ESP_DEV" "$ROOT_PART"
 }
 
 ryoku_partition_alongside() {
   local disk=$RYOKU_DISK mode=${RYOKU_RESOLVED_ESP_MODE:-${RYOKU_ESP_MODE:-shared}}
   [[ $mode != auto ]] || die "alongside ESP mode is unresolved; preflight must select shared or dedicated."
   if [[ $mode == dedicated ]]; then
-    log "partitioning $disk (alongside existing OS: dedicated 2GiB Ryoku ESP + root in free space; existing ESP untouched)"
+    log 'partitioning %s (alongside existing OS: dedicated 2GiB Ryoku ESP + root in free space; existing ESP untouched)' "$disk"
   else
-    log "partitioning $disk (alongside existing OS: 2GiB XBOOTLDR + root in free space; existing ESP shared)"
+    log 'partitioning %s (alongside existing OS: 2GiB XBOOTLDR + root in free space; existing ESP shared)' "$disk"
   fi
 
   # under dry-run the disk may not exist; narrate what we'd do and pick
@@ -287,23 +287,23 @@ ryoku_partition_alongside() {
     local d_min d_max
     d_min=$(ryoku_min_root_gib)
     if [[ $mode == dedicated ]]; then
-      log "DRYRUN: would create a dedicated 2GiB Ryoku ESP + ${d_min}GiB root; the existing ESP stays untouched"
+      log 'DRYRUN: would create a dedicated 2GiB Ryoku ESP + %sGiB root; the existing ESP stays untouched' "${d_min}"
     else
-      log "DRYRUN: would create a 2GiB XBOOTLDR + ${d_min}GiB root and share the existing ESP"
+      log 'DRYRUN: would create a 2GiB XBOOTLDR + %sGiB root and share the existing ESP' "${d_min}"
     fi
     log "DRYRUN: with RYOKU_RECLAIM_LEFTOVERS=1 would reclaim UNMOUNTED leftover partitions labeled exactly ryoku/ryokuboot from a prior failed run; without the ack, existing such partitions abort the install"
     d_max=$(ryoku_max_partnum "$disk" 2>/dev/null || true)
     { [[ $d_max =~ ^[0-9]+$ ]] && (( d_max > 0 )); } || d_max=3
     ESP_DEV=$(part_dev "$disk" "$(( d_max + 1 ))")
     ROOT_PART=$(part_dev "$disk" "$(( d_max + 2 ))")
-    log "DRYRUN: new ryoku-boot=$ESP_DEV (2GiB, mode=$mode, label ryokuboot) root=$ROOT_PART (label ryoku)"
+    log 'DRYRUN: new ryoku-boot=%s (2GiB, mode=%s, label ryokuboot) root=%s (label ryoku)' "$ESP_DEV" "$mode" "$ROOT_PART"
     return 0
   fi
 
   # UEFI dual-boot needs a GPT label. refuse MBR rather than guess at a remap.
   local pttype
   pttype=$(blkid -o value -s PTTYPE "$disk" 2>/dev/null || true)
-  [[ $pttype == gpt ]] || die "alongside needs a GPT disk; $disk has '${pttype:-no}' partition table. Use whole-disk, or convert to GPT."
+  [[ $pttype == gpt ]] || die 'alongside needs a GPT disk; %s has '\''%s'\'' partition table. Use whole-disk, or convert to GPT.' "$disk" "${pttype:-no}"
 
   # reclaim leftovers of a previous failed run BEFORE measuring free space, so
   # the region they hold is available again and retries don't stack partitions.
@@ -318,7 +318,7 @@ ryoku_partition_alongside() {
   # can't match; a reclaimed leftover was already deleted above.
   local clash
   clash=$(lsblk -rpno NAME,LABEL 2>/dev/null | awk -v l="$RYOKU_ALONGSIDE_BOOT_LABEL" '$2==l{print $1}' | head -n1)
-  [[ -z $clash ]] || die "a partition ($clash) already has the FAT label '$RYOKU_ALONGSIDE_BOOT_LABEL' that alongside needs for its boot partition; refusing to create a colliding label. Relabel or remove $clash, then retry."
+  [[ -z $clash ]] || die 'a partition (%s) already has the FAT label '\''%s'\'' that alongside needs for its boot partition; refusing to create a colliding label. Relabel or remove %s, then retry.' "$clash" "$RYOKU_ALONGSIDE_BOOT_LABEL" "$clash"
 
   # pick the free region. the TUI ran the same sfdisk probe and passes the chosen
   # region's exact sectors; a direct backend/test call falls back to the largest.
@@ -331,14 +331,14 @@ ryoku_partition_alongside() {
   if [[ -n ${RYOKU_REGION_START:-} && -n ${RYOKU_REGION_END:-} ]]; then
     region_start=$RYOKU_REGION_START; region_end=$RYOKU_REGION_END
     ryoku_region_is_free "$disk" "$region_start" "$region_end" \
-      || die "requested region ${region_start}-${region_end} is not inside a free area of $disk (did the disk change since it was probed?); refusing to partition."
+      || die 'requested region %s-%s is not inside a free area of %s (did the disk change since it was probed?); refusing to partition.' "${region_start}" "${region_end}" "$disk"
   else
     read -r region_start region_end _ < <(ryoku_free_regions "$disk" | sort -k3,3 -nr | head -n1) || true
     [[ -n ${region_start:-} && -n ${region_end:-} ]] \
-      || die "no unallocated region >= ${need_gib}GiB on $disk; shrink a Windows partition first, then retry."
+      || die 'no unallocated region >= %sGiB on %s; shrink a Windows partition first, then retry.' "${need_gib}" "$disk"
   fi
   region_mib=$(( (region_end - region_start + 1) / spm ))
-  (( region_mib >= need_gib * 1024 )) || die "not enough free space on $disk: $(( region_mib / 1024 ))GiB in the chosen region, need >= ${need_gib}GiB (2GiB boot + ${min_root}GiB root). Shrink the Windows partition first, then retry."
+  (( region_mib >= need_gib * 1024 )) || die 'not enough free space on %s: %sGiB in the chosen region, need >= %sGiB (2GiB boot + %sGiB root). Shrink the Windows partition first, then retry.' "$disk" "$(( region_mib / 1024 ))" "${need_gib}" "${min_root}"
 
   # boot fills the region head; root fills the remainder of THE SAME region.
   # region_start/end are already 1 MiB-aligned by ryoku_free_regions, so every
@@ -347,7 +347,7 @@ ryoku_partition_alongside() {
   boot_start=$region_start
   boot_end=$(( boot_start + RYOKU_ALONGSIDE_BOOT_MIB * spm - 1 ))
   root_start=$(( boot_end + 1 ))
-  log "alongside region: sectors ${region_start}-${region_end} ($(( region_mib / 1024 ))GiB); boot ${boot_start}-${boot_end}, root ${root_start}-${region_end}"
+  log 'alongside region: sectors %s-%s (%sGiB); boot %s-%s, root %s-%s' "${region_start}" "${region_end}" "$(( region_mib / 1024 ))" "${boot_start}" "${boot_end}" "${root_start}" "${region_end}"
 
   # snapshot the pre-existing partition set so we can prove (after sgdisk) that
   # BOTH new partitions landed in free space without overwriting an existing one.
@@ -389,7 +389,7 @@ ryoku_partition_alongside() {
     for q in "${pre_parts[@]}"; do [[ $q == "$p" ]] && { seen=1; break; }; done
     (( seen )) || new_parts+=("$p")
   done < <(ryoku_partitions "$disk")
-  (( ${#new_parts[@]} == 2 )) || die "alongside expected to create 2 new partitions (ESP + root) but sees ${#new_parts[@]} (${new_parts[*]:-none}); refusing to continue."
+  (( ${#new_parts[@]} == 2 )) || die 'alongside expected to create 2 new partitions (ESP + root) but sees %d (%s); refusing to continue.' "${#new_parts[@]}" "${new_parts[*]:-none}"
 
   # map the two new partitions to ESP/root by our exact GPT partlabels.
   ESP_DEV=""; ROOT_PART=""
@@ -403,7 +403,7 @@ ryoku_partition_alongside() {
   done
   [[ -n $ESP_DEV ]]   || die "alongside could not find the new ryoku-boot partition (partlabel ryokuboot) after sgdisk; refusing to continue."
   [[ -n $ROOT_PART ]] || die "alongside could not find the new Ryoku root (partlabel ryoku) after sgdisk; refusing to continue."
-  [[ $ESP_DEV != "$ROOT_PART" ]] || die "alongside boot and root resolved to the same device $ESP_DEV; refusing to continue."
+  [[ $ESP_DEV != "$ROOT_PART" ]] || die 'alongside boot and root resolved to the same device %s; refusing to continue.' "$ESP_DEV"
 
   # hard safety, applied to BOTH new partitions: each must be a real NEW block
   # device, must not be the disk itself, must not have existed before sgdisk, and
@@ -411,13 +411,13 @@ ryoku_partition_alongside() {
   # existing OS partition, so abort before any wipefs/mkfs.
   local dev parent disk_base=${disk##*/}
   for dev in "$ESP_DEV" "$ROOT_PART"; do
-    [[ $dev != "$disk" ]] || die "alongside partition resolves to disk $disk; refusing to format."
-    [[ -b $dev ]] || die "alongside created a partition but $dev is not a block device."
+    [[ $dev != "$disk" ]] || die 'alongside partition resolves to disk %s; refusing to format.' "$disk"
+    [[ -b $dev ]] || die 'alongside created a partition but %s is not a block device.' "$dev"
     for p in "${pre_parts[@]}"; do
-      [[ $p != "$dev" ]] || die "alongside partition $dev existed before sgdisk; refusing to format an existing partition."
+      [[ $p != "$dev" ]] || die 'alongside partition %s existed before sgdisk; refusing to format an existing partition.' "$dev"
     done
     parent=$(lsblk -no PKNAME "$dev" 2>/dev/null | head -n1)
-    [[ $parent == "$disk_base" ]] || die "alongside partition $dev parent='$parent' does not match disk '$disk_base'; refusing to format."
+    [[ $parent == "$disk_base" ]] || die 'alongside partition %s parent='\''%s'\'' does not match disk '\''%s'\''; refusing to format.' "$dev" "$parent" "$disk_base"
   done
 
   # clear any stale sig in the two NEW partitions only (never the disk or any
@@ -425,7 +425,7 @@ ryoku_partition_alongside() {
   # fail the later mkfs/mount.
   run wipefs --all "$ESP_DEV"
   run wipefs --all "$ROOT_PART"
-  log "boot=$ESP_DEV (new ryoku-boot, mode=$mode, /boot) root partition=$ROOT_PART"
+  log 'boot=%s (new ryoku-boot, mode=%s, /boot) root partition=%s' "$ESP_DEV" "$mode" "$ROOT_PART"
 }
 
 # ryoku_reclaim_leftovers deletes partitions that are VERIFIED failed-alongside
@@ -452,13 +452,13 @@ ryoku_reclaim_leftovers() {
     [[ $lbl == ryoku || $lbl == ryokuboot ]] || continue
     mnt=$(lsblk -nrpo MOUNTPOINT "$p" 2>/dev/null | awk 'NF' | head -n1)
     if [[ -n $mnt ]]; then
-      log "leaving $p alone: labeled '$lbl' but mounted at $mnt (not a leftover)"
+      log 'leaving %s alone: labeled '\''%s'\'' but mounted at %s (not a leftover)' "$p" "$lbl" "$mnt"
       continue
     fi
     # living-install guard (defense in depth, same test the probe applies): a
     # real existing OS carrying our label is NOT debris, even with the ack.
     if ! ryoku_is_leftover "$p"; then
-      log "leaving $p alone: labeled '$lbl' but it holds a living install (or could not be inspected); never reclaimed"
+      log 'leaving %s alone: labeled '\''%s'\'' but it holds a living install (or could not be inspected); never reclaimed' "$p" "$lbl"
       continue
     fi
     num=$(part_num "$p")
@@ -475,14 +475,14 @@ ryoku_reclaim_leftovers() {
   if [[ ${RYOKU_RECLAIM_LEFTOVERS:-} != 1 ]]; then
     list=""
     for info in "${dinfo[@]}"; do list+="  $info"$'\n'; done
-    die "existing Ryoku-labeled partition(s) on $disk (a previous Ryoku install or a failed run):
-${list}alongside will NOT delete these automatically -- they may be a working Ryoku install. To proceed, either:
+    die 'existing Ryoku-labeled partition(s) on %s (a previous Ryoku install or a failed run):
+%salongside will NOT delete these automatically -- they may be a working Ryoku install. To proceed, either:
   1) restart the installer so it rescans the disk, then confirm reclaim on the Review screen (the typed ERASE ack, which sets RYOKU_RECLAIM_LEFTOVERS=1; a mid-session retry keeps the pre-failure scan and never arms the ack), or
-  2) delete or keep them yourself with another tool, then retry."
+  2) delete or keep them yourself with another tool, then retry.' "$disk" "$list"
   fi
 
   for info in "${dinfo[@]}"; do
-    log "reclaiming leftover $info from a previous failed run"
+    log 'reclaiming leftover %s from a previous failed run' "$info"
   done
   # delete them all in ONE sgdisk call: a single table re-read at the end, so
   # removing one partition can't disturb the kernel's node for another.

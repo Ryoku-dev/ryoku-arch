@@ -4,6 +4,7 @@ import QtQuick
 import "../.." as Pill
 import shell.services
 import "../../../../components"
+import Ryoku.Ui.Singletons
 
 // Audio input control (contract 06 sec 2.8): the default source's volume + mute
 // on a fader, and a device switcher listing the input devices with a check on
@@ -37,7 +38,7 @@ Item {
             lit: root.open
             value: root.haveSource ? root.source.audio.volume : 0
             muted: root.haveSource ? root.source.audio.muted : false
-            valueLabel: !root.haveSource ? "" : (root.source.audio.muted ? qsTr("off") : Math.round(root.source.audio.volume * 100) + "%")
+            valueLabel: !root.haveSource ? "" : (root.source.audio.muted ? I18n.tr("off") : Math.round(root.source.audio.volume * 100) + "%")
             peakNode: root.source
             peakEnabled: root.open && !!root.source
             onMoved: v => { if (root.haveSource) root.source.audio.volume = v; }
@@ -51,7 +52,7 @@ Item {
             devices: Audio.inputs
             listOpen: root.devicesOpen
             fallbackIcon: "mic"
-            emptyLabel: qsTr("No input device")
+            emptyLabel: I18n.tr("No input device")
             onToggled: root.devicesOpen = !root.devicesOpen
             onPicked: node => Audio.setInput(node)
         }

@@ -28,8 +28,8 @@ Item {
         if (!updateAvailable) return I18n.tr("Ryoku is up to date")
         var lines = []
         if (pending > 0) {
-            var head = I18n.tr("Ryoku update") + " · " + pending + (pending === 1
-                ? " " + I18n.tr("commit") : " " + I18n.tr("commits"))
+            var head = I18n.tr("Ryoku update") + " · " + (pending === 1
+                ? I18n.tr("%1 commit").arg(pending) : I18n.tr("%1 commits").arg(pending))
             if (Updates.channel !== "") head += " · " + Updates.channel
             lines.push(head)
             if (Updates.installed !== "" && Updates.latest !== "" && Updates.installed !== Updates.latest) {
@@ -48,12 +48,12 @@ Item {
                 lines.push(sha !== "" ? sha + "  " + subject : subject)
             }
             if (commits.length > shown)
-                lines.push("+" + (commits.length - shown) + " " + I18n.tr("more"))
+                lines.push(I18n.tr("+%1 more").arg(commits.length - shown))
         }
         if (packages.length > 0) {
             if (lines.length > 0) lines.push("")
-            lines.push(packages.length + " " + (packages.length === 1
-                ? I18n.tr("package") : I18n.tr("packages")))
+            lines.push(packages.length === 1
+                ? I18n.tr("%1 package").arg(packages.length) : I18n.tr("%1 packages").arg(packages.length))
         }
         lines.push("")
         lines.push(I18n.tr("Click to update"))

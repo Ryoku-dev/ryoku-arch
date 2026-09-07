@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 // The app's state: host readiness, the local VM library, the quickget OS
 // catalogue, and the lifecycle pipeline, all driven through the `ryovm` engine.
@@ -161,7 +162,7 @@ Singleton {
         if (busy)
             return;
         busy = true;
-        status = disposable ? "Starting " + name + " (disposable)" : "Starting " + name;
+        status = disposable ? I18n.tr("Starting %1 (disposable)").arg(name) : I18n.tr("Starting %1").arg(name);
         var cmd = ["ryovm", "launch", name, mode || "window"];
         if (disposable === true)
             cmd.push("--disposable");
@@ -172,14 +173,14 @@ Singleton {
         if (busy)
             return;
         busy = true;
-        status = "Sealing " + name;
+        status = I18n.tr("Sealing %1").arg(name);
         runProc.exec(["ryovm", "seal", name]);
     }
     function restoreSeal(name) {
         if (busy)
             return;
         busy = true;
-        status = "Restoring the seal on " + name;
+        status = I18n.tr("Restoring the seal on %1").arg(name);
         runProc.exec(["ryovm", "restore-seal", name]);
     }
     // template = freeze this machine (tools + all) into a reusable golden base;
@@ -187,14 +188,14 @@ Singleton {
     function template(name) {
         if (busy) return;
         busy = true;
-        status = "Saving " + name + " as a template";
+        status = I18n.tr("Saving %1 as a template").arg(name);
         runProc.exec(["ryovm", "template", name, name]);
     }
     function stop(name) {
         if (busy)
             return;
         busy = true;
-        status = "Stopping " + name;
+        status = I18n.tr("Stopping %1").arg(name);
         runProc.exec(["ryovm", "stop", name]);
     }
     function openConsole(name) { runProc.exec(["ryovm", "console", name]); }
@@ -202,7 +203,7 @@ Singleton {
         if (busy)
             return;
         busy = true;
-        status = "Deleting " + name;
+        status = I18n.tr("Deleting %1").arg(name);
         runProc.exec(["ryovm", "delete", name]);
     }
     function setConfig(name, key, value) { runProc.exec(["ryovm", "config", name, key, "" + value]); }
@@ -210,7 +211,7 @@ Singleton {
         if (busy)
             return;
         busy = true;
-        status = ({ "create": "Saving snapshot", "restore": "Restoring snapshot", "delete": "Deleting snapshot" })[sub] || "Working";
+        status = ({ "create": I18n.tr("Saving snapshot"), "restore": I18n.tr("Restoring snapshot"), "delete": I18n.tr("Deleting snapshot") })[sub] || I18n.tr("Working");
         runProc.exec(["ryovm", "snapshot", name, sub].concat(tag ? [tag] : []));
     }
     function openFolder(name) {
@@ -260,7 +261,7 @@ Singleton {
         if (busy || !next || next === name)
             return;
         busy = true;
-        status = "Renaming to " + next;
+        status = I18n.tr("Renaming to %1").arg(next);
         pendingSelect = next;
         runProc.exec(["ryovm", "rename", name, next]);
     }
@@ -268,7 +269,7 @@ Singleton {
         if (busy)
             return;
         busy = true;
-        status = "Resizing " + name + " disk";
+        status = I18n.tr("Resizing %1 disk").arg(name);
         runProc.exec(["ryovm", "resize", name, "" + size]);
     }
     // reclaim frees the disk image (and re-installable media) but keeps the
@@ -277,7 +278,7 @@ Singleton {
         if (busy)
             return;
         busy = true;
-        status = "Reclaiming " + name + " disk";
+        status = I18n.tr("Reclaiming %1 disk").arg(name);
         runProc.exec(["ryovm", "delete", name, "--disk-only"]);
     }
 
@@ -322,12 +323,12 @@ Singleton {
     function instant(os, name, disposable, tools, pkgs) {
         var nm = name && name.length > 0 ? name : os + "-instant";
         if (_building(nm)) return;
-        if (dlJobs.count >= maxParallel) { info("Up to " + maxParallel + " downloads at once"); return; }
+        if (dlJobs.count >= maxParallel) { info(I18n.tr("Up to %1 downloads at once").arg(maxParallel)); return; }
         dlJobs.append({ key: nm + "#" + Date.now(), name: nm, cmdName: nm, kind: "instant",
             os: os, release: "", edition: "", disposable: disposable === true,
             tools: tools || "", pkgs: pkgs || "", phase: "resolve", progress: 0, bps: 0,
             indet: true, log: "", cancel: false });
-        status = "Building " + nm;
+        status = I18n.tr("Building %1").arg(nm);
     }
 
     // create downloads the image in-app with a live bar (the Go fetcher streams
@@ -335,12 +336,12 @@ Singleton {
     function createVm(os, release, edition) {
         var nm = os + "-" + release + (edition ? "-" + edition : "");
         if (_building(nm)) return;
-        if (dlJobs.count >= maxParallel) { info("Up to " + maxParallel + " downloads at once"); return; }
+        if (dlJobs.count >= maxParallel) { info(I18n.tr("Up to %1 downloads at once").arg(maxParallel)); return; }
         dlJobs.append({ key: nm + "#" + Date.now(), name: nm, cmdName: nm, kind: "create",
             os: os, release: release, edition: edition || "", disposable: false,
             tools: "", pkgs: "", phase: "resolve", progress: 0, bps: 0,
             indet: false, log: "", cancel: false });
-        status = "Downloading " + os;
+        status = I18n.tr("Downloading %1").arg(os);
     }
     function _building(name) {
         for (var i = 0; i < dlJobs.count; i++) if (dlJobs.get(i).name === name) return true;
@@ -377,16 +378,16 @@ Singleton {
             break;
         case "log": dlJobs.setProperty(i, "log", o.line || ""); break;
         case "done":
-            status = (o.name || dlJobs.get(i).name) + " is ready";
+            status = I18n.tr("%1 is ready").arg(o.name || dlJobs.get(i).name);
             if (o.name) { selectedName = o.name; root.created(o.name); }
             break;
-        case "cancelled": status = "Download cancelled"; break;
-        case "error": root.raiseFault(o.message || "Download failed"); break;
+        case "cancelled": status = I18n.tr("Download cancelled"); break;
+        case "error": root.raiseFault(o.message || I18n.tr("Download failed")); break;
         }
     }
     function _onJobExit(key, code, err, sawTerminal) {
         if (code !== 0 && !sawTerminal)
-            root.raiseFault("create failed (exit " + code + ")" + (err.trim().length > 0 ? "\n" + err.trim() : ""));
+            root.raiseFault(I18n.tr("create failed (exit %1)").arg(code) + (err.trim().length > 0 ? "\n" + err.trim() : ""));
         Qt.callLater(function () {
             var i = root._jobIdx(key);
             if (i >= 0) dlJobs.remove(i);
@@ -400,7 +401,7 @@ Singleton {
     // slug (defaults to the guest type, so windows/macos/android still get marks).
     function importVm(name, iso, guest, os) {
         busy = true;
-        status = "Creating " + name;
+        status = I18n.tr("Creating %1").arg(name);
         runProc.exec(["ryovm", "import", name, iso, guest || "linux", os || guest || "linux"]);
         // Windows has no in-box virtio driver: pull the shared driver CD now (a
         // visible download) so it's cached before the machine first boots.
@@ -414,7 +415,7 @@ Singleton {
         if (dlJobs.count >= maxParallel) return;
         for (var i = 0; i < dlJobs.count; i++)
             if (dlJobs.get(i).kind === "virtio") return;
-        dlJobs.append({ key: "virtio#" + Date.now(), name: "VirtIO drivers", cmdName: "virtio", kind: "virtio",
+        dlJobs.append({ key: "virtio#" + Date.now(), name: I18n.tr("VirtIO drivers"), cmdName: "virtio", kind: "virtio",
             os: "", release: "", edition: "", disposable: false, tools: "", pkgs: "",
             phase: "download", progress: 0, bps: 0, indet: true, log: "", cancel: false });
     }
@@ -517,9 +518,9 @@ Singleton {
                 root.catalogReady = true;
                 prefetchProc.running = true;
                 try { root.osList = root._group(JSON.parse(catOut.text)); root.catalogError = ""; return; }
-                catch (e) { root.catalogError = "Could not read the OS catalogue"; }
+                catch (e) { root.catalogError = I18n.tr("Could not read the OS catalogue"); }
             } else {
-                root.catalogError = catErr.text.trim() || "Could not fetch the OS catalogue";
+                root.catalogError = catErr.text.trim() || I18n.tr("Could not fetch the OS catalogue");
             }
         }
     }
@@ -659,9 +660,9 @@ Singleton {
         id: copyProc
         onExited: (code) => {
             if (code === 0)
-                root.info("SSH command copied");
+                root.info(I18n.tr("SSH command copied"));
             else
-                root.raiseFault("Could not copy the SSH command");
+                root.raiseFault(I18n.tr("Could not copy the SSH command"));
         }
     }
     Process {

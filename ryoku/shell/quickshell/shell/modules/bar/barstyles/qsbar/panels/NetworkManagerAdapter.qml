@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell.Networking
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 Item {
     id: adapter
@@ -66,50 +67,50 @@ Item {
 
     function securityLabel(network) {
         if (!network)
-            return "Unknown"
+            return I18n.tr("Unknown")
         switch (network.security) {
         case WifiSecurityType.Open:
-            return "Open"
+            return I18n.tr("Open")
         case WifiSecurityType.WpaPsk:
-            return "WPA Personal"
+            return I18n.tr("WPA Personal")
         case WifiSecurityType.Wpa2Psk:
-            return "WPA2 Personal"
+            return I18n.tr("WPA2 Personal")
         case WifiSecurityType.Sae:
-            return "WPA3 Personal"
+            return I18n.tr("WPA3 Personal")
         case WifiSecurityType.Owe:
-            return "Enhanced Open (OWE)"
+            return I18n.tr("Enhanced Open (OWE)")
         case WifiSecurityType.StaticWep:
         case WifiSecurityType.DynamicWep:
             return "WEP"
         case WifiSecurityType.WpaEap:
-            return "WPA Enterprise"
+            return I18n.tr("WPA Enterprise")
         case WifiSecurityType.Wpa2Eap:
-            return "WPA2 Enterprise"
+            return I18n.tr("WPA2 Enterprise")
         case WifiSecurityType.Wpa3SuiteB192:
-            return "WPA3 Enterprise"
+            return I18n.tr("WPA3 Enterprise")
         case WifiSecurityType.Leap:
             return "LEAP"
         default:
-            return "Unknown"
+            return I18n.tr("Unknown")
         }
     }
 
     function profileSecurityLabel(keyManagement) {
         switch ((keyManagement || "").toLowerCase()) {
         case "wpa-psk":
-            return "WPA Personal profile"
+            return I18n.tr("WPA Personal profile")
         case "sae":
-            return "WPA3 Personal profile"
+            return I18n.tr("WPA3 Personal profile")
         case "owe":
-            return "Enhanced Open profile"
+            return I18n.tr("Enhanced Open profile")
         case "wpa-eap":
-            return "WPA Enterprise profile"
+            return I18n.tr("WPA Enterprise profile")
         case "ieee8021x":
-            return "802.1X profile"
+            return I18n.tr("802.1X profile")
         case "none":
-            return "Open or WEP profile"
+            return I18n.tr("Open or WEP profile")
         default:
-            return "Saved Wi-Fi profile"
+            return I18n.tr("Saved Wi-Fi profile")
         }
     }
 
@@ -239,7 +240,7 @@ Item {
         }
 
         if (panel) {
-            panel.networkActionError = "This network type needs Wi-Fi settings to connect"
+            panel.networkActionError = I18n.tr("This network type needs Wi-Fi settings to connect")
             if (panel.root)
                 panel.root.networkVisible = false
             if (typeof panel.openWifiSettings === "function")
@@ -368,7 +369,7 @@ Item {
                 var message = profileActionErr.text.trim()
                 adapter.panel.networkActionError = message !== ""
                     ? message.split("\n")[0]
-                    : (action === "connect" ? "Connection failed" : "Could not forget network")
+                    : (action === "connect" ? I18n.tr("Connection failed") : I18n.tr("Could not forget network"))
             }
             if (adapter.panelOpen) {
                 profileList.running = false

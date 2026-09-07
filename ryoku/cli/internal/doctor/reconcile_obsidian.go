@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // reconcileObsidianSnippet links the Ryoku palette snippet into every Obsidian
@@ -20,11 +22,11 @@ import (
 func reconcileObsidianSnippet(checkOnly bool) recResult {
 	cfg := filepath.Join(configHome(), "obsidian", "obsidian.json")
 	if !sys.Has("obsidian") && !sys.Exists(cfg) {
-		return okRes("Obsidian not installed")
+		return okRes(i18n.T("Obsidian not installed"))
 	}
 	vaults, err := obsidianVaultPaths(cfg)
 	if err != nil || len(vaults) == 0 {
-		return okRes("no Obsidian vaults registered yet")
+		return okRes(i18n.T("no Obsidian vaults registered yet"))
 	}
 	generated := filepath.Join(configHome(), "matugen", "generated", "obsidian.css")
 
@@ -38,29 +40,29 @@ func reconcileObsidianSnippet(checkOnly bool) recResult {
 
 		if !symlinkPointsAt(link, generated) {
 			if checkOnly {
-				pending = append(pending, "link palette snippet into "+tildeOf(vault))
+				pending = append(pending, i18n.Tf("link palette snippet into %s", tildeOf(vault)))
 			} else {
 				if err := os.MkdirAll(filepath.Dir(link), 0o755); err != nil {
-					return failRes("could not create %s: %v", tildeOf(filepath.Dir(link)), err)
+					return failRes(i18n.T("could not create %s: %v"), tildeOf(filepath.Dir(link)), err)
 				}
 				_ = os.Remove(link)
 				if err := os.Symlink(generated, link); err != nil {
-					return failRes("could not link the palette snippet in %s: %v", tildeOf(vault), err)
+					return failRes(i18n.T("could not link the palette snippet in %s: %v"), tildeOf(vault), err)
 				}
-				did = append(did, "linked "+tildeOf(vault))
+				did = append(did, i18n.Tf("linked %s", tildeOf(vault)))
 			}
 		}
 
 		appearance := filepath.Join(dot, "appearance.json")
 		changed, err := enableObsidianSnippet(appearance, !checkOnly)
 		if err != nil {
-			return failRes("could not enable the snippet in %s: %v", tildeOf(vault), err)
+			return failRes(i18n.T("could not enable the snippet in %s: %v"), tildeOf(vault), err)
 		}
 		if changed {
 			if checkOnly {
-				pending = append(pending, "enable the snippet in "+tildeOf(vault))
+				pending = append(pending, i18n.Tf("enable the snippet in %s", tildeOf(vault)))
 			} else {
-				did = append(did, "enabled in "+tildeOf(vault))
+				did = append(did, i18n.Tf("enabled in %s", tildeOf(vault)))
 			}
 		}
 	}
@@ -71,7 +73,7 @@ func reconcileObsidianSnippet(checkOnly bool) recResult {
 	case len(did) > 0:
 		return fixedRes("%s", strings.Join(did, "; "))
 	default:
-		return okRes("palette snippet is linked and enabled in every vault")
+		return okRes(i18n.T("palette snippet is linked and enabled in every vault"))
 	}
 }
 

@@ -1,5 +1,6 @@
 import QtQuick
 import ".."
+import Ryoku.Ui.Singletons
 
 Rectangle {
     id: root
@@ -43,8 +44,8 @@ Rectangle {
         anchors.centerIn: parent
         anchors.verticalCenterOffset: -12
         text: root.cacheTotal > 0
-            ? "PROCESSING WALLPAPERS... " + root.cacheProgress + " / " + root.cacheTotal
-            : "PROCESSING EXISTING WALLPAPERS... PLEASE WAIT"
+            ? I18n.tr("PROCESSING WALLPAPERS... %1 / %2").arg(root.cacheProgress).arg(root.cacheTotal)
+            : I18n.tr("PROCESSING EXISTING WALLPAPERS... PLEASE WAIT")
         color: root.colors ? root.colors.tertiary : "#8bceff"
         font.family: Style.fontFamily
         font.pixelSize: 12

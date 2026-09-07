@@ -54,7 +54,7 @@ Item {
     }
     Text {
         anchors.right: parent.right; anchors.rightMargin: 14; y: 14
-        text: qsTr("WEEK %1").arg(root.weekNumber(root.today))
+        text: I18n.tr("WEEK %1").arg(root.weekNumber(root.today))
         color: Tokens.inkMuted
         font.family: Tokens.mono
         font.pixelSize: 8
@@ -64,12 +64,16 @@ Item {
     Row {
         x: 14 + root.weekColumn; y: 35
         Repeater {
-            model: [qsTr("M"), qsTr("T"), qsTr("W"), qsTr("T"), qsTr("F"), qsTr("S"), qsTr("S")]
+            // weekday initials come from the locale, exactly as the real
+            // calendars do (shell/components/Calendar.qml): a Polish week is
+            // P W S C P S N, which no translation of the letter "M" could
+            // produce. Monday first, matching buildDays() above.
+            model: 7
             delegate: Text {
-                required property string modelData
+                required property int index
                 width: root.cellWidth
                 horizontalAlignment: Text.AlignHCenter
-                text: modelData
+                text: Qt.locale().standaloneDayName((index + 1) % 7, Locale.NarrowFormat)
                 color: Tokens.inkFaint
                 font.family: Tokens.mono
                 font.pixelSize: 8

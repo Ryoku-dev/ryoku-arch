@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import shell.services
+import Ryoku.Ui.Singletons
 
 Item {
     id: rootMod
@@ -20,7 +21,7 @@ Item {
     readonly property string layoutIcon: "keyboard"
     readonly property color contentColor: root.widgetContentColor("G19", root.widgetIconColor)
 
-    readonly property string tooltipText: "Keyboard layout · " + rootMod.layout
+    readonly property string tooltipText: I18n.tr("Keyboard layout · %1").arg(rootMod.layout)
 
     visible: root.modLayout && implicitWidth > 0.5
     implicitWidth: root.modLayout ? row.implicitWidth + 18 : 0

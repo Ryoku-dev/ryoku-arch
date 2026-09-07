@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 	"strconv"
 	"strings"
 	"time"
@@ -109,12 +110,12 @@ func channelStatus() (statusReport, bool) {
 func channelUpdate() error {
 	repo := sys.ResolveRepo()
 	if repo == "" {
-		return fmt.Errorf("no Ryoku checkout to update")
+		return fmt.Errorf(i18n.T("no Ryoku checkout to update"))
 	}
 	ch := ryokuChannel()
 
 	progress.at("channel")
-	progress.logf("Updating Ryoku (channel: %s)", ch)
+	progress.logf(i18n.T("Updating Ryoku (channel: %s)"), ch)
 	gitFetch(repo, ch)
 	// report what the sync actually did; "Update complete" alone hid a box that
 	// redeployed the same commit every time.
@@ -123,15 +124,15 @@ func channelUpdate() error {
 		return err
 	}
 	if after := gitShort(repo, "HEAD"); after != before {
-		progress.logf("Advanced %s -> %s (v%s %s)", before, after, readVersion(repo), ch)
+		progress.logf(i18n.T("Advanced %s -> %s (v%s %s)"), before, after, readVersion(repo), ch)
 	} else {
-		progress.logf("Already on the latest %s (v%s, %s)", ch, readVersion(repo), before)
+		progress.logf(i18n.T("Already on the latest %s (v%s, %s)"), ch, readVersion(repo), before)
 	}
 
 	progress.at("deploy")
-	progress.logf("Deploying the desktop from the checkout")
+	progress.logf(i18n.T("Deploying the desktop from the checkout"))
 	if err := deployRun(filepath.Join(repo, "ryoku", "shell", "deploy.sh")); err != nil {
-		return fmt.Errorf("deploy from %s failed: %w", repo, err)
+		return fmt.Errorf(i18n.T("deploy from %s failed: %w"), repo, err)
 	}
 	return nil
 }
@@ -171,7 +172,7 @@ func syncChannel(repo, ch string) error {
 	// No channel ref to track (offline first run, or the branch is gone): deploy
 	// what is checked out rather than guess.
 	if _, err := sys.RunOut("git", "-C", repo, "rev-parse", "--verify", "--quiet", remote); err != nil {
-		progress.logf("No origin/%s to track (offline, or the branch is gone); deploying the checkout as-is", ch)
+		progress.logf(i18n.T("No origin/%s to track (offline, or the branch is gone); deploying the checkout as-is"), ch)
 		return nil
 	}
 	// untracked files don't block a fast-forward (git refuses one that would
@@ -179,7 +180,7 @@ func syncChannel(repo, ch string) error {
 	// dirty froze boxes: one stray build artifact and update redeployed the same
 	// commit forever.
 	if dirty, _ := sys.RunOut("git", "-C", repo, "status", "--porcelain", "--untracked-files=no"); strings.TrimSpace(dirty) != "" {
-		progress.logf("Uncommitted changes in %s; staying on %s (commit or stash them, then update again)",
+		progress.logf(i18n.T("Uncommitted changes in %s; staying on %s (commit or stash them, then update again)"),
 			repo, gitShort(repo, "HEAD"))
 		return nil
 	}
@@ -191,8 +192,8 @@ func syncChannel(repo, ch string) error {
 	if isAncestor(repo, "HEAD", remote) {
 		if err := sys.Run("git", "-C", repo, "merge", "--ff-only", remote); err != nil {
 			// usually an untracked file the incoming commits also add; git names it above.
-			return fmt.Errorf("fast-forward to origin/%s failed (see git's message above; "+
-				"move the colliding file out of %s, then update again): %w", ch, repo, err)
+			return fmt.Errorf(i18n.T("fast-forward to origin/%s failed (see git's message above; "+
+				"move the colliding file out of %s, then update again): %w"), ch, repo, err)
 		}
 		return nil
 	}
@@ -200,9 +201,9 @@ func syncChannel(repo, ch string) error {
 	// upstream, so reset it; any other branch keeps its work (a maintainer mid-dev).
 	head, _ := sys.RunOut("git", "-C", repo, "symbolic-ref", "--short", "--quiet", "HEAD")
 	if strings.TrimSpace(head) == ch {
-		progress.logf("Channel history diverged; reconciling %s onto origin/%s", ch, ch)
+		progress.logf(i18n.T("Channel history diverged; reconciling %s onto origin/%s"), ch, ch)
 		if err := sys.Run("git", "-C", repo, "reset", "--hard", remote); err != nil {
-			return fmt.Errorf("reconcile to origin/%s failed: %w", ch, err)
+			return fmt.Errorf(i18n.T("reconcile to origin/%s failed: %w"), ch, err)
 		}
 	}
 	return nil

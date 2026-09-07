@@ -2,6 +2,7 @@ import QtQuick
 import "../.."
 import "../../components"
 import "../../services"
+import Ryoku.Ui.Singletons
 
 // Two independent columns (masonry) so a short card doesn't leave dead space
 // under it: left = General + Behaviour, right = Features + Random rotation. Each
@@ -37,22 +38,22 @@ Row {
 
         SettingsCard {
             colors: root.colors
-            title: "General"
+            title: I18n.tr("General")
             width: parent.width
 
             RowTextInput {
                 colors: root.colors
-                title: "Monitor"
-                description: "Restrict to a specific monitor (e.g. DP-1). Leave empty for all."
+                title: I18n.tr("Monitor")
+                description: I18n.tr("Restrict to a specific monitor (e.g. DP-1). Leave empty for all.")
                 value: Config.mainMonitor
-                placeholder: "e.g. DP-1"
+                placeholder: I18n.tr("e.g. DP-1")
                 onCommit: function(v) { if (root.saveConfigKey) root.saveConfigKey("monitor", v) }
             }
 
             RowTextInput {
                 colors: root.colors
-                title: "UI scale"
-                description: "Scale the entire selector UI. Range 0.5–2.0 (below 1.0 shrinks it to fit small screens)."
+                title: I18n.tr("UI scale")
+                description: I18n.tr("Scale the entire selector UI. Range 0.5–2.0 (below 1.0 shrinks it to fit small screens).")
                 value: Config.uiScale.toFixed(2)
                 placeholder: "1.00"
                 onCommit: function(v) {
@@ -66,21 +67,21 @@ Row {
 
         SettingsCard {
             colors: root.colors
-            title: "Behaviour"
+            title: I18n.tr("Behaviour")
             width: parent.width
 
             RowToggle {
                 colors: root.colors
-                title: "Apply per monitor"
-                description: "Allow picking a different wallpaper for each monitor. Video and Wallpaper Engine support is in progress."
+                title: I18n.tr("Apply per monitor")
+                description: I18n.tr("Allow picking a different wallpaper for each monitor. Video and Wallpaper Engine support is in progress.")
                 checked: Config.wallpaperPerMonitor
                 onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("general.wallpaperPerMonitor", v) }
             }
 
             RowInput {
                 colors: root.colors
-                title: "Selector backdrop dim (%)"
-                description: "How dark to make the area behind the wallpaper selector card. 0 disables the dim entirely."
+                title: I18n.tr("Selector backdrop dim (%)")
+                description: I18n.tr("How dark to make the area behind the wallpaper selector card. 0 disables the dim entirely.")
                 value: Config.selectorBackdropOpacity
                 min: 0; max: 100
                 onCommit: function(v) { if (root.saveConfigKey) root.saveConfigKey("general.selectorBackdropOpacity", v) }
@@ -88,40 +89,40 @@ Row {
 
             RowToggle {
                 colors: root.colors
-                title: "Close on apply"
-                description: "Close the picker once a wallpaper, theme or rice is applied."
+                title: I18n.tr("Close on apply")
+                description: I18n.tr("Close the picker once a wallpaper, theme or rice is applied.")
                 checked: Config.closeOnSelection
                 onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("general.closeOnSelection", v) }
             }
 
             RowToggle {
                 colors: root.colors
-                title: "Always show filter bar"
-                description: "Keep the filter bar pinned visible instead of auto-hiding."
+                title: I18n.tr("Always show filter bar")
+                description: I18n.tr("Keep the filter bar pinned visible instead of auto-hiding.")
                 checked: Config.filterBarAlwaysVisible
                 onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("general.filterBarAlwaysVisible", v) }
             }
 
             RowToggle {
                 colors: root.colors
-                title: "Video auto-scale"
-                description: "Auto-scale videos to fit the wallpaper resolution."
+                title: I18n.tr("Video auto-scale")
+                description: I18n.tr("Auto-scale videos to fit the wallpaper resolution.")
                 checked: Config.videoAutoScale
                 onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("features.videoAutoScale", v) }
             }
 
             RowToggle {
                 colors: root.colors
-                title: "Notify on wallpaper change"
-                description: "Send a system notification each time the wallpaper changes."
+                title: I18n.tr("Notify on wallpaper change")
+                description: I18n.tr("Send a system notification each time the wallpaper changes.")
                 checked: Config.notifyOnWallpaperChange
                 onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("general.notifyOnWallpaperChange", v) }
             }
 
             RowToggle {
                 colors: root.colors
-                title: "Restore wallpaper on startup"
-                description: "Re-apply the last wallpaper when the daemon starts."
+                title: I18n.tr("Restore wallpaper on startup")
+                description: I18n.tr("Re-apply the last wallpaper when the daemon starts.")
                 checked: Config.restoreOnStartup
                 onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("restoreOnStartup", v) }
             }
@@ -134,37 +135,37 @@ Row {
 
         SettingsCard {
             colors: root.colors
-            title: "Features"
+            title: I18n.tr("Features")
             width: parent.width
 
             RowToggle {
                 colors: root.colors
-                title: "Matugen"
-                description: "Generate Material 3 colour schemes from the active wallpaper."
+                title: I18n.tr("Matugen")
+                description: I18n.tr("Generate Material 3 colour schemes from the active wallpaper.")
                 checked: Config.matugenEnabled
                 onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("features.matugen", v) }
             }
 
             RowToggle {
                 colors: root.colors
-                title: "Steam Workshop browser"
-                description: "Browse and install Wallpaper Engine items from Steam Workshop."
+                title: I18n.tr("Steam Workshop browser")
+                description: I18n.tr("Browse and install Wallpaper Engine items from Steam Workshop.")
                 checked: Config.steamEnabled
                 onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("features.steam", v) }
             }
 
             RowToggle {
                 colors: root.colors
-                title: "Wallhaven browser"
-                description: "Browse and download wallpapers from wallhaven.cc."
+                title: I18n.tr("Wallhaven browser")
+                description: I18n.tr("Browse and download wallpapers from wallhaven.cc.")
                 checked: Config.wallhavenEnabled
                 onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("features.wallhaven", v) }
             }
 
             RowToggle {
                 colors: root.colors
-                title: "Mute wallpaper audio"
-                description: "Silence video and Wallpaper Engine audio output."
+                title: I18n.tr("Mute wallpaper audio")
+                description: I18n.tr("Silence video and Wallpaper Engine audio output.")
                 checked: Config.wallpaperMute
                 onToggle: function(v) {
                     if (root.saveConfigKey) root.saveConfigKey("wallpaperMute", v)
@@ -174,8 +175,8 @@ Row {
 
             RowInput {
                 colors: root.colors
-                title: "Wallpaper volume"
-                description: "Playback volume for video and Wallpaper Engine audio (0–100%). Has no effect while audio is muted."
+                title: I18n.tr("Wallpaper volume")
+                description: I18n.tr("Playback volume for video and Wallpaper Engine audio (0–100%). Has no effect while audio is muted.")
                 value: Config.wallpaperVolume
                 min: 0
                 max: 100
@@ -189,16 +190,16 @@ Row {
 
             RowToggle {
                 colors: root.colors
-                title: "Auto-recolour new wallpapers"
-                description: "When a new wallpaper is added, save a gowall theme-recoloured copy alongside it."
+                title: I18n.tr("Auto-recolour new wallpapers")
+                description: I18n.tr("When a new wallpaper is added, save a gowall theme-recoloured copy alongside it.")
                 checked: Config.autoRecolorEnabled
                 onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("effects.autoRecolor", v) }
             }
 
             RowDropdown {
                 colors: root.colors
-                title: "Recolour theme"
-                description: "Palette used when auto-recolouring new wallpapers."
+                title: I18n.tr("Recolour theme")
+                description: I18n.tr("Palette used when auto-recolouring new wallpapers.")
                 value: Config.autoRecolorTheme
                 model: root._recolorThemes
                 enabled: Config.autoRecolorEnabled
@@ -209,13 +210,13 @@ Row {
 
         SettingsCard {
             colors: root.colors
-            title: "Random rotation"
+            title: I18n.tr("Random rotation")
             width: parent.width
 
             RowInput {
                 colors: root.colors
-                title: "Interval"
-                description: "Seconds between random rotations."
+                title: I18n.tr("Interval")
+                description: I18n.tr("Seconds between random rotations.")
                 value: Config.randomInterval
                 min: 1; max: 86400
                 onCommit: function(v) { if (root.saveConfigKey) root.saveConfigKey("general.randomInterval", v) }
@@ -223,8 +224,8 @@ Row {
 
             RowToggle {
                 colors: root.colors
-                title: "Include images"
-                description: "Allow static wallpapers in the random pool."
+                title: I18n.tr("Include images")
+                description: I18n.tr("Allow static wallpapers in the random pool.")
                 checked: Config.randomIncludeStatic
                 onToggle: function(v) {
                     if (!v && !Config.randomIncludeVideo && !Config.randomIncludeWE) return
@@ -234,8 +235,8 @@ Row {
 
             RowToggle {
                 colors: root.colors
-                title: "Include video"
-                description: "Allow video wallpapers in the random pool."
+                title: I18n.tr("Include video")
+                description: I18n.tr("Allow video wallpapers in the random pool.")
                 checked: Config.randomIncludeVideo
                 onToggle: function(v) {
                     if (!v && !Config.randomIncludeStatic && !Config.randomIncludeWE) return
@@ -245,8 +246,8 @@ Row {
 
             RowToggle {
                 colors: root.colors
-                title: "Include Wallpaper Engine"
-                description: "Allow Wallpaper Engine items in the random pool."
+                title: I18n.tr("Include Wallpaper Engine")
+                description: I18n.tr("Allow Wallpaper Engine items in the random pool.")
                 checked: Config.randomIncludeWE
                 onToggle: function(v) {
                     if (!v && !Config.randomIncludeStatic && !Config.randomIncludeVideo) return
@@ -256,8 +257,8 @@ Row {
 
             RowToggle {
                 colors: root.colors
-                title: "Favourites only"
-                description: "Restrict the random pool to favourited wallpapers."
+                title: I18n.tr("Favourites only")
+                description: I18n.tr("Restrict the random pool to favourited wallpapers.")
                 checked: Config.randomIncludeFavourites
                 onToggle: function(v) { if (root.saveConfigKey) root.saveConfigKey("general.randomIncludeFavourites", v) }
             }

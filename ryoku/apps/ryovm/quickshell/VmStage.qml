@@ -174,7 +174,7 @@ Item {
                 width: parent.width
                 elide: Text.ElideRight
                 maximumLineCount: 1
-                text: stage.name.length > 0 ? stage.name : "machine"
+                text: stage.name.length > 0 ? stage.name : I18n.tr("machine")
                 color: Tokens.ink
                 font.family: Tokens.display
                 font.pixelSize: stage.name.length > 22 ? 21 : 28
@@ -194,25 +194,25 @@ Item {
             columns: 3
             columnSpacing: 34
             rowSpacing: 12
-            Field { k: "Cores"; v: stage.cores === "auto" ? "AUTO" : stage.cores }
-            Field { k: "Memory"; v: stage.ram === "auto" ? "AUTO" : stage.ram }
+            Field { k: I18n.tr("Cores"); v: stage.cores === "auto" ? I18n.tr("AUTO") : stage.cores }
+            Field { k: I18n.tr("Memory"); v: stage.ram === "auto" ? I18n.tr("AUTO") : stage.ram }
             Field {
-                k: "Disk"
+                k: I18n.tr("Disk")
                 v: stage.diskUsed > 0
                     ? Vm.human(stage.diskUsed) + (stage.diskCap.length > 0 ? " / " + stage.diskCap : "")
-                    : (stage.diskCap.length > 0 ? stage.diskCap + " · EMPTY" : "NONE")
+                    : (stage.diskCap.length > 0 ? I18n.tr("%1 · EMPTY").arg(stage.diskCap) : I18n.tr("NONE"))
             }
-            Field { k: "Mode"; v: ({ "gtk": "WINDOW", "spice": "SPICE", "none": "HEADLESS" })[stage.mode] || stage.mode }
+            Field { k: I18n.tr("Mode"); v: ({ "gtk": I18n.tr("WINDOW"), "spice": I18n.tr("SPICE"), "none": I18n.tr("HEADLESS") })[stage.mode] || stage.mode }
             Field {
-                k: "SSH"
+                k: I18n.tr("SSH")
                 v: stage.running && stage.ssh.length > 0
-                    ? ":" + stage.ssh + (stage.sshReady ? "" : " · no answer")
+                    ? ":" + stage.ssh + (stage.sshReady ? "" : " · " + I18n.tr("no answer"))
                     : "-"
                 vc: stage.running && stage.sshReady ? Tokens.ink : Tokens.inkFaint
             }
             Field {
-                k: "Console"
-                v: stage.running && stage.spice.length > 0 ? "SPICE" : "-"
+                k: I18n.tr("Console")
+                v: stage.running && stage.spice.length > 0 ? I18n.tr("SPICE") : "-"
                 vc: stage.running && stage.spice.length > 0 ? Tokens.ink : Tokens.inkFaint
             }
         }

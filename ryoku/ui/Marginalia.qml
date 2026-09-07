@@ -1,5 +1,6 @@
 import QtQuick
 import "Singletons"
+import Ryoku.Ui.Singletons
 
 // Printed-page marginalia for a chrome dead zone: the reference's masthead row
 // distilled to a thin strip -- a pixel dingbat, a katakana gloss, a numbered
@@ -42,7 +43,7 @@ Row {
         Text {
             id: idx
             anchors.centerIn: parent
-            text: mg.index + (mg.label !== "" ? " \u002f\u002f " + mg.label : "")
+            text: mg.index + (mg.label !== "" ? " \u002f\u002f " + I18n.tr(mg.label) : "")
             color: Tokens.inkFaint
             font.family: Tokens.mono; font.pixelSize: 10; font.letterSpacing: 1.2
         }

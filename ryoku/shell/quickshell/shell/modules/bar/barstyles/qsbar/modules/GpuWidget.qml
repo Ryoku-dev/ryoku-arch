@@ -1,4 +1,5 @@
 import QtQuick
+import Ryoku.Ui.Singletons
 
 Item {
     id: rootMod
@@ -11,7 +12,7 @@ Item {
         var text = label + " · " + percent + "%"
         if (root.gpuTemperatureC > 0) text += " · " + root.gpuTemperatureC + "°C"
         if (root.gpuMemoryTotalMiB > 0)
-            text += " · " + root.gpuMemoryUsedMiB + "/" + root.gpuMemoryTotalMiB + " MiB"
+            text += I18n.tr(" · %1/%2 MiB").arg(root.gpuMemoryUsedMiB).arg(root.gpuMemoryTotalMiB)
         return text
     }
 

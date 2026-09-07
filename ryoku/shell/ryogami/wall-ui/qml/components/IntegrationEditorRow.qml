@@ -1,6 +1,7 @@
 import QtQuick
 import ".."
 import "../components"
+import Ryoku.Ui.Singletons
 
 Item {
     id: row
@@ -66,7 +67,7 @@ Item {
             elide: Text.ElideRight
             text: row.entryName !== ""
                 ? (row.output !== "" ? (row.entryName + "  ·  " + row.output) : row.entryName)
-                : "(unnamed)"
+                : I18n.tr("(unnamed)")
             font.family: Style.fontFamily
             font.pixelSize: 13 * Config.uiScale
             font.weight: Font.Medium
@@ -82,7 +83,7 @@ Item {
 
             Text {
                 visible: row.template !== ""
-                text: "template"
+                text: I18n.tr("template")
                 font.family: Style.fontFamilyCode
                 font.pixelSize: 9 * Config.uiScale
                 color: row.colors ? row.colors.tertiary : "#8bceff"
@@ -90,7 +91,7 @@ Item {
             }
             Text {
                 visible: row.reload !== ""
-                text: "reload"
+                text: I18n.tr("reload")
                 font.family: Style.fontFamilyCode
                 font.pixelSize: 9 * Config.uiScale
                 color: row.colors ? row.colors.primary : "#ffb4ab"
@@ -124,7 +125,7 @@ Item {
         anchors.right: parent.right
         anchors.top: parent.top
         colors: row.colors
-        title: row.entryName !== "" ? row.entryName : "(unnamed)"
+        title: row.entryName !== "" ? row.entryName : I18n.tr("(unnamed)")
         subtitle: row.output
         opacity: row._expanded ? 1 : 0
         enabled: row._expanded
@@ -154,8 +155,8 @@ Item {
 
         RowTextInput {
             colors: row.colors
-            title: "Name"
-            description: "Stable identifier for this integration."
+            title: I18n.tr("Name")
+            description: I18n.tr("Stable identifier for this integration.")
             value: row.entryName
             placeholder: "kitty"
             onCommit: function(v) { row.saveField("name", v) }
@@ -163,35 +164,35 @@ Item {
 
         RowTextInput {
             colors: row.colors
-            title: "Template"
-            description: "Template file rendered by Matugen."
+            title: I18n.tr("Template")
+            description: I18n.tr("Template file rendered by Matugen.")
             value: row.template
-            placeholder: "kitty.toml"
+            placeholder: I18n.tr("kitty.toml")
             onCommit: function(v) { row.saveField("template", v) }
         }
 
         RowTextInput {
             colors: row.colors
-            title: "Output"
-            description: "Path where the rendered output is written."
+            title: I18n.tr("Output")
+            description: I18n.tr("Path where the rendered output is written.")
             value: row.output
-            placeholder: "~/.config/kitty/colors.toml"
+            placeholder: I18n.tr("~/.config/kitty/colors.toml")
             onCommit: function(v) { row.saveField("output", v) }
         }
 
         RowTextInput {
             colors: row.colors
-            title: "Reload"
-            description: "Optional shell command to run after the output is written."
+            title: I18n.tr("Reload")
+            description: I18n.tr("Optional shell command to run after the output is written.")
             value: row.reload
-            placeholder: "kill -SIGUSR1 $(pgrep kitty)"
+            placeholder: I18n.tr("kill -SIGUSR1 $(pgrep kitty)")
             onCommit: function(v) { row.saveField("reload", v) }
         }
 
         RowAction {
             colors: row.colors
-            title: "Remove integration"
-            description: "Delete this entry from the integrations list."
+            title: I18n.tr("Remove integration")
+            description: I18n.tr("Delete this entry from the integrations list.")
             onClicked: row.removeRequested()
         }
     }

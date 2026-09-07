@@ -22,6 +22,9 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	"github.com/mdp/qrterminal/v3"
 	"github.com/sahilm/fuzzy"
+
+	"ryoku-i18n"
+	"ryoku-i18n/catalog"
 )
 
 // The failure screen renders this as a scannable QR code so the user can reach
@@ -416,7 +419,7 @@ func (p picker) view(w, phase int) string {
 	var b strings.Builder
 	end := min(len(p.matches), p.offset+p.height)
 	if len(p.matches) == 0 {
-		b.WriteString(fg(cSub, "no matches"))
+		b.WriteString(fg(cSub, i18n.T("no matches")))
 	}
 	for vi := p.offset; vi < end; vi++ {
 		it := p.items[p.matches[vi]]
@@ -511,33 +514,33 @@ type step struct {
 
 func steps() []step {
 	all := []step{
-		{key: "keyboard", title: "Keyboard layout", kind: kSelect, items: keymaps(),
-			desc: []string{"Type to filter · j/k or ↑↓ to move.", "Sets console.keyMap + xkb.layout."}},
-		{key: "locale", title: "System locale", kind: kSelect, items: locales(),
-			desc: []string{"Language & formats. Sets i18n.defaultLocale."}},
-		{key: "timezone", title: "Time zone", kind: kSelect, items: timezones(),
-			desc: []string{"Used for the clock & logs. Sets time.timeZone."}},
-		{key: "network", title: "Network", kind: kNet, desc: []string{}},
-		{key: "hardware", title: "Hardware", kind: kInfo, desc: []string{}},
-		{key: "profile", title: "Hardware profile", kind: kSelect, items: profiles(), numbered: true,
-			desc: []string{"Confirm or change the suggested profile.", "Press 1-4 or pick below."}},
-		{key: "gpu", title: "Graphics mode", kind: kSelect, items: gpuModes(), numbered: true,
-			desc: []string{"Hybrid GPU (iGPU + NVIDIA) detected.", "How should displays & apps use them?"}},
-		{key: "diskpick", title: "Target disk", kind: kSelect, items: disks(), numbered: true,
-			desc: []string{"Pick the disk to install onto.", "Everything after this applies to it."}},
-		{key: "disk", title: "Disk strategy", kind: kSelect, items: diskStrategies(), numbered: true,
-			desc: []string{"Nothing is erased until you confirm."}},
-		{key: "partitions", title: "Disk layout", kind: kPartition, desc: []string{}},
-		{key: "hostname", title: "Hostname", kind: kInput, placeholder: "ryoku", deflt: "ryoku",
-			desc: []string{"Letters, digits and dashes."}},
-		{key: "username", title: "Primary user", kind: kInput, placeholder: "you", deflt: "you",
-			desc: []string{"Your login account name. Lowercase."}},
-		{key: "password", title: "User password", kind: kPass,
-			desc: []string{"Set a password for your account."}},
-		{key: "encryption", title: "Disk encryption", kind: kConfirm,
-			desc: []string{"Encrypt the root with LUKS?", "Installs the -luks host variant."}},
-		{key: "review", title: "Review", kind: kConfirm,
-			desc: []string{"Last safe point, nothing written yet."}},
+		{key: "keyboard", title: i18n.T("Keyboard layout"), kind: kSelect, items: keymaps(),
+			desc: []string{i18n.T("Type to filter · j/k or ↑↓ to move."), i18n.T("Sets console.keyMap + xkb.layout.")}},
+		{key: "locale", title: i18n.T("System locale"), kind: kSelect, items: locales(),
+			desc: []string{i18n.T("Language & formats. Sets i18n.defaultLocale.")}},
+		{key: "timezone", title: i18n.T("Time zone"), kind: kSelect, items: timezones(),
+			desc: []string{i18n.T("Used for the clock & logs. Sets time.timeZone.")}},
+		{key: "network", title: i18n.T("Network"), kind: kNet, desc: []string{}},
+		{key: "hardware", title: i18n.T("Hardware"), kind: kInfo, desc: []string{}},
+		{key: "profile", title: i18n.T("Hardware profile"), kind: kSelect, items: profiles(), numbered: true,
+			desc: []string{i18n.T("Confirm or change the suggested profile."), i18n.T("Press 1-4 or pick below.")}},
+		{key: "gpu", title: i18n.T("Graphics mode"), kind: kSelect, items: gpuModes(), numbered: true,
+			desc: []string{i18n.T("Hybrid GPU (iGPU + NVIDIA) detected."), i18n.T("How should displays & apps use them?")}},
+		{key: "diskpick", title: i18n.T("Target disk"), kind: kSelect, items: disks(), numbered: true,
+			desc: []string{i18n.T("Pick the disk to install onto."), i18n.T("Everything after this applies to it.")}},
+		{key: "disk", title: i18n.T("Disk strategy"), kind: kSelect, items: diskStrategies(), numbered: true,
+			desc: []string{i18n.T("Nothing is erased until you confirm.")}},
+		{key: "partitions", title: i18n.T("Disk layout"), kind: kPartition, desc: []string{}},
+		{key: "hostname", title: i18n.T("Hostname"), kind: kInput, placeholder: "ryoku", deflt: "ryoku",
+			desc: []string{i18n.T("Letters, digits and dashes.")}},
+		{key: "username", title: i18n.T("Primary user"), kind: kInput, placeholder: "you", deflt: "you",
+			desc: []string{i18n.T("Your login account name. Lowercase.")}},
+		{key: "password", title: i18n.T("User password"), kind: kPass,
+			desc: []string{i18n.T("Set a password for your account.")}},
+		{key: "encryption", title: i18n.T("Disk encryption"), kind: kConfirm,
+			desc: []string{i18n.T("Encrypt the root with LUKS?"), i18n.T("Installs the -luks host variant.")}},
+		{key: "review", title: i18n.T("Review"), kind: kConfirm,
+			desc: []string{i18n.T("Last safe point, nothing written yet.")}},
 	}
 	// On the graphical relaunch (keymapRelaunch), the keyboard layout is already
 	// chosen and cage runs under it; drop the step so the wizard resumes at locale,
@@ -553,8 +556,8 @@ func keymaps() []item {
 		return r
 	}
 	return []item{
-		{"us", "US (QWERTY)", ""}, {"uk", "United Kingdom", ""}, {"de", "German", ""},
-		{"fr", "French (AZERTY)", ""}, {"es", "Spanish", ""}, {"it", "Italian", ""},
+		{"us", i18n.T("US (QWERTY)"), ""}, {"uk", i18n.T("United Kingdom"), ""}, {"de", i18n.T("German"), ""},
+		{"fr", i18n.T("French (AZERTY)"), ""}, {"es", i18n.T("Spanish"), ""}, {"it", i18n.T("Italian"), ""},
 		{"dvorak", "Dvorak", ""}, {"colemak", "Colemak", ""},
 	}
 }
@@ -563,8 +566,8 @@ func locales() []item {
 		return r
 	}
 	return []item{
-		{"en_US.UTF-8", "English (US)", ""}, {"en_GB.UTF-8", "English (UK)", ""},
-		{"de_DE.UTF-8", "German", ""}, {"fr_FR.UTF-8", "French", ""}, {"es_ES.UTF-8", "Spanish", ""},
+		{"en_US.UTF-8", i18n.T("English (US)"), ""}, {"en_GB.UTF-8", i18n.T("English (UK)"), ""},
+		{"de_DE.UTF-8", i18n.T("German"), ""}, {"fr_FR.UTF-8", i18n.T("French"), ""}, {"es_ES.UTF-8", i18n.T("Spanish"), ""},
 	}
 }
 func timezones() []item {
@@ -572,18 +575,18 @@ func timezones() []item {
 		return r
 	}
 	return []item{
-		{"auto", "Detect automatically", "via IP, also sets the clock"},
-		{"America/New_York", "US Eastern", ""}, {"America/Los_Angeles", "US Pacific", ""},
-		{"Europe/London", "UK / Ireland", ""}, {"Europe/Berlin", "Germany", ""},
-		{"Europe/Madrid", "Spain", ""}, {"Asia/Tokyo", "Japan", ""}, {"UTC", "UTC", ""},
+		{"auto", i18n.T("Detect automatically"), i18n.T("via IP, also sets the clock")},
+		{"America/New_York", i18n.T("US Eastern"), ""}, {"America/Los_Angeles", i18n.T("US Pacific"), ""},
+		{"Europe/London", i18n.T("UK / Ireland"), ""}, {"Europe/Berlin", i18n.T("Germany"), ""},
+		{"Europe/Madrid", i18n.T("Spain"), ""}, {"Asia/Tokyo", i18n.T("Japan"), ""}, {"UTC", "UTC", ""},
 	}
 }
 func profiles() []item {
 	all := []item{
-		{"amd-nvidia", "NVIDIA dGPU (any CPU)", "AMD or Intel CPU with an NVIDIA GPU"},
-		{"amd", "amd", "AMD CPU and GPU"},
-		{"intel", "intel", "Intel CPU and GPU"},
-		{"vm", "vm", "virtual machine"},
+		{"amd-nvidia", i18n.T("NVIDIA dGPU (any CPU)"), i18n.T("AMD or Intel CPU with an NVIDIA GPU")},
+		{"amd", "amd", i18n.T("AMD CPU and GPU")},
+		{"intel", "intel", i18n.T("Intel CPU and GPU")},
+		{"vm", "vm", i18n.T("virtual machine")},
 	}
 	return promote(all, []string{ensureHW().profile})
 }
@@ -603,24 +606,24 @@ func diskStrategies() []item {
 // disk.
 func diskStrategiesFor(dl diskLayout) []item {
 	if len(dl.parts) == 0 {
-		return []item{{"whole", "Use the whole disk", "blank disk · auto-layout"}}
+		return []item{{"whole", i18n.T("Use the whole disk"), i18n.T("blank disk · auto-layout")}}
 	}
-	whole := item{"whole", "Erase whole disk", "wipe & auto-layout"}
+	whole := item{"whole", i18n.T("Erase whole disk"), i18n.T("wipe & auto-layout")}
 	var along item
 	switch {
 	case dl.probeVerdict == "create-esp":
 		// GPT disk with free space but no ESP of its own (e.g. a second data disk):
 		// Ryoku makes its own ESP in the free space instead of sending the user to fdisk.
-		along = item{"alongside", "Install in the free space", "create a new EFI partition + root · keep existing data"}
+		along = item{"alongside", i18n.T("Install in the free space"), i18n.T("create a new EFI partition + root · keep existing data")}
 	case dl.windows:
-		along = item{"alongside", "Install alongside Windows", "keep Windows · use free space"}
+		along = item{"alongside", i18n.T("Install alongside Windows"), i18n.T("keep Windows · use free space")}
 	default:
-		along = item{"alongside", "Install alongside (keep existing OS)", "shrink a partition · use free space"}
+		along = item{"alongside", i18n.T("Install alongside (keep existing OS)"), i18n.T("shrink a partition · use free space")}
 	}
 	// A hard blocker (no ESP, no GPT) is shown inline on the dimmed option instead
 	// of letting a pick dead-end at the layout step.
 	if reason := alongsideBlockReason(dl); reason != "" {
-		along.hint = "unavailable — " + reason
+		along.hint = i18n.Tf("unavailable — %s", reason)
 	}
 	return []item{along, whole}
 }
@@ -631,13 +634,13 @@ func diskStrategiesFor(dl diskLayout) []item {
 // rather than accept the pick and strand the user at the layout step.
 func alongsideBlockReason(dl diskLayout) string {
 	if !dl.gpt {
-		return "needs a GPT disk"
+		return i18n.T("needs a GPT disk")
 	}
 	switch dl.probeVerdict {
 	case "no-esp":
-		return "no EFI system partition"
+		return i18n.T("no EFI system partition")
 	case "error":
-		return "disk probe failed"
+		return i18n.T("disk probe failed")
 	}
 	return ""
 }
@@ -647,7 +650,7 @@ func disks() []item {
 	if r := sysDisks(); len(r) > 0 {
 		return r
 	}
-	return []item{{"/dev/vda", "/dev/vda", "virtual disk"}}
+	return []item{{"/dev/vda", "/dev/vda", i18n.T("virtual disk")}}
 }
 func diskSizeOf(dev string) int {
 	if g := sysDiskSize(dev); g > 0 {
@@ -661,14 +664,14 @@ func ssids() []item {
 	if r := sysSSIDs(); len(r) > 0 {
 		return r
 	}
-	return []item{{"", "No networks found", "move closer or use ethernet"}}
+	return []item{{"", i18n.T("No networks found"), i18n.T("move closer or use ethernet")}}
 }
 
 func gpuModes() []item {
 	return []item{
-		{"offload", "Hybrid (recommended)", "iGPU display · dGPU on-demand"},
-		{"sync", "dGPU performance", "NVIDIA drives everything"},
-		{"vfio", "iGPU + dGPU for VM", "reserve dGPU for passthrough"},
+		{"offload", i18n.T("Hybrid (recommended)"), i18n.T("iGPU display · dGPU on-demand")},
+		{"sync", i18n.T("dGPU performance"), i18n.T("NVIDIA drives everything")},
+		{"vfio", i18n.T("iGPU + dGPU for VM"), i18n.T("reserve dGPU for passthrough")},
 	}
 }
 
@@ -679,21 +682,21 @@ func gpuDetails(key string) []string {
 	switch key {
 	case "offload":
 		return []string{
-			fg(cGreen, "+ ") + fg(cText, "best battery, the dGPU sleeps until an app needs it"),
-			fg(cGreen, "+ ") + fg(cText, "dGPU still available for games and VMs"),
-			fg(cRed, "- ") + fg(cSub, "launch heavy apps with the prime-run wrapper"),
+			fg(cGreen, "+ ") + fg(cText, i18n.T("best battery, the dGPU sleeps until an app needs it")),
+			fg(cGreen, "+ ") + fg(cText, i18n.T("dGPU still available for games and VMs")),
+			fg(cRed, "- ") + fg(cSub, i18n.T("launch heavy apps with the prime-run wrapper")),
 		}
 	case "sync":
 		return []string{
-			fg(cGreen, "+ ") + fg(cText, "maximum performance, simplest for gaming"),
-			fg(cGreen, "+ ") + fg(cText, "best for external displays driven by the dGPU"),
-			fg(cRed, "- ") + fg(cSub, "dGPU always on, more heat and battery drain"),
+			fg(cGreen, "+ ") + fg(cText, i18n.T("maximum performance, simplest for gaming")),
+			fg(cGreen, "+ ") + fg(cText, i18n.T("best for external displays driven by the dGPU")),
+			fg(cRed, "- ") + fg(cSub, i18n.T("dGPU always on, more heat and battery drain")),
 		}
 	case "vfio":
 		return []string{
-			fg(cGreen, "+ ") + fg(cText, "best battery, full dGPU inside a VM (passthrough)"),
-			fg(cRed, "- ") + fg(cSub, "no dGPU acceleration on the host desktop"),
-			fg(cRed, "- ") + fg(cSub, "advanced, needs vfio binding and Looking Glass"),
+			fg(cGreen, "+ ") + fg(cText, i18n.T("best battery, full dGPU inside a VM (passthrough)")),
+			fg(cRed, "- ") + fg(cSub, i18n.T("no dGPU acceleration on the host desktop")),
+			fg(cRed, "- ") + fg(cSub, i18n.T("advanced, needs vfio binding and Looking Glass")),
 		}
 	}
 	return nil
@@ -736,11 +739,11 @@ type lrow struct{ kind, key, label, sub, tag string } // kind: size|toggle|keep 
 func tagStyle(t string) string {
 	switch t {
 	case "required":
-		return fg(cGreen, "required")
+		return fg(cGreen, i18n.T("required"))
 	case "recommended":
-		return fg(cBlue, "recommended")
+		return fg(cBlue, i18n.T("recommended"))
 	case "optional":
-		return fg(cDim, "optional")
+		return fg(cDim, i18n.T("optional"))
 	}
 	return ""
 }
@@ -859,10 +862,15 @@ type model struct {
 }
 
 var spinFrames = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
-var installSteps = []string{
-	"Partitioning the disk", "Creating filesystems and btrfs subvolumes",
-	"Mounting the target", "Installing the base system",
-	"Configuring the system", "Installing the Limine bootloader",
+// installSteps names the backend's install phases for the progress panel. It is
+// a function, not a package-level var, so the names resolve in the language
+// main() picked (a var initializer would run before i18n.Use).
+func installSteps() []string {
+	return []string{
+		i18n.T("Partitioning the disk"), i18n.T("Creating filesystems and btrfs subvolumes"),
+		i18n.T("Mounting the target"), i18n.T("Installing the base system"),
+		i18n.T("Configuring the system"), i18n.T("Installing the Limine bootloader"),
+	}
 }
 
 func newModel() model {
@@ -994,12 +1002,12 @@ func validInput(key, v string) (bool, string) {
 		if hostRe.MatchString(v) {
 			return true, ""
 		}
-		return false, "letters, digits, dashes, no leading or trailing dash"
+		return false, i18n.T("letters, digits, dashes, no leading or trailing dash")
 	case "username":
 		if userRe.MatchString(v) {
 			return true, ""
 		}
-		return false, "lowercase; start with a letter or _"
+		return false, i18n.T("lowercase; start with a letter or _")
 	}
 	return true, ""
 }
@@ -1053,7 +1061,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.sAnim, m.sVel = m.sSpr.Update(m.sAnim, m.sVel, tgt)
 			}
 		case "install":
-			m.progress, m.progVel = m.progSpr.Update(m.progress, m.progVel, float64(m.installAt)/float64(len(installSteps)))
+			m.progress, m.progVel = m.progSpr.Update(m.progress, m.progVel, float64(m.installAt)/float64(len(installSteps())))
 		}
 		return m, m.tickCmd()
 	case installStepMsg:
@@ -1070,9 +1078,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case installDoneMsg:
 		if msg.err != nil {
-			m.failInstall(installSteps[clamp(m.installAt, 0, len(installSteps)-1)])
+			m.failInstall(installSteps()[clamp(m.installAt, 0, len(installSteps())-1)])
 		} else {
-			m.installAt, m.progress, m.state = len(installSteps), 1, "done"
+			m.installAt, m.progress, m.state = len(installSteps()), 1, "done"
 		}
 		return m, nil
 	case tea.KeyPressMsg:
@@ -1207,6 +1215,15 @@ func (m model) onKey(k string) (tea.Model, tea.Cmd) {
 				}
 				applyKeymap(m.picks["keyboard"])
 			}
+			// The locale IS the language choice: there is no second question to
+			// ask. Switching here retranslates the rest of the wizard at once,
+			// and steps() is rebuilt because its titles and descriptions were
+			// resolved in the previous language.
+			if s.key == "locale" {
+				if code := i18n.Use(m.picks["locale"]); code != "" {
+					m.flow = steps()
+				}
+			}
 			m.advance()
 		}
 	case kPass:
@@ -1220,19 +1237,19 @@ func (m model) onKey(k string) (tea.Model, tea.Cmd) {
 		case "enter":
 			if m.pwStage == 0 {
 				if m.input == "" {
-					m.pwErr = "password cannot be empty"
+					m.pwErr = i18n.T("password cannot be empty")
 				} else {
 					m.pw1, m.input, m.pwStage, m.pwErr = m.input, "", 1, ""
 				}
 			} else if m.input != m.pw1 {
-				m.pw1, m.input, m.pwStage, m.pwErr = "", "", 0, "did not match, try again"
+				m.pw1, m.input, m.pwStage, m.pwErr = "", "", 0, i18n.T("did not match, try again")
 			} else if h, err := hashPassword(m.pw1); err != nil {
 				// The hash is computed in-process (password.go), so the only way
 				// here is a kernel that cannot produce random bytes for the salt.
 				// Report it and keep the user on this screen rather than handing
 				// the backend an empty RYOKU_PASSWORD_HASH that only dies at
 				// preflight, after the whole wizard has been walked.
-				m.pw1, m.input, m.pwStage, m.pwErr = "", "", 0, "could not hash the password: "+err.Error()
+				m.pw1, m.input, m.pwStage, m.pwErr = "", "", 0, i18n.Tf("could not hash the password: %s", err)
 			} else {
 				m.pwHash = h
 				m.picks["password"], m.pw1, m.input, m.pwStage = "set", "", "", 0
@@ -1266,7 +1283,7 @@ func (m model) onKey(k string) (tea.Model, tea.Cmd) {
 					m.netOnline, m.picks["network"], m.input, m.netErr = true, "wifi", "", ""
 					m.advance()
 				} else {
-					m.input, m.netErr = "", "could not connect (wrong passphrase?)"
+					m.input, m.netErr = "", i18n.T("could not connect (wrong passphrase?)")
 				}
 			default:
 				m.netErr = ""
@@ -1320,13 +1337,13 @@ func (m model) onKey(k string) (tea.Model, tea.Cmd) {
 			if k == "enter" {
 				if m.encStage == 1 {
 					if m.input == "" {
-						m.encErr = "passphrase cannot be empty"
+						m.encErr = i18n.T("passphrase cannot be empty")
 					} else {
 						m.pass1, m.input, m.encStage, m.encErr = m.input, "", 2, ""
 					}
 				} else { // confirm
 					if m.input != m.pass1 {
-						m.pass1, m.input, m.encStage, m.encErr = "", "", 1, "did not match, try again"
+						m.pass1, m.input, m.encStage, m.encErr = "", "", 1, i18n.T("did not match, try again")
 					} else {
 						m.luksPass = m.pass1
 						m.picks["encryption"], m.pass1, m.input, m.encStage = "LUKS", "", "", 0
@@ -1716,7 +1733,7 @@ func (m model) layoutRows() []lrow {
 		// shrinkable partition. Non-shrinkable partitions surface as dimmed reasons
 		// in the body, not as rows.
 		if m.freeG >= minRootGiB+alongsideBootGiB {
-			rows = append(rows, lrow{"region", "region", "Use free space", fmt.Sprintf("%d GiB is already free", m.freeG), ""})
+			rows = append(rows, lrow{"region", "region", i18n.T("Use free space"), i18n.Tf("%d GiB is already free", m.freeG), ""})
 		}
 		nCarve := 0
 		for _, p := range m.resizeParts {
@@ -1728,7 +1745,7 @@ func (m model) layoutRows() []lrow {
 			if m.carveablePart(p) {
 				// One candidate is the common case and needs no qualifier; with
 				// several, each row names the partition it takes the space from.
-				label := "Space for Ryoku"
+				label := i18n.T("Space for Ryoku")
 				if nCarve > 1 {
 					label += " · " + strings.TrimPrefix(p.dev, "/dev/")
 				}
@@ -1744,16 +1761,16 @@ func (m model) layoutRows() []lrow {
 	// they will be removed and their space folded into the new root -- alongside
 	// the carve picker or the kept list, whichever the disk offers.
 	for i, r := range m.reclaim {
-		rows = append(rows, lrow{"reclaim", fmt.Sprintf("reclaim%d", i), r.dev, "previous Ryoku, will be freed", "reclaim"})
+		rows = append(rows, lrow{"reclaim", fmt.Sprintf("reclaim%d", i), r.dev, i18n.T("previous Ryoku, will be freed"), "reclaim"})
 	}
 	if m.picks["disk"] != "alongside" {
-		rows = append(rows, lrow{"size", "esp", "ESP size", "/boot · fat32", "required"}) // alongside boot is fixed at 2 GiB
+		rows = append(rows, lrow{"size", "esp", i18n.T("ESP size"), "/boot · fat32", "required"}) // alongside boot is fixed at 2 GiB
 	}
 	rows = append(rows,
-		lrow{"size", "swap", "Swap (swapfile)", "@swap · 0 = none · carved from root", "optional"},
-		lrow{"toggle", "snap", "Snapshots & rollback", "@snapshots → /.snapshots", "recommended"},
-		lrow{"toggle", "home", "Separate /home", "@home → /home", "optional"},
-		lrow{"toggle", "backups", "Backups", "@backups → /.backups", "optional"},
+		lrow{"size", "swap", i18n.T("Swap (swapfile)"), i18n.T("@swap · 0 = none · carved from root"), "optional"},
+		lrow{"toggle", "snap", i18n.T("Snapshots & rollback"), "@snapshots → /.snapshots", "recommended"},
+		lrow{"toggle", "home", i18n.T("Separate /home"), "@home → /home", "optional"},
+		lrow{"toggle", "backups", i18n.T("Backups"), "@backups → /.backups", "optional"},
 	)
 	return rows
 }
@@ -1872,7 +1889,7 @@ func (m *model) partKey(k string) {
 // so a blocked Tab on the partition step can explain itself instead of doing nothing.
 func (m model) partBlockReason() string {
 	if m.diskG < minDiskGiB {
-		return fmt.Sprintf("Disk is %dG; Ryoku needs at least %dG. Press esc to pick another.", m.diskG, minDiskGiB)
+		return i18n.Tf("Disk is %dG; Ryoku needs at least %dG. Press esc to pick another.", m.diskG, minDiskGiB)
 	}
 	switch m.picks["disk"] {
 	case "whole":
@@ -1882,7 +1899,7 @@ func (m model) partBlockReason() string {
 			// The backend's alongside path is GPT-only (it appends a partition and
 			// reads GPT partlabels); an MBR disk with free space would pass the TUI
 			// and die at backend stage 1. Fail here with the same guidance.
-			return "alongside needs a GPT disk; press esc and choose 'Erase whole disk'."
+			return i18n.T("alongside needs a GPT disk; press esc and choose 'Erase whole disk'.")
 		}
 		// The probe knows the exact hard blocker (no Windows ESP, unreadable table)
 		// that a generic free-space message would hide; surface it verbatim. These
@@ -1897,16 +1914,16 @@ func (m model) partBlockReason() string {
 		if free, need := m.freeAlongside(), minRootGiB+alongsideBootGiB; free < need {
 			if m.carveUI() {
 				if m.hasCarveable() {
-					return "Not enough free space; select a partition below and use ←/→ to set how much space Ryoku gets."
+					return i18n.T("Not enough free space; select a partition below and use ←/→ to set how much space Ryoku gets.")
 				}
 				// No gap AND nothing shrinkable: the per-partition reasons show below.
-				return "No free space, and no partition here can be shrunk safely (see reasons below). Press esc to pick another disk or 'Erase whole disk'."
+				return i18n.T("No free space, and no partition here can be shrunk safely (see reasons below). Press esc to pick another disk or 'Erase whole disk'.")
 			}
-			return fmt.Sprintf("Only %dG free; alongside needs %dG (a %dG root plus a %dG boot partition). Shrink an existing partition first, or press esc and choose 'Erase whole disk'.", free, need, minRootGiB, alongsideBootGiB)
+			return i18n.Tf("Only %dG free; alongside needs %dG (a %dG root plus a %dG boot partition). Shrink an existing partition first, or press esc and choose 'Erase whole disk'.", free, need, minRootGiB, alongsideBootGiB)
 		}
 		return ""
 	default:
-		return "Choose a disk strategy first (press esc)."
+		return i18n.T("Choose a disk strategy first (press esc).")
 	}
 }
 
@@ -1923,10 +1940,10 @@ func (m model) partReady() bool { return m.partBlockReason() == "" }
 // honestly, not mid-install.
 func (m model) reviewBlockReason() string {
 	if m.hwSecureBoot {
-		return "Secure Boot is enabled -- disable Secure Boot in firmware setup (Limine is unsigned), then reboot the installer."
+		return i18n.T("Secure Boot is enabled -- disable Secure Boot in firmware setup (Limine is unsigned), then reboot the installer.")
 	}
 	if !m.netOnline && !offlineRepo() {
-		return "No internet connection, and this image has no offline package set. Go back to the Network step to connect."
+		return i18n.T("No internet connection, and this image has no offline package set. Go back to the Network step to connect.")
 	}
 	return ""
 }
@@ -1946,9 +1963,9 @@ func (m model) layoutSummary() string {
 		n++ // the swapfile lives in its own @swap
 	}
 	if len(m.kept) == 0 {
-		return fmt.Sprintf("wiped · btrfs %dsv", n)
+		return i18n.Tf("wiped · btrfs %dsv", n)
 	}
-	return fmt.Sprintf("alongside · btrfs %dsv", n)
+	return i18n.Tf("alongside · btrfs %dsv", n)
 }
 
 // layoutSegs builds the disk-bar segments: kept + (new boot/ESP) + root + free.
@@ -2194,18 +2211,18 @@ func (m model) View() tea.View {
 		// (a smaller console font, or installing from the shell) instead of asking
 		// for a resize the user cannot perform.
 		msg := lipgloss.JoinVertical(lipgloss.Center,
-			bold(cYell, "This screen is too small for the installer"), "",
-			fg(cText, fmt.Sprintf("Ryoku needs at least %d × %d; this console is %d × %d.", minTermW, minTermH, m.w, m.h)), "",
-			fg(cSub, "On a terminal: make the window bigger."),
-			fg(cSub, "On the console: switch to a smaller font, e.g."),
+			bold(cYell, i18n.T("This screen is too small for the installer")), "",
+			fg(cText, i18n.Tf("Ryoku needs at least %d × %d; this console is %d × %d.", minTermW, minTermH, m.w, m.h)), "",
+			fg(cSub, i18n.T("On a terminal: make the window bigger.")),
+			fg(cSub, i18n.T("On the console: switch to a smaller font, e.g.")),
 			fg(cBlue, "setfont ter-v16n"), "",
-			fg(cSub, "Or install from the shell with: ryoku-install"))
+			fg(cSub, i18n.T("Or install from the shell with:")+" ryoku-install"))
 		v := tea.NewView(fitBlock(lipgloss.Place(m.w, m.h, lipgloss.Center, lipgloss.Center, msg), m.w, m.h, false))
 		v.AltScreen, v.BackgroundColor, v.ForegroundColor = true, cBg, cText
 		return v
 	}
 	if m.help {
-		foot := lipgloss.PlaceHorizontal(m.w, lipgloss.Center, keyHint("?", "close")+fg(cDim, "    ")+keyHint("esc", "close"))
+		foot := lipgloss.PlaceHorizontal(m.w, lipgloss.Center, keyHint("?", i18n.T("close"))+fg(cDim, "    ")+keyHint("esc", i18n.T("close")))
 		v := tea.NewView(m.frameWithFooter(m.helpBody(), "\n"+foot))
 		v.AltScreen, v.BackgroundColor, v.ForegroundColor = true, cBg, cText
 		return v
@@ -2216,7 +2233,7 @@ func (m model) View() tea.View {
 	v.MouseMode = tea.MouseModeCellMotion
 	v.BackgroundColor = cBg
 	v.ForegroundColor = cText
-	v.WindowTitle = "Ryoku installer"
+	v.WindowTitle = i18n.T("Ryoku installer")
 	return v
 }
 
@@ -2289,15 +2306,15 @@ func (m model) frameWithFooter(body, footer string) string {
 	if foot == "" {
 		switch m.state {
 		case "install":
-			msg := fg(cDim, "installing…  ·  ctrl+c to abort")
+			msg := fg(cDim, i18n.T("installing…  ·  ctrl+c to abort"))
 			if m.abortArmed && time.Since(m.abortAt) <= abortWindow {
-				msg = bold(cRed, "press ctrl+c again to abort -- leaves a half-written disk")
+				msg = bold(cRed, i18n.T("press ctrl+c again to abort -- leaves a half-written disk"))
 			}
 			foot = lipgloss.PlaceHorizontal(m.w, lipgloss.Center, msg)
 		case "done":
-			foot = lipgloss.PlaceHorizontal(m.w, lipgloss.Center, keyHint("↑↓", "choose")+fg(cDim, "    ")+keyHint("enter", "confirm")+fg(cDim, "    ")+keyHint("q", "quit"))
+			foot = lipgloss.PlaceHorizontal(m.w, lipgloss.Center, keyHint("↑↓", i18n.T("choose"))+fg(cDim, "    ")+keyHint("enter", i18n.T("confirm"))+fg(cDim, "    ")+keyHint("q", i18n.T("quit")))
 		case "failed":
-			foot = lipgloss.PlaceHorizontal(m.w, lipgloss.Center, keyHint("r", "retry")+fg(cDim, "    ")+keyHint("q", "quit"))
+			foot = lipgloss.PlaceHorizontal(m.w, lipgloss.Center, keyHint("r", i18n.T("retry"))+fg(cDim, "    ")+keyHint("q", i18n.T("quit")))
 		}
 	}
 	// Width is clamped here so no row can ever be wider than the grid. Height is
@@ -2328,7 +2345,7 @@ func (m model) header() string {
 	}
 	b = lipgloss.JoinVertical(lipgloss.Center, smallBanner(m.phase)...)
 	if !m.fit.noTagline {
-		b = lipgloss.JoinVertical(lipgloss.Center, b, fg(cSub, "for the sake of power & beauty"))
+		b = lipgloss.JoinVertical(lipgloss.Center, b, fg(cSub, i18n.T("for the sake of power & beauty")))
 	}
 	if m.state == "wizard" {
 		b = lipgloss.JoinVertical(lipgloss.Center, b, m.headerProgress())
@@ -2359,11 +2376,11 @@ func (m *model) ensureSocialQR() {
 func (m model) welcomeFrame() string {
 	logo := lipgloss.JoinVertical(lipgloss.Center, faintBig(m.phase)...)
 	card := sty().Border(border()).BorderForeground(cBlue).Padding(1, 3).Render(
-		bold(cBrand, "Thank you for installing Ryoku") + "\n\n" +
-			fg(cText, "There is no try-before-you-install demo. You are running") + "\n" +
-			fg(cText, "the live Arch image now, and this installer turns it into") + "\n" +
-			fg(cText, "Ryoku in a single pass. Nothing is written until you") + "\n" +
-			fg(cText, "confirm on the review screen."))
+		bold(cBrand, i18n.T("Thank you for installing Ryoku")) + "\n\n" +
+			fg(cText, i18n.T("There is no try-before-you-install demo. You are running")) + "\n" +
+			fg(cText, i18n.T("the live Arch image now, and this installer turns it into")) + "\n" +
+			fg(cText, i18n.T("Ryoku in a single pass. Nothing is written until you")) + "\n" +
+			fg(cText, i18n.T("confirm on the review screen.")))
 	di, ri := iconDiscord+" ", iconReddit+" "
 	if !nerd { // Private-Use logo glyphs won't render; drop to labels
 		di, ri = "", ""
@@ -2372,17 +2389,17 @@ func (m model) welcomeFrame() string {
 		fg(cBrand, ri+"r/RyokuArch") + fg(cDim, "      ") +
 		fg(cText, iconX+" @neur0map")
 	block := lipgloss.JoinVertical(lipgloss.Center, logo, "", "", card, "", socials)
-	foot := lipgloss.PlaceHorizontal(m.w, lipgloss.Center, keyHint("enter", "continue")+fg(cDim, "      ")+keyHint("s", "socials & QR"))
+	foot := lipgloss.PlaceHorizontal(m.w, lipgloss.Center, keyHint("enter", i18n.T("continue"))+fg(cDim, "      ")+keyHint("s", i18n.T("socials & QR")))
 	return lipgloss.JoinVertical(lipgloss.Left, lipgloss.Place(m.w, m.h-2, lipgloss.Center, lipgloss.Center, block), "\n"+foot)
 }
 
 func (m model) welcomeQR() string {
 	if ascii { // QR needs block glyphs, fall back to a plain link list
-		block := lipgloss.JoinVertical(lipgloss.Center, bold(cBrand, "Join the Ryoku community"), "",
+		block := lipgloss.JoinVertical(lipgloss.Center, bold(cBrand, i18n.T("Join the Ryoku community")), "",
 			fg(cBlue, "Discord  ")+fg(cText, discordURL),
 			fg(cBrand, "Reddit   ")+fg(cText, redditURL),
 			fg(cText, "X        ")+fg(cText, xURL))
-		foot := lipgloss.PlaceHorizontal(m.w, lipgloss.Center, keyHint("s / esc", "back"))
+		foot := lipgloss.PlaceHorizontal(m.w, lipgloss.Center, keyHint("s / esc", i18n.T("back")))
 		return lipgloss.JoinVertical(lipgloss.Left, lipgloss.Place(m.w, m.h-2, lipgloss.Center, lipgloss.Center, block), "\n"+foot)
 	}
 	qst := sty().Foreground(lipgloss.Color("#000000")).Background(lipgloss.Color("#ffffff"))
@@ -2407,8 +2424,8 @@ func (m model) welcomeQR() string {
 	} else {
 		row = lipgloss.JoinVertical(lipgloss.Center, d, "", r, "", x)
 	}
-	block := lipgloss.JoinVertical(lipgloss.Center, bold(cBrand, "Join the Ryoku community"), "", row)
-	foot := lipgloss.PlaceHorizontal(m.w, lipgloss.Center, keyHint("s / esc", "back"))
+	block := lipgloss.JoinVertical(lipgloss.Center, bold(cBrand, i18n.T("Join the Ryoku community")), "", row)
+	foot := lipgloss.PlaceHorizontal(m.w, lipgloss.Center, keyHint("s / esc", i18n.T("back")))
 	return lipgloss.JoinVertical(lipgloss.Left, lipgloss.Place(m.w, m.h-2, lipgloss.Center, lipgloss.Center, block), "\n"+foot)
 }
 
@@ -2416,14 +2433,14 @@ func (m model) viewIntro() string {
 	banner := lipgloss.JoinVertical(lipgloss.Center, bigBanner(m.introPos, m.phase)...)
 	tag := ""
 	if m.introPos > 0.45 {
-		tag = fg(cSub, "for the sake of power & beauty")
+		tag = fg(cSub, i18n.T("for the sake of power & beauty"))
 	}
 	bw := 34
 	fill := clamp(int(m.introPos*float64(bw)), 0, bw)
 	bar := fg(cBrand, strings.Repeat(gFull, fill)) + fg(cDim, strings.Repeat(gEmpty, bw-fill))
-	status := fg(cSub, "preparing installer"+strings.Repeat(".", (m.frame/4)%4))
+	status := fg(cSub, i18n.T("preparing installer")+strings.Repeat(".", (m.frame/4)%4))
 	if m.introPos > 0.995 {
-		status = fg(cGreen, "ready")
+		status = fg(cGreen, i18n.T("ready"))
 	}
 	return lipgloss.JoinVertical(lipgloss.Center, banner, "", tag, "", "", bar, "", status)
 }
@@ -2438,12 +2455,12 @@ func (m model) viewWizard() string {
 	case s.kind == kConfirm && s.key == "review":
 		// The step numbers live in the rail, so the hint only promises them when the
 		// rail is actually on screen; a tight grid drops the hint altogether.
-		hint := "\n" + fg(cDim, "press 1-9 to edit a step (numbered in the rail)")
+		hint := "\n" + fg(cDim, i18n.T("press 1-9 to edit a step (numbered in the rail)"))
 		switch {
 		case m.fit.tightCard:
 			hint = ""
 		case m.fit.noRail:
-			hint = "\n" + fg(cDim, "press 1-9 to edit a step")
+			hint = "\n" + fg(cDim, i18n.T("press 1-9 to edit a step"))
 		}
 		c.WriteString(m.reviewBody(inner) + "\n\n" + m.confirmButtons() + hint)
 	case s.kind == kPartition:
@@ -2464,7 +2481,7 @@ func (m model) viewWizard() string {
 				c.WriteString(ln + "\n")
 			}
 		}
-		c.WriteString(fg(cDim, "↺ changeable later, re-run the GPU setup after install"))
+		c.WriteString(fg(cDim, i18n.T("↺ changeable later, re-run the GPU setup after install")))
 	default:
 		for _, d := range s.desc {
 			c.WriteString(fg(cSub, truncW(d, inner)) + "\n")
@@ -2481,19 +2498,19 @@ func (m model) viewWizard() string {
 			if m.inputErr != "" {
 				c.WriteString(fg(cRed, "⚠ "+m.inputErr) + "\n")
 			} else {
-				c.WriteString(fg(cDim, "enter to accept") + "\n")
+				c.WriteString(fg(cDim, i18n.T("enter to accept")) + "\n")
 			}
 		case kConfirm:
 			if s.key == "encryption" && m.encStage > 0 {
-				label := "Set a LUKS passphrase:"
+				label := i18n.T("Set a LUKS passphrase:")
 				if m.encStage == 2 {
-					label = "Confirm passphrase:"
+					label = i18n.T("Confirm passphrase:")
 				}
 				c.WriteString(fg(cText, label) + "\n" + inputBox(m.input, "", true) + "\n")
 				if m.encErr != "" {
 					c.WriteString(fg(cRed, "⚠ "+m.encErr) + "\n")
 				}
-				c.WriteString(fg(cDim, "enter to continue · esc cancel"))
+				c.WriteString(fg(cDim, i18n.T("enter to continue · esc cancel")))
 			} else {
 				c.WriteString(m.confirmButtons())
 			}
@@ -2525,7 +2542,7 @@ func (m model) viewWizard() string {
 // e.g. "465.7 GiB (500 GB)", so a 500 GB drive never looks like it shrank.
 func humanSize(bytes int64) string {
 	if bytes <= 0 {
-		return "unknown size"
+		return i18n.T("unknown size")
 	}
 	return fmt.Sprintf("%.1f GiB (%.0f GB)", float64(bytes)/(1<<30), float64(bytes)/1e9)
 }
@@ -2543,10 +2560,10 @@ func (m model) partBody(inner int) string {
 	if m.carveUI() {
 		// Show the disk's real contents; it morphs into the post-carve preview live.
 		segs, sel = m.mapSegs(), -1
-		barLabel = "on this disk now"
+		barLabel = i18n.T("on this disk now")
 		if m.carving() {
 			rp := m.resizeParts[m.carvePart]
-			barLabel = strings.TrimPrefix(rp.dev, "/dev/") + " (" + rp.name() + ") shrinks · the freed space becomes Ryoku"
+			barLabel = i18n.Tf("%s (%s) shrinks · the freed space becomes Ryoku", strings.TrimPrefix(rp.dev, "/dev/"), rp.name())
 		}
 	}
 	b.WriteString(m.diskBar(segs, inner, sel) + "\n")
@@ -2558,7 +2575,7 @@ func (m model) partBody(inner int) string {
 	if r := m.partBlockReason(); r != "" {
 		b.WriteString(bold(cRed, "⚠ "+r) + "\n")
 		if m.picks["disk"] == "alongside" {
-			b.WriteString(fg(cDim, "  dual-boot guide: docs.ryoku.dev/docs/dual-boot") + "\n")
+			b.WriteString(fg(cDim, "  "+i18n.T("dual-boot guide:")+" docs.ryoku.dev/docs/dual-boot") + "\n")
 		}
 		b.WriteString("\n")
 	}
@@ -2567,14 +2584,26 @@ func (m model) partBody(inner int) string {
 	// One grid for the whole block: a 20-col label, a 5-col state mark (size
 	// rows carry a blank spacer), then content - every slider bracket opens at
 	// the same column and the row block reads as one table.
-	const rowLabelW = 20
+	// rowLabelW is the label column, tagW the tag column. Both default to their
+	// original literals (20 / 11) and widen to the measured widest item so a
+	// longer translation is not truncated (labelStyled) or misaligned (padTo).
+	rowLabelW := 20
+	tagW := 11
+	for _, r := range rows {
+		if lw := dw(r.label); lw > rowLabelW {
+			rowLabelW = lw
+		}
+		if tw := dw(tagStyle(r.tag)); tw > tagW {
+			tagW = tw
+		}
+	}
 	markCell := func(on bool) string {
 		if on {
 			return padTo(fg(cGreen, gOn), 5)
 		}
 		return padTo(fg(cDim, gOff), 5)
 	}
-	knobW := clamp(inner-46, 8, 20)
+	knobW := clamp(inner-46-(rowLabelW-20)-(tagW-11), 8, 20)
 	for i, r := range rows {
 		sel := i == m.lsel
 		prefix := "  "
@@ -2586,12 +2615,12 @@ func (m model) partBody(inner int) string {
 			p := m.kept[m.keepIndex(r.key)]
 			sw := sty().Foreground(partColor(p)).Render(gFull + gFull)
 			info := fmt.Sprintf("%4dG %-5s", p.size, p.fs)
-			b.WriteString(prefix + sw + " " + labelStyled(sel, r.label, rowLabelW) + " " + fg(cText, info) + " " + fg(cYell, "keep") + fg(cDim, " · kept") + "\n")
+			b.WriteString(prefix + sw + " " + labelStyled(sel, r.label, rowLabelW) + " " + fg(cText, info) + " " + fg(cYell, i18n.T("keep")) + fg(cDim, i18n.T(" · kept")) + "\n")
 		case "reclaim":
 			p := m.reclaim[m.reclaimIndex(r.key)]
 			sw := sty().Foreground(cDim).Render(gFull + gFull)
 			info := fmt.Sprintf("%4dG %-5s", p.size, p.fs)
-			b.WriteString(prefix + sw + " " + labelStyled(sel, r.label, rowLabelW) + " " + fg(cText, info) + " " + fg(cRed, "reclaim") + fg(cDim, " · freed") + "\n")
+			b.WriteString(prefix + sw + " " + labelStyled(sel, r.label, rowLabelW) + " " + fg(cText, info) + " " + fg(cRed, i18n.T("reclaim")) + fg(cDim, i18n.T(" · freed")) + "\n")
 		case "size":
 			v, _, mx, _, _ := m.rowSpec(r.key)
 			frac := 0.0
@@ -2605,7 +2634,7 @@ func (m model) partBody(inner int) string {
 			knob := fg(cBrand, strings.Repeat(gFull, fill)) + fg(cDim, strings.Repeat(gEmpty, knobW-fill))
 			val := fmt.Sprintf("%dG", v)
 			if r.key == "swap" && v == 0 {
-				val = "none"
+				val = i18n.T("none")
 			}
 			b.WriteString(prefix + "   " + labelStyled(sel, r.label, rowLabelW) + " " + strings.Repeat(" ", 5) + " [" + knob + "] " + padTo(bold(cText, val), 6) + "  " + tagStyle(r.tag) + "\n")
 		case "region":
@@ -2624,13 +2653,13 @@ func (m model) partBody(inner int) string {
 				knob := fg(cBrand, strings.Repeat(gFull, fill)) + fg(cDim, strings.Repeat(gEmpty, knobW-fill))
 				line += " [" + knob + "] " + bold(cText, humanSize(m.carveTakeMiB<<20))
 			} else {
-				line += " " + fg(cDim, "←/→ how much space Ryoku gets")
+				line += " " + fg(cDim, i18n.T("←/→ how much space Ryoku gets"))
 			}
 			b.WriteString(line + "\n")
 		default: // toggle
-			used := 2 + 3 + rowLabelW + 1 + 5 + 1 + 11 + 2
+			used := 2 + 3 + rowLabelW + 1 + 5 + 1 + tagW + 2
 			sub := truncW(r.sub, max(0, inner-used))
-			b.WriteString(prefix + "   " + labelStyled(sel, r.label, rowLabelW) + " " + markCell(m.toggleOn(r.key)) + " " + padTo(tagStyle(r.tag), 11) + "  " + fg(cDim, sub) + "\n")
+			b.WriteString(prefix + "   " + labelStyled(sel, r.label, rowLabelW) + " " + markCell(m.toggleOn(r.key)) + " " + padTo(tagStyle(r.tag), tagW) + "  " + fg(cDim, sub) + "\n")
 		}
 	}
 	// Honesty: the partitions we cannot carve show dimmed, each with the probe's
@@ -2643,7 +2672,7 @@ func (m model) partBody(inner int) string {
 			}
 			reason := rp.reason
 			if reason == "" {
-				reason = "cannot be shrunk"
+				reason = i18n.T("cannot be shrunk")
 			}
 			b.WriteString("     " + fg(cDim, gBad+" "+rp.name()+" — "+reason) + "\n")
 		}
@@ -2652,11 +2681,11 @@ func (m model) partBody(inner int) string {
 	if rootUsable < 0 {
 		rootUsable = 0
 	}
-	note := fg(cSub, fmt.Sprintf("root %dG", rootUsable))
+	note := fg(cSub, i18n.Tf("root %dG", rootUsable))
 	if m.swapG > 0 {
-		note += fg(cDim, fmt.Sprintf("  ·  swap %dG", m.swapG))
+		note += fg(cDim, i18n.Tf("  ·  swap %dG", m.swapG))
 	}
-	note += fg(cDim, "  ·  @ /, @log and @pkg always included")
+	note += fg(cDim, i18n.T("  ·  @ /, @log and @pkg always included"))
 	b.WriteString("\n" + note)
 	return strings.TrimRight(b.String(), "\n")
 }
@@ -2664,29 +2693,29 @@ func (m model) partBody(inner int) string {
 func (m model) netBody(inner int) string {
 	if offlineRepo() {
 		return strings.Join([]string{
-			fg(cGreen, gOKtxt+" Offline") + fg(cSub, "   bundled image"), "",
-			fg(cSub, "The whole system is bundled on this image, so no network"),
-			fg(cSub, "connection is needed. You're good to go."),
-			"", fg(cDim, "enter to continue · esc back"),
+			fg(cGreen, gOKtxt+" "+i18n.T("Offline")) + fg(cSub, i18n.T("   bundled image")), "",
+			fg(cSub, i18n.T("The whole system is bundled on this image, so no network")),
+			fg(cSub, i18n.T("connection is needed. You're good to go.")),
+			"", fg(cDim, i18n.T("enter to continue · esc back")),
 		}, "\n")
 	}
 	if m.netOnline {
 		return strings.Join([]string{
-			fg(cGreen, gOKtxt+" Connected") + fg(cSub, "   "+netInterface()), "",
-			fg(cSub, "An internet connection is required to download and build"),
-			fg(cSub, "the system. You're good to go."),
-			"", fg(cDim, "enter to continue · esc back"),
+			fg(cGreen, gOKtxt+" "+i18n.T("Connected")) + fg(cSub, "   "+netInterface()), "",
+			fg(cSub, i18n.T("An internet connection is required to download and build")),
+			fg(cSub, i18n.T("the system. You're good to go.")),
+			"", fg(cDim, i18n.T("enter to continue · esc back")),
 		}, "\n")
 	}
 	if m.netStage == 1 {
-		b := fg(cRed, gBad+" Not connected") + "\n\n" +
-			fg(cText, "Wi-Fi password:") + "\n" + inputBox(m.input, "", true) + "\n"
+		b := fg(cRed, gBad+" "+i18n.T("Not connected")) + "\n\n" +
+			fg(cText, i18n.T("Wi-Fi password:")) + "\n" + inputBox(m.input, "", true) + "\n"
 		if m.netErr != "" {
 			b += fg(cRed, "⚠ "+m.netErr) + "\n"
 		}
-		return b + "\n" + fg(cDim, "enter to connect · esc back")
+		return b + "\n" + fg(cDim, i18n.T("enter to connect · esc back"))
 	}
-	return fg(cRed, gBad+" Not connected") + fg(cSub, "   pick a Wi-Fi network, or plug in ethernet and press r") + "\n\n" + m.pick.view(inner, m.phase) + "\n" + fg(cDim, "r to rescan")
+	return fg(cRed, gBad+" "+i18n.T("Not connected")) + fg(cSub, i18n.T("   pick a Wi-Fi network, or plug in ethernet and press r")) + "\n\n" + m.pick.view(inner, m.phase) + "\n" + fg(cDim, i18n.T("r to rescan"))
 }
 
 func strength(s string) string {
@@ -2711,29 +2740,29 @@ func strength(s string) string {
 	}
 	switch {
 	case len(s) >= 12 && classes >= 3:
-		return fg(cGreen, "strong")
+		return fg(cGreen, i18n.T("strong"))
 	case len(s) >= 8 && classes >= 2:
-		return fg(cYell, "ok")
+		return fg(cYell, i18n.T("ok"))
 	default:
-		return fg(cRed, "weak")
+		return fg(cRed, i18n.T("weak"))
 	}
 }
 
 func (m model) passBody(inner int) string {
-	label := "Set a password:"
+	label := i18n.T("Set a password:")
 	if m.pwStage == 1 {
-		label = "Confirm password:"
+		label = i18n.T("Confirm password:")
 	}
 	b := fg(cText, label) + "\n" + inputBox(m.input, "", true) + "\n"
 	if m.pwStage == 0 && m.input != "" {
-		b += fg(cSub, "strength: ") + strength(m.input) + "\n"
+		b += fg(cSub, i18n.T("strength: ")) + strength(m.input) + "\n"
 	} else {
 		b += "\n"
 	}
 	if m.pwErr != "" {
 		b += fg(cRed, "⚠ "+m.pwErr) + "\n"
 	}
-	b += "\n" + fg(cDim, "used at login; change it anytime · esc back")
+	b += "\n" + fg(cDim, i18n.T("used at login; change it anytime · esc back"))
 	return b
 }
 
@@ -2832,38 +2861,38 @@ func (m model) infoBody(inner int) string {
 	var lines []string
 	if !m.hwOK {
 		lines = []string{
-			bold(cYell, "⚠  Could not fully classify this hardware"), "",
-			fg(cText, "That is fine. Ryoku runs on any x86_64 UEFI machine and"),
-			fg(cText, "loads open kernel drivers (amdgpu, i915, nouveau) for"),
-			fg(cText, "unknown GPUs. You can tune drivers after install."),
+			bold(cYell, i18n.T("⚠  Could not fully classify this hardware")), "",
+			fg(cText, i18n.T("That is fine. Ryoku runs on any x86_64 UEFI machine and")),
+			fg(cText, i18n.T("loads open kernel drivers (amdgpu, i915, nouveau) for")),
+			fg(cText, i18n.T("unknown GPUs. You can tune drivers after install.")),
 			"",
-			fg(cSub, "Firmware ") + m.fwCell(),
-			fg(cSub, "GPU      ") + fg(cText, def(m.hwGPU, "unclassified")),
+			fg(cSub, i18n.T("Firmware ")) + m.fwCell(),
+			fg(cSub, "GPU      ") + fg(cText, def(m.hwGPU, i18n.T("unclassified"))),
 			"",
-			fg(cSub, "Suggested profile  ") + bold(cBrand, "vm") + fg(cDim, "  (safe generic, pick yours next)"),
+			fg(cSub, i18n.T("Suggested profile  ")) + bold(cBrand, "vm") + fg(cDim, i18n.T("  (safe generic, pick yours next)")),
 		}
 	} else {
 		hybrid := ""
 		if m.hwHybrid {
-			hybrid = fg(cYell, "  hybrid")
+			hybrid = fg(cYell, i18n.T("  hybrid"))
 		}
 		lines = []string{
-			bold(cBrand, "Detected hardware"), "",
-			fg(cSub, "CPU      ") + fg(cText, def(m.hwCPU, "unknown")),
-			fg(cSub, "GPU      ") + fg(cText, def(m.hwGPU, "unknown")) + hybrid,
-			fg(cSub, "Memory   ") + fg(cText, def(m.hwMem, "unknown")),
-			fg(cSub, "Firmware ") + m.fwCell(),
-			fg(cSub, "Disk     ") + fg(cText, def(m.hwDisk, m.diskDev)),
+			bold(cBrand, i18n.T("Detected hardware")), "",
+			fg(cSub, "CPU      ") + fg(cText, def(m.hwCPU, i18n.T("unknown"))),
+			fg(cSub, "GPU      ") + fg(cText, def(m.hwGPU, i18n.T("unknown"))) + hybrid,
+			fg(cSub, i18n.T("Memory   ")) + fg(cText, def(m.hwMem, i18n.T("unknown"))),
+			fg(cSub, i18n.T("Firmware ")) + m.fwCell(),
+			fg(cSub, i18n.T("Disk     ")) + fg(cText, def(m.hwDisk, m.diskDev)),
 			"",
-			fg(cSub, "Suggested profile  ") + bold(cBrand, def(m.hwProfile, "vm")),
+			fg(cSub, i18n.T("Suggested profile  ")) + bold(cBrand, def(m.hwProfile, "vm")),
 		}
 	}
 	if g := m.hwGateLines(); len(g) > 0 {
 		lines = append(lines, "")
 		lines = append(lines, g...)
-		lines = append(lines, "", fg(cDim, "resolve the above in firmware, then reboot · esc to go back"))
+		lines = append(lines, "", fg(cDim, i18n.T("resolve the above in firmware, then reboot · esc to go back")))
 	} else {
-		lines = append(lines, "", fg(cDim, "enter to continue, esc to go back"))
+		lines = append(lines, "", fg(cDim, i18n.T("enter to continue, esc to go back")))
 	}
 	return strings.Join(lines, "\n")
 }
@@ -2884,15 +2913,15 @@ func (m model) hwGateLines() []string {
 	var out []string
 	if m.hwBIOS {
 		out = append(out,
-			bold(cRed, "⚠ Booted in BIOS / legacy mode -- Ryoku installs UEFI-only."),
-			fg(cText, "  Reboot, enter firmware setup, disable CSM / Legacy boot and"),
-			fg(cText, "  enable UEFI boot mode, then start the installer again."),
+			bold(cRed, i18n.T("⚠ Booted in BIOS / legacy mode -- Ryoku installs UEFI-only.")),
+			fg(cText, i18n.T("  Reboot, enter firmware setup, disable CSM / Legacy boot and")),
+			fg(cText, i18n.T("  enable UEFI boot mode, then start the installer again.")),
 		)
 	}
 	if m.hwSecureBoot {
 		out = append(out,
-			bold(cRed, "⚠ Secure Boot is enabled -- Limine is unsigned."),
-			fg(cText, "  Disable Secure Boot in firmware setup, then reboot the installer."),
+			bold(cRed, i18n.T("⚠ Secure Boot is enabled -- Limine is unsigned.")),
+			fg(cText, i18n.T("  Disable Secure Boot in firmware setup, then reboot the installer.")),
 		)
 	}
 	return out
@@ -2900,16 +2929,16 @@ func (m model) hwGateLines() []string {
 
 func (m model) helpBody() string {
 	return strings.Join([]string{
-		bold(cBrand, "Keys"), "",
-		fg(cSub, "move       ") + fg(cText, "↑↓ / j k"),
-		fg(cSub, "filter     ") + fg(cText, "/  then type   (long lists)"),
-		fg(cSub, "quick pick ") + fg(cText, "1-9   (numbered menus)"),
-		fg(cSub, "adjust     ") + fg(cText, "←/→ · shift = ±big   (sliders)"),
-		fg(cSub, "toggle     ") + fg(cText, "space / enter   (on/off rows)"),
-		fg(cSub, "partitions ") + fg(cText, "←/→ size · space toggle · tab done"),
-		fg(cSub, "confirm    ") + fg(cText, "enter        ") + fg(cSub, "back ") + fg(cText, "esc"),
-		fg(cSub, "quit       ") + fg(cText, "q  /  ctrl+c"),
-		"", fg(cDim, "Nothing is written until the final Review step."),
+		bold(cBrand, i18n.T("Keys")), "",
+		fg(cSub, i18n.T("move       ")) + fg(cText, "↑↓ / j k"),
+		fg(cSub, i18n.T("filter     ")) + fg(cText, i18n.T("/  then type   (long lists)")),
+		fg(cSub, i18n.T("quick pick ")) + fg(cText, i18n.T("1-9   (numbered menus)")),
+		fg(cSub, i18n.T("adjust     ")) + fg(cText, i18n.T("←/→ · shift = ±big   (sliders)")),
+		fg(cSub, i18n.T("toggle     ")) + fg(cText, i18n.T("space / enter   (on/off rows)")),
+		fg(cSub, i18n.T("partitions ")) + fg(cText, i18n.T("←/→ size · space toggle · tab done")),
+		fg(cSub, i18n.T("confirm    ")) + fg(cText, "enter        ") + fg(cSub, i18n.T("back ")) + fg(cText, "esc"),
+		fg(cSub, i18n.T("quit       ")) + fg(cText, "q  /  ctrl+c"),
+		"", fg(cDim, i18n.T("Nothing is written until the final Review step.")),
 	}, "\n")
 }
 
@@ -2943,7 +2972,7 @@ func (m model) activePos() int { // 0-based index among active steps
 func (m model) rail() string {
 	const inner = 18
 	num := m.cur().key == "review" // number steps so 1-9 can jump to edit them
-	lines := []string{fg(cSub, "install steps"), ""}
+	lines := []string{fg(cSub, i18n.T("install steps")), ""}
 	n := 0
 	for i, s := range m.flow {
 		if !m.stepActive(i) {
@@ -3002,11 +3031,11 @@ func (m model) confirmButtons() string {
 		no = no.Background(cBrand).Foreground(cBg).Bold(true)
 		yes = yes.Foreground(cSub)
 	}
-	btns := lipgloss.JoinHorizontal(lipgloss.Top, yes.Render("Yes"), "  ", no.Render("No"))
+	btns := lipgloss.JoinHorizontal(lipgloss.Top, yes.Render(i18n.T("Yes")), "  ", no.Render(i18n.T("No")))
 	if m.fit.tightCard {
-		return btns + "\n" + fg(cDim, "←/→ · enter")
+		return btns + "\n" + fg(cDim, i18n.T("←/→ · enter"))
 	}
-	return btns + "\n\n" + fg(cDim, "←/→ or y/n · enter")
+	return btns + "\n\n" + fg(cDim, i18n.T("←/→ or y/n · enter"))
 }
 
 func (m model) reviewBody(w int) string {
@@ -3026,13 +3055,13 @@ func (m model) reviewBody(w int) string {
 	}
 	swap := fmt.Sprintf("%dG", m.swapG)
 	if m.swapG == 0 {
-		swap = "none"
+		swap = i18n.T("none")
 	}
 	esp, bootKind := fmt.Sprintf("%dG", m.espG), "ESP"
 	if m.picks["disk"] == "alongside" {
 		bootKind = "boot"
 		esp = fmt.Sprintf("%dG %s", alongsideBootGiB, map[string]string{
-			"shared": "XBOOTLDR", "dedicated": "dedicated ESP", "auto": "boot",
+			"shared": "XBOOTLDR", "dedicated": i18n.T("dedicated ESP"), "auto": "boot",
 		}[m.espMode()])
 	}
 	// strategy: render in red+bold for "whole" so the wipe is undeniable on
@@ -3043,60 +3072,60 @@ func (m model) reviewBody(w int) string {
 	var stratCell string
 	switch strat {
 	case "whole":
-		stratCell = bold(cRed, "ERASE whole disk")
+		stratCell = bold(cRed, i18n.T("ERASE whole disk"))
 	case "alongside":
 		if m.probeVerdict == "create-esp" {
-			stratCell = fg(cGreen, "install into free space (new ESP)")
+			stratCell = fg(cGreen, i18n.T("install into free space (new ESP)"))
 		} else {
-			stratCell = fg(cGreen, "alongside (keep existing OS)")
+			stratCell = fg(cGreen, i18n.T("alongside (keep existing OS)"))
 		}
 	default:
-		stratCell = bold(cRed, "unset (refused)")
+		stratCell = bold(cRed, i18n.T("unset (refused)"))
 	}
 	lines := []string{
-		bold(cBrand, "Review, then confirm to install"), "",
-		fg(cRed, "⚠ this writes the layout below to "+m.diskDev), "",
-		row("keyboard", m.picks["keyboard"]), row("locale", m.picks["locale"]),
-		row("time zone", m.picks["timezone"]), row("profile", m.picks["profile"]),
-		row("disk", m.diskDev),
-		fg(cSub, fmt.Sprintf("%-11s", "strategy")) + stratCell,
-		row("hostname", m.picks["hostname"]),
-		row("user", m.picks["username"]), row("password", m.picks["password"]),
-		row("encryption", m.picks["encryption"]), "",
-		fg(cSub, "layout     ") + fg(cText, fmt.Sprintf("%s %s · root %dG · swap %s", bootKind, esp, m.availRoot()-m.swapG, swap)),
-		fg(cSub, "subvols    ") + fg(cText, subs),
+		bold(cBrand, i18n.T("Review, then confirm to install")), "",
+		fg(cRed, i18n.Tf("⚠ this writes the layout below to %s", m.diskDev)), "",
+		row(i18n.T("keyboard"), m.picks["keyboard"]), row(i18n.T("locale"), m.picks["locale"]),
+		row(i18n.T("time zone"), m.picks["timezone"]), row(i18n.T("profile"), m.picks["profile"]),
+		row(i18n.T("disk"), m.diskDev),
+		fg(cSub, fmt.Sprintf("%-11s", i18n.T("strategy"))) + stratCell,
+		row(i18n.T("hostname"), m.picks["hostname"]),
+		row(i18n.T("user"), m.picks["username"]), row(i18n.T("password"), m.picks["password"]),
+		row(i18n.T("encryption"), m.picks["encryption"]), "",
+		fg(cSub, i18n.T("layout     ")) + fg(cText, i18n.Tf("%s %s · root %dG · swap %s", bootKind, esp, m.availRoot()-m.swapG, swap)),
+		fg(cSub, i18n.T("subvols    ")) + fg(cText, subs),
 	}
 	if len(m.kept) > 0 {
-		lines = append(lines, fg(cSub, "kept       ")+fg(cYell, fmt.Sprintf("%d existing partition(s)", len(m.kept))))
+		lines = append(lines, fg(cSub, i18n.T("kept       "))+fg(cYell, i18n.Tf("%d existing partition(s)", len(m.kept))))
 	}
 	if strat == "alongside" && m.probeVerdict == "create-esp" {
 		// No existing ESP: Ryoku creates its own in the free space (dedicated mode).
 		lines = append(lines,
-			fg(cSub, "boot       ")+fg(cText, "new 2 GiB EFI partition + root created in the free space; existing partitions are untouched"))
+			fg(cSub, i18n.T("boot       "))+fg(cText, i18n.T("new 2 GiB EFI partition + root created in the free space; existing partitions are untouched")))
 	} else if strat == "alongside" {
 		existing := map[string]string{"windows": "Windows", "ryoku": "Ryoku", "linux": "Linux"}[m.espKind]
 		if existing == "" {
-			existing = "existing OS"
+			existing = i18n.T("existing OS")
 		}
 		if m.espMode() == "dedicated" {
 			lines = append(lines,
-				fg(cSub, "boot       ")+fg(cText, "dedicated Ryoku ESP; existing "+existing+" ESP is untouched"))
+				fg(cSub, i18n.T("boot       "))+fg(cText, i18n.Tf("dedicated Ryoku ESP; existing %s ESP is untouched", existing)))
 		} else {
-			boot := "shared existing ESP (" + m.espKind + ", backed up first)"
+			boot := i18n.Tf("shared existing ESP (%s, backed up first)", m.espKind)
 			if m.existingBoot == "none" {
-				lines = append(lines, fg(cSub, "boot       ")+fg(cText, boot),
-					fg(cYell, "           existing system stays available through the firmware menu only (no chainload entry found)"))
+				lines = append(lines, fg(cSub, i18n.T("boot       "))+fg(cText, boot),
+					fg(cYell, "           "+i18n.T("existing system stays available through the firmware menu only (no chainload entry found)")))
 			} else {
-				lines = append(lines, fg(cSub, "boot       ")+fg(cText, boot+" + "+existing+" (existing) entry in the boot menu"))
+				lines = append(lines, fg(cSub, i18n.T("boot       "))+fg(cText, i18n.Tf("%s + %s (existing) entry in the boot menu", boot, existing)))
 			}
 			if m.espCount > 1 {
 				lines = append(lines,
-					fg(cYell, fmt.Sprintf("           %d EFI partitions found; Ryoku shares the %s ESP", m.espCount, m.espKind)))
+					fg(cYell, "           "+i18n.Tf("%d EFI partitions found; Ryoku shares the %s ESP", m.espCount, m.espKind)))
 			}
 		}
 	}
 	if len(m.reclaim) > 0 {
-		lines = append(lines, fg(cSub, "reclaim    ")+fg(cRed, fmt.Sprintf("%d leftover partition(s) (%dG) from a failed prior install", len(m.reclaim), m.reclaimG)))
+		lines = append(lines, fg(cSub, i18n.T("reclaim    "))+fg(cRed, i18n.Tf("%d leftover partition(s) (%dG) from a failed prior install", len(m.reclaim), m.reclaimG)))
 	}
 	// Typed-ERASE sub-stage: a destructive step (whole-disk wipe, or freeing the
 	// leftover Ryoku partitions on alongside) blocks the install handoff behind a
@@ -3110,13 +3139,13 @@ func (m model) reviewBody(w int) string {
 		}
 		lines = append(lines,
 			"",
-			bold(cRed, fmt.Sprintf("⚠ ERASING %d existing partition(s): %s", len(m.existing), truncW(strings.Join(names, ", "), w-30))),
+			bold(cRed, i18n.Tf("⚠ ERASING %d existing partition(s): %s", len(m.existing), truncW(strings.Join(names, ", "), w-30))),
 		)
 		lines = append(lines, m.eraseAckLines()...)
 	case strat == "alongside" && len(m.reclaim) > 0:
 		lines = append(lines,
 			"",
-			bold(cRed, fmt.Sprintf("⚠ reclaiming %d leftover partition(s) (%dG) from a failed prior install", len(m.reclaim), m.reclaimG)),
+			bold(cRed, i18n.Tf("⚠ reclaiming %d leftover partition(s) (%dG) from a failed prior install", len(m.reclaim), m.reclaimG)),
 		)
 		lines = append(lines, m.eraseAckLines()...)
 	}
@@ -3126,9 +3155,9 @@ func (m model) reviewBody(w int) string {
 	if strat == "alongside" && m.bitlocker {
 		lines = append(lines,
 			"",
-			fg(cYell, "⚠ BitLocker: booting Windows via the Ryoku menu demands the recovery key"),
-			fg(cDim, "  until you suspend it in Windows (or boot Windows via the firmware menu);"),
-			fg(cDim, "  see docs/installation-hardware.md"),
+			fg(cYell, i18n.T("⚠ BitLocker: booting Windows via the Ryoku menu demands the recovery key")),
+			fg(cDim, i18n.T("  until you suspend it in Windows (or boot Windows via the firmware menu);")),
+			fg(cDim, "  "+i18n.T("see")+" docs/installation-hardware.md"),
 		)
 	}
 	if r := m.reviewBlockReason(); r != "" {
@@ -3154,9 +3183,9 @@ func (m model) reviewBody(w int) string {
 // a hint to switch to Yes.
 func (m model) eraseAckLines() []string {
 	if m.wipeStage == 1 {
-		return []string{"", fg(cYell, "type ERASE then press enter to confirm  ·  esc cancels"), inputBox(m.eraseInput, "ERASE", false)}
+		return []string{"", fg(cYell, i18n.T("type ERASE then press enter to confirm  ·  esc cancels")), inputBox(m.eraseInput, "ERASE", false)}
 	}
-	return []string{fg(cDim, "switch to Yes and press enter; you will be asked to type ERASE")}
+	return []string{fg(cDim, i18n.T("switch to Yes and press enter; you will be asked to type ERASE"))}
 }
 
 // stepLog is sample command output per step, used by the snapshot layout preview.
@@ -3197,16 +3226,17 @@ func (m model) viewCentered() string {
 		fg(cSub, fmt.Sprintf(" %3.0f%%", m.progress*100))
 
 	var b strings.Builder
-	b.WriteString(bold(cBrand, "Installing Ryoku") + "\n\n")
+	b.WriteString(bold(cBrand, i18n.T("Installing Ryoku")) + "\n\n")
 	b.WriteString(bar + "\n\n")
-	for i := range installSteps {
+	names := installSteps()
+	for i := range names {
 		switch {
 		case i < m.installAt:
-			b.WriteString(fg(cGreen, gCheck+" ") + fg(cSub, installSteps[i]) + "\n")
+			b.WriteString(fg(cGreen, gCheck+" ") + fg(cSub, names[i]) + "\n")
 		case i == m.installAt:
-			b.WriteString(fg(cBrand, spinFrames[m.frame%len(spinFrames)]) + " " + fg(cText, installSteps[i]) + "\n")
+			b.WriteString(fg(cBrand, spinFrames[m.frame%len(spinFrames)]) + " " + fg(cText, names[i]) + "\n")
 		default:
-			b.WriteString(fg(cDim, gPend+" "+installSteps[i]) + "\n")
+			b.WriteString(fg(cDim, gPend+" "+names[i]) + "\n")
 		}
 	}
 	b.WriteString(fg(cDim, strings.Repeat(ruleCh(), iw)) + "\n")
@@ -3230,17 +3260,17 @@ func (m model) viewDone() string {
 		user = "you"
 	}
 	card := sty().Border(borderDouble()).BorderForeground(cGreen).Padding(1, 3).Align(lipgloss.Center).
-		Render(bold(cGreen, gCheck+"  Ryoku installed") + "\n\n" +
+		Render(bold(cGreen, gCheck+"  "+i18n.T("Ryoku installed")) + "\n\n" +
 			fg(cText, m.picks["hostname"]+" · "+m.picks["username"]+" · "+m.picks["profile"]) + "\n" +
-			fg(cSub, "encryption: "+m.picks["encryption"]+" · "+m.picks["timezone"]) + "\n\n" +
-			fg(cSub, "what's next") + "\n" +
-			fg(cDim, "log in as "+user+"  ·  your configs live in ~/.config") + "\n" +
-			fg(cDim, "snapshots and rollback from the Limine boot menu"))
+			fg(cSub, i18n.T("encryption: ")+m.picks["encryption"]+" · "+m.picks["timezone"]) + "\n\n" +
+			fg(cSub, i18n.T("what's next")) + "\n" +
+			fg(cDim, i18n.Tf("log in as %s  ·  your configs live in ~/.config", user)) + "\n" +
+			fg(cDim, i18n.T("snapshots and rollback from the Limine boot menu")))
 	// WIRE: doneSel 0 → systemctl reboot · 1 → systemctl poweroff · 2 → exit to a shell
 	opts := []struct{ label, hint string }{
-		{"Reboot now", "recommended"},
-		{"Power off", ""},
-		{"Exit to a shell", "poke around first"},
+		{i18n.T("Reboot now"), i18n.T("recommended")},
+		{i18n.T("Power off"), ""},
+		{i18n.T("Exit to a shell"), i18n.T("poke around first")},
 	}
 	var b strings.Builder
 	for i, o := range opts {
@@ -3264,14 +3294,14 @@ func (m model) viewFailed() string {
 	for _, ln := range strings.Split(strings.TrimRight(m.qrStr, "\n"), "\n") {
 		qb.WriteString(qst.Render(ln) + "\n")
 	}
-	tail := "Scan for help (and to share this log):"
+	tail := i18n.T("Scan for help (and to share this log):")
 	if ascii {
-		tail = "For help, visit:"
+		tail = i18n.T("For help, visit:")
 	}
 	card := sty().Border(border()).BorderForeground(cRed).Padding(1, 3).
-		Render(bold(cRed, gBad+"  Installation failed") + "\n\n" +
-			fg(cSub, "step  ") + fg(cText, m.failStep) + "\n" +
-			fg(cSub, "log   ") + fg(cText, m.logPath) + "\n\n" +
+		Render(bold(cRed, gBad+"  "+i18n.T("Installation failed")) + "\n\n" +
+			fg(cSub, i18n.T("step  ")) + fg(cText, m.failStep) + "\n" +
+			fg(cSub, i18n.T("log   ")) + fg(cText, m.logPath) + "\n\n" +
 			fg(cSub, tail))
 	if ascii { // QR needs block glyphs
 		return lipgloss.JoinVertical(lipgloss.Center, card, "", fg(cBlue, ryokuSupportURL))
@@ -3286,51 +3316,51 @@ func (m model) footer() string {
 	case s.kind == kPartition:
 		switch {
 		case m.layoutRows()[m.lsel].kind == "keep", m.layoutRows()[m.lsel].kind == "reclaim":
-			parts = []string{keyHint("↑↓", "move"), keyHint("tab", "done"), keyHint("esc", "back")}
+			parts = []string{keyHint("↑↓", i18n.T("move")), keyHint("tab", i18n.T("done")), keyHint("esc", i18n.T("back"))}
 		case m.layoutRows()[m.lsel].kind == "carve":
 			// The ±big hint tracks the handler: it only fires once this row is the
 			// active carve target, so advertise it only then.
-			parts = []string{keyHint("←/→", "Ryoku's space")}
+			parts = []string{keyHint("←/→", i18n.T("Ryoku's space"))}
 			if m.carving() && carveIndex(m.layoutRows()[m.lsel].key) == m.carvePart {
-				parts = append(parts, keyHint("shift", "±big"))
+				parts = append(parts, keyHint("shift", i18n.T("±big")))
 			}
-			parts = append(parts, keyHint("↑↓", "move"), keyHint("tab", "done"), keyHint("esc", "back"))
+			parts = append(parts, keyHint("↑↓", i18n.T("move")), keyHint("tab", i18n.T("done")), keyHint("esc", i18n.T("back")))
 		case m.layoutRows()[m.lsel].kind == "region":
-			parts = []string{keyHint("enter", "use"), keyHint("↑↓", "move"), keyHint("tab", "done"), keyHint("esc", "back")}
+			parts = []string{keyHint("enter", i18n.T("use")), keyHint("↑↓", i18n.T("move")), keyHint("tab", i18n.T("done")), keyHint("esc", i18n.T("back"))}
 		case m.layoutRows()[m.lsel].kind == "size":
-			parts = []string{keyHint("←/→", "adjust"), keyHint("shift", "±big"), keyHint("↑↓", "move"), keyHint("tab", "done"), keyHint("esc", "back")}
+			parts = []string{keyHint("←/→", i18n.T("adjust")), keyHint("shift", i18n.T("±big")), keyHint("↑↓", i18n.T("move")), keyHint("tab", i18n.T("done")), keyHint("esc", i18n.T("back"))}
 		default:
-			parts = []string{keyHint("space", "toggle"), keyHint("↑↓", "move"), keyHint("a", "reset"), keyHint("tab", "done"), keyHint("esc", "back")}
+			parts = []string{keyHint("space", i18n.T("toggle")), keyHint("↑↓", i18n.T("move")), keyHint("a", i18n.T("reset")), keyHint("tab", i18n.T("done")), keyHint("esc", i18n.T("back"))}
 		}
 	case s.kind == kInfo:
 		if m.hwBIOS { // BIOS is a hard block; there is no "continue" to offer
-			parts = []string{keyHint("esc", "back"), keyHint("q", "quit")}
+			parts = []string{keyHint("esc", i18n.T("back")), keyHint("q", i18n.T("quit"))}
 		} else {
-			parts = []string{keyHint("enter", "continue"), keyHint("esc", "back"), keyHint("?", "help"), keyHint("q", "quit")}
+			parts = []string{keyHint("enter", i18n.T("continue")), keyHint("esc", i18n.T("back")), keyHint("?", i18n.T("help")), keyHint("q", i18n.T("quit"))}
 		}
 	case s.kind == kPass:
-		parts = []string{keyHint("type", "password"), keyHint("enter", "continue"), keyHint("esc", "back")}
+		parts = []string{keyHint("type", i18n.T("password")), keyHint("enter", i18n.T("continue")), keyHint("esc", i18n.T("back"))}
 	case s.kind == kNet:
 		switch {
 		case m.netOnline || offlineRepo():
-			parts = []string{keyHint("enter", "continue"), keyHint("esc", "back"), keyHint("q", "quit")}
+			parts = []string{keyHint("enter", i18n.T("continue")), keyHint("esc", i18n.T("back")), keyHint("q", i18n.T("quit"))}
 		case m.netStage == 1:
-			parts = []string{keyHint("type", "password"), keyHint("enter", "connect"), keyHint("esc", "back")}
+			parts = []string{keyHint("type", i18n.T("password")), keyHint("enter", i18n.T("connect")), keyHint("esc", i18n.T("back"))}
 		default:
-			parts = []string{keyHint("↑↓", "move"), keyHint("enter", "connect"), keyHint("r", "rescan"), keyHint("esc", "back")}
+			parts = []string{keyHint("↑↓", i18n.T("move")), keyHint("enter", i18n.T("connect")), keyHint("r", i18n.T("rescan")), keyHint("esc", i18n.T("back"))}
 		}
 	case s.kind == kSelect:
-		parts = []string{keyHint("↑↓/jk", "move"), keyHint("/", "filter")}
+		parts = []string{keyHint("↑↓/jk", i18n.T("move")), keyHint("/", i18n.T("filter"))}
 		if s.numbered {
-			parts = append(parts, keyHint("1-9", "quick"))
+			parts = append(parts, keyHint("1-9", i18n.T("quick")))
 		}
-		parts = append(parts, keyHint("enter", "select"), keyHint("?", "help"), keyHint("esc", "back"), keyHint("q", "quit"))
+		parts = append(parts, keyHint("enter", i18n.T("select")), keyHint("?", i18n.T("help")), keyHint("esc", i18n.T("back")), keyHint("q", i18n.T("quit")))
 	case s.kind == kInput:
-		parts = []string{keyHint("type", "edit"), keyHint("enter", "accept"), keyHint("esc", "back"), keyHint("q", "quit")}
+		parts = []string{keyHint("type", i18n.T("edit")), keyHint("enter", i18n.T("accept")), keyHint("esc", i18n.T("back")), keyHint("q", i18n.T("quit"))}
 	case s.kind == kConfirm && s.key == "encryption" && m.encStage > 0:
-		parts = []string{keyHint("type", "passphrase"), keyHint("enter", "next"), keyHint("esc", "cancel")}
+		parts = []string{keyHint("type", i18n.T("passphrase")), keyHint("enter", i18n.T("next")), keyHint("esc", i18n.T("cancel"))}
 	case s.kind == kConfirm:
-		parts = []string{keyHint("←/→", "choose"), keyHint("enter", "confirm"), keyHint("esc", "back"), keyHint("q", "quit")}
+		parts = []string{keyHint("←/→", i18n.T("choose")), keyHint("enter", i18n.T("confirm")), keyHint("esc", i18n.T("back")), keyHint("q", i18n.T("quit"))}
 	}
 	bar := strings.Join(parts, fg(cDim, "  ·  ")) // step count now lives in the header progress bar
 	return "\n" + lipgloss.PlaceHorizontal(m.w, lipgloss.Center, bar)
@@ -3339,6 +3369,12 @@ func (m model) footer() string {
 func keyHint(k, desc string) string { return bold(cBrand, k) + " " + fg(cSub, desc) }
 
 func main() {
+	// The ISO carries no /usr/share/ryoku/i18n, so the catalogs are compiled in;
+	// Use("") resolves RYOKU_LANG, then the desktop shell.json, then LANG, and
+	// falls back to English. Done before newModel() so every step, list and label
+	// is built in the resolved language.
+	i18n.SetFS(catalog.FS)
+	i18n.Use("")
 	initGlyphs()
 	if len(os.Args) > 1 && os.Args[1] == "snapshot" {
 		snapshot()

@@ -9,7 +9,7 @@ import Ryoku.Ui.Singletons
 ShellRoot {
     FloatingWindow {
         id: win
-        title: "Ryoku Settings"
+        title: I18n.tr("Ryoku Settings")
         // The window rule floats this at 1360x880, which a 720p-class (or
         // scaled low-res) screen cannot hold -- the bottom action bar and the
         // right-hand controls land off screen. maximumSize is the
@@ -55,6 +55,13 @@ ShellRoot {
         Hub {
             id: hubItem
             anchors.fill: parent
+            // Right-to-left languages (Arabic, Hebrew, Persian) mirror the whole
+            // settings UI from here: Qt flips anchors, rows, layouts and text
+            // alignment for every descendant, so this is the one place that has
+            // to know, instead of every component. Live, like the language
+            // itself, because I18n.rtl is a binding.
+            LayoutMirroring.enabled: I18n.rtl
+            LayoutMirroring.childrenInherit: true
         }
     }
 

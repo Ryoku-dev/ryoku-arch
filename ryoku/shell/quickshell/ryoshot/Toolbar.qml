@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import "Singletons"
+import Ryoku.Ui.Singletons
 
 Item {
     id: tb
@@ -181,28 +182,28 @@ Item {
                 icon: "fill"
                 visible: tb.hasFill
                 active: tb.activeFill
-                tooltip: qsTr("Fill") + "  (f)"
+                tooltip: I18n.tr("Fill") + "  (f)"
                 onClicked: tb.fillToggled()
             }
 
             IconButton {
                 icon: "sketch"
                 active: tb.activeRough
-                tooltip: qsTr("Sketch") + "  (k)"
+                tooltip: I18n.tr("Sketch") + "  (k)"
                 onClicked: tb.roughToggled()
             }
 
             Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 20; color: Theme.hair; Layout.leftMargin: 3; Layout.rightMargin: 3 }
 
-            IconButton { icon: "undo"; dim: !tb.canUndo; tooltip: qsTr("Undo") + "  (ctrl+z)"; onClicked: { if (tb.canUndo) tb.undoRequested(); } }
-            IconButton { icon: "redo"; dim: !tb.canRedo; tooltip: qsTr("Redo") + "  (ctrl+shift+z)"; onClicked: { if (tb.canRedo) tb.redoRequested(); } }
+            IconButton { icon: "undo"; dim: !tb.canUndo; tooltip: I18n.tr("Undo") + "  (ctrl+z)"; onClicked: { if (tb.canUndo) tb.undoRequested(); } }
+            IconButton { icon: "redo"; dim: !tb.canRedo; tooltip: I18n.tr("Redo") + "  (ctrl+shift+z)"; onClicked: { if (tb.canRedo) tb.redoRequested(); } }
 
             Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 20; color: Theme.hair; Layout.leftMargin: 3; Layout.rightMargin: 3 }
 
-            IconButton { icon: "copy"; tooltip: qsTr("Copy") + "  (ctrl+c)"; onClicked: tb.copyRequested() }
-            IconButton { icon: "save"; tooltip: qsTr("Save") + "  (ctrl+s)"; onClicked: tb.saveRequested() }
-            IconButton { icon: "pin"; tooltip: qsTr("Pin to desktop") + "  (ctrl+p)"; onClicked: tb.pinRequested() }
-            IconButton { icon: "upload"; tooltip: qsTr("Upload") + "  (ctrl+u)"; onClicked: tb.uploadRequested() }
+            IconButton { icon: "copy"; tooltip: I18n.tr("Copy") + "  (ctrl+c)"; onClicked: tb.copyRequested() }
+            IconButton { icon: "save"; tooltip: I18n.tr("Save") + "  (ctrl+s)"; onClicked: tb.saveRequested() }
+            IconButton { icon: "pin"; tooltip: I18n.tr("Pin to desktop") + "  (ctrl+p)"; onClicked: tb.pinRequested() }
+            IconButton { icon: "upload"; tooltip: I18n.tr("Upload") + "  (ctrl+u)"; onClicked: tb.uploadRequested() }
 
             Rectangle { Layout.preferredWidth: 1; Layout.preferredHeight: 20; color: Theme.hair; Layout.leftMargin: 3; Layout.rightMargin: 3 }
 
@@ -245,7 +246,7 @@ Item {
                 id: gear
                 icon: "gear"
                 active: tb.settingsOpen
-                tooltip: qsTr("Settings")
+                tooltip: I18n.tr("Settings")
                 onClicked: tb.settingsRequested()
             }
         }

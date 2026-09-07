@@ -209,42 +209,42 @@ Item {
     // MEMORY (surfaces unloaded to reclaim RAM). Labels are short; the cost of
     // each tweak lives in its description, the cell's slot for explanatory prose.
     readonly property var schema: [
-        { "tab": "", "group": "POWER PROFILE", "key": "powerProfileEffects", "ctl": "sw", "src": "performance",
+        { "tab": "", "group": I18n.tr("POWER PROFILE"), "key": "powerProfileEffects", "ctl": "sw", "src": "performance",
           "label": "Follow the power profile",
           "desc": "Let the system power profile shape the shell. Power Saver strips motion, blur and shadows and eases off background polling, like Low power mode; Balanced and Performance leave your switches untouched. Battery already slows polling on its own." },
-        { "tab": "", "group": "POWER PROFILE", "key": "autoPowerSaverOnBattery", "ctl": "sw", "src": "performance",
+        { "tab": "", "group": I18n.tr("POWER PROFILE"), "key": "autoPowerSaverOnBattery", "ctl": "sw", "src": "performance",
           "label": "Auto power saver on battery",
           "desc": "Switch to the Power Saver profile automatically when you unplug, and restore your profile when you plug back in. Needs power-profiles-daemon; a manual profile change while on battery is left alone." },
-        { "tab": "", "group": "EYE CANDY", "key": "lowPowerMode", "ctl": "sw", "src": "performance",
+        { "tab": "", "group": I18n.tr("EYE CANDY"), "key": "lowPowerMode", "ctl": "sw", "src": "performance",
           "label": "Low power mode",
           "desc": "The potato switch: forces every freeze, reduce and disable tweak on. Unloads stay manual." },
-        { "tab": "", "group": "EYE CANDY", "key": "reduceMotion", "ctl": "sw", "src": "performance",
+        { "tab": "", "group": I18n.tr("EYE CANDY"), "key": "reduceMotion", "ctl": "sw", "src": "performance",
           "label": "Reduce motion",
           "desc": "Shell transitions land instantly; Hyprland window animations keep playing." },
-        { "tab": "", "group": "EYE CANDY", "key": "disableBlur", "ctl": "sw", "src": "performance",
+        { "tab": "", "group": I18n.tr("EYE CANDY"), "key": "disableBlur", "ctl": "sw", "src": "performance",
           "label": "Disable blur",
           "desc": "Kills the frosted-glass look everywhere; Hyprland reloads to apply it now." },
-        { "tab": "", "group": "EYE CANDY", "key": "disableShadows", "ctl": "sw", "src": "performance",
+        { "tab": "", "group": I18n.tr("EYE CANDY"), "key": "disableShadows", "ctl": "sw", "src": "performance",
           "label": "Disable shadows",
           "desc": "Each shadow is its own GPU blur pass, so flat surfaces draw much cheaper." },
-        { "tab": "", "group": "EYE CANDY", "key": "liveWallpaper60", "ctl": "sw", "src": "performance",
+        { "tab": "", "group": I18n.tr("EYE CANDY"), "key": "liveWallpaper60", "ctl": "sw", "src": "performance",
           "label": "60fps live wallpaper",
           "desc": "Doubles video wallpaper decode for smoother motion; the one switch here that spends instead of saves. Applies to the next wallpaper you set, and clips that cannot supply 60 stay at 30." },
 
-        { "tab": "", "group": "IDLE", "key": "pauseLiveWallpaperWhenFullscreen", "ctl": "sw", "src": "performance",
+        { "tab": "", "group": I18n.tr("IDLE"), "key": "pauseLiveWallpaperWhenFullscreen", "ctl": "sw", "src": "performance",
           "label": "Pause video wallpaper",
           "desc": "Stops a video wallpaper while a window is fullscreen; its still frame stays underneath, so nothing changes on screen." },
 
-        { "tab": "", "group": "MEMORY", "key": "unloadWidgetsWhenCovered", "ctl": "sw", "src": "performance",
+        { "tab": "", "group": I18n.tr("MEMORY"), "key": "unloadWidgetsWhenCovered", "ctl": "sw", "src": "performance",
           "label": "Hide covered widgets",
           "desc": "Parks desktop widgets only when every monitor is covered; the return is always instant." },
-        { "tab": "", "group": "MEMORY", "key": "unloadVisualizerWhenSilent", "ctl": "sw", "src": "performance",
+        { "tab": "", "group": I18n.tr("MEMORY"), "key": "unloadVisualizerWhenSilent", "ctl": "sw", "src": "performance",
           "label": "Unload the visualiser",
           "desc": "Kills the whole process after 30s of silence, reclaiming around 250 MB." },
-        { "tab": "", "group": "MEMORY", "key": "unloadLauncherWhenIdle", "ctl": "sw", "src": "performance",
+        { "tab": "", "group": I18n.tr("MEMORY"), "key": "unloadLauncherWhenIdle", "ctl": "sw", "src": "performance",
           "label": "Unload the launcher",
           "desc": "Frees about 250 MB after a minute hidden; the next open cold-starts." },
-        { "tab": "", "group": "MEMORY", "key": "unloadOverviewWhenIdle", "ctl": "sw", "src": "performance",
+        { "tab": "", "group": I18n.tr("MEMORY"), "key": "unloadOverviewWhenIdle", "ctl": "sw", "src": "performance",
           "label": "Unload the overview",
           "desc": "Frees about 250 MB after a minute hidden; the next Super+Tab cold-starts it." }
     ]
@@ -352,7 +352,7 @@ Item {
                             controlWidth: 54
                             label: I18n.tr(cell.r.label)
                             desc: I18n.tr(cell.r.desc)
-                            def: (pg.committed && pg.committed[cell.r.key]) ? "ON" : "OFF"
+                            def: (pg.committed && pg.committed[cell.r.key]) ? I18n.tr("ON") : I18n.tr("OFF")
                             changed: !!(pg.draft && pg.committed) && pg.draft[cell.r.key] !== pg.committed[cell.r.key]
                             source: cell.r.src + ".json"
 
@@ -444,7 +444,9 @@ Item {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: pg.dirtyCount > 0
-                    ? (pg.dirtyCount + (pg.dirtyCount === 1 ? I18n.tr(" CHANGE") : I18n.tr(" CHANGES")) + I18n.tr(" · PREVIEWING · NOT SAVED"))
+                    ? (pg.dirtyCount === 1
+                        ? I18n.tr("%1 CHANGE · PREVIEWING · NOT SAVED").arg(pg.dirtyCount)
+                        : I18n.tr("%1 CHANGES · PREVIEWING · NOT SAVED").arg(pg.dirtyCount))
                     : I18n.tr("SAVED · LIVE ON YOUR DESKTOP")
                 color: pg.dirtyCount > 0 ? Tokens.ink : Tokens.inkMuted
                 font.family: Tokens.ui; font.pixelSize: Tokens.fMicro

@@ -11,13 +11,13 @@ Column {
 
     Repeater {
         model: [
-            { "combo": "Super + ,",      "desc": "Ryoku Settings - every knob, in one place" },
-            { "combo": "Super + Space",  "desc": "App launcher & command palette" },
-            { "combo": "Super + Return", "desc": "A terminal" },
-            { "combo": "Super + Tab",    "desc": "Overview - every workspace at a glance" },
-            { "combo": "Super + Escape", "desc": "Power & quick settings" },
-            { "combo": "Super + S",      "desc": "Feature sidebar - screen time & downloads" },
-            { "combo": "Super + W",      "desc": "Wallpaper & theme menu" }
+            { "combo": "Super + ,",      "desc": I18n.tr("Ryoku Settings - every knob, in one place") },
+            { "combo": "Super + Space",  "desc": I18n.tr("App launcher & command palette") },
+            { "combo": "Super + Return", "desc": I18n.tr("A terminal") },
+            { "combo": "Super + Tab",    "desc": I18n.tr("Overview - every workspace at a glance") },
+            { "combo": "Super + Escape", "desc": I18n.tr("Power & quick settings") },
+            { "combo": "Super + S",      "desc": I18n.tr("Feature sidebar - screen time & downloads") },
+            { "combo": "Super + W",      "desc": I18n.tr("Wallpaper & theme menu") }
         ]
 
         delegate: Row {
@@ -59,7 +59,7 @@ Column {
                 anchors.verticalCenter: caps.verticalCenter
                 width: sc.width - caps.width - sc.spacing
                 wrapMode: Text.WordWrap
-                text: I18n.tr(sc.modelData.desc)
+                text: sc.modelData.desc
                 color: Tokens.inkDim
                 font.family: Tokens.ui
                 font.pixelSize: Tokens.fBody

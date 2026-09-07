@@ -1,10 +1,12 @@
 name: i18n
 
-# Keep the per-language translation files current without anyone editing them.
-# When a UI string changes (any .qml, or a hub schema label/desc/group), this
-# extracts the English source and translates ONLY the strings each language is
-# missing, then commits the result back. A developer writes English; the rest
-# is machine-filled here, and overrides/<lang>.json (human fixes) are preserved.
+# Keep the per-language catalogs current without anyone editing them. When a
+# displayed string changes -- any .qml, a hub schema label/desc/group, a Go
+# i18n.T() call in an installer or the CLI, or a t/tf call in the installer's
+# shell -- this extracts the English source and translates ONLY the strings each
+# language is missing, then commits the result back. A developer writes English;
+# the rest is machine-filled here, and overrides/<lang>.json (human fixes) are
+# preserved.
 #
 # It commits to the branch that was pushed, so translations flow to main through
 # the normal fast-forward, never triggering a publish on their own.
@@ -17,8 +19,14 @@ on:
     paths:
       - '**/*.qml'
       - 'ryoku/hub/quickshell/schema/*.js'
-      - 'ryoku/ui/i18n-sync.py'
-      - 'ryoku/ui/translations/overrides/**'
+      - 'ryoku/i18n/**'
+      - 'installation/tui/*.go'
+      - 'installation/backend/**'
+      - 'ryoku-shell-installer/*.go'
+      - 'ryoku/cli/**/*.go'
+      - 'ryoku/shell/ipc/*.go'
+      - 'ryoku/hub/backend/*.go'
+      - 'ryoku/apps/ryostore/backend/*.go'
       - '.github/workflows/i18n.yml'
   workflow_dispatch:
     inputs:
@@ -58,30 +66,33 @@ jobs:
           RYOKU_I18N_KEY: ${{ secrets.RYOKU_I18N_KEY }}
           FORCE: ${{ inputs.force }}
         run: |
-          python3 ryoku/ui/i18n-sync.py extract
+          python3 ryoku/i18n/tools/sync.py extract
           flag=""
           [ "$FORCE" = "true" ] && flag="--force"
           if [ -n "$RYOKU_I18N_KEY" ]; then
-            python3 ryoku/ui/i18n-sync.py sync --engine llm $flag
+            python3 ryoku/i18n/tools/sync.py sync --engine llm $flag
           else
-            python3 ryoku/ui/i18n-sync.py sync $flag
+            python3 ryoku/i18n/tools/sync.py sync $flag
           fi
-          # advisory: surface translations that expand the UI (non-fatal).
-          python3 ryoku/ui/i18n-sync.py check || true
+          # advisory: surface translations that expand the UI (non-fatal), and
+          # print what the pass cost so a model change is a decision with a
+          # number attached.
+          python3 ryoku/i18n/tools/sync.py check || true
+          python3 ryoku/i18n/tools/sync.py cost || true
 
       - name: Commit updated translations
         run: |
-          if git diff --quiet -- ryoku/ui/translations; then
+          if git diff --quiet -- ryoku/i18n/catalog; then
             echo "Translations already current."
             exit 0
           fi
           git config user.name "ryoku-i18n"
           git config user.email "noreply@ryoku"
-          git add ryoku/ui/translations
+          git add ryoku/i18n/catalog
           git commit -m "[ryoku] i18n: regenerate translations"
           # the version-bump job pushes to this same ref on every push, so our
           # push can lose the race. rebase onto whatever landed and retry; the
-          # translations commit only touches ryoku/ui/translations, so it never
+          # translations commit only touches ryoku/i18n/catalog, so it never
           # conflicts with the bump.
           for _ in 1 2 3; do
             git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0

@@ -176,10 +176,10 @@ Item {
             pg.dlPercent = -1;
             if (code === 0) {
                 pg.selected = k;
-                pg.notice = "Model downloaded. If dictation doesn't respond, a reboot may be needed to apply it.";
+                pg.notice = I18n.tr("Model downloaded. If dictation doesn't respond, a reboot may be needed to apply it.");
                 pg.apply(null);
             } else {
-                pg.busyError = "Download failed (voxtype exited " + code + ").";
+                pg.busyError = I18n.tr("Download failed (voxtype exited %1).").arg(code);
                 pg.reload();
             }
         }
@@ -434,7 +434,7 @@ Item {
                                     Text {
                                         width: cardCol.width
                                         wrapMode: Text.WordWrap
-                                        text: card.modelData.detail
+                                        text: I18n.tr(card.modelData.detail)
                                         color: Tokens.inkMuted
                                         font.family: Tokens.ui
                                         font.pixelSize: Tokens.fSmall

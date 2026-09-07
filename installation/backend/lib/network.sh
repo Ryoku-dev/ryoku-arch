@@ -45,7 +45,7 @@ ryoku_network_backend() {
   if [[ -r $live ]] && grep -qiE '^[[:space:]]*wifi\.backend[[:space:]]*=[[:space:]]*wpa_supplicant' "$live"; then
     backend=wpa_supplicant
   fi
-  log "pinning NetworkManager Wi-Fi backend to $backend (carried from the live session)"
+  log 'pinning NetworkManager Wi-Fi backend to %s (carried from the live session)' "$backend"
   run mkdir -p /mnt/etc/NetworkManager/conf.d
   write_file /mnt/etc/NetworkManager/conf.d/wifi-backend.conf <<EOF
 # Ryoku pins NetworkManager's Wi-Fi backend. iwd is the default; wpa_supplicant
@@ -66,7 +66,7 @@ ryoku_network_connections() {
       "$srcdir" "$dst"
     return 0
   fi
-  [[ -d $srcdir ]] || { log "skip: $srcdir not present"; return 0; }
+  [[ -d $srcdir ]] || { log 'skip: %s not present' "$srcdir"; return 0; }
   local files=()
   shopt -s nullglob
   files=("$srcdir"/*.nmconnection)
@@ -78,7 +78,7 @@ ryoku_network_connections() {
   # normalize both regardless of where they came from.
   chmod 600 "$dst"/*.nmconnection
   chown root:root "$dst"/*.nmconnection
-  log "carried over ${#files[@]} saved network profile(s)"
+  log 'carried over %d saved network profile(s)' "${#files[@]}"
 }
 
 # ryoku_network_regdom pins the Wi-Fi regulatory domain (the country) in the
@@ -123,12 +123,12 @@ ryoku_network_regdom() {
   # guaranteed to be in the target. Skip rather than die: `ryoku doctor` pins the
   # domain on the installed box.
   if [[ -z ${RYOKU_DRYRUN:-} && ! -x /mnt/usr/bin/ryoku-wifi-regdom ]]; then
-    log "Wi-Fi regulatory domain: $cc not applied yet (ryoku-wifi-regdom is not in this target; 'ryoku doctor' sets it after first boot)"
+    log 'Wi-Fi regulatory domain: %s not applied yet (ryoku-wifi-regdom is not in this target; '\''ryoku doctor'\'' sets it after first boot)' "$cc"
     return 0
   fi
-  log "Wi-Fi regulatory domain: $cc"
+  log 'Wi-Fi regulatory domain: %s' "$cc"
   run arch-chroot /mnt ryoku-wifi-regdom set "$cc" \
-    || log "warn: could not pin the Wi-Fi regulatory domain to $cc (continuing; 'ryoku doctor' retries it)"
+    || log 'warn: could not pin the Wi-Fi regulatory domain to %s (continuing; '\''ryoku doctor'\'' retries it)' "$cc"
 }
 
 # ryoku_ensure_dns: pacstrap and the desktop set resolve mirror hostnames, but a
@@ -152,7 +152,7 @@ ryoku_ensure_dns() {
   fi
 
   local resolv=${RYOKU_RESOLV_CONF:-/etc/resolv.conf}
-  log "dns: cannot resolve mirror hostnames; writing fallback resolvers to $resolv"
+  log 'dns: cannot resolve mirror hostnames; writing fallback resolvers to %s' "$resolv"
   rm -f -- "$resolv" 2>/dev/null || true
   printf 'nameserver 1.1.1.1\nnameserver 9.9.9.9\nnameserver 8.8.8.8\n' >"$resolv"
 
@@ -202,7 +202,7 @@ https://repo.ryoku.dev/stable/x86_64/ryoku.db}; do
       healed=1
       curl -fsSI --retry 2 --max-time 20 -o /dev/null "$url" && continue
     fi
-    die "cannot reach $url over HTTP. The install downloads everything (base system, desktop, toolchains), so it needs a solid connection: reconnect Wi-Fi or plug in Ethernet, then retry. The disk has not been touched yet."
+    die 'cannot reach %s over HTTP. The install downloads everything (base system, desktop, toolchains), so it needs a solid connection: reconnect Wi-Fi or plug in Ethernet, then retry. The disk has not been touched yet.' "$url"
   done
   log "mirrors: Arch geo mirror and repo.ryoku.dev reachable"
 }
@@ -224,7 +224,7 @@ ryoku_fix_clock_skew() {
   now_epoch=$(date -u +%s)
   delta=$(( server_epoch - now_epoch )); (( delta < 0 )) && delta=$(( -delta ))
   (( delta > 86400 )) || return 1
-  log "clock skew: system clock is off by ${delta}s from $url; setting it from the server Date header ($date_hdr)"
+  log 'clock skew: system clock is off by %ss from %s; setting it from the server Date header (%s)' "${delta}" "$url" "$date_hdr"
   run date -s "$date_hdr" || true
   return 0
 }

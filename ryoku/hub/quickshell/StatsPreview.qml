@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import Ryoku.Ui.Singletons
 
 /**
  * A plain-QML preview of the system-stats desktop panel for the Desktop Widgets
@@ -29,7 +30,7 @@ Item {
         property color tick: "transparent"
         width: root.width; height: 30
         Rectangle { x: root.lx - 18; anchors.verticalCenter: parent.verticalCenter; width: 4; height: 20; radius: 1; color: parent.tick; visible: parent.tick.a > 0 }
-        Text { x: root.lx; anchors.verticalCenter: parent.verticalCenter; text: parent.label; color: root.ink; font.family: "Inter"; font.pixelSize: 20; font.weight: Font.Medium }
+        Text { x: root.lx; anchors.verticalCenter: parent.verticalCenter; text: I18n.tr(parent.label); color: root.ink; font.family: "Inter"; font.pixelSize: 20; font.weight: Font.Medium }
         Text { x: root.rx - implicitWidth; anchors.verticalCenter: parent.verticalCenter; text: parent.value; color: root.ink; font.family: "Inter"; font.pixelSize: 20; font.weight: Font.Medium }
     }
 
@@ -53,10 +54,10 @@ Item {
 
     Column {
         y: 150; width: parent.width; spacing: 0
-        Row1 { label: "CPU"; value: "22.5%"; tick: "#8fb7c9" }
-        Row1 { label: "GPU"; value: "0%"; tick: "#8fb7c9" }
-        Row1 { label: "Memory"; value: "3.8 GiB" }
-        Row1 { label: "GPU Power"; value: "1 W" }
+        Row1 { label: I18n.tr("CPU"); value: "22.5%"; tick: "#8fb7c9" }
+        Row1 { label: I18n.tr("GPU"); value: "0%"; tick: "#8fb7c9" }
+        Row1 { label: I18n.tr("Memory"); value: "3.8 GiB" }
+        Row1 { label: I18n.tr("GPU Power"); value: "1 W" }
     }
 
     // ---- network chart ----
@@ -84,8 +85,8 @@ Item {
     }
     Column {
         y: 430; width: parent.width; spacing: 0
-        Row1 { label: "Download Rate"; value: "344.0 B/s"; tick: "#8caadc" }
-        Row1 { label: "Upload Rate"; value: "0.0 B/s"; tick: "#e096aa" }
+        Row1 { label: I18n.tr("Download Rate"); value: "344.0 B/s"; tick: "#8caadc" }
+        Row1 { label: I18n.tr("Upload Rate"); value: "0.0 B/s"; tick: "#e096aa" }
     }
 
     // ---- disk progress ----
@@ -95,17 +96,17 @@ Item {
     }
     Column {
         y: 576; width: parent.width; spacing: 0
-        Row1 { label: "Disk Used"; value: "55.6 GiB" }
-        Row1 { label: "Total"; value: "172.7 GiB" }
+        Row1 { label: I18n.tr("Disk Used"); value: "55.6 GiB" }
+        Row1 { label: I18n.tr("Total"); value: "172.7 GiB" }
     }
 
     // ---- temps / battery ----
     Column {
         y: 700; width: parent.width; spacing: 0
-        Row1 { label: "CPU Temperature"; value: "45.3 \u00b0C"; tick: "#8caadc" }
-        Row1 { label: "GPU Temperature"; value: "42 \u00b0C"; tick: "#b79ae0" }
-        Row1 { label: "Charging Rate"; value: "30.3 W"; tick: "#8fd0c4" }
-        Row1 { label: "Fan Speed"; value: "2,712.0 RPM"; tick: "#cdd68a" }
-        Row1 { label: "Battery"; value: "78%"; tick: "#e096aa" }
+        Row1 { label: I18n.tr("CPU Temperature"); value: "45.3 \u00b0C"; tick: "#8caadc" }
+        Row1 { label: I18n.tr("GPU Temperature"); value: "42 \u00b0C"; tick: "#b79ae0" }
+        Row1 { label: I18n.tr("Charging Rate"); value: "30.3 W"; tick: "#8fd0c4" }
+        Row1 { label: I18n.tr("Fan Speed"); value: "2,712.0 RPM"; tick: "#cdd68a" }
+        Row1 { label: I18n.tr("Battery"); value: "78%"; tick: "#e096aa" }
     }
 }

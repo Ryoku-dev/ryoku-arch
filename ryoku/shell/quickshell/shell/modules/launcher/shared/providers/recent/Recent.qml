@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 import "../../Singletons"
 import ".."
 import "recent.js" as RecentData
@@ -142,13 +143,13 @@ Provider {
             actions: [
                 {
                     id: "open",
-                    name: "Open",
+                    name: I18n.tr("Open"),
                     icon: "",
                     execute: function () { Qt.openUrlExternally(uri); }
                 },
                 {
                     id: "reveal",
-                    name: "Reveal",
+                    name: I18n.tr("Reveal"),
                     icon: "",
                     execute: function () { Qt.openUrlExternally(folder); }
                 }

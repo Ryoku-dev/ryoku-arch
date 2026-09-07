@@ -236,7 +236,7 @@ PanelWindow {
                 UiText {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    text: notifPanel.unreadCount > 0 ? I18n.tr("Notifications · ") + notifPanel.unreadCount : I18n.tr("Notifications")
+                    text: notifPanel.unreadCount > 0 ? I18n.tr("Notifications · %1").arg(notifPanel.unreadCount) : I18n.tr("Notifications")
                     color: root.ink
                     font.family: root.mono
                     font.pixelSize: 13

@@ -86,11 +86,11 @@ Item {
         "#4facfe", "#2b6cb0", "#7b4397", "#ee9ca7", "#3e6868", "#c7bfae"
     ]
     readonly property var ratioRow: [
-        { "k": "auto", "l": "Auto" }, { "k": "1:1", "l": "1:1" }, { "k": "4:3", "l": "4:3" },
+        { "k": "auto", "l": I18n.tr("Auto") }, { "k": "1:1", "l": "1:1" }, { "k": "4:3", "l": "4:3" },
         { "k": "3:2", "l": "3:2" }, { "k": "16:9", "l": "16:9" }, { "k": "9:16", "l": "9:16" }
     ]
     readonly property var socialRow: [
-        { "k": "x", "l": "X" }, { "k": "instagram", "l": "Instagram" }, { "k": "story", "l": "Story" },
+        { "k": "x", "l": "X" }, { "k": "instagram", "l": "Instagram" }, { "k": "story", "l": I18n.tr("Story") },
         { "k": "linkedin", "l": "LinkedIn" }, { "k": "youtube", "l": "YouTube" }, { "k": "pinterest", "l": "Pinterest" }
     ]
     readonly property var ratioMap: ({ "auto": 0, "1:1": 1, "4:3": 1.3333, "3:2": 1.5, "16:9": 1.7778, "9:16": 0.5625, "x": 1.7778, "instagram": 1, "story": 0.5625, "linkedin": 1.91, "youtube": 1.7778, "pinterest": 0.6667 })
@@ -513,7 +513,7 @@ Item {
                 // ---------- SHARE ----------
                 Group {
                     title: I18n.tr("SHARE")
-                    ToggleRow { width: parent.width; label: I18n.tr("Watermark (") + beautify.mark + I18n.tr(" handle)"); on: beautify.watermark; onToggled: (v) => beautify.watermark = v }
+                    ToggleRow { width: parent.width; label: I18n.tr("Watermark (%1 handle)").arg(beautify.mark); on: beautify.watermark; onToggled: (v) => beautify.watermark = v }
                     ToggleRow { width: parent.width; label: I18n.tr("HD \u00d72 (AI upscale)"); on: beautify.hd; onToggled: (v) => beautify.hd = v }
                 }
             }
@@ -660,7 +660,7 @@ Item {
                 }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: I18n.tr("<b>") + beautify.userName + I18n.tr("</b><font color=\"#f5b53f\">@RyokuArch</font>")
+                    text: "<b>" + beautify.userName + "</b><font color=\"#f5b53f\">@RyokuArch</font>"
                     textFormat: Text.StyledText
                     color: "#ffffff"
                     font.family: Theme.ui
@@ -720,7 +720,7 @@ Item {
         color: tbn.accent ? (tbnMa.containsMouse ? Qt.lighter(beautify.vermilion, 1.12) : beautify.vermilion) : (tbnMa.containsMouse ? Qt.rgba(1, 1, 1, 0.08) : "transparent")
         border.width: tbn.accent ? 0 : 1
         border.color: beautify.hair
-        Text { id: tl; anchors.centerIn: parent; text: I18n.tr(tbn.label); color: tbn.accent ? Theme.accentInk : beautify.idle; font.family: Theme.ui; font.pixelSize: 13; font.weight: Font.DemiBold }
+        Text { id: tl; anchors.centerIn: parent; text: tbn.label; color: tbn.accent ? Theme.accentInk : beautify.idle; font.family: Theme.ui; font.pixelSize: 13; font.weight: Font.DemiBold }
         MouseArea { id: tbnMa; anchors.fill: parent; hoverEnabled: true; onClicked: tbn.tapped() }
     }
 
@@ -733,7 +733,7 @@ Item {
         height: 30
         radius: 8
         color: bgt.on ? beautify.vermilion : (btMa.containsMouse ? Qt.rgba(1, 1, 1, 0.07) : beautify.fieldBg)
-        Text { anchors.centerIn: parent; text: I18n.tr(bgt.label); color: bgt.on ? Theme.accentInk : beautify.idle; font.family: Theme.ui; font.pixelSize: 12; font.weight: bgt.on ? Font.DemiBold : Font.Medium }
+        Text { anchors.centerIn: parent; text: bgt.label; color: bgt.on ? Theme.accentInk : beautify.idle; font.family: Theme.ui; font.pixelSize: 12; font.weight: bgt.on ? Font.DemiBold : Font.Medium }
         MouseArea { id: btMa; anchors.fill: parent; hoverEnabled: true; onClicked: bgt.tapped() }
     }
 
@@ -746,7 +746,7 @@ Item {
         height: 28
         radius: 8
         color: pill.on ? beautify.vermilion : (plMa.containsMouse ? Qt.rgba(1, 1, 1, 0.07) : beautify.fieldBg)
-        Text { id: pl; anchors.centerIn: parent; text: I18n.tr(pill.label); color: pill.on ? Theme.accentInk : beautify.idle; font.family: Theme.ui; font.pixelSize: 12; font.weight: pill.on ? Font.DemiBold : Font.Medium }
+        Text { id: pl; anchors.centerIn: parent; text: pill.label; color: pill.on ? Theme.accentInk : beautify.idle; font.family: Theme.ui; font.pixelSize: 12; font.weight: pill.on ? Font.DemiBold : Font.Medium }
         MouseArea { id: plMa; anchors.fill: parent; hoverEnabled: true; onClicked: pill.tapped() }
     }
 
@@ -781,7 +781,7 @@ Item {
         signal toggled(bool v)
         width: parent.width
         height: 28
-        Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: I18n.tr(tr.label); color: beautify.idle; font.family: Theme.ui; font.pixelSize: 13; font.weight: Font.Medium }
+        Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: tr.label; color: beautify.idle; font.family: Theme.ui; font.pixelSize: 13; font.weight: Font.Medium }
         Rectangle {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter

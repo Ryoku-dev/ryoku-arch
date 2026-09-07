@@ -6,6 +6,7 @@ import Quickshell.Services.Mpris
 import ".."
 import shell.services
 import "../../../components"
+import Ryoku.Ui.Singletons
 
 // Dock now-playing card, opened on chip hover via MusicPreview (mirrors
 // DockPreviewPopout's hover/mask model): a hairline paper plate beside a bone
@@ -122,7 +123,7 @@ Popout {
             anchors { top: parent.top; left: parent.left; right: parent.right; margins: root.pad }
             spacing: 10 * root.s
 
-            Eyebrow { label: qsTr("Now Playing"); s: root.s }
+            Eyebrow { label: I18n.tr("Now Playing"); s: root.s }
 
             Item {
                 width: root.artSize

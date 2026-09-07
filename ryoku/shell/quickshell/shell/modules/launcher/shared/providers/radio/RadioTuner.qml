@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 import "../../Singletons"
 import "../../lib/radio.js" as RadioLib
 import ".."
@@ -27,17 +28,17 @@ Provider {
     function rowFor(r) {
         var acts = [];
         if (r.verb === "stop")
-            acts.push({ id: "stop", name: "Stop", icon: "", execute: function () { Radio.stop(); } });
+            acts.push({ id: "stop", name: I18n.tr("Stop"), icon: "", execute: function () { Radio.stop(); } });
         else if (r.verb === "resume")
-            acts.push({ id: "resume", name: "Resume", icon: "", execute: function () { Radio.resume(); } });
+            acts.push({ id: "resume", name: I18n.tr("Resume"), icon: "", execute: function () { Radio.resume(); } });
         else
-            acts.push({ id: "tune", name: "Tune in", icon: "", execute: (function (id) {
+            acts.push({ id: "tune", name: I18n.tr("Tune in"), icon: "", execute: (function (id) {
                 return function () { Radio.start(id); };
             })(r.id) });
         return {
             id: "radio:" + r.id,
-            title: r.on ? "LIVE · " + r.label : r.label,
-            subtitle: r.note,
+            title: r.on ? I18n.tr("LIVE · %1").arg(r.label) : r.label,
+            subtitle: I18n.tr(r.note),
             icon: "",
             type: "Radio",
             score: r.score,
@@ -53,33 +54,33 @@ Provider {
             if (Radio.on)
                 return [{
                     id: "radio:stop",
-                    title: "Stop the radio",
-                    subtitle: Radio.tuning ? Radio.label + " is tuning in" : "LIVE · " + Radio.label + " is on air",
+                    title: I18n.tr("Stop the radio"),
+                    subtitle: Radio.tuning ? I18n.tr("%1 is tuning in").arg(Radio.label) : I18n.tr("LIVE · %1 is on air").arg(Radio.label),
                     icon: "",
                     type: "Radio",
                     score: -30,
-                    actions: [{ id: "stop", name: "Stop", icon: "", execute: function () { Radio.stop(); } }]
+                    actions: [{ id: "stop", name: I18n.tr("Stop"), icon: "", execute: function () { Radio.stop(); } }]
                 }];
             if (Radio.aside)
                 return [{
                     id: "radio:dismiss",
-                    title: "Let the parked radio go",
-                    subtitle: (Radio.aside.label || "the radio") + " is set aside",
+                    title: I18n.tr("Let the parked radio go"),
+                    subtitle: I18n.tr("%1 is set aside").arg(Radio.aside.label || I18n.tr("the radio")),
                     icon: "",
                     type: "Radio",
                     score: -30,
-                    actions: [{ id: "dismiss", name: "Dismiss", icon: "", execute: function () { Radio.stop(); } }]
+                    actions: [{ id: "dismiss", name: I18n.tr("Dismiss"), icon: "", execute: function () { Radio.stop(); } }]
                 }];
         }
         if (t === "resume" && Radio.aside && !Radio.on)
             return [{
                 id: "radio:resume",
-                title: "Resume " + (Radio.aside.label || "the radio"),
-                subtitle: "set aside for your music",
+                title: I18n.tr("Resume %1").arg(Radio.aside.label || I18n.tr("the radio")),
+                subtitle: I18n.tr("set aside for your music"),
                 icon: "",
                 type: "Radio",
                 score: -30,
-                actions: [{ id: "resume", name: "Resume", icon: "", execute: function () { Radio.resume(); } }]
+                actions: [{ id: "resume", name: I18n.tr("Resume"), icon: "", execute: function () { Radio.resume(); } }]
             }];
         var status = {
             on: Radio.on,

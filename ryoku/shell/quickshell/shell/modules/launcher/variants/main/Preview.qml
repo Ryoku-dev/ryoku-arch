@@ -63,7 +63,7 @@ Item {
             anchors.right: helpKey.left
             anchors.rightMargin: Tokens.s4
             anchors.verticalCenter: parent.verticalCenter
-            text: qsTr("Search apps, type / for commands")
+            text: I18n.tr("Search apps, type / for commands")
             color: Tokens.inkMuted
             elide: Text.ElideRight
             font.family: Tokens.ui
@@ -148,7 +148,7 @@ Item {
 
             Text {
                 visible: root.showGreeting
-                text: qsTr("GOOD MORNING")
+                text: I18n.tr("GOOD MORNING")
                 color: Tokens.inkDim
                 font.family: Tokens.mono
                 font.pixelSize: Tokens.fTiny
@@ -176,7 +176,7 @@ Item {
             Text {
                 anchors.right: parent.right
                 visible: root.showWeather
-                text: qsTr("21°C")
+                text: I18n.tr("21°C")
                 color: Tokens.ink
                 font.family: Tokens.ui
                 font.pixelSize: Tokens.fValue
@@ -187,7 +187,7 @@ Item {
             Text {
                 anchors.right: parent.right
                 visible: root.showWeather
-                text: qsTr("Clear sky")
+                text: I18n.tr("Clear sky")
                 color: Tokens.inkMuted
                 font.family: Tokens.ui
                 font.pixelSize: Tokens.fSmall
@@ -195,7 +195,7 @@ Item {
 
             Text {
                 anchors.right: parent.right
-                text: qsTr("THURSDAY, JUL 30")
+                text: I18n.tr("THURSDAY, JUL 30")
                 color: Tokens.inkDim
                 font.family: Tokens.mono
                 font.pixelSize: Tokens.fMicro

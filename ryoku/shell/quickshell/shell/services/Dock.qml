@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 import shell.services
 import "lib/dock.js" as DockList
 
@@ -200,11 +201,11 @@ Singleton {
     // renders them all. Persisted under `dock.style` (default islands, so an
     // existing desktop is unchanged). A style only changes what the band draws.
     readonly property var styleOptions: [
-        { key: "islands", label: "Islands", detail: "Split pills" },
-        { key: "rail",    label: "Rail",    detail: "One continuous plate" },
-        { key: "ledger",  label: "Ledger",  detail: "Numbered cells" },
-        { key: "tanzaku", label: "Tanzaku", detail: "Hanging strips" },
-        { key: "seal",    label: "Seal",    detail: "Colour means running" }
+        { key: "islands", label: I18n.tr("Islands"), detail: I18n.tr("Split pills") },
+        { key: "rail",    label: I18n.tr("Rail"),    detail: I18n.tr("One continuous plate") },
+        { key: "ledger",  label: I18n.tr("Ledger"),  detail: I18n.tr("Numbered cells") },
+        { key: "tanzaku", label: I18n.tr("Tanzaku"), detail: I18n.tr("Hanging strips") },
+        { key: "seal",    label: I18n.tr("Seal"),    detail: I18n.tr("Colour means running") }
     ]
     function cfg(key, fallback) {
         const d = Config.dock;

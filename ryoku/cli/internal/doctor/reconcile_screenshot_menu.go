@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // The screenshot capture menu and the screen-share picker were both in-shell
@@ -19,29 +21,29 @@ func reconcileRetiredMenus(checkOnly bool) recResult {
 	path := filepath.Join(sys.ConfigHome(), "ryoku", "shell.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return okRes("no shell.json yet (seeded on first shell run)")
+		return okRes(i18n.T("no shell.json yet (seeded on first shell run)"))
 	}
 	migrated, changed, err := stripRetiredMenus(raw)
 	if err != nil {
-		return warnRes("shell.json does not parse (%v); the shell falls back to defaults", err).
-			withFix("delete %s to re-seed it", path)
+		return warnRes(i18n.T("shell.json does not parse (%v); the shell falls back to defaults"), err).
+			withFix(i18n.T("delete %s to re-seed it"), path)
 	}
 	if !changed {
-		return okRes("shell.json carries no retired shell menus")
+		return okRes(i18n.T("shell.json carries no retired shell menus"))
 	}
 	if checkOnly {
-		return wouldRes("shell.json still carries retired shell menus").
-			withFix("ryoku doctor strips them in place")
+		return wouldRes(i18n.T("shell.json still carries retired shell menus")).
+			withFix(i18n.T("ryoku doctor strips them in place"))
 	}
 	tmp := path + ".ryoku-tmp"
 	if err := os.WriteFile(tmp, migrated, 0o644); err != nil {
-		return failRes("could not write %s: %v", tmp, err)
+		return failRes(i18n.T("could not write %s: %v"), tmp, err)
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		os.Remove(tmp)
-		return failRes("could not replace %s: %v", path, err)
+		return failRes(i18n.T("could not replace %s: %v"), path, err)
 	}
-	return fixedRes("stripped the retired shell menus from shell.json")
+	return fixedRes(i18n.T("stripped the retired shell menus from shell.json"))
 }
 
 // stripRetiredMenus removes the retired in-shell menus from a shell store --
@@ -128,29 +130,29 @@ func reconcileCaptureModule(checkOnly bool) recResult {
 	path := filepath.Join(sys.ConfigHome(), "ryoku", "shell.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return okRes("no shell.json yet (seeded on first shell run)")
+		return okRes(i18n.T("no shell.json yet (seeded on first shell run)"))
 	}
 	migrated, changed, err := addCaptureModule(raw)
 	if err != nil {
-		return warnRes("shell.json does not parse (%v); the shell falls back to defaults", err).
-			withFix("delete %s to re-seed it", path)
+		return warnRes(i18n.T("shell.json does not parse (%v); the shell falls back to defaults"), err).
+			withFix(i18n.T("delete %s to re-seed it"), path)
 	}
 	if !changed {
-		return okRes("quick-settings rail carries the capture tab (or a custom module list)")
+		return okRes(i18n.T("quick-settings rail carries the capture tab (or a custom module list)"))
 	}
 	if checkOnly {
-		return wouldRes("quick-settings rail predates the Super+S capture tab").
-			withFix("ryoku doctor adds it after Weather")
+		return wouldRes(i18n.T("quick-settings rail predates the Super+S capture tab")).
+			withFix(i18n.T("ryoku doctor adds it after Weather"))
 	}
 	tmp := path + ".ryoku-tmp"
 	if err := os.WriteFile(tmp, migrated, 0o644); err != nil {
-		return failRes("could not write %s: %v", tmp, err)
+		return failRes(i18n.T("could not write %s: %v"), tmp, err)
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		os.Remove(tmp)
-		return failRes("could not replace %s: %v", path, err)
+		return failRes(i18n.T("could not replace %s: %v"), path, err)
 	}
-	return fixedRes("added the capture tab to the quick-settings rail after Weather")
+	return fixedRes(i18n.T("added the capture tab to the quick-settings rail after Weather"))
 }
 
 // addCaptureModule appends "capture" to a shell store whose quick-settings module

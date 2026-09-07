@@ -232,7 +232,7 @@ Item {
 
             Btn {
                 objectName: "ryostore-stage-primary"
-                text: stage.primaryLabel
+                text: I18n.tr(stage.primaryLabel)
                 primary: true
                 armed: stage.hasActionItem
                         && StoreLogic.primaryAction(stage.actionItem) !== "INSTALLED"
@@ -255,7 +255,7 @@ Item {
 
             Btn {
                 objectName: "ryostore-stage-settings"
-                text: stage.secondaryLabel
+                text: I18n.tr(stage.secondaryLabel)
                 visible: text !== ""
                 armed: visible && stage.hasActionItem
                 Accessible.role: Accessible.Button

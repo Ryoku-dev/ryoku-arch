@@ -105,7 +105,7 @@ PanelWindow {
         property int resetTs: 0      // reset shown in the header countdown
         property int paceTs: 0       // genuine weekly reset for pace (0 ⇒ none)
         property string plan: ""
-        property string emptyText: "no data"
+        property string emptyText: I18n.tr("no data")
         property var recent: []
         property var extras: []      // [{label, pct, resetTs}] of the other windows
 
@@ -154,9 +154,9 @@ PanelWindow {
                 }
                 UiText {
                     text: pcard.has
-                        ? (pcard.pct + "% used"
-                           + (pcard.resetTs > 0 ? " · resets in " + aiPanel.root.aiFmtReset(pcard.resetTs) : "")
-                           + (pcard.fresh ? "" : "  (stale)"))
+                        ? (I18n.tr("%1% used").arg(pcard.pct)
+                           + (pcard.resetTs > 0 ? I18n.tr(" · resets in %1").arg(aiPanel.root.aiFmtReset(pcard.resetTs)) : "")
+                           + (pcard.fresh ? "" : I18n.tr("  (stale)")))
                         : pcard.emptyText
                     color: pcard.sub
                     font.family: aiPanel.root.mono; font.pixelSize: 11
@@ -189,7 +189,7 @@ PanelWindow {
             }
             UiText {
                 anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                text: I18n.tr("Expected ") + (100 - aiPanel.root.aiExpectedPct(pcard.paceTs)) + "% used"
+                text: I18n.tr("Expected %1% used").arg(100 - aiPanel.root.aiExpectedPct(pcard.paceTs))
                 color: aiPanel.root.sumi
                 font.family: aiPanel.root.mono; font.pixelSize: 11
             }
@@ -202,9 +202,7 @@ PanelWindow {
             width: parent.width
             spacing: 5
             UiText {
-                text: I18n.tr("LAST 7 DAYS · ")
-                      + aiPanel.root.aiTokenCount(aiPanel.root.aiRecentTotal(pcard.recent))
-                      + I18n.tr(" TOKENS")
+                text: I18n.tr("LAST 7 DAYS · %1 TOKENS").arg(aiPanel.root.aiTokenCount(aiPanel.root.aiRecentTotal(pcard.recent)))
                 color: aiPanel.root.sumiHi
                 font.family: aiPanel.root.mono; font.pixelSize: 10; font.letterSpacing: 1; font.weight: Font.Medium
             }
@@ -261,13 +259,13 @@ PanelWindow {
                 width: pcard.width; height: 14
                 UiText {
                     anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                    text: modelData.label
+                    text: I18n.tr(modelData.label)
                     color: aiPanel.root.sumiHi
                     font.family: aiPanel.root.mono; font.pixelSize: 11
                 }
                 UiText {
                     anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                    text: (modelData.pct || 0) + "% used"
+                    text: I18n.tr("%1% used").arg(modelData.pct || 0)
                           + (modelData.resetTs > 0 ? " · " + aiPanel.root.aiFmtReset(modelData.resetTs) : "")
                     color: aiPanel.root.sumi
                     font.family: aiPanel.root.mono; font.pixelSize: 11
@@ -319,12 +317,11 @@ PanelWindow {
             }
         }
         UiText {
-            anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
-            text: I18n.tr("I ") + inputLabel + I18n.tr("  O ") + outputLabel
-                + (reasoningLabel !== "0" ? I18n.tr("  R ") + reasoningLabel : "")
-                + (cacheReadLabel !== "0" ? I18n.tr("  CR ") + cacheReadLabel : "")
-                + (cacheWriteLabel !== "0" ? I18n.tr("  CW ") + cacheWriteLabel : "")
-                + (todayLabel !== "0" ? "  today " + todayLabel : "")
+            text: I18n.tr("I %1  O %2").arg(inputLabel).arg(outputLabel)
+                + (reasoningLabel !== "0" ? I18n.tr("  R %1").arg(reasoningLabel) : "")
+                + (cacheReadLabel !== "0" ? I18n.tr("  CR %1").arg(cacheReadLabel) : "")
+                + (cacheWriteLabel !== "0" ? I18n.tr("  CW %1").arg(cacheWriteLabel) : "")
+                + (todayLabel !== "0" ? I18n.tr("  today %1").arg(todayLabel) : "")
             elide: Text.ElideRight
             color: aiPanel.root.sumiHi
             font.family: aiPanel.root.mono; font.pixelSize: 9
@@ -493,7 +490,7 @@ PanelWindow {
                     }
                     UiText {
                         anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                        text: "recent"
+                        text: I18n.tr("recent")
                         color: root.sumi
                         font.family: root.mono; font.pixelSize: 10
                     }

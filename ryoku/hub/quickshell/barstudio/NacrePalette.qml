@@ -28,7 +28,7 @@ Rectangle {
 
     Text {
         anchors { top: parent.top; left: parent.left; margins: Tokens.s2 }
-        text: root.removalPreview ? qsTr("REMOVE WIDGET") : qsTr("UNUSED")
+        text: root.removalPreview ? I18n.tr("REMOVE WIDGET") : I18n.tr("UNUSED")
         color: Tokens.inkFaint
         font.family: Tokens.mono
         font.pixelSize: Tokens.fTiny
@@ -56,7 +56,7 @@ Rectangle {
     Text {
         anchors.centerIn: parent
         visible: root.items.length === 0
-        text: qsTr("ALL WIDGETS PLACED")
+        text: I18n.tr("ALL WIDGETS PLACED")
         color: Tokens.inkFaint
         font.family: Tokens.mono
         font.pixelSize: Tokens.fTiny

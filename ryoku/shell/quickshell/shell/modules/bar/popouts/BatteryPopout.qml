@@ -5,6 +5,7 @@ import Quickshell.Bluetooth
 import ".."
 import shell.services
 import "../../../components"
+import Ryoku.Ui.Singletons
 
 // Battery popout: a frame-edge card (shared PopoutCard, so it opens and melts
 // like the music card) leading with a boxy battery gauge, the level, and the
@@ -27,9 +28,9 @@ Item {
     onOpenChanged: if (!root.open) root.detailOpen = false
 
     function profileLabel(name) {
-        return name === "power-saver" ? qsTr("Eco")
-            : name === "balanced" ? qsTr("Balanced")
-            : name === "performance" ? qsTr("Performance")
+        return name === "power-saver" ? I18n.tr("Eco")
+            : name === "balanced" ? I18n.tr("Balanced")
+            : name === "performance" ? I18n.tr("Performance")
             : name;
     }
     // connected Bluetooth devices that report a battery, for the detail block.
@@ -66,7 +67,7 @@ Item {
             Text {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("BATTERY")
+                text: I18n.tr("BATTERY")
                 color: root.inkDim
                 font.family: Theme.mono
                 font.pixelSize: 9 * root.s
@@ -102,7 +103,7 @@ Item {
             Text {
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
-                text: qsTr("No battery")
+                text: I18n.tr("No battery")
                 color: root.ink
                 font.family: Theme.fontPrimary
                 font.pixelSize: 12 * root.s
@@ -147,9 +148,9 @@ Item {
             }
             Text {
                 width: parent.width
-                text: Battery.stateLabel + (Battery.hasTime
-                    ? " · " + Battery.timeStr + (Battery.charging ? qsTr(" to full") : qsTr(" left"))
-                    : "")
+                text: !Battery.hasTime ? Battery.stateLabel
+                    : Battery.charging ? I18n.tr("%1 · %2 to full").arg(Battery.stateLabel).arg(Battery.timeStr)
+                    : I18n.tr("%1 · %2 left").arg(Battery.stateLabel).arg(Battery.timeStr)
                 color: root.inkDim
                 font.family: Theme.mono
                 font.pixelSize: 9.5 * root.s
@@ -164,7 +165,7 @@ Item {
             visible: PowerProfiles.available
             Text {
                 width: parent.width
-                text: qsTr("POWER MODE")
+                text: I18n.tr("POWER MODE")
                 color: root.inkDim
                 font.family: Theme.mono
                 font.pixelSize: 8.5 * root.s
@@ -209,26 +210,26 @@ Item {
                 PopoutDetailRow {
                     width: parent.width
                     s: root.s
-                    label: Battery.charging ? qsTr("Charging at") : qsTr("Rate")
+                    label: Battery.charging ? I18n.tr("Charging at") : I18n.tr("Rate")
                     value: Math.abs(Battery.rateW).toFixed(1) + " W"
                 }
                 PopoutDetailRow {
                     width: parent.width
                     s: root.s
-                    label: qsTr("Capacity")
+                    label: I18n.tr("Capacity")
                     value: Battery.capacityWh.toFixed(1) + " Wh"
                 }
                 PopoutDetailRow {
                     width: parent.width
                     visible: Battery.healthSupported
                     s: root.s
-                    label: qsTr("Health")
+                    label: I18n.tr("Health")
                     value: Battery.health + "%"
                 }
                 PopoutDetailRow {
                     width: parent.width
                     s: root.s
-                    label: qsTr("State")
+                    label: I18n.tr("State")
                     value: Battery.stateLabel
                 }
 
@@ -236,7 +237,7 @@ Item {
                 Text {
                     width: parent.width
                     visible: root.btBatteries.length > 0
-                    text: qsTr("BLUETOOTH")
+                    text: I18n.tr("BLUETOOTH")
                     color: root.inkDim
                     font.family: Theme.mono
                     font.pixelSize: 8.5 * root.s

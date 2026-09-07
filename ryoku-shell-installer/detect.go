@@ -14,6 +14,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"ryoku-i18n"
 )
 
 type facts struct {
@@ -463,7 +465,7 @@ func (f *facts) detectUcode() {
 
 func (f *facts) gpuSummary() string {
 	if len(f.gpus) == 0 {
-		return "none detected"
+		return i18n.T("none detected")
 	}
 	return strings.Join(f.gpus, ", ")
 }

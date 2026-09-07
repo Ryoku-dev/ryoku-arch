@@ -8,6 +8,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -17,6 +18,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"ryoku-i18n"
 )
 
 // line-anchored so a commented-out "#[ryoku]" stanza does not count.
@@ -195,22 +198,22 @@ func newEngine(f *facts, p *plan, dry bool, ref, payloadOverride string) *engine
 	// sources go first so the full upgrade already runs on clean mirrors.
 	pacmanOnly := map[string]bool{"legacy": true, "repo": true, "aur": true, "drivers": true}
 	all := []estep{
-		{"legacy", "Retiring the previous distro's package sources", stepLegacy},
-		{"sysupgrade", "Updating the system", stepSysupgrade},
-		{"tools", "Installing installer tools (git, build tools)", stepTools},
-		{"payload", "Fetching the Ryoku payload", stepPayload},
-		{"backup", "Backing up your configs", stepBackup},
-		{"repo", "Trusting the [ryoku] package repository", stepRepo},
-		{"conflicts", "Clearing conflicting shells and daemons", stepConflicts},
-		{"packages", "Installing the Ryoku desktop", stepPackages},
-		{"drivers", "Setting up GPU drivers", stepDrivers},
-		{"build", "Building the Ryoku desktop from source", stepBuild},
-		{"session", "Wiring the login session (SDDM, network)", stepSession},
-		{"configs", "Laying down your Ryoku configs", stepConfigs},
-		{"aur", "Building the AUR extras", stepAUR},
-		{"shell", "Switching your login shell to fish", stepFish},
-		{"doctor", "Converging the system (ryoku doctor)", stepDoctor},
-		{"verify", "Verifying the install", stepVerify},
+		{"legacy", i18n.T("Retiring the previous distro's package sources"), stepLegacy},
+		{"sysupgrade", i18n.T("Updating the system"), stepSysupgrade},
+		{"tools", i18n.T("Installing installer tools (git, build tools)"), stepTools},
+		{"payload", i18n.T("Fetching the Ryoku payload"), stepPayload},
+		{"backup", i18n.T("Backing up your configs"), stepBackup},
+		{"repo", i18n.T("Trusting the [ryoku] package repository"), stepRepo},
+		{"conflicts", i18n.T("Clearing conflicting shells and daemons"), stepConflicts},
+		{"packages", i18n.T("Installing the Ryoku desktop"), stepPackages},
+		{"drivers", i18n.T("Setting up GPU drivers"), stepDrivers},
+		{"build", i18n.T("Building the Ryoku desktop from source"), stepBuild},
+		{"session", i18n.T("Wiring the login session (SDDM, network)"), stepSession},
+		{"configs", i18n.T("Laying down your Ryoku configs"), stepConfigs},
+		{"aur", i18n.T("Building the AUR extras"), stepAUR},
+		{"shell", i18n.T("Switching your login shell to fish"), stepFish},
+		{"doctor", i18n.T("Converging the system (ryoku doctor)"), stepDoctor},
+		{"verify", i18n.T("Verifying the install"), stepVerify},
 	}
 	src := f.distro != nil && f.distro.fromSource
 	for _, s := range all {
@@ -271,11 +274,11 @@ func (e *engine) runFrom(idx int) chan any {
 			e.events <- evStep{idx: i, title: s.title}
 			e.log("==== step " + s.id + " ====")
 			if e.p.resume && e.state != nil && e.state.has(s.id) {
-				e.say("finished in the previous run, resuming past it")
+				e.say(i18n.T("finished in the previous run, resuming past it"))
 				continue
 			}
 			if err := s.fn(e); err != nil {
-				e.sayf("step %s failed: %v", s.id, err)
+				e.sayf(i18n.T("step %s failed: %v"), s.id, err)
 				e.events <- evDone{err: err, idx: i}
 				return
 			}
@@ -409,7 +412,7 @@ func (e *engine) sudoSh(script string) error {
 // sudoWrite replaces a root-owned file with the given content via tee.
 func (e *engine) sudoWrite(path, content string) error {
 	if e.dry {
-		e.say("DRYRUN: write " + path)
+		e.say(i18n.Tf("DRYRUN: write %s", path))
 		return nil
 	}
 	e.say("$ sudo tee " + path)
@@ -445,7 +448,7 @@ func stripPacmanSection(conf, section string) string {
 // are kept as *.pre-ryoku and the undo lands in restore.sh.
 func stepLegacy(e *engine) error {
 	if !e.p.omarchy || (!e.f.omarchyRepo && !e.f.omarchyMirror && len(e.f.omarchyGuards) == 0) {
-		e.say("no previous distro package sources to retire")
+		e.say(i18n.T("no previous distro package sources to retire"))
 		return nil
 	}
 	if e.f.omarchyRepo {
@@ -461,7 +464,7 @@ func stepLegacy(e *engine) error {
 			if err := e.sudoWrite("/etc/pacman.conf", stripped); err != nil {
 				return err
 			}
-			e.say("dropped the [omarchy] repository (original at /etc/pacman.conf.pre-ryoku)")
+			e.say(i18n.T("dropped the [omarchy] repository (original at /etc/pacman.conf.pre-ryoku)"))
 			e.pendingRestore = append(e.pendingRestore,
 				"sudo cp /etc/pacman.conf.pre-ryoku /etc/pacman.conf")
 		}
@@ -477,7 +480,7 @@ func stepLegacy(e *engine) error {
 		if err := e.sudoWrite("/etc/pacman.d/mirrorlist", ml); err != nil {
 			return err
 		}
-		e.say("restored a standard Arch mirrorlist (original at /etc/pacman.d/mirrorlist.pre-ryoku)")
+		e.say(i18n.T("restored a standard Arch mirrorlist (original at /etc/pacman.d/mirrorlist.pre-ryoku)"))
 		e.pendingRestore = append(e.pendingRestore,
 			"sudo cp /etc/pacman.d/mirrorlist.pre-ryoku /etc/pacman.d/mirrorlist")
 	}
@@ -486,12 +489,12 @@ func stepLegacy(e *engine) error {
 		if err := e.sudo("mv", hook, aside); err != nil {
 			return err
 		}
-		e.say("retired Omarchy's pacman guard hook, which aborts every -Syu (moved to " + aside + ")")
+		e.say(i18n.Tf("retired Omarchy's pacman guard hook, which aborts every -Syu (moved to %s)", aside))
 		e.pendingRestore = append(e.pendingRestore, "sudo mv "+aside+" "+hook)
 	}
 	if !e.dry && pacmanHas("omarchy-keyring") {
 		if err := e.sudo("pacman", "-R", "--noconfirm", "omarchy-keyring"); err != nil {
-			e.say("warning: could not remove omarchy-keyring (continuing)")
+			e.say(i18n.T("warning: could not remove omarchy-keyring (continuing)"))
 		}
 	}
 	return nil
@@ -516,9 +519,9 @@ func stepPayload(e *engine) error {
 	if e.payloadOverride != "" {
 		e.payload = e.payloadOverride
 		if _, err := os.Stat(filepath.Join(e.payload, "ryoku/lockscreen/install-qylock")); err != nil && !e.dry {
-			return fmt.Errorf("payload override %s does not look like a ryoku-arch checkout", e.payload)
+			return errors.New(i18n.Tf("payload override %s does not look like a ryoku-arch checkout", e.payload))
 		}
-		e.say("using payload checkout " + e.payload)
+		e.say(i18n.Tf("using payload checkout %s", e.payload))
 		return nil
 	}
 	cache := os.Getenv("XDG_CACHE_HOME")
@@ -551,7 +554,7 @@ func stepPayload(e *engine) error {
 	// a cache from an older installer can come out of the update missing paths
 	// the current engine needs; a broken cache is worth less than a fresh clone.
 	if _, err := os.Stat(filepath.Join(e.payload, "system/packages/base.packages")); err != nil && !e.dry {
-		e.say("payload cache is incomplete; recloning it fresh")
+		e.say(i18n.T("payload cache is incomplete; recloning it fresh"))
 		if err := os.RemoveAll(e.payload); err != nil {
 			return err
 		}
@@ -585,10 +588,10 @@ func stepBackup(e *engine) error {
 	root := filepath.Join(e.f.homeDir, ".local/state/ryoku/shell-install")
 	if prev, _ := filepath.Glob(filepath.Join(root, "backup-*")); len(prev) > 0 {
 		e.prevBackups = len(prev)
-		e.say(fmt.Sprintf("note: %d earlier backup(s) exist under %s; the oldest holds your pre-Ryoku configs", len(prev), root))
+		e.say(i18n.Tf("note: %d earlier backup(s) exist under %s; the oldest holds your pre-Ryoku configs", len(prev), root))
 	}
 	if e.dry {
-		e.say("DRYRUN: back up " + strings.Join(append(append([]string{}, backupMove...), backupCopy...), ", "))
+		e.say(i18n.Tf("DRYRUN: back up %s", strings.Join(append(append([]string{}, backupMove...), backupCopy...), ", ")))
 		return nil
 	}
 	// a retry in the same run reuses the dir: items already saved are skipped
@@ -641,12 +644,12 @@ func stepBackup(e *engine) error {
 					return err
 				}
 			}
-			e.say("moved aside " + rel)
+			e.say(i18n.Tf("moved aside %s", rel))
 		} else {
 			if err := copyTree(src, dst); err != nil {
 				return err
 			}
-			e.say("backed up " + rel)
+			e.say(i18n.Tf("backed up %s", rel))
 		}
 		e.recordRestore(fmt.Sprintf("rm -rf %q && mkdir -p %q && cp -a %q %q",
 			"$HOME/"+rel, filepath.Dir("$HOME/"+rel), "$DIR/"+rel, "$HOME/"+rel))
@@ -660,14 +663,14 @@ func stepBackup(e *engine) error {
 	// moving the hypr/quickshell trees is what disarms a rice's exec-once
 	// autostart chain; name it so the log explains the disappearing bar.
 	for _, r := range e.f.riceFound {
-		e.say("rice " + r + ": its autostart lives in the trees moved above; extra configs (waybar, swaync, ...) stay untouched in place")
+		e.say(i18n.Tf("rice %s: its autostart lives in the trees moved above; extra configs (waybar, swaync, ...) stay untouched in place", r))
 	}
 	for _, rel := range backupCopy {
 		if err := saveOne(rel, false); err != nil {
 			return err
 		}
 	}
-	e.say("backup at " + e.backupDir + " (restore.sh inside)")
+	e.say(i18n.Tf("backup at %s (restore.sh inside)", e.backupDir))
 	return nil
 }
 
@@ -690,7 +693,7 @@ func stepConflicts(e *engine) error {
 	if e.p.softOff {
 		for _, u := range e.f.softUnits {
 			if err := e.cmd("", nil, "systemctl", "--user", "disable", u); err != nil {
-				e.say("warning: could not disable " + u)
+				e.say(i18n.Tf("warning: could not disable %s", u))
 				continue
 			}
 			// || true: add-wants units have no [Install] and refuse a bare enable
@@ -701,12 +704,12 @@ func stepConflicts(e *engine) error {
 		// plain -R, no -ns cascade: -Rns on a meta like cachyos-niri-noctalia
 		// would drag niri itself out, and the plan promises niri survives as a
 		// fallback session. leftover deps become orphans doctor can report.
-		e.say("removing rival shell packages: " + strings.Join(e.f.rivalPkgs, " "))
+		e.say(i18n.Tf("removing rival shell packages: %s", strings.Join(e.f.rivalPkgs, " ")))
 		if err := e.sudo(e.d().removeArgs(e.f.rivalPkgs)...); err != nil {
-			e.say("bulk removal failed, retrying one by one")
+			e.say(i18n.T("bulk removal failed, retrying one by one"))
 			for _, p := range e.f.rivalPkgs {
 				if err := e.sudo(e.d().removeArgs([]string{p})...); err != nil {
-					e.say("warning: could not remove " + p + " (continuing)")
+					e.say(i18n.Tf("warning: could not remove %s (continuing)", p))
 				}
 			}
 		}
@@ -715,11 +718,11 @@ func stepConflicts(e *engine) error {
 		// pacman --noconfirm answers conflict prompts with No and aborts, so
 		// packages that conflict with the desktop set (pulseaudio vs
 		// pipewire-pulse, quickshell-git vs quickshell) must go first.
-		e.say("removing packages that block the desktop install: " + strings.Join(e.f.blockerPkgs, " "))
+		e.say(i18n.Tf("removing packages that block the desktop install: %s", strings.Join(e.f.blockerPkgs, " ")))
 		if err := e.sudo(e.d().removeArgs(e.f.blockerPkgs)...); err != nil {
 			for _, p := range e.f.blockerPkgs {
 				if err := e.sudo(e.d().removeArgs([]string{p})...); err != nil {
-					e.say("warning: could not remove " + p + "; the package step may abort on a conflict")
+					e.say(i18n.Tf("warning: could not remove %s; the package step may abort on a conflict", p))
 				}
 			}
 		}
@@ -733,7 +736,7 @@ func stepRepo(e *engine) error {
 	// again would strip files out of the installed package. the trustdb is
 	// already populated, so the whole dance is unnecessary.
 	if !e.dry && pacmanHas("ryoku-keyring") {
-		e.say("ryoku-keyring already installed, key trust in place")
+		e.say(i18n.T("ryoku-keyring already installed, key trust in place"))
 	} else {
 		kdir := filepath.Join(e.payload, "release/packages/ryoku-keyring")
 		kd := "/usr/share/pacman/keyrings"
@@ -769,9 +772,9 @@ func stepRepo(e *engine) error {
 			`mv -f /etc/pacman.conf.ryoku-new /etc/pacman.conf`); err != nil {
 			return err
 		}
-		e.say("added the [ryoku] repository to /etc/pacman.conf")
+		e.say(i18n.T("added the [ryoku] repository to /etc/pacman.conf"))
 	} else {
-		e.say("[ryoku] repository already present in /etc/pacman.conf")
+		e.say(i18n.T("[ryoku] repository already present in /etc/pacman.conf"))
 	}
 	// refresh right after the -Syu step, so this cannot strand a partial
 	// upgrade; it only pulls the fresh [ryoku] db.
@@ -814,7 +817,7 @@ func stepPackages(e *engine) error {
 		if !e.dry {
 			return err
 		}
-		e.say("DRYRUN: payload not cloned; would read system/packages/base.packages")
+		e.say(i18n.T("DRYRUN: payload not cloned; would read system/packages/base.packages"))
 	}
 	var pkgs []string
 	if d.fromSource {
@@ -825,7 +828,7 @@ func stepPackages(e *engine) error {
 		pkgs = append(append([]string{}, ryokuPkgs...), base...)
 		if e.asusAura() {
 			if d.installedPkg("tlp") {
-				e.say("ASUS Aura lighting skipped because TLP is installed")
+				e.say(i18n.T("ASUS Aura lighting skipped because TLP is installed"))
 			} else {
 				pkgs = append(pkgs, "asusctl")
 			}
@@ -842,7 +845,7 @@ func stepPackages(e *engine) error {
 		// a .part resumed against a mirror whose bytes moved on trips pacman's
 		// size cap on every retry; dropping resume state just costs a re-download.
 		if err := e.sudoSh(`rm -f /var/cache/pacman/pkg/*.part`); err != nil {
-			e.say("warning: could not clear partial downloads (continuing)")
+			e.say(i18n.T("warning: could not clear partial downloads (continuing)"))
 		}
 	}
 	// -Syu, not -S: a resumed run holds the db its first attempt synced, and
@@ -882,7 +885,7 @@ func (e *engine) dropSatisfied(pkgs []string) []string {
 	}
 	keep := filterByUnmet(pkgs, string(out))
 	if len(keep) < len(pkgs) {
-		e.say(fmt.Sprintf("%d of %d packages already satisfied by installed providers", len(pkgs)-len(keep), len(pkgs)))
+		e.say(i18n.Tf("%d of %d packages already satisfied by installed providers", len(pkgs)-len(keep), len(pkgs)))
 	}
 	return keep
 }
@@ -894,13 +897,13 @@ func (e *engine) dropSatisfied(pkgs []string) []string {
 func stepBuild(e *engine) error {
 	script := filepath.Join(e.payload, "ryoku", "shell", "deploy.sh")
 	if e.dry {
-		e.say("DRYRUN: would run " + script)
+		e.say(i18n.Tf("DRYRUN: would run %s", script))
 		return nil
 	}
 	if _, err := os.Stat(script); err != nil {
-		return fmt.Errorf("payload is missing ryoku/shell/deploy.sh")
+		return errors.New(i18n.T("payload is missing ryoku/shell/deploy.sh"))
 	}
-	e.say("building the desktop from the payload (this takes a few minutes)")
+	e.say(i18n.T("building the desktop from the payload (this takes a few minutes)"))
 	return e.cmd(filepath.Join(e.payload, "ryoku", "shell"), nil, "bash", script)
 }
 
@@ -928,9 +931,9 @@ func stepDrivers(e *engine) error {
 		scripts = append(scripts, "nvidia.sh")
 	} else if e.f.hasNvidia {
 		if e.f.secureBoot && !e.f.sbctlSigned {
-			e.say("skipping the NVIDIA driver setup (Secure Boot is on and would reject the unsigned modules)")
+			e.say(i18n.T("skipping the NVIDIA driver setup (Secure Boot is on and would reject the unsigned modules)"))
 		} else {
-			e.say("skipping the NVIDIA driver setup (kept nouveau; re-run with the toggle on to switch)")
+			e.say(i18n.T("skipping the NVIDIA driver setup (kept nouveau; re-run with the toggle on to switch)"))
 		}
 	}
 	// the vendor scripts each do a bare `pacman -S`, so -- exactly like
@@ -941,17 +944,17 @@ func stepDrivers(e *engine) error {
 	// retrieving file" abort that reads as a driver that would not install).
 	// clear resumed .part downloads and bring the system current first.
 	if err := e.sudoSh(`rm -f /var/cache/pacman/pkg/*.part`); err != nil {
-		e.say("warning: could not clear partial downloads (continuing)")
+		e.say(i18n.T("warning: could not clear partial downloads (continuing)"))
 	}
 	if err := e.sudo("pacman", "-Syu", "--noconfirm"); err != nil {
-		e.say("warning: could not refresh the package db before the driver install; a stale mirror may still fail a download (continuing)")
+		e.say(i18n.T("warning: could not refresh the package db before the driver install; a stale mirror may still fail a download (continuing)"))
 	}
 	// a single vendor script failing must NOT sink the whole desktop install,
 	// matching installation/backend/lib/drivers.sh: the box still boots on the
 	// iGPU or software renderer, and stepDoctor plus first boot heal the driver.
 	for _, s := range scripts {
 		if err := e.cmd("", nil, "bash", filepath.Join(drv, s)); err != nil {
-			e.sayf("warning: %s did not finish; leaving the GPU driver for `ryoku doctor` after first boot (continuing)", s)
+			e.sayf(i18n.T("warning: %s did not finish; leaving the GPU driver for `ryoku doctor` after first boot (continuing)"), s)
 		}
 	}
 	if e.p.nvidia && e.f.hasNvidia {
@@ -969,10 +972,10 @@ func stepDrivers(e *engine) error {
 		case has("dracut"):
 			err = e.sudo("dracut", "--regenerate-all", "--force")
 		default:
-			e.say("warning: no known initramfs generator found, skipping the rebuild")
+			e.say(i18n.T("warning: no known initramfs generator found, skipping the rebuild"))
 		}
 		if err != nil {
-			e.say("warning: initramfs rebuild failed; run it by hand before rebooting (see log)")
+			e.say(i18n.T("warning: initramfs rebuild failed; run it by hand before rebooting (see log)"))
 		}
 	}
 	return nil
@@ -994,7 +997,7 @@ func stepSession(e *engine) error {
 			return err
 		}
 	} else {
-		e.say("keeping your current display manager; select the Hyprland session at login")
+		e.say(i18n.T("keeping your current display manager; select the Hyprland session at login"))
 	}
 
 	// qylock bundle lives at the same system path the ISO uses, then its own
@@ -1023,7 +1026,7 @@ func stepSession(e *engine) error {
 		if err := e.sudo("rm", "-f", "/etc/sddm.conf.d/99-ryoku.conf", "/etc/sddm.conf.d/zz-ryoku.conf", "/etc/sddm.conf.d/10-ryoku-wayland.conf"); err != nil {
 			return err
 		}
-		e.say("kept your current SDDM greeter (Ryoku's theme and Wayland greeter are installed, not selected)")
+		e.say(i18n.T("kept your current SDDM greeter (Ryoku's theme and Wayland greeter are installed, not selected)"))
 	case e.f.kdeSddmConf:
 		zz := "# written by ryoku-shell-install: sorts after kde_settings.conf so the\n" +
 			"# ryoku greeter theme wins. delete this file to get the KDE greeter back.\n" +
@@ -1032,7 +1035,7 @@ func stepSession(e *engine) error {
 			return err
 		}
 		e.recordRestore("sudo rm -f /etc/sddm.conf.d/zz-ryoku.conf /etc/sddm.conf.d/99-ryoku.conf /etc/sddm.conf.d/10-ryoku-wayland.conf")
-		e.say("Ryoku greeter theme selected past KDE's kde_settings.conf drop-in")
+		e.say(i18n.T("Ryoku greeter theme selected past KDE's kde_settings.conf drop-in"))
 	default:
 		e.recordRestore("sudo rm -f /etc/sddm.conf.d/99-ryoku.conf /etc/sddm.conf.d/10-ryoku-wayland.conf")
 	}
@@ -1049,17 +1052,17 @@ fi`); err != nil {
 			return err
 		}
 		e.recordRestore(`sudo sed -i '/pam_gnome_keyring\.so/d' /etc/pam.d/sddm`)
-		e.say("kept gnome-keyring auto-unlock working under SDDM (your GNOME login keyring)")
+		e.say(i18n.T("kept gnome-keyring auto-unlock working under SDDM (your GNOME login keyring)"))
 	}
 	if len(e.f.desktops) > 0 {
-		e.sayf("%s stays installed; pick it from the session menu at the login screen anytime",
+		e.sayf(i18n.T("%s stays installed; pick it from the session menu at the login screen anytime"),
 			strings.Join(e.f.desktops, ", "))
 	}
 
 	if e.p.switchNet {
 		for _, n := range e.f.otherNet {
 			if err := e.sudo("systemctl", "disable", n); err != nil {
-				e.say("warning: could not disable " + n)
+				e.say(i18n.Tf("warning: could not disable %s", n))
 				continue
 			}
 			e.recordRestore("sudo systemctl enable " + n)
@@ -1079,7 +1082,7 @@ EOF`); err != nil {
 			return err
 		}
 	} else {
-		e.say("keeping your current network stack")
+		e.say(i18n.T("keeping your current network stack"))
 	}
 	return nil
 }
@@ -1087,7 +1090,7 @@ EOF`); err != nil {
 func stepConfigs(e *engine) error {
 	ryoku := e.ryokuBin()
 	if !e.dry && ryoku == "" {
-		return fmt.Errorf("the ryoku CLI is missing; the package step did not finish")
+		return errors.New(i18n.T("the ryoku CLI is missing; the package step did not finish"))
 	}
 	if ryoku == "" {
 		ryoku = "ryoku"
@@ -1101,17 +1104,17 @@ func stepConfigs(e *engine) error {
 	if e.p.monPins && len(e.f.monOutputs) > 0 {
 		pins, skipped := renderPins(e.f.monOutputs, e.f.monSource == "hyprland", e.f.monSource)
 		for _, name := range skipped {
-			e.sayf("note: %s output %q is matched by description; pin it by connector in monitors_user.lua", e.f.monSource, name)
+			e.sayf(i18n.T("note: %s output %q is matched by description; pin it by connector in monitors_user.lua"), e.f.monSource, name)
 		}
 		if pins != "" {
 			mu := filepath.Join(e.f.homeDir, ".config/hypr/monitors_user.lua")
 			if e.dry {
-				e.sayf("DRYRUN: write %s monitor pins to ~/.config/hypr/monitors_user.lua", e.f.monSource)
+				e.sayf(i18n.T("DRYRUN: write %s monitor pins to ~/.config/hypr/monitors_user.lua"), e.f.monSource)
 			} else if _, err := os.Lstat(mu); err != nil {
 				if err := os.WriteFile(mu, []byte(pins), 0o644); err != nil {
 					return err
 				}
-				e.sayf("carried the %s monitor layout into hypr/monitors_user.lua", e.f.monSource)
+				e.sayf(i18n.T("carried the %s monitor layout into hypr/monitors_user.lua"), e.f.monSource)
 			}
 		}
 	}
@@ -1137,9 +1140,9 @@ func stepConfigs(e *engine) error {
 		// a salvaged layout never clobbers an existing file (a repair run
 		// keeps hand edits); an explicit AZERTY choice always writes.
 		if _, err := os.Lstat(kb); err == nil && !azerty {
-			e.say("hypr/keyboard.lua already exists, keeping it")
+			e.say(i18n.T("hypr/keyboard.lua already exists, keeping it"))
 		} else {
-			e.sayf("seeding keyboard layout %q variant %q options %q (from %s) into hypr/keyboard.lua",
+			e.sayf(i18n.T("seeding keyboard layout %q variant %q options %q (from %s) into hypr/keyboard.lua"),
 				e.f.kbLayout, e.f.kbVariant, e.f.kbOptions, src)
 			if !e.dry {
 				content := "-- keyboard layout, carried over by the installer. edits here stick.\n" +
@@ -1160,13 +1163,13 @@ func stepConfigs(e *engine) error {
 		if e.p.azertyBE {
 			layout, keymap = "be", "be-latin1"
 		}
-		e.say("setting the console keymap to " + keymap + " in /etc/vconsole.conf")
+		e.say(i18n.Tf("setting the console keymap to %s in /etc/vconsole.conf", keymap))
 		if err := e.sudoSh(`install -Dm644 /dev/stdin /etc/vconsole.conf <<'EOF'
 KEYMAP=` + keymap + `
 EOF`); err != nil {
 			return err
 		}
-		e.say("pointing the SDDM login screen at the " + layout + " layout via xorg.conf.d")
+		e.say(i18n.Tf("pointing the SDDM login screen at the %s layout via xorg.conf.d", layout))
 		if err := e.sudoSh(`install -Dm644 /dev/stdin /etc/X11/xorg.conf.d/00-keyboard.conf <<'EOF'
 Section "InputClass"
         Identifier "system-keyboard"
@@ -1190,7 +1193,7 @@ EOF`); err != nil {
 	}
 	for _, s := range stubs {
 		if e.dry {
-			e.say("DRYRUN: stub ~/" + s.rel + " if absent")
+			e.say(i18n.Tf("DRYRUN: stub ~/%s if absent", s.rel))
 			continue
 		}
 		p := filepath.Join(e.f.homeDir, s.rel)
@@ -1203,7 +1206,7 @@ EOF`); err != nil {
 		if err := os.WriteFile(p, []byte(s.content), 0o644); err != nil {
 			return err
 		}
-		e.say("stubbed ~/" + s.rel)
+		e.say(i18n.Tf("stubbed ~/%s", s.rel))
 	}
 
 	seeds := []struct {
@@ -1224,25 +1227,25 @@ EOF`); err != nil {
 		src := filepath.Join(e.payload, s.src)
 		dst := filepath.Join(e.f.homeDir, s.dst)
 		if e.dry {
-			e.say("DRYRUN: seed " + s.src + " -> ~/" + s.dst)
+			e.say(i18n.Tf("DRYRUN: seed %s -> ~/%s", s.src, s.dst))
 			continue
 		}
 		if err := seedPath(src, dst, s.dir, s.ifAbsent); err != nil {
 			return fmt.Errorf("seed %s: %w", s.dst, err)
 		}
-		e.say("seeded ~/" + s.dst)
+		e.say(i18n.Tf("seeded ~/%s", s.dst))
 	}
 	return e.cmd("", nil, "systemctl", "--user", "daemon-reload")
 }
 
 func stepAUR(e *engine) error {
 	if !e.p.aur {
-		e.say("AUR extras skipped by choice; wallpaper needs awww (ryoku doctor will nag)")
+		e.say(i18n.T("AUR extras skipped by choice; wallpaper needs awww (ryoku doctor will nag)"))
 		return nil
 	}
 	helper := e.f.aurHelper
 	if helper == "" {
-		e.say("no AUR helper found, bootstrapping yay-bin")
+		e.say(i18n.T("no AUR helper found, bootstrapping yay-bin"))
 		tmp, err := os.MkdirTemp("", "ryoku-yay-")
 		if err != nil {
 			return err
@@ -1259,7 +1262,7 @@ func stepAUR(e *engine) error {
 		}
 		built, _ := filepath.Glob(filepath.Join(tmp, "yay-bin", "*.pkg.tar.zst"))
 		if len(built) == 0 {
-			return fmt.Errorf("yay-bin build produced no package")
+			return errors.New(i18n.T("yay-bin build produced no package"))
 		}
 		if err := e.sudo(append([]string{"pacman", "-U", "--noconfirm"}, built...)...); err != nil {
 			return err
@@ -1272,19 +1275,19 @@ func stepAUR(e *engine) error {
 		// the log, never prompt over the TUI. yay and paru both take it.
 		if err := e.cmd("", nil, helper, "-S", "--needed", "--noconfirm", "--sudoflags=-n", p); err != nil {
 			failed = append(failed, p)
-			e.say("warning: AUR build failed for " + p + " (continuing)")
+			e.say(i18n.Tf("warning: AUR build failed for %s (continuing)", p))
 		}
 	}
 	if len(failed) > 0 {
-		e.say("AUR packages that did not install: " + strings.Join(failed, " "))
-		e.say("re-run later with: " + helper + " -S " + strings.Join(failed, " "))
+		e.say(i18n.Tf("AUR packages that did not install: %s", strings.Join(failed, " ")))
+		e.say(i18n.Tf("re-run later with: %s -S %s", helper, strings.Join(failed, " ")))
 	}
 	return nil
 }
 
 func stepFish(e *engine) error {
 	if !e.p.fish {
-		e.say("keeping your current login shell")
+		e.say(i18n.T("keeping your current login shell"))
 		return nil
 	}
 	if err := e.sudo("usermod", "-s", "/usr/bin/fish", e.f.username); err != nil {
@@ -1302,14 +1305,14 @@ func stepDoctor(e *engine) error {
 		ryoku = "ryoku"
 	}
 	if err := e.cmd("", nil, ryoku, "doctor"); err != nil {
-		e.say("note: ryoku doctor reported findings (see above); the install itself is done")
+		e.say(i18n.T("note: ryoku doctor reported findings (see above); the install itself is done"))
 	}
 	return nil
 }
 
 func stepVerify(e *engine) error {
 	if e.dry {
-		e.say("DRYRUN: verify [ryoku] repo, packages, session files")
+		e.say(i18n.T("DRYRUN: verify [ryoku] repo, packages, session files"))
 		return nil
 	}
 	var bad []string
@@ -1322,63 +1325,62 @@ func stepVerify(e *engine) error {
 		}
 	}
 	if e.d().fromSource {
-		check(e.ryokuBin() != "", "ryoku CLI built and installed")
+		check(e.ryokuBin() != "", i18n.T("ryoku CLI built and installed"))
 		_, err := os.Stat(filepath.Join(e.f.homeDir, ".local/bin/ryoku-shell"))
-		check(err == nil, "ryoku-shell daemon built")
+		check(err == nil, i18n.T("ryoku-shell daemon built"))
 	} else {
 		conf, _ := os.ReadFile("/etc/pacman.conf")
-		check(strings.Contains(string(conf), "[ryoku]"), "[ryoku] repository in /etc/pacman.conf")
-		check(pacmanHas("ryoku-keyring"), "ryoku-keyring package installed")
-		check(pacmanHas("ryoku-desktop"), "ryoku-desktop package installed")
-		check(has("ryoku"), "ryoku CLI on PATH")
+		check(strings.Contains(string(conf), "[ryoku]"), i18n.T("[ryoku] repository in /etc/pacman.conf"))
+		check(pacmanHas("ryoku-keyring"), i18n.T("ryoku-keyring package installed"))
+		check(pacmanHas("ryoku-desktop"), i18n.T("ryoku-desktop package installed"))
+		check(has("ryoku"), i18n.T("ryoku CLI on PATH"))
 		st, err := os.Stat("/usr/share/ryoku/config")
-		check(err == nil && st.IsDir(), "base config tree at /usr/share/ryoku/config")
+		check(err == nil && st.IsDir(), i18n.T("base config tree at /usr/share/ryoku/config"))
 	}
 	var err error
 	_, err = os.Stat(filepath.Join(e.f.homeDir, ".config/hypr/hyprland.lua"))
-	check(err == nil, "hyprland.lua materialized in ~/.config/hypr")
+	check(err == nil, i18n.T("hyprland.lua materialized in ~/.config/hypr"))
 	_, err = os.Stat("/usr/share/wayland-sessions/hyprland.desktop")
-	check(err == nil, "Hyprland wayland session registered")
+	check(err == nil, i18n.T("Hyprland wayland session registered"))
 	if e.p.switchDM {
-		check(unitEnabled("system", "sddm.service"), "sddm.service enabled")
+		check(unitEnabled("system", "sddm.service"), i18n.T("sddm.service enabled"))
 	}
 	if e.p.switchDM && e.p.greeter {
 		if theme := effectiveSDDMTheme(); theme != "" && theme != "ryoku" {
-			e.say(gWarn + " an SDDM drop-in still selects greeter theme " + theme + "; check /etc/sddm.conf.d")
+			e.say(gWarn + " " + i18n.Tf("an SDDM drop-in still selects greeter theme %s; check /etc/sddm.conf.d", theme))
 		}
 	}
 	if e.f.hasNvidia && e.f.secureBoot && !e.p.nvidia {
-		e.say(gWarn + " Secure Boot is on, so the proprietary NVIDIA driver was skipped: unsigned")
-		e.say("  DKMS modules are rejected at boot. To switch later, disable Secure Boot in")
-		e.say("  firmware or sign the kernel and modules (sbctl), then re-run this installer.")
+		e.say(gWarn + " " + i18n.T("Secure Boot is on, so the proprietary NVIDIA driver was skipped: unsigned DKMS modules are rejected at boot."))
+		e.say(i18n.T("To switch later, disable Secure Boot in firmware or sign the kernel and modules (sbctl), then re-run this installer."))
 	}
 	// matugen is a hard ryoku-desktop depend on Arch, so a miss means the desktop
 	// set install is broken. Debian does not package it: warn instead of failing.
 	if e.d().local("matugen") == "" {
 		if !has("matugen") {
-			e.say(gWarn + " matugen is not packaged here: wallpaper palettes stay at their defaults")
+			e.say(gWarn + " " + i18n.T("matugen is not packaged here: wallpaper palettes stay at their defaults"))
 		}
 	} else {
-		check(has("matugen"), "matugen palette generator (colors follow the wallpaper)")
+		check(has("matugen"), i18n.T("matugen palette generator (colors follow the wallpaper)"))
 	}
 	if !has("awww") {
-		e.say(gWarn + " awww missing (AUR): static wallpapers will not set until it installs (ryoku doctor retries it)")
+		e.say(gWarn + " " + i18n.T("awww missing (AUR): static wallpapers will not set until it installs (ryoku doctor retries it)"))
 	}
 	if e.p.devtools {
-		check(has("go"), "go toolchain on PATH (ryoku recovery rebuilds from source)")
+		check(has("go"), i18n.T("go toolchain on PATH (ryoku recovery rebuilds from source)"))
 	} else {
-		e.say(gWarn + " developer toolchain skipped: ryoku recovery needs go; install with: sudo pacman -S go")
+		e.say(gWarn + " " + i18n.T("developer toolchain skipped: ryoku recovery needs go; install with: sudo pacman -S go"))
 	}
 	if e.p.omarchy {
 		conf2, _ := os.ReadFile("/etc/pacman.conf")
 		if omarchyStanzaRe.Match(conf2) {
-			e.say(gWarn + " the [omarchy] repository is still in /etc/pacman.conf")
+			e.say(gWarn + " " + i18n.T("the [omarchy] repository is still in /etc/pacman.conf"))
 		}
 	}
 	if len(bad) > 0 {
-		return fmt.Errorf("%d check(s) failed: %s", len(bad), strings.Join(bad, "; "))
+		return errors.New(i18n.Tf("%d check(s) failed: %s", len(bad), strings.Join(bad, "; ")))
 	}
-	e.say("all checks passed")
+	e.say(i18n.T("all checks passed"))
 	return nil
 }
 

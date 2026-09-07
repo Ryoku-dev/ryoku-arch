@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Effects
 import QtQuick.Shapes
 import ".."
+import Ryoku.Ui.Singletons
 
 Rectangle {
     id: preview
@@ -116,7 +117,7 @@ Rectangle {
         Text {
             anchors.centerIn: parent
             visible: preview.sourcePath.length === 0
-            text: "no source\napply a wallpaper first"
+            text: I18n.tr("no source\napply a wallpaper first")
             horizontalAlignment: Text.AlignHCenter
             font.family: Style.fontFamily
             font.pixelSize: 11
@@ -131,7 +132,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.leftMargin: 8
         anchors.bottomMargin: 4
-        text: "preview"
+        text: I18n.tr("preview")
         font.family: Style.fontFamily
         font.pixelSize: 9
         font.letterSpacing: 1.2
@@ -145,7 +146,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.rightMargin: 8
         anchors.bottomMargin: 4
-        text: "approx · " + preview.shrinkPct + "% · blur " + preview.blur
+        text: I18n.tr("approx · %1% · blur %2").arg(preview.shrinkPct).arg(preview.blur)
         font.family: Style.fontFamilyCode
         font.pixelSize: 9
         font.letterSpacing: 0.8

@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	i18n "ryoku-i18n"
 )
 
 type authFile struct {
@@ -108,7 +110,7 @@ func removeCredential(id string) (int, error) {
 		return 0, err
 	}
 	if len(a.creds) == 0 {
-		return 0, fmt.Errorf("no enrolled security keys for %s", currentUser())
+		return 0, fmt.Errorf(i18n.T("no enrolled security keys for %s"), currentUser())
 	}
 	if id == "all" {
 		a.creds = nil
@@ -116,7 +118,7 @@ func removeCredential(id string) (int, error) {
 	}
 	n, err := strconv.Atoi(id)
 	if err != nil || n < 1 || n > len(a.creds) {
-		return 0, fmt.Errorf("credential id must be 1..%d or 'all'", len(a.creds))
+		return 0, fmt.Errorf(i18n.T("credential id must be 1..%d or 'all'"), len(a.creds))
 	}
 	a.creds = append(append([]string{}, a.creds[:n-1]...), a.creds[n:]...)
 	return len(a.creds), writeAuthFile(a)

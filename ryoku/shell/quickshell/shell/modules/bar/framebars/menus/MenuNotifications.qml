@@ -49,7 +49,7 @@ Item {
 
                 MaterialIcon {
                     anchors.centerIn: parent
-                    text: Flags.dnd ? I18n.tr("do_not_disturb_on") : "notifications"
+                    text: Flags.dnd ? "do_not_disturb_on" : "notifications"
                     font.pixelSize: Theme.iconSm
                     color: Flags.dnd ? Theme.primary : (dndHov.hovered ? Theme.onSurface : Theme.onSurfaceVariant)
                 }
@@ -70,7 +70,7 @@ Item {
                 anchors.right: clearBtn.left
                 anchors.rightMargin: Theme.paddingSm
                 anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("Notification History")
+                text: I18n.tr("Notification History")
                 color: Theme.onSurface
                 font.family: Theme.fontPrimary
                 font.pixelSize: Theme.fontMd
@@ -82,7 +82,7 @@ Item {
                 id: clearBtn
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("Clear all")
+                text: I18n.tr("Clear all")
                 color: clearHov.hovered ? Theme.primary : Theme.onSurfaceVariant
                 font.family: Theme.fontPrimary
                 font.pixelSize: Theme.fontSm
@@ -100,7 +100,7 @@ Item {
         Text {
             width: parent.width
             visible: root.notifs.length === 0
-            text: qsTr("Empty")
+            text: I18n.tr("Empty")
             color: Theme.onSurfaceVariant
             font.family: Theme.fontPrimary
             font.pixelSize: Theme.fontMd

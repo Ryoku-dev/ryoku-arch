@@ -9,6 +9,7 @@ import QtMultimedia
 import Qt.labs.folderlistmodel
 import ".."
 import "../services"
+import Ryoku.Ui.Singletons
 
 Scope {
   id: wallpaperSelector
@@ -574,6 +575,13 @@ Scope {
 
     exclusionMode: ExclusionMode.Ignore
 
+    // Right-to-left languages (Arabic, Hebrew, Persian) mirror the picker from
+    // here: Qt flips anchors, rows, layouts and text alignment for every
+    // descendant, so the one surface root knows about direction and no
+    // component below has to.
+    LayoutMirroring.enabled: I18n.rtl
+    LayoutMirroring.childrenInherit: true
+
     Shortcut {
       sequence: "Ctrl+X"
       context: Qt.WindowShortcut
@@ -812,13 +820,13 @@ Scope {
           spacing: 10
 
           Text {
-            text: "Save current look"
+            text: I18n.tr("Save current look")
             font.family: Style.fontFamily; font.pixelSize: 14 * Config.uiScale; font.weight: Font.Medium
             color: capturePrompt._ink
           }
           Text {
             width: parent.width; wrapMode: Text.WordWrap
-            text: "Capture your wallpaper, palette, decorations and layout as a new rice you can re-apply later."
+            text: I18n.tr("Capture your wallpaper, palette, decorations and layout as a new rice you can re-apply later.")
             font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale
             color: capturePrompt._inkDim
           }
@@ -830,7 +838,7 @@ Scope {
             Text {
               visible: capInput.text.length === 0
               anchors.left: parent.left; anchors.leftMargin: 10; anchors.verticalCenter: parent.verticalCenter
-              text: "Rice name"
+              text: I18n.tr("Rice name")
               font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale
               color: Qt.rgba(capturePrompt._inkDim.r, capturePrompt._inkDim.g, capturePrompt._inkDim.b, 0.7)
             }
@@ -846,9 +854,9 @@ Scope {
           Row {
             anchors.right: parent.right
             spacing: 8
-            FilterButton { colors: wallpaperSelector.colors; label: "CANCEL"; register: false; skew: 8; height: 28 * Config.uiScale; onClicked: { capInput.text = ""; wallpaperSelector._capturePromptOpen = false } }
+            FilterButton { colors: wallpaperSelector.colors; label: I18n.tr("CANCEL"); register: false; skew: 8; height: 28 * Config.uiScale; onClicked: { capInput.text = ""; wallpaperSelector._capturePromptOpen = false } }
             FilterButton {
-              colors: wallpaperSelector.colors; label: "SAVE"; register: false; skew: 8; height: 28 * Config.uiScale
+              colors: wallpaperSelector.colors; label: I18n.tr("SAVE"); register: false; skew: 8; height: 28 * Config.uiScale
               hasActiveColor: true; activeColor: capturePrompt._accent; isActive: true
               onClicked: if (capInput.text.trim().length > 0) { wallpaperSelector._captureRice(capInput.text.trim()); capInput.text = ""; wallpaperSelector._capturePromptOpen = false }
             }
@@ -888,22 +896,22 @@ Scope {
           spacing: 10
 
           Text {
-            text: "Delete " + wallpaperSelector._deleteConfirmName + "?"
+            text: I18n.tr("Delete %1?").arg(wallpaperSelector._deleteConfirmName)
             font.family: Style.fontFamily; font.pixelSize: 14 * Config.uiScale; font.weight: Font.Medium
             color: deleteConfirm._ink
           }
           Text {
             width: parent.width; wrapMode: Text.WordWrap
-            text: "Remove this rice from your library. Your current desktop is untouched; this only deletes the saved look."
+            text: I18n.tr("Remove this rice from your library. Your current desktop is untouched; this only deletes the saved look.")
             font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale
             color: deleteConfirm._inkDim
           }
           Row {
             anchors.right: parent.right
             spacing: 8
-            FilterButton { colors: wallpaperSelector.colors; label: "CANCEL"; register: false; skew: 8; height: 28 * Config.uiScale; onClicked: wallpaperSelector._deleteConfirmSlug = "" }
+            FilterButton { colors: wallpaperSelector.colors; label: I18n.tr("CANCEL"); register: false; skew: 8; height: 28 * Config.uiScale; onClicked: wallpaperSelector._deleteConfirmSlug = "" }
             FilterButton {
-              colors: wallpaperSelector.colors; label: "DELETE"; register: false; skew: 8; height: 28 * Config.uiScale
+              colors: wallpaperSelector.colors; label: I18n.tr("DELETE"); register: false; skew: 8; height: 28 * Config.uiScale
               hasActiveColor: true; activeColor: wallpaperSelector.colors ? wallpaperSelector.colors.error : "#e2342a"; isActive: true
               onClicked: { wallpaperSelector._deleteRice(wallpaperSelector._deleteConfirmSlug); wallpaperSelector._deleteConfirmSlug = "" }
             }
@@ -1713,7 +1721,7 @@ Scope {
             Text {
               id: gridTypeBadge
               anchors.centerIn: parent
-              text: (gridThumbDelegate.model.type === "video" || gridThumbDelegate.model.videoFile) ? "VID" : (gridThumbDelegate.model.type === "static" ? "PIC" : "WE")
+              text: (gridThumbDelegate.model.type === "video" || gridThumbDelegate.model.videoFile) ? I18n.tr("VID") : (gridThumbDelegate.model.type === "static" ? I18n.tr("PIC") : I18n.tr("WE"))
               font.family: Style.fontFamily; font.pixelSize: 8; font.weight: Font.Bold
               color: wallpaperSelector.colors ? wallpaperSelector.colors.primary : "#ff8800"
             }
@@ -1809,7 +1817,7 @@ Scope {
           spacing: 8
           Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: "\u2190 WALLPAPERS"
+            text: I18n.tr("\u2190 WALLPAPERS")
             font.family: Style.fontFamily; font.pixelSize: 10 * Config.uiScale
             font.weight: Font.Medium; font.letterSpacing: 1.2
             color: detourHeader._ink
@@ -1822,7 +1830,7 @@ Scope {
           }
           Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: wallpaperSelector.themesOpen ? "THEMES" : "RICES"
+            text: wallpaperSelector.themesOpen ? I18n.tr("THEMES") : I18n.tr("RICES")
             font.family: Style.fontFamily; font.pixelSize: 10 * Config.uiScale
             font.weight: Font.Medium; font.letterSpacing: 1.2
             color: detourHeader._inkDim
@@ -2108,7 +2116,7 @@ Scope {
                 width: parent.width; height: 26
                 Text {
                   anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                  text: "FAVOURITE"
+                  text: I18n.tr("FAVOURITE")
                   color: wallpaperSelector.colors ? wallpaperSelector.colors.tertiary : "#8bceff"
                   font.family: Style.fontFamily; font.pixelSize: 12; font.weight: Font.Medium; font.letterSpacing: 0.5
                 }
@@ -2174,7 +2182,7 @@ Scope {
                 property bool _isBackdrop: !!(gridBackOverlay.overlayData && Config.niriBackdrop === gridBackOverlay.overlayData.path)
                 Text {
                   anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                  text: "OVERVIEW BACKDROP"
+                  text: I18n.tr("OVERVIEW BACKDROP")
                   color: wallpaperSelector.colors ? wallpaperSelector.colors.tertiary : "#8bceff"
                   font.family: Style.fontFamily; font.pixelSize: 12; font.weight: Font.Medium; font.letterSpacing: 0.5
                 }
@@ -2189,7 +2197,7 @@ Scope {
                   Text {
                     id: gridBdLbl
                     anchors.centerIn: parent
-                    text: gridBdBtn.parent._isBackdrop ? "Current ✓" : "Set"
+                    text: gridBdBtn.parent._isBackdrop ? I18n.tr("Current ✓") : I18n.tr("Set")
                     color: gridBdBtn.parent._isBackdrop
                       ? (wallpaperSelector.colors ? wallpaperSelector.colors.primaryText : "#000")
                       : (wallpaperSelector.colors ? wallpaperSelector.colors.surfaceText : "#fff")
@@ -2218,14 +2226,14 @@ Scope {
                 ActionButton {
                   width: gridActionRow._slotWidth
                   colors: wallpaperSelector.colors
-                  icon: "\u{f0208}"; label: "VIEW"
+                  icon: "\u{f0208}"; label: I18n.tr("VIEW")
                   onClicked: { if (!gridBackOverlay.overlayData) return; var p = gridBackOverlay.overlayData.path; Qt.openUrlExternally(ImageService.fileUrl(p.substring(0, p.lastIndexOf("/")))); gridBackOverlay.hide() }
                 }
 
                 ActionButton {
                   width: gridActionRow._slotWidth
                   colors: wallpaperSelector.colors
-                  icon: "\u{f0a79}"; label: "DELETE"; danger: true
+                  icon: "\u{f0a79}"; label: I18n.tr("DELETE"); danger: true
                   onClicked: { if (!gridBackOverlay.overlayData) return; wallpaperSelector.selectorService.deleteWallpaperItem(gridBackOverlay.overlayData.type, gridBackOverlay.overlayData.name, gridBackOverlay.overlayData.weId || ""); gridBackOverlay.hide() }
                 }
 
@@ -2233,7 +2241,7 @@ Scope {
                   visible: gridBackOverlay.overlayData && gridBackOverlay.overlayData.type === "we"
                   width: visible ? gridActionRow._slotWidth : 0
                   colors: wallpaperSelector.colors
-                  icon: "\u{f0bef}"; label: "STEAM"
+                  icon: "\u{f0bef}"; label: I18n.tr("STEAM")
                   onClicked: { wallpaperSelector.selectorService.openSteamPage(gridBackOverlay.overlayData.weId || ""); gridBackOverlay.hide() }
                 }
               }
@@ -2537,7 +2545,7 @@ Scope {
                 width: parent.width; height: 26
                 Text {
                   anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                  text: "FAVOURITE"
+                  text: I18n.tr("FAVOURITE")
                   color: wallpaperSelector.colors ? wallpaperSelector.colors.tertiary : "#8bceff"
                   font.family: Style.fontFamily; font.pixelSize: 12; font.weight: Font.Medium; font.letterSpacing: 0.5
                 }
@@ -2603,7 +2611,7 @@ Scope {
                 property bool _isBackdrop: !!(hexBackOverlay.overlayData && Config.niriBackdrop === hexBackOverlay.overlayData.path)
                 Text {
                   anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                  text: "OVERVIEW BACKDROP"
+                  text: I18n.tr("OVERVIEW BACKDROP")
                   color: wallpaperSelector.colors ? wallpaperSelector.colors.tertiary : "#8bceff"
                   font.family: Style.fontFamily; font.pixelSize: 12; font.weight: Font.Medium; font.letterSpacing: 0.5
                 }
@@ -2618,7 +2626,7 @@ Scope {
                   Text {
                     id: hexBdLbl
                     anchors.centerIn: parent
-                    text: hexBdBtn.parent._isBackdrop ? "Current ✓" : "Set"
+                    text: hexBdBtn.parent._isBackdrop ? I18n.tr("Current ✓") : I18n.tr("Set")
                     color: hexBdBtn.parent._isBackdrop
                       ? (wallpaperSelector.colors ? wallpaperSelector.colors.primaryText : "#000")
                       : (wallpaperSelector.colors ? wallpaperSelector.colors.surfaceText : "#fff")
@@ -2647,14 +2655,14 @@ Scope {
                 ActionButton {
                   width: overlayActionRow._slotWidth
                   colors: wallpaperSelector.colors
-                  icon: "\u{f0208}"; label: "VIEW"
+                  icon: "\u{f0208}"; label: I18n.tr("VIEW")
                   onClicked: { if (!hexBackOverlay.overlayData) return; var p = hexBackOverlay.overlayData.path; Qt.openUrlExternally(ImageService.fileUrl(p.substring(0, p.lastIndexOf("/")))); hexBackOverlay.hide() }
                 }
 
                 ActionButton {
                   width: overlayActionRow._slotWidth
                   colors: wallpaperSelector.colors
-                  icon: "\u{f0a79}"; label: "DELETE"; danger: true
+                  icon: "\u{f0a79}"; label: I18n.tr("DELETE"); danger: true
                   onClicked: { if (!hexBackOverlay.overlayData) return; wallpaperSelector.selectorService.deleteWallpaperItem(hexBackOverlay.overlayData.type, hexBackOverlay.overlayData.name, hexBackOverlay.overlayData.weId || ""); hexBackOverlay.hide() }
                 }
 
@@ -2662,7 +2670,7 @@ Scope {
                   visible: hexBackOverlay.overlayData && hexBackOverlay.overlayData.type === "we"
                   width: visible ? overlayActionRow._slotWidth : 0
                   colors: wallpaperSelector.colors
-                  icon: "\u{f0bef}"; label: "STEAM"
+                  icon: "\u{f0bef}"; label: I18n.tr("STEAM")
                   onClicked: { wallpaperSelector.selectorService.openSteamPage(hexBackOverlay.overlayData.weId || ""); hexBackOverlay.hide() }
                 }
               }

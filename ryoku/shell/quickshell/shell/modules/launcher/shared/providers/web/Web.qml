@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 import "../../Singletons"
 import "engines.js" as Engines
 import "ddg.js" as Ddg
@@ -43,13 +44,13 @@ Provider {
         return {
             id: "web:" + text,
             title: text,
-            subtitle: "Search " + Engines.engineName(text, "g"),
+            subtitle: I18n.tr("Search %1").arg(Engines.engineName(text, "g")),
             icon: "",
             type: "Web",
             score: 90,
             actions: [{
                 id: "search",
-                name: "Search",
+                name: I18n.tr("Search"),
                 icon: "",
                 execute: function () { Qt.openUrlExternally(Engines.buildUrl(text, "g")); }
             }]

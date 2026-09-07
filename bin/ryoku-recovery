@@ -173,14 +173,14 @@ fi
 rm -rf "$DATA_ROOT/dev-switch"
 if [[ "$DATA_ROOT/repo" != "$RECOVERY_DIR" ]]; then rm -rf "$DATA_ROOT/repo"; fi
 
-# ensure the shell's wallpaper daemon + palette generator: awww ships from the
-# [ryoku] repo (a ryoku-desktop depend) and matugen from the official repos, but
-# a box whose awww or matugen was dropped needs them put back. a plain
+# ensure the shell's wallpaper daemon + palette generator: ryogami ships from
+# the [ryoku] repo (a ryoku-desktop depend) and matugen from the official repos,
+# but a box whose ryogami or matugen was dropped needs them put back. a plain
 # package install, gated on the package step (--no-packages skips it) and
 # best-effort, so a fetch failure never blocks the rescue.
 if [[ $DO_PACKAGES == 1 ]] && grep -qs '^\[ryoku\]' /etc/pacman.conf; then
-  say "ensuring the awww wallpaper daemon and matugen palette generator"
-  sudo pacman -S --needed --noconfirm awww matugen || warn "could not install awww/matugen (continuing)"
+  say "ensuring the ryogami wallpaper daemon and matugen palette generator"
+  sudo pacman -S --needed --noconfirm ryogami matugen || warn "could not install ryogami/matugen (continuing)"
 fi
 
 say "recovery done: Ryoku restored to $CHANNEL ($commit). log out and back in if the shell did not reload."

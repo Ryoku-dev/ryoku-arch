@@ -54,10 +54,10 @@ Item {
             if (exactWindow || exactId || titleMatch) {
                 out.push({
                     address: address,
-                    title: String(ipc.title || cls || "OPEN WINDOW"),
+                    title: String(ipc.title || cls || I18n.tr("OPEN WINDOW")),
                     cls: cls,
                     workspace: String(ipc.workspace && ipc.workspace.name
-                        || ipc.workspace && ipc.workspace.id || "CURRENT")
+                        || ipc.workspace && ipc.workspace.id || I18n.tr("CURRENT"))
                 });
             }
         }
@@ -126,8 +126,9 @@ Item {
         Text {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            text: I18n.tr("OPEN WINDOWS  /  ") + root.windows.length + I18n.tr(" WINDOW")
-                + (root.windows.length === 1 ? "" : I18n.tr("S"))
+            text: root.windows.length === 1
+                ? I18n.tr("OPEN WINDOWS  /  %1 WINDOW").arg(root.windows.length)
+                : I18n.tr("OPEN WINDOWS  /  %1 WINDOWS").arg(root.windows.length)
             color: Theme.subtle
             font.family: Theme.mono
             font.pixelSize: 7.5 * root.s
@@ -222,8 +223,8 @@ Item {
 
                 Text {
                     width: parent.width
-                    text: I18n.tr("OPEN · ") + String(tile.modelData.workspace)
-                        .toUpperCase()
+                    text: I18n.tr("OPEN · %1")
+                        .arg(String(tile.modelData.workspace).toUpperCase())
                     color: Theme.faint
                     font.family: Theme.mono
                     font.pixelSize: 6.5 * root.s

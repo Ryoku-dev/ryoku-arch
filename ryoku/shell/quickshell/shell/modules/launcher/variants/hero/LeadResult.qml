@@ -40,8 +40,8 @@ Rectangle {
     Accessible.role: Accessible.ListItem
     Accessible.name: accessibleName
     Accessible.description: primaryAction
-        ? "Primary action: " + String(primaryAction.name || "Open")
-        : "Informational result"
+        ? I18n.tr("Primary action: %1").arg(String(primaryAction.name || I18n.tr("Open")))
+        : I18n.tr("Informational result")
     Accessible.ignored: entry === null
     Accessible.focusable: false
     Accessible.selectable: entry !== null
@@ -60,7 +60,7 @@ Rectangle {
     function metadataFor(source) {
         if (!source)
             return "";
-        var provider = String(source.type || source.providerId || "").toUpperCase();
+        var provider = I18n.tr(String(source.type || source.providerId || "")).toUpperCase();
         var detail = String(source.subtitle || "");
         return provider.length && detail.length ? provider + "  /  " + detail
             : (provider.length ? provider : detail);
@@ -88,7 +88,7 @@ Rectangle {
             disabled: source.disabled === true,
             primaryAction: source.primaryAction ? {
                 id: String(source.primaryAction.id || ""),
-                name: String(source.primaryAction.name || "Open")
+                name: String(source.primaryAction.name || I18n.tr("Open"))
             } : null,
             secondaryActions: secondaries
         };
@@ -231,7 +231,7 @@ Rectangle {
                 anchors.right: parent.right
                 text: parent.parent.visualPrimary
                     ? (root.windowCount > 0 ? I18n.tr("OPEN NEW")
-                        : String(parent.parent.visualPrimary.name || "OPEN")
+                        : String(parent.parent.visualPrimary.name || I18n.tr("OPEN"))
                             .toUpperCase())
                     : I18n.tr("INFO")
                 color: Theme.onLead
@@ -258,8 +258,8 @@ Rectangle {
             Text {
                 anchors.right: parent.right
                 visible: parent.parent.visualSecondaries.length > 0
-                text: "+" + parent.parent.visualSecondaries.length
-                    + I18n.tr(" MORE  \u00b7  CTRL+K")
+                text: I18n.tr("+%1 MORE  \u00b7  CTRL+K")
+                    .arg(parent.parent.visualSecondaries.length)
                 color: Theme.onLead
                 font.family: Theme.mono
                 font.pixelSize: 8 * parent.parent.scaleFactor

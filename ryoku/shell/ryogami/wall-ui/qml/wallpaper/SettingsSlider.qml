@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Shapes
 import ".."
+import Ryoku.Ui.Singletons
 
 Column {
     id: root
@@ -22,7 +23,7 @@ Column {
         spacing: 8 * Config.uiScale
 
         Text {
-            text: root.label
+            text: I18n.tr(root.label)
             anchors.verticalCenter: parent.verticalCenter
             font.family: Style.fontFamily
             font.pixelSize: 11 * Config.uiScale

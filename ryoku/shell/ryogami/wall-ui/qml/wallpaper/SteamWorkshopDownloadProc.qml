@@ -1,5 +1,6 @@
 import Quickshell.Io
 import QtQuick
+import Ryoku.Ui.Singletons
 
 Process {
   id: dlProc
@@ -47,7 +48,7 @@ Process {
         dlProc.progressUpdate(dlProc.currentId, pct)
         var mb = (bytes / 1048576).toFixed(1)
         var totalMb = (expected / 1048576).toFixed(1)
-        dlProc.statusMessage(dlProc.currentId, "Downloading " + mb + " / " + totalMb + " MB (" + Math.round(pct * 100) + "%)")
+        dlProc.statusMessage(dlProc.currentId, I18n.tr("Downloading %1 / %2 MB (%3%)").arg(mb).arg(totalMb).arg(Math.round(pct * 100)))
       }
     }
   }
@@ -77,7 +78,7 @@ Process {
     _downloading = false
     if (success) {
       progressUpdate(id, 1.0)
-      statusMessage(id, "Download complete")
+      statusMessage(id, I18n.tr("Download complete"))
     }
     itemDone(id, success)
     _advanceToNext()
@@ -122,14 +123,14 @@ Process {
             if (dlProc.workshopIds.indexOf(nums[i]) >= 0 && !dlProc._doneIds[nums[i]]) {
               dlProc.currentId = nums[i]
               dlProc._downloading = true
-              dlProc.statusMessage(nums[i], "Downloading workshop item...")
+              dlProc.statusMessage(nums[i], I18n.tr("Downloading workshop item..."))
               break
             }
           }
         }
         if (!nums || !dlProc._downloading) {
           dlProc._downloading = true
-          dlProc.statusMessage(dlProc.currentId, "Downloading workshop item...")
+          dlProc.statusMessage(dlProc.currentId, I18n.tr("Downloading workshop item..."))
         }
       }
 
@@ -151,24 +152,24 @@ Process {
         if (match && dlProc.currentId) {
           var pct = parseFloat(match[1]) / 100.0
           dlProc.progressUpdate(dlProc.currentId, pct)
-          dlProc.statusMessage(dlProc.currentId, "Downloading " + Math.round(pct * 100) + "%")
+          dlProc.statusMessage(dlProc.currentId, I18n.tr("Downloading %1%").arg(Math.round(pct * 100)))
         }
       }
 
       if (data.indexOf("Cached credentials not found") >= 0 || data.indexOf("Login Failure") >= 0) {
         dlProc._credentialError = true
-        dlProc.statusMessage(dlProc.currentId, "Steam login required. Run: steamcmd +login " + dlProc._login + " +quit")
+        dlProc.statusMessage(dlProc.currentId, I18n.tr("Steam login required. Run: steamcmd +login %1 +quit").arg(dlProc._login))
         dlProc.credentialError(dlProc.currentId)
       }
 
       if (data.indexOf("Checking for available update") >= 0)
-        dlProc.statusMessage(dlProc.currentId, "Checking for updates...")
+        dlProc.statusMessage(dlProc.currentId, I18n.tr("Checking for updates..."))
       else if (data.indexOf("Verifying installation") >= 0)
-        dlProc.statusMessage(dlProc.currentId, "Verifying installation...")
+        dlProc.statusMessage(dlProc.currentId, I18n.tr("Verifying installation..."))
       else if (data.indexOf("Loading Steam API") >= 0)
-        dlProc.statusMessage(dlProc.currentId, "Connecting to Steam...")
+        dlProc.statusMessage(dlProc.currentId, I18n.tr("Connecting to Steam..."))
       else if (data.indexOf("Logging in") >= 0 || data.indexOf("Waiting for user info") >= 0)
-        dlProc.statusMessage(dlProc.currentId, "Logging in... Program isn't frozen this takes time!")
+        dlProc.statusMessage(dlProc.currentId, I18n.tr("Logging in... Program isn't frozen this takes time!"))
     }
   }
 

@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+### Added
+- `mkinitcpio/install/ryoku-gpu-trim`: a mkinitcpio install hook that keeps the
+  denylisted nouveau driver out of the initramfs, and with it the
+  `nvidia/*/gsp` firmware linux-firmware ships for every Turing/Ampere/Ada chip
+  and two driver branches. `nvidia.sh` denylists nouveau, but autodetect still
+  matches it against the card, so `kms` pulled the module in and mkinitcpio put
+  those pre-compressed blobs in the uncompressed early cpio: measured on an
+  NVIDIA box, 155 MiB of a 254 MiB image, and the whole thing lands on a 2 GiB
+  boot partition twice per kernel (the image plus one history copy for the
+  snapshot entries). A box with two kernels sat at 54% before installing
+  anything else. When that partition runs out, mkinitcpio still builds the
+  image in `/tmp` but the hook cannot copy it in, pacman reports the
+  transaction as a success, and the box keeps booting the previous kernel
+  against a module tree the upgrade deleted: issue #140, and the "the kernel
+  never updates with pacman -Syu" reports behind it. The hook drops nouveau
+  from autodetect's allowlist, which is what `kms` filters against, so it has
+  to sit between `autodetect` and `kms`; `mkinitcpio/ryoku.conf` places it
+  there. Measured on the same box: 254 MiB to 147 MiB per image, boot partition
+  54% to 43%. `ryoku-nvidia-guard` lifts the denylist when a kernel has no
+  nvidia module and rebuilds, so the recovery image gets nouveau back.
+
 ### Fixed
 - `limine/ryoku-windows-entry` now also restores the installer-recorded
   Linux/Ryoku neighbor after Limine regenerates its menu on dedicated-ESP

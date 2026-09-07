@@ -7,6 +7,7 @@ import Quickshell.Wayland
 import ".."
 import shell.services
 import "../../../components"
+import Ryoku.Ui.Singletons
 
 // The dock's window-preview strip. Hovering a dock icon that has open windows
 // grows this off the rail edge, welded to the icon, with one LIVE tile per
@@ -112,7 +113,7 @@ Popout {
             Text {
                 id: countLbl
                 anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                text: root.n === 1 ? qsTr("1 window") : qsTr("%1 windows").arg(root.n)
+                text: root.n === 1 ? I18n.tr("1 window") : I18n.tr("%1 windows").arg(root.n)
                 color: Theme.onSurfaceVariant
                 font.family: Theme.fontPrimary
                 font.pixelSize: 10 * root.s

@@ -1,5 +1,6 @@
 import QtQuick
 import "Singletons"
+import Ryoku.Ui.Singletons
 
 // The block a page puts a live preview in. Shell, Widgets, Appearance and
 // ryowalls each grew their own, with their own gradient and their own badge, so
@@ -11,10 +12,10 @@ import "Singletons"
 Item {
     id: prev
 
-    property string label: "LIVE PREVIEW"
+    property string label: I18n.tr("LIVE PREVIEW")
     property string tag: ""            // the corner readout: an output, a size
     property bool live: true           // false draws the off state instead
-    property string offText: "OFF"
+    property string offText: I18n.tr("OFF")
     default property alias content: slot.data
 
     implicitHeight: 200
@@ -39,7 +40,7 @@ Item {
             font.pixelSize: 10
         }
         Text {
-            text: prev.label
+            text: I18n.tr(prev.label)
             color: Tokens.inkMuted
             font.family: Tokens.ui
             font.pixelSize: 10

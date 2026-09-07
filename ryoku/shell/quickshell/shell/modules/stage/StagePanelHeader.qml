@@ -1,6 +1,7 @@
 import QtQuick
 import shell.services
 import "../../components"
+import Ryoku.Ui.Singletons
 
 // A collapsible section header with an optional eye toggle (docs/stage.md).
 Item {
@@ -32,7 +33,7 @@ Item {
         }
         Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: ph.label
+            text: I18n.tr(ph.label)
             color: Theme.onSurface
             font.family: Theme.fontPrimary
             font.pixelSize: Theme.fontSm

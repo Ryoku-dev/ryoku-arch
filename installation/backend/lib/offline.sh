@@ -35,9 +35,9 @@ ryoku_offline_verify() {
     die "this is an offline install (RYOKU_ONLINE=0) but RYOKU_OFFLINE_REPO is unset, so there is nothing to install from. Boot an ISO that bakes the offline repo, or connect to a network and install online."
   fi
   if [[ ! -d $RYOKU_OFFLINE_REPO ]]; then
-    die "offline install: the baked package repo is missing at $RYOKU_OFFLINE_REPO. This image is incomplete; connect to a network to install online, or re-download the ISO."
+    die 'offline install: the baked package repo is missing at %s. This image is incomplete; connect to a network to install online, or re-download the ISO.' "$RYOKU_OFFLINE_REPO"
   fi
-  die "offline install: $RYOKU_OFFLINE_REPO has no $RYOKU_OFFLINE_REPO_NAME.db, so pacman cannot resolve anything from it (a bake that stopped before repo-add). This image is incomplete; connect to a network to install online, or re-download the ISO."
+  die 'offline install: %s has no %s.db, so pacman cannot resolve anything from it (a bake that stopped before repo-add). This image is incomplete; connect to a network to install online, or re-download the ISO.' "$RYOKU_OFFLINE_REPO" "$RYOKU_OFFLINE_REPO_NAME"
 }
 
 # ryoku_offline_prepare: write the pacstrap-time pacman.conf pointing [offline]
@@ -48,7 +48,7 @@ ryoku_offline_prepare() {
   ryoku_offline_active || return 0
   local conf=${RYOKU_PACMAN_CONF:-/tmp/ryoku-offline-pacman.conf}
   if [[ -n ${RYOKU_DRYRUN:-} ]]; then
-    log "offline: would write $conf ([offline] -> file://$RYOKU_OFFLINE_REPO, TrustAll) and pacstrap from it"
+    log 'offline: would write %s ([offline] -> file://%s, TrustAll) and pacstrap from it' "$conf" "$RYOKU_OFFLINE_REPO"
     export RYOKU_PACMAN_CONF=$conf
     return 0
   fi
@@ -65,7 +65,7 @@ SigLevel = Never
 Server = file://$RYOKU_OFFLINE_REPO
 EOF
   export RYOKU_PACMAN_CONF=$conf
-  log "offline: pacstrap installs from the baked [offline] repo at $RYOKU_OFFLINE_REPO"
+  log 'offline: pacstrap installs from the baked [offline] repo at %s' "$RYOKU_OFFLINE_REPO"
 }
 
 # ryoku_offline_pacstrap_extra: a no-op hook, kept so lib/pacstrap.sh's call site
@@ -105,7 +105,7 @@ ryoku_offline_chroot_on() {
   ryoku_offline_active || return 0
   local conf=/mnt/etc/pacman.conf
   if [[ -n ${RYOKU_DRYRUN:-} ]]; then
-    log "offline: would bind $RYOKU_OFFLINE_REPO into the chroot, write the [offline]-only $RYOKU_OFFLINE_CHROOT_CONF, and add [offline] to $conf"
+    log 'offline: would bind %s into the chroot, write the [offline]-only %s, and add [offline] to %s' "$RYOKU_OFFLINE_REPO" "$RYOKU_OFFLINE_CHROOT_CONF" "$conf"
     return 0
   fi
   run mkdir -p "/mnt$RYOKU_OFFLINE_REPO"
@@ -148,7 +148,7 @@ EOF
 # the synced offline db too. idempotent; safe from the failure trap.
 ryoku_offline_chroot_off() {
   ryoku_offline_active || return 0
-  [[ -n ${RYOKU_DRYRUN:-} ]] && { log "offline: would strip [offline] from the target pacman.conf, drop $RYOKU_OFFLINE_CHROOT_CONF, and unmount the bound repo"; return 0; }
+  [[ -n ${RYOKU_DRYRUN:-} ]] && { log 'offline: would strip [offline] from the target pacman.conf, drop %s, and unmount the bound repo' "$RYOKU_OFFLINE_CHROOT_CONF"; return 0; }
   rm -f "/mnt$RYOKU_OFFLINE_CHROOT_CONF" 2>/dev/null || true
   local conf=/mnt/etc/pacman.conf
   if [[ -f $conf ]]; then
@@ -186,7 +186,7 @@ ryoku_offline_aur() {
     ryoku_offline_pacman -Sp "$p" >/dev/null 2>&1 && have+=("$p")
   done
   (( ${#have[@]} )) || { log "AUR: no bundled tools found in the offline repo (built best-effort at ISO time); skipping"; return 0; }
-  log "AUR: installing ${#have[@]} bundled tool(s) from the baked [offline] repo"
+  log 'AUR: installing %d bundled tool(s) from the baked [offline] repo' "${#have[@]}"
   ryoku_offline_pacman -S --noconfirm --needed "${have[@]}" \
     || log "AUR: warning, some bundled tools did not install (e.g. a DKMS module); continuing"
   return 0

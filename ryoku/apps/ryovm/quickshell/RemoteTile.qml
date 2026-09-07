@@ -115,7 +115,7 @@ Item {
             Text {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                text: ({ "up": "UP", "warn": "WARN", "down": "DOWN", "unknown": "-" })[tile.state] || "-"
+                text: ({ "up": I18n.tr("UP"), "warn": I18n.tr("WARN"), "down": I18n.tr("DOWN"), "unknown": "-" })[tile.state] || "-"
                 color: tile.state === "warn" || tile.state === "down" ? Tokens.ink : Tokens.inkFaint
                 font.family: Tokens.mono; font.pixelSize: 9; font.letterSpacing: 1.4
             }

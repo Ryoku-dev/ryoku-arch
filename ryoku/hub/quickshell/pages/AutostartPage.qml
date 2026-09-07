@@ -122,7 +122,7 @@ Item {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 // an entry count is file-truth chrome, so mono (DESIGN.md section 2).
-                text: pg.cmdRows.length + (pg.cmdRows.length === 1 ? I18n.tr(" ENTRY") : I18n.tr(" ENTRIES"))
+                text: pg.cmdRows.length === 1 ? I18n.tr("%1 ENTRY").arg(pg.cmdRows.length) : I18n.tr("%1 ENTRIES").arg(pg.cmdRows.length)
                 color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: Tokens.fTiny
             }
             Btn {

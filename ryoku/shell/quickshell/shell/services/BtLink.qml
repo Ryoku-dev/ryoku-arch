@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Bluetooth
+import Ryoku.Ui.Singletons
 
 // Bluetooth link state the popout reads but that must outlive it: a popout is a
 // Loader that unmounts on close, so a "connected for 2h" duration cannot live
@@ -54,12 +55,12 @@ Singleton {
             return "";
         const s = Math.floor(ms / 1000);
         if (s < 45)
-            return qsTr("just now");
+            return I18n.tr("just now");
         const m = Math.floor(s / 60);
         if (m < 60)
-            return qsTr("%1m").arg(m);
+            return I18n.tr("%1m").arg(m);
         const h = Math.floor(m / 60);
-        return qsTr("%1h %2m").arg(h).arg(m % 60);
+        return I18n.tr("%1h %2m").arg(h).arg(m % 60);
     }
 
     // Stamp every device's connected edge, and any device that is already up when
@@ -93,15 +94,15 @@ Singleton {
     }
     function typeLabel(d) {
         const ic = (d && d.icon ? String(d.icon) : "").toLowerCase();
-        if (ic.indexOf("headset") >= 0 || ic.indexOf("headphone") >= 0) return qsTr("Headphones");
-        if (ic.indexOf("mouse") >= 0) return qsTr("Mouse");
-        if (ic.indexOf("keyboard") >= 0) return qsTr("Keyboard");
-        if (ic.indexOf("gaming") >= 0 || ic.indexOf("joypad") >= 0) return qsTr("Controller");
-        if (ic.indexOf("phone") >= 0) return qsTr("Phone");
-        if (ic.indexOf("watch") >= 0) return qsTr("Watch");
-        if (ic.indexOf("audio") >= 0 || ic.indexOf("speaker") >= 0) return qsTr("Speaker");
-        if (ic.indexOf("computer") >= 0 || ic.indexOf("laptop") >= 0) return qsTr("Computer");
-        return qsTr("Device");
+        if (ic.indexOf("headset") >= 0 || ic.indexOf("headphone") >= 0) return I18n.tr("Headphones");
+        if (ic.indexOf("mouse") >= 0) return I18n.tr("Mouse");
+        if (ic.indexOf("keyboard") >= 0) return I18n.tr("Keyboard");
+        if (ic.indexOf("gaming") >= 0 || ic.indexOf("joypad") >= 0) return I18n.tr("Controller");
+        if (ic.indexOf("phone") >= 0) return I18n.tr("Phone");
+        if (ic.indexOf("watch") >= 0) return I18n.tr("Watch");
+        if (ic.indexOf("audio") >= 0 || ic.indexOf("speaker") >= 0) return I18n.tr("Speaker");
+        if (ic.indexOf("computer") >= 0 || ic.indexOf("laptop") >= 0) return I18n.tr("Computer");
+        return I18n.tr("Device");
     }
 
     // BlueZ reports battery as 0..1 or 0..100 depending on the transport.
@@ -118,10 +119,10 @@ Singleton {
 
     function label(d) {
         if (!d)
-            return qsTr("Unknown");
+            return I18n.tr("Unknown");
         return (d.name && d.name.length) ? d.name
             : (d.deviceName && d.deviceName.length) ? d.deviceName
-            : (d.address || qsTr("Unknown"));
+            : (d.address || I18n.tr("Unknown"));
     }
 
 

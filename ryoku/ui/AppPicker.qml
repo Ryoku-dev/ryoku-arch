@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import "Singletons"
+import Ryoku.Ui.Singletons
 
 // Modal command picker: a filterable list of installed applications (each app's
 // name plus the command it launches -- an executable cheatsheet) and a free-text
@@ -11,7 +12,7 @@ import "Singletons"
 Rectangle {
     id: pick
 
-    property string title: "App"
+    property string title: I18n.tr("App")
     property var apps: []          // [{ name, cmd }] installed apps, caller-supplied
     property string current: ""    // current command, highlighted in the list
     signal picked(string cmd)
@@ -70,7 +71,7 @@ Rectangle {
             Keys.onEscapePressed: pick.dismissed()
             Text {
                 anchors.fill: parent; visible: q.text === ""
-                text: "Filter apps\u2026"; color: Tokens.inkMuted; font: q.font
+                text: I18n.tr("Filter apps\u2026"); color: Tokens.inkMuted; font: q.font
                 verticalAlignment: Text.AlignVCenter
             }
         }
@@ -94,7 +95,7 @@ Rectangle {
             Keys.onEscapePressed: pick.dismissed()
             Text {
                 anchors.fill: parent; visible: cq.text === ""
-                text: "or type any command\u2026"; color: Tokens.inkMuted; font: cq.font
+                text: I18n.tr("or type any command\u2026"); color: Tokens.inkMuted; font: cq.font
                 verticalAlignment: Text.AlignVCenter
             }
         }

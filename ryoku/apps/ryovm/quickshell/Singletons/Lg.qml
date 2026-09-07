@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 // The passthrough lane: GPU-passthrough VMs shown only through Looking Glass, a
 // world apart from the quickemu yard. One dGPU is bound to the guest, so the
@@ -76,16 +77,16 @@ Singleton {
             return "";
         if (o.started === true)
             return o.lookingGlass === false
-                ? "Started " + (o.name || "") + " — but looking-glass-client isn't installed. Install it to see the guest."
-                : "Opening " + (o.name || "") + " in Looking Glass";
+                ? I18n.tr("Started %1, but looking-glass-client is not installed. Install it to see the guest.").arg(o.name || "")
+                : I18n.tr("Opening %1 in Looking Glass").arg(o.name || "");
         if (o.defined === true)
-            return "Defined " + (o.name || "") + (o.virtio === true ? " with the VirtIO driver CD attached" : "");
+            return (o.virtio === true ? I18n.tr("Defined %1 with the VirtIO driver CD attached") : I18n.tr("Defined %1")).arg(o.name || "");
         if (o.removed === true)
             return o.diskDeleted === true
-                ? "Removed " + (o.name || "") + " and deleted its disk"
-                : "Removed " + (o.name || "");
+                ? I18n.tr("Removed %1 and deleted its disk").arg(o.name || "")
+                : I18n.tr("Removed %1").arg(o.name || "");
         if (o.stopped === true)
-            return "Stopped";
+            return I18n.tr("Stopped");
         return "";
     }
 
@@ -128,7 +129,7 @@ Singleton {
             if (code !== 0) {
                 root.raiseFault(runProc.errText.trim().length > 0
                     ? runProc.errText.trim()
-                    : "Command failed (exit " + code + ")");
+                    : I18n.tr("Command failed (exit %1)").arg(code));
             } else {
                 root.clearFault();
                 var line = "";

@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import shell.services
 import ".." as Menus
+import Ryoku.Ui.Singletons
 
 Item {
     id: root
@@ -33,7 +34,7 @@ Item {
 
             Menus.QsSection {
                 width: parent.width
-                label: qsTr("Media")
+                label: I18n.tr("Media")
             }
 
             Menus.MediaHero {
@@ -46,7 +47,7 @@ Item {
                 width: parent.width
                 topPadding: 24
                 horizontalAlignment: Text.AlignHCenter
-                text: qsTr("Nothing is playing")
+                text: I18n.tr("Nothing is playing")
                 color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
                 font.family: Theme.fontPrimary
                 font.pixelSize: Theme.fontSm

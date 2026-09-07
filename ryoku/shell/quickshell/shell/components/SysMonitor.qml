@@ -36,7 +36,7 @@ Column {
 
         SysRing {
             s: root.s
-            label: I18n.tr("CPU")
+            label: "CPU"
             value: Sysinfo.cpu
             readout: Math.round(Sysinfo.cpu * 100) + "%"
             ringColor: Theme.primary
@@ -113,7 +113,7 @@ Column {
             id: upText
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            text: I18n.tr("UP ") + Session.uptimeText
+            text: I18n.tr("UP %1").arg(Session.uptimeText)
             color: Theme.onSurfaceVariant
             font.family: Theme.mono
             font.pixelSize: 9.5 * root.s
@@ -124,7 +124,7 @@ Column {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             visible: Sysinfo.memTotalGiB > 0
-            text: Sysinfo.memUsedGiB.toFixed(1) + " / " + Sysinfo.memTotalGiB.toFixed(1) + I18n.tr(" GiB")
+            text: Sysinfo.memUsedGiB.toFixed(1) + " / " + Sysinfo.memTotalGiB.toFixed(1) + " GiB"
             color: Theme.onSurfaceVariant
             font.family: Theme.mono
             font.pixelSize: 9.5 * root.s

@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // Ghostty's palette used to render straight into ~/.config/ghostty/config, the
@@ -62,7 +64,7 @@ func reconcileGhostty(checkOnly bool) recResult {
 	if err != nil {
 		// Absent config: the seed (materialize/deploy) lays a fresh wrapper, and a
 		// config the user deleted stays deleted. Nothing to migrate either way.
-		return okRes("no ghostty config to migrate")
+		return okRes(i18n.T("no ghostty config to migrate"))
 	}
 	content := string(body)
 
@@ -70,27 +72,27 @@ func reconcileGhostty(checkOnly bool) recResult {
 		if !sys.Exists(ghosttyMigrationMarker()) && !checkOnly {
 			_ = markMigration(ghosttyMigrationMarker())
 		}
-		return okRes("ghostty config includes the Ryoku palette")
+		return okRes(i18n.T("ghostty config includes the Ryoku palette"))
 	}
 	// The include is gone. Once the migration has run, that is the user's edit
 	// (or an explicit opt-out kept alongside a user.conf include), so theming is
 	// never forced back on.
 	if sys.Exists(ghosttyMigrationMarker()) || ghosttyHasInclude(content, "user.conf") {
-		return okRes("ghostty config opted out of the Ryoku palette; left as is")
+		return okRes(i18n.T("ghostty config opted out of the Ryoku palette; left as is"))
 	}
 
 	render := ghosttyIsRender(content)
 	if checkOnly {
 		if render {
-			return wouldRes("your ghostty config is a generated palette; an update overwrote it wholesale").
-				withFix("ryoku doctor rewrites it as a wrapper that includes the palette, so your own settings survive")
+			return wouldRes(i18n.T("your ghostty config is a generated palette; an update overwrote it wholesale")).
+				withFix(i18n.T("ryoku doctor rewrites it as a wrapper that includes the palette, so your own settings survive"))
 		}
-		return wouldRes("your ghostty config does not include the Ryoku palette").
-			withFix("ryoku doctor adds `config-file = ryoku-colors`, leaving your settings untouched")
+		return wouldRes(i18n.T("your ghostty config does not include the Ryoku palette")).
+			withFix(i18n.T("ryoku doctor adds `config-file = ryoku-colors`, leaving your settings untouched"))
 	}
 
 	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return failRes("could not create %s: %v", dir, err)
+		return failRes(i18n.T("could not create %s: %v"), dir, err)
 	}
 
 	if render {
@@ -99,14 +101,14 @@ func reconcileGhostty(checkOnly bool) recResult {
 		// and replace the config with the wrapper.
 		if !sys.Exists(colorsPath) {
 			if err := os.WriteFile(colorsPath, []byte(ghosttyColorsHeader+"\n"+strings.TrimSpace(content)+"\n"), 0o644); err != nil {
-				return failRes("could not write %s: %v", colorsPath, err)
+				return failRes(i18n.T("could not write %s: %v"), colorsPath, err)
 			}
 		}
 		if err := os.WriteFile(cfgPath, []byte(ghosttyConfigWrapper), 0o644); err != nil {
-			return failRes("could not rewrite %s: %v", cfgPath, err)
+			return failRes(i18n.T("could not rewrite %s: %v"), cfgPath, err)
 		}
 		_ = markMigration(ghosttyMigrationMarker())
-		return fixedRes("converted your generated ghostty config to a wrapper; the palette now lives in ryoku-colors and your future edits survive updates")
+		return fixedRes(i18n.T("converted your generated ghostty config to a wrapper; the palette now lives in ryoku-colors and your future edits survive updates"))
 	}
 
 	// A config with the user's own settings: leave every byte and only append the
@@ -115,7 +117,7 @@ func reconcileGhostty(checkOnly bool) recResult {
 	// the config so the current look is kept.
 	if !sys.Exists(colorsPath) {
 		if err := os.WriteFile(colorsPath, []byte(ghosttyColorsHeader+ghosttyColourLines(content)), 0o644); err != nil {
-			return failRes("could not write %s: %v", colorsPath, err)
+			return failRes(i18n.T("could not write %s: %v"), colorsPath, err)
 		}
 	}
 	appended := content
@@ -124,10 +126,10 @@ func reconcileGhostty(checkOnly bool) recResult {
 	}
 	appended += ghosttyIncludeAppend
 	if err := os.WriteFile(cfgPath, []byte(appended), 0o644); err != nil {
-		return failRes("could not update %s: %v", cfgPath, err)
+		return failRes(i18n.T("could not update %s: %v"), cfgPath, err)
 	}
 	_ = markMigration(ghosttyMigrationMarker())
-	return fixedRes("added the Ryoku palette include to your ghostty config; your settings are untouched")
+	return fixedRes(i18n.T("added the Ryoku palette include to your ghostty config; your settings are untouched"))
 }
 
 // ghosttyHasInclude reports whether content has a `config-file = <target>` line

@@ -17,6 +17,7 @@ import Quickshell.Wayland
 import QtMultimedia
 import Quickshell.Io
 import "./shim"
+import Ryoku.Ui.Singletons
 
 ShellRoot {
     id: shellRoot
@@ -144,8 +145,8 @@ ShellRoot {
                 color: ov.ph === "fail" ? "#e0806f" : shellRoot.fpAccent
                 opacity: (ov.ph === "scanning" || ov.ph === "success" || ov.ph === "fail") ? 0.92 : 0
                 Behavior on opacity { NumberAnimation { duration: 180 } }
-                text: ov.ph === "success" ? "Unlocked"
-                    : (ov.ph === "fail" ? "Not recognized" : "Reading\u2026")
+                text: ov.ph === "success" ? I18n.tr("Unlocked")
+                    : (ov.ph === "fail" ? I18n.tr("Not recognized") : I18n.tr("Reading\u2026"))
                 visible: opacity > 0.01
             }
         }

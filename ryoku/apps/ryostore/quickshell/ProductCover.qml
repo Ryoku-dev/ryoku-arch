@@ -21,7 +21,7 @@ Item {
     }
     readonly property bool hasArtwork: cover.coverArt !== ""
     readonly property bool hasIdentity: Boolean(item && (item.id || item.name))
-    readonly property string coverTitle: String(item && (item.name || item.id) || "Untitled")
+    readonly property string coverTitle: String(item && (item.name || item.id) || I18n.tr("Untitled"))
     readonly property color coverSurface: item && item.surface ? item.surface : Tokens.paperLift
     readonly property color coverAccent: item && item.accent ? item.accent : Tokens.inkDim
     readonly property var status: StoreLogic.statusLabels(item)
@@ -34,7 +34,7 @@ Item {
     Accessible.name: [
         coverTitle,
         String(item && (item.categoryName || item.category) || ""),
-        cover.status.join(", ")
+        cover.status.map(s => I18n.tr(s)).join(", ")
     ].filter(Boolean).join(", ")
 
     Rectangle {
@@ -119,7 +119,7 @@ Item {
             Text {
                 id: tagText
                 anchors.centerIn: parent
-                text: cover.statusTag
+                text: I18n.tr(cover.statusTag)
                 color: cover.flagged ? Qt.rgba(0, 0, 0, 0.86) : "#e8ffffff"
                 font.family: Tokens.mono
                 font.pixelSize: Tokens.fTiny

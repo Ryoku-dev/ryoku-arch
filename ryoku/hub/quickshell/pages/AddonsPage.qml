@@ -332,7 +332,7 @@ Item {
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         // an entry count is file-truth chrome, so mono.
-                        text: pg.plugins.length + (pg.plugins.length === 1 ? I18n.tr(" PLUGIN") : I18n.tr(" PLUGINS"))
+                        text: (pg.plugins.length === 1 ? I18n.tr("%1 PLUGIN") : I18n.tr("%1 PLUGINS")).arg(pg.plugins.length)
                         color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: Tokens.fTiny
                     }
                     // Re-scan installed plugins after external RyoStore changes.
@@ -414,7 +414,7 @@ Item {
                                 Text {
                                     width: parent.width
                                     text: pg.hostLabel(card.host)
-                                        + (card.settingsCount > 0 ? "  ·  " + card.settingsCount + (card.settingsCount === 1 ? " setting" : " settings") : "")
+                                        + (card.settingsCount > 0 ? "  ·  " + (card.settingsCount === 1 ? I18n.tr("%1 setting") : I18n.tr("%1 settings")).arg(card.settingsCount) : "")
                                     color: Tokens.inkMuted; font.family: Tokens.ui
                                     font.pixelSize: Tokens.fMicro
                                     elide: Text.ElideRight
@@ -433,7 +433,7 @@ Item {
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
                                     visible: card.upd !== ""
-                                    text: I18n.tr("UPDATE ") + card.upd
+                                    text: I18n.tr("UPDATE %1").arg(card.upd)
                                     color: Tokens.ink; font.family: Tokens.mono; font.pixelSize: Tokens.fTiny
                                 }
 
@@ -510,7 +510,7 @@ Item {
                 Text {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    text: pg.bundles.length + (pg.bundles.length === 1 ? I18n.tr(" BUNDLE") : I18n.tr(" BUNDLES"))
+                    text: (pg.bundles.length === 1 ? I18n.tr("%1 BUNDLE") : I18n.tr("%1 BUNDLES")).arg(pg.bundles.length)
                     color: Tokens.inkFaint
                     font.family: Tokens.mono
                     font.pixelSize: Tokens.fTiny
@@ -570,7 +570,7 @@ Item {
                                         }
                                         Text {
                                             width: parent.width
-                                            text: Number(bundleCard.modelData.installedCount || 0) + " / " + Number(bundleCard.modelData.totalCount || bundleCard.parts.length) + I18n.tr(" INSTALLED")
+                                            text: I18n.tr("%1 / %2 INSTALLED").arg(Number(bundleCard.modelData.installedCount || 0)).arg(Number(bundleCard.modelData.totalCount || bundleCard.parts.length))
                                             color: Tokens.inkMuted
                                             font.family: Tokens.mono
                                             font.pixelSize: Tokens.fTiny
@@ -682,7 +682,7 @@ Item {
                     Btn {
                         anchors.verticalCenter: parent.verticalCenter
                         visible: detail.upd !== ""
-                        text: pg.busyId === detail.sel.id ? I18n.tr("UPDATING") : (I18n.tr("UPDATE ") + detail.upd)
+                        text: pg.busyId === detail.sel.id ? I18n.tr("UPDATING") : I18n.tr("UPDATE %1").arg(detail.upd)
                         armed: pg.busyId === ""
                         onAct: pg.install(detail.sel.id)
                     }
@@ -948,7 +948,7 @@ Item {
                                     Text {
                                         anchors.centerIn: parent
                                         visible: !placer.centered
-                                        text: "centre"
+                                        text: I18n.tr("centre")
                                         color: Tokens.inkFaint; font.family: Tokens.mono
                                         font.pixelSize: Tokens.fTiny; font.letterSpacing: 1.5
                                     }
@@ -969,7 +969,7 @@ Item {
 
                                     Text {
                                         anchors.centerIn: parent
-                                        text: "popout"
+                                        text: I18n.tr("popout")
                                         color: Tokens.ink; font.family: Tokens.mono; font.pixelSize: Tokens.fTiny
                                     }
 
@@ -1408,8 +1408,8 @@ Item {
 
                 Text {
                     width: parent.width
-                    text: I18n.tr("Remove ") + (pg.sel && pg.sel.manifest && pg.sel.manifest.name
-                        ? pg.sel.manifest.name : (pg.sel ? pg.sel.id : "add-on")) + "?"
+                    text: I18n.tr("Remove %1?").arg(pg.sel && pg.sel.manifest && pg.sel.manifest.name
+                        ? pg.sel.manifest.name : (pg.sel ? pg.sel.id : I18n.tr("add-on")))
                     color: Tokens.inkOnBone; font.family: Tokens.ui
                     font.pixelSize: Tokens.fValue; font.weight: Font.Medium
                     wrapMode: Text.WordWrap

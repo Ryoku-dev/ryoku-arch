@@ -4,6 +4,7 @@ import QtQuick.Controls as C
 import QtQuick.Effects
 import Qt.labs.folderlistmodel
 import "Singletons"
+import Ryoku.Ui.Singletons
 
 // A decorative filler poster in the reference's noir style: a real, noir-baked
 // image or gif (a statue, the moon, a Muybridge/phenakistoscope motion loop), a
@@ -221,18 +222,18 @@ Item {
                     border.width: Tokens.border; border.color: Tokens.lineStrong
                     radius: Tokens.radius
                 }
-                MItem { text: "Adjust (drag, zoom, pick)"; onTriggered: dec.editing = true }
+                MItem { text: I18n.tr("Adjust (drag, zoom, pick)"); onTriggered: dec.editing = true }
                 MItem {
-                    text: "Next image"; enabled: dec.galleryArt.length > 1
+                    text: I18n.tr("Next image"); enabled: dec.galleryArt.length > 1
                     onTriggered: { dec.src = ""; dec.shot = (dec.shot + 1) % dec.galleryArt.length; dec.posX = 0.5; dec.posY = 0.5; dec.zoom = 1; dec.persistNow(); }
                 }
                 MItem {
-                    text: "Shuffle"; enabled: dec.galleryArt.length > 1
+                    text: I18n.tr("Shuffle"); enabled: dec.galleryArt.length > 1
                     onTriggered: { dec.src = ""; dec.shot = Math.floor(Math.random() * dec.galleryArt.length); dec.posX = 0.5; dec.posY = 0.5; dec.zoom = 1; dec.persistNow(); }
                 }
                 C.MenuSeparator { }
                 MItem {
-                    text: "Reset framing"
+                    text: I18n.tr("Reset framing")
                     enabled: dec.zoom !== 1 || dec.posX !== 0.5 || dec.posY !== 0.5
                     onTriggered: { dec.zoom = 1; dec.posX = 0.5; dec.posY = 0.5; dec.persistNow(); }
                 }
@@ -408,7 +409,7 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     Text {
-                        text: "ADJUST DECORATION"; color: Tokens.ink
+                        text: I18n.tr("ADJUST DECORATION"); color: Tokens.ink
                         font.family: Tokens.ui; font.pixelSize: Tokens.fMicro
                         font.weight: Font.Medium; font.letterSpacing: Tokens.trackMark
                         anchors.verticalCenter: parent.verticalCenter
@@ -466,7 +467,7 @@ Item {
                         Text {
                             id: h
                             anchors.centerIn: parent
-                            text: "drag to move \u00b7 scroll / pinch to zoom"
+                            text: I18n.tr("drag to move \u00b7 scroll / pinch to zoom")
                             color: Tokens.inkDim; font.family: Tokens.mono; font.pixelSize: 9; font.letterSpacing: 1
                         }
                     }
@@ -474,7 +475,7 @@ Item {
 
                 // the gallery: the baked set, then a custom-file tile
                 Text {
-                    text: "GALLERY"; color: Tokens.inkMuted
+                    text: I18n.tr("GALLERY"); color: Tokens.inkMuted
                     font.family: Tokens.ui; font.pixelSize: 9
                     font.weight: Font.Medium; font.letterSpacing: Tokens.trackLabel
                 }
@@ -569,14 +570,14 @@ Item {
                             color: cxlTap.pressed ? Tokens.tint16 : (cxlHov.hovered ? Tokens.tint10 : "transparent")
                             border.width: Tokens.border; border.color: Tokens.line
                             Behavior on color { ColorAnimation { duration: Tokens.snap } }
-                            Text { id: cxl; anchors.centerIn: parent; text: "CANCEL"; color: Tokens.inkDim; font.family: Tokens.ui; font.pixelSize: 10; font.letterSpacing: 1 }
+                            Text { id: cxl; anchors.centerIn: parent; text: I18n.tr("CANCEL"); color: Tokens.inkDim; font.family: Tokens.ui; font.pixelSize: 10; font.letterSpacing: 1 }
                             HoverHandler { id: cxlHov; cursorShape: Qt.PointingHandCursor }
                             TapHandler { id: cxlTap; onTapped: editor.close() }
                         }
                         Rectangle {
                             width: svl.implicitWidth + Tokens.s4; height: 26; radius: Tokens.radius
                             color: svlHov.hovered ? Qt.lighter(Tokens.bone, 1.05) : Tokens.bone
-                            Text { id: svl; anchors.centerIn: parent; text: "SAVE"; color: Tokens.inkOnBone; font.family: Tokens.ui; font.pixelSize: 10; font.weight: Font.Medium; font.letterSpacing: 1 }
+                            Text { id: svl; anchors.centerIn: parent; text: I18n.tr("SAVE"); color: Tokens.inkOnBone; font.family: Tokens.ui; font.pixelSize: 10; font.weight: Font.Medium; font.letterSpacing: 1 }
                             HoverHandler { id: svlHov; cursorShape: Qt.PointingHandCursor }
                             TapHandler { onTapped: editor.commit() }
                         }
@@ -588,7 +589,7 @@ Item {
             // the editor modal so it covers it (the editor sits on the Overlay).
             PickFile {
                 id: fileDlg
-                title: "Choose an image or gif"
+                title: I18n.tr("Choose an image or gif")
                 onPicked: (p) => { dec.src = "" + p; dec.posX = 0.5; dec.posY = 0.5; dec.zoom = 1; keyScope.forceActiveFocus(); fileDlg.active = false; }
                 onCanceled: fileDlg.active = false
             }

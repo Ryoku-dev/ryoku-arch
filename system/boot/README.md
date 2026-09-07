@@ -30,6 +30,13 @@ puts its name and colors on it.
 - `mkinitcpio/ryoku.conf` The list of initramfs hooks, including `plymouth`
   for the splash, `kms` for an early, flicker-free GPU handoff, and `resume`
   (right after `encrypt`) so a hibernated system is restored from its swapfile.
+- `mkinitcpio/install/ryoku-gpu-trim` A mkinitcpio install hook, named by that
+  HOOKS list between `autodetect` and `kms`. `nvidia.sh` denylists nouveau, but
+  autodetect still matches it against the card, so `kms` would pull nouveau in
+  along with the GSP firmware linux-firmware ships for every Turing/Ampere/Ada
+  chip: about 107 MiB per kernel image, on a boot partition that holds one image
+  plus one history copy per kernel. The hook drops nouveau from autodetect's
+  allowlist, so both stay out.
 
 ## UKI, in one line
 

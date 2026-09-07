@@ -39,7 +39,7 @@ Grid {
 
             UiText {
                 anchors.centerIn: parent
-                text: cell.modelData === "foreground" ? I18n.tr("FG") : cell.modelData.slice(-2)
+                text: cell.modelData === "foreground" ? "FG" : cell.modelData.slice(-2)
                 color: sw.root.paletteContrastColor(cell.modelData)
                 font.family: sw.tk ? Tokens.mono : "monospace"
                 font.pixelSize: sw.tk ? Tokens.fTiny : 9

@@ -73,7 +73,7 @@ Item {
                     font.weight: Font.Medium
                 }
                 Text {
-                    text: qsTr("active today")
+                    text: I18n.tr("active today")
                     color: root.dim
                     font.family: Theme.fontPrimary
                     font.pixelSize: 8 * root.s
@@ -153,7 +153,7 @@ Item {
                 Text {
                     width: parent.width
                     visible: ScreenTime.topApps.length === 0
-                    text: qsTr("Nothing tracked yet. Usage builds as you work.")
+                    text: I18n.tr("Nothing tracked yet. Usage builds as you work.")
                     wrapMode: Text.WordWrap
                     color: root.dim
                     font.family: Theme.fontPrimary

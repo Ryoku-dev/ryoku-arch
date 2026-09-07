@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"ryoku-cli/internal/sys"
 	"strings"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: wireless regulatory domain ----------------------------------
@@ -127,37 +129,37 @@ func countryFromLocale(conf string) string {
 
 func reconcileWifiRegdom(checkOnly bool) recResult {
 	if !wifiRadioPresent() {
-		return okRes("this machine has no wireless device")
+		return okRes(i18n.T("this machine has no wireless device"))
 	}
 	domain, source, ok := wifiRegdom()
 	if !ok {
-		return okRes("iw is not installed, so the wireless regulatory domain cannot be read")
+		return okRes(i18n.T("iw is not installed, so the wireless regulatory domain cannot be read"))
 	}
 	if domain != "00" {
-		return okRes("the wireless regulatory domain is set to %s (%s)", domain, source)
+		return okRes(i18n.T("the wireless regulatory domain is set to %s (%s)"), domain, source)
 	}
 	// domain 00 is the kernel's worldwide fallback: it keeps most 5 GHz channels
 	// disabled, so the radio only ever sees 2.4 GHz networks until a country is set.
 	country := wifiLocaleCountry()
 	if country == "" {
-		return warnRes("the wireless regulatory domain is unset (00), so the kernel keeps 5 GHz channels disabled, and no country could be inferred from the system locale to set one").
+		return warnRes(i18n.T("the wireless regulatory domain is unset (00), so the kernel keeps 5 GHz channels disabled, and no country could be inferred from the system locale to set one")).
 			withFix("ryoku-wifi-regdom set <CC>")
 	}
 	if checkOnly {
-		return wouldRes("the wireless regulatory domain is unset (00), so the kernel keeps 5 GHz channels disabled; the system locale points at %s", country).
+		return wouldRes(i18n.T("the wireless regulatory domain is unset (00), so the kernel keeps 5 GHz channels disabled; the system locale points at %s"), country).
 			withFix("ryoku-wifi-regdom set " + country)
 	}
 	if !wifiRegdomHelperPresent() {
-		return warnRes("the wireless regulatory domain is unset (00) and ryoku-wifi-regdom is not installed to set it from the locale country %s", country).
+		return warnRes(i18n.T("the wireless regulatory domain is unset (00) and ryoku-wifi-regdom is not installed to set it from the locale country %s"), country).
 			withFix("ryoku-wifi-regdom set " + country)
 	}
 	if err := setWifiRegdom(country); err != nil {
-		return warnRes("could not set the wireless regulatory domain to %s: %v", country, err).
+		return warnRes(i18n.T("could not set the wireless regulatory domain to %s: %v"), country, err).
 			withFix("sudo ryoku-wifi-regdom set " + country)
 	}
 	if again, _, ok := wifiRegdom(); ok && again != "00" {
-		return fixedRes("set the wireless regulatory domain to %s from the system locale, so the kernel enables 5 GHz channels again", again)
+		return fixedRes(i18n.T("set the wireless regulatory domain to %s from the system locale, so the kernel enables 5 GHz channels again"), again)
 	}
-	return warnRes("tried to set the wireless regulatory domain to %s from the system locale but it is still unset (00)", country).
+	return warnRes(i18n.T("tried to set the wireless regulatory domain to %s from the system locale but it is still unset (00)"), country).
 		withFix("ryoku-wifi-regdom set " + country)
 }

@@ -15,8 +15,7 @@ Column {
     Text {
         width: parent.width
         wrapMode: Text.WordWrap
-        text: I18n.tr("That's the tour. The desktop is yours now - explore, break things, tune them ")
-            + I18n.tr("back. Nothing here is locked.")
+        text: I18n.tr("That's the tour. The desktop is yours now - explore, break things, tune them back. Nothing here is locked.")
         color: Tokens.inkDim
         font.family: Tokens.ui
         font.pixelSize: Tokens.fRow
@@ -29,9 +28,9 @@ Column {
 
         Repeater {
             model: [
-                "Super + Space launches anything.",
-                "Super + Escape opens power and session controls.",
-                "Super + , opens Settings for everything else."
+                I18n.tr("Super + Space launches anything."),
+                I18n.tr("Super + Escape opens power and session controls."),
+                I18n.tr("Super + , opens Settings for everything else.")
             ]
 
             delegate: Row {

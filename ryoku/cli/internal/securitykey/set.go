@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 )
 
 func parseOnOff(s string) (bool, error) {
@@ -14,27 +15,27 @@ func parseOnOff(s string) (bool, error) {
 	case "off", "false", "0", "no":
 		return false, nil
 	default:
-		return false, fmt.Errorf("expected on or off, got %q", s)
+		return false, fmt.Errorf(i18n.T("expected on or off, got %q"), s)
 	}
 }
 
 func requireEnrollment(target string) error {
 	if !sys.Has("pamu2fcfg") {
-		return fmt.Errorf("pamu2fcfg is not installed; install pam-u2f first")
+		return fmt.Errorf(i18n.T("pamu2fcfg is not installed; install pam-u2f first"))
 	}
 	a, err := loadAuthFile()
 	if err != nil {
 		return err
 	}
 	if len(a.creds) == 0 {
-		return fmt.Errorf("enroll a security key before enabling %s", target)
+		return fmt.Errorf(i18n.T("enroll a security key before enabling %s"), target)
 	}
 	return nil
 }
 
 func runSet(args []string) error {
 	if len(args) != 2 {
-		return fmt.Errorf("usage: ryoku security-key set <sudo|polkit|login> <on|off>|mode <either|mfa>|touch-required <on|off>|pin-verification <on|off>|user-verification <on|off>")
+		return fmt.Errorf(i18n.T("usage: ryoku security-key set <sudo|polkit|login> <on|off>|mode <either|mfa>|touch-required <on|off>|pin-verification <on|off>|user-verification <on|off>"))
 	}
 	subject := args[0]
 	if subject == "mode" {
@@ -48,9 +49,9 @@ func runSet(args []string) error {
 			return err
 		}
 		if err := rewriteEnabledTargets(); err != nil {
-			fmt.Printf("note: policy saved; re-apply enabled PAM targets with sudo (%v)\n", err)
+			fmt.Printf(i18n.T("note: policy saved; re-apply enabled PAM targets with sudo (%v)\n"), err)
 		}
-		fmt.Printf("security key mode set to %s\n", mode)
+		fmt.Printf(i18n.T("security key mode set to %s\n"), mode)
 		return nil
 	}
 	if subject == "touch-required" || subject == "pin-verification" || subject == "user-verification" {
@@ -70,9 +71,9 @@ func runSet(args []string) error {
 			return err
 		}
 		if err := rewriteEnabledTargets(); err != nil {
-			fmt.Printf("note: policy saved; re-apply enabled PAM targets with sudo (%v)\n", err)
+			fmt.Printf(i18n.T("note: policy saved; re-apply enabled PAM targets with sudo (%v)\n"), err)
 		}
-		fmt.Printf("security key %s %s\n", subject, map[bool]string{true: "enabled", false: "disabled"}[on])
+		fmt.Printf(i18n.T("security key %s %s\n"), subject, map[bool]string{true: i18n.T("enabled"), false: i18n.T("disabled")}[on])
 		return nil
 	}
 	target := subject
@@ -89,8 +90,8 @@ func runSet(args []string) error {
 		}
 	}
 	if err := applyPAMHalf(target, on); err != nil {
-		return fmt.Errorf("wire PAM: %w", err)
+		return fmt.Errorf(i18n.T("wire PAM: %w"), err)
 	}
-	fmt.Printf("security key %s for %s\n", map[bool]string{true: "enabled", false: "disabled"}[on], target)
+	fmt.Printf(i18n.T("security key %s for %s\n"), map[bool]string{true: i18n.T("enabled"), false: i18n.T("disabled")}[on], target)
 	return nil
 }

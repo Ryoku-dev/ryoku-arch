@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: a portal frontend left over from a previous session ----------
@@ -90,26 +92,26 @@ func userUnitMainPID(unit string) int {
 func reconcilePortalSession(checkOnly bool) recResult {
 	hyprStart, ok := compositorStartTicks()
 	if !ok {
-		return okRes("no running compositor to compare against")
+		return okRes(i18n.T("no running compositor to compare against"))
 	}
 	fePID := userUnitMainPID("xdg-desktop-portal.service")
 	if fePID == 0 {
-		return okRes("portal frontend not running; it activates fresh on first use")
+		return okRes(i18n.T("portal frontend not running; it activates fresh on first use"))
 	}
 	feStart, ok := procStartTicks(fePID)
 	if !ok {
-		return okRes("could not read the portal frontend's start time")
+		return okRes(i18n.T("could not read the portal frontend's start time"))
 	}
 	if feStart >= hyprStart {
-		return okRes("portal frontend belongs to this session")
+		return okRes(i18n.T("portal frontend belongs to this session"))
 	}
 	if checkOnly {
-		return wouldRes("the portal frontend predates this Hyprland session; screen share opens no source picker and silently shares nothing").
-			withFix("ryoku doctor restarts xdg-desktop-portal")
+		return wouldRes(i18n.T("the portal frontend predates this Hyprland session; screen share opens no source picker and silently shares nothing")).
+			withFix(i18n.T("ryoku doctor restarts xdg-desktop-portal"))
 	}
 	if err := exec.Command("systemctl", "--user", "restart", "xdg-desktop-portal.service").Run(); err != nil {
-		return failRes("could not restart the portal frontend: %v", err).
+		return failRes(i18n.T("could not restart the portal frontend: %v"), err).
 			withFix("systemctl --user restart xdg-desktop-portal.service")
 	}
-	return fixedRes("restarted the portal frontend against this session; screen share picks a source again")
+	return fixedRes(i18n.T("restarted the portal frontend against this session; screen share picks a source again"))
 }

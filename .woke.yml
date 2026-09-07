@@ -13,7 +13,7 @@ ignore_files:
   - "**/*.ttf"
   # machine-generated translations: derived from source strings (e.g. Hyprland's
   # window new_status values), not hand-authored, so we do not lint them.
-  - ryoku/ui/translations/**
+  - ryoku/i18n/catalog/**
   # vendored upstream modules we do not author.
   - "**/vendor/**"
 

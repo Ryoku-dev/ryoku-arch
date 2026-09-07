@@ -1,13 +1,14 @@
 import QtQuick
 import shell.services
 import "../../components"
+import Ryoku.Ui.Singletons
 
 Item {
     id: root
 
     property real us: 1
 
-    readonly property string layout: KeyboardLayout.variant || "Unknown"
+    readonly property string layout: KeyboardLayout.variant || I18n.tr("Unknown")
 
     implicitWidth: content.implicitWidth
     implicitHeight: content.implicitHeight

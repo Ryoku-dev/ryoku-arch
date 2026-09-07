@@ -4,6 +4,7 @@ import QtQuick
 import ".."
 import shell.services
 import "../../../components"
+import Ryoku.Ui.Singletons
 
 // Dictation card: grown from the bottom-centre edge on Super+`, framed like the
 // music card. Voxtype records and types into the focused app; this card only
@@ -80,7 +81,7 @@ Item {
                 anchors.left: micIcon.right
                 anchors.leftMargin: 9 * root.s
                 anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("Listening…")
+                text: I18n.tr("Listening…")
                 color: root.ink
                 font.family: Theme.fontPrimary
                 font.pixelSize: 13 * root.s
@@ -105,7 +106,7 @@ Item {
                 }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: qsTr("REC")
+                    text: I18n.tr("REC")
                     color: root.inkDim
                     font.family: Theme.mono
                     font.pixelSize: 9 * root.s
@@ -202,7 +203,7 @@ Item {
         Text {
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
-            text: qsTr("Speak now · Super + ` to stop")
+            text: I18n.tr("Speak now · Super + ` to stop")
             color: root.inkDim
             font.family: Theme.mono
             font.pixelSize: 9 * root.s
@@ -226,7 +227,7 @@ Item {
         }
         Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: qsTr("Dictation off")
+            text: I18n.tr("Dictation off")
             color: root.inkDim
             font.family: Theme.fontPrimary
             font.pixelSize: 13 * root.s

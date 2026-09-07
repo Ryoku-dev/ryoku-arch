@@ -14,6 +14,8 @@ main() {
   local ref="${RYOKU_SHELL_REF:-main}"
   local raw="https://raw.githubusercontent.com/neur0map/ryoku-arch/${ref}/ryoku-shell-installer"
 
+  # English on purpose: this bootstrap runs before any Ryoku catalog exists on
+  # the box to translate from; the ryoku-shell-install binary it fetches does that.
   say() { printf '\033[38;2;242;86;35m==>\033[0m %s\n' "$*"; }
   die() {
     printf 'ryoku-shell: %s\n' "$*" >&2

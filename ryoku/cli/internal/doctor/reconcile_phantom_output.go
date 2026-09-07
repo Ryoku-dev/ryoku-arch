@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: phantom Wayland output --------------------------------------
@@ -99,22 +101,22 @@ func planPhantomOutput(mons []phantomMon) recResult {
 		}
 	}
 	if len(ghosts) == 0 {
-		return okRes("no phantom outputs; every enabled display reports a real EDID")
+		return okRes(i18n.T("no phantom outputs; every enabled display reports a real EDID"))
 	}
 	// A machine whose only enabled output is EDID-less is running on that panel
 	// -- it is the user's real (if quirky) screen, not a phantom. Leave it.
 	if realEnabled == 0 {
-		return okRes("the sole enabled output has no EDID; treating it as a real display, not a phantom")
+		return okRes(i18n.T("the sole enabled output has no EDID; treating it as a real display, not a phantom"))
 	}
 	names := strings.Join(ghosts, ", ")
 	line := "hl.monitor({ output = \"" + ghosts[0] + "\", disabled = true })"
-	return warnRes("a phantom Wayland output is enabled with no display on it: %s (no EDID, zero physical size). Windows can open onto this blank second desktop and get lost; it is usually a dual-GPU, KVM, or dock connector Hyprland lit through the catch-all monitor rule", names).
-		withFix("turn it off in ~/.config/hypr/monitors_user.lua (one line per output): %s. If it is really a display with a broken EDID, force its mode there instead", line)
+	return warnRes(i18n.T("a phantom Wayland output is enabled with no display on it: %s (no EDID, zero physical size). Windows can open onto this blank second desktop and get lost; it is usually a dual-GPU, KVM, or dock connector Hyprland lit through the catch-all monitor rule"), names).
+		withFix(i18n.T("turn it off in ~/.config/hypr/monitors_user.lua (one line per output): %s. If it is really a display with a broken EDID, force its mode there instead"), line)
 }
 
 func reconcilePhantomOutput(_ bool) recResult {
 	if !sys.HyprLive() {
-		return okRes("no live Hyprland session; phantom outputs cannot be checked")
+		return okRes(i18n.T("no live Hyprland session; phantom outputs cannot be checked"))
 	}
 	return planPhantomOutput(gatherMonitors())
 }

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 )
 
 // The package manager firehose (database sync "up to date", "newer than"
@@ -345,7 +346,7 @@ type upgradeRenderer struct {
 
 func newUpgradeRenderer(w io.Writer, phase string, animate bool) *upgradeRenderer {
 	r := &upgradeRenderer{w: w, phase: phase, animate: animate}
-	r.perm(sys.Brand("▸ ") + sys.Bold(phase+" packages"))
+	r.perm(sys.Brand("▸ ") + sys.Bold(phase+i18n.T(" packages")))
 	return r
 }
 
@@ -390,7 +391,7 @@ func (r *upgradeRenderer) feed(raw string) {
 			r.upgraded = countUpgrade(trimmed, r.upgraded)
 			r.spin(stepLabel(m[1], m[2], m[3]))
 		} else {
-			r.spin("working…")
+			r.spin(i18n.T("working…"))
 		}
 	case clWarn:
 		r.perm("  " + sys.Amber("! ") + sys.Dim(stripPrefix(trimmed, "warning:")))
@@ -407,14 +408,14 @@ func (r *upgradeRenderer) finish(ok bool) {
 	if ok {
 		tail := ""
 		if r.upgraded > 0 {
-			tail = fmt.Sprintf(" · %d upgraded", r.upgraded)
+			tail = fmt.Sprintf(i18n.T(" · %d upgraded"), r.upgraded)
 		} else if r.count > 0 {
-			tail = fmt.Sprintf(" · %d upgraded", r.count)
+			tail = fmt.Sprintf(i18n.T(" · %d upgraded"), r.count)
 		}
 		r.perm(sys.Green("✓ ") + r.phase + tail)
 		return
 	}
-	r.perm(sys.Red("✗ ") + r.phase + " upgrade failed")
+	r.perm(sys.Red("✗ ") + r.phase + i18n.T(" upgrade failed"))
 }
 
 // --- rendering primitives ---------------------------------------------------
@@ -469,13 +470,13 @@ func (r *upgradeRenderer) flush() {
 	if r.count == 0 {
 		return
 	}
-	line := fmt.Sprintf("  %s package%s", sys.Bold(fmt.Sprint(r.count)), plural(r.count))
+	line := fmt.Sprintf(i18n.T("  %s package%s"), sys.Bold(fmt.Sprint(r.count)), plural(r.count))
 	if r.size != "" {
 		line += sys.Dim(" · " + r.size)
 	}
 	r.perm(line)
 	if len(r.ryoku) > 0 {
-		r.perm("  " + sys.Dim("includes ") + sys.Brand(strings.Join(r.ryoku, ", ")))
+		r.perm("  " + sys.Dim(i18n.T("includes ")) + sys.Brand(strings.Join(r.ryoku, ", ")))
 	}
 }
 

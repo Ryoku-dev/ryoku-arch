@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: sweep the sunset ryowalls app's per-user leftovers ---------
@@ -43,20 +45,20 @@ func reconcileRyowallsRemoval(checkOnly bool) recResult {
 		}
 	}
 	if len(present) == 0 {
-		return okRes("no ryowalls leftovers to sweep")
+		return okRes(i18n.T("no ryowalls leftovers to sweep"))
 	}
 	if checkOnly {
-		return wouldRes("stale ryowalls leftovers from the sunset app remain: %s", tildeList(present)).
-			withFix("ryoku doctor removes the ryowalls launcher, launcher entry, config and cache")
+		return wouldRes(i18n.T("stale ryowalls leftovers from the sunset app remain: %s"), tildeList(present)).
+			withFix(i18n.T("ryoku doctor removes the ryowalls launcher, launcher entry, config and cache"))
 	}
 	var removed []string
 	for _, p := range present {
 		if err := os.RemoveAll(p); err != nil {
-			return failRes("could not remove %s: %v", tildeOf(p), err)
+			return failRes(i18n.T("could not remove %s: %v"), tildeOf(p), err)
 		}
 		removed = append(removed, tildeOf(p))
 	}
-	return fixedRes("swept the sunset ryowalls app leftovers: %s", strings.Join(removed, ", "))
+	return fixedRes(i18n.T("swept the sunset ryowalls app leftovers: %s"), strings.Join(removed, ", "))
 }
 
 func tildeList(paths []string) string {

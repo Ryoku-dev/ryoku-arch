@@ -78,15 +78,15 @@ Item {
 
     readonly property string kStatusLine: {
         if (pg.kloading)
-            return "Checking\u2026";
+            return I18n.tr("Checking\u2026");
         var parts = [];
         if (pg.kdefFormat === "encrypted")
-            parts.push("your keyring is password-protected");
+            parts.push(I18n.tr("your keyring is password-protected"));
         else if (pg.kdefFormat === "plaintext")
-            parts.push("your keyring is unlocked, no password");
+            parts.push(I18n.tr("your keyring is unlocked, no password"));
         else if (pg.kdefFormat === "absent")
-            parts.push("no keyring created yet");
-        parts.push(pg.kdaemon ? "keyring agent running" : "keyring agent not running");
+            parts.push(I18n.tr("no keyring created yet"));
+        parts.push(pg.kdaemon ? I18n.tr("keyring agent running") : I18n.tr("keyring agent not running"));
         return parts.join("  \u00b7  ");
     }
 
@@ -162,16 +162,16 @@ Item {
 
     readonly property string fStatusLine: {
         if (pg.floading)
-            return "Checking\u2026";
+            return I18n.tr("Checking\u2026");
         if (!pg.fdaemon)
-            return "fingerprint service is not running";
+            return I18n.tr("fingerprint service is not running");
         if (!pg.fready)
-            return "no fingerprint device found";
-        var parts = [ pg.fdeviceName || pg.fdevice || "sensor" ];
+            return I18n.tr("no fingerprint device found");
+        var parts = [ pg.fdeviceName || pg.fdevice || I18n.tr("sensor") ];
         if (pg.ffingers.length === 0)
-            parts.push("no fingers enrolled yet");
+            parts.push(I18n.tr("no fingers enrolled yet"));
         else
-            parts.push(pg.ffingers.length + (pg.ffingers.length === 1 ? " finger" : " fingers") + " enrolled");
+            parts.push(pg.ffingers.length === 1 ? I18n.tr("%1 finger enrolled").arg(pg.ffingers.length) : I18n.tr("%1 fingers enrolled").arg(pg.ffingers.length));
         return parts.join("  \u00b7  ");
     }
 
@@ -198,23 +198,23 @@ Item {
     property int skEnrollPolls: 0
 
     readonly property string skModeLine: {
-        var parts = [pg.skAuthMode === "mfa" ? "security key + password" : "security key or password"];
-        parts.push(pg.skTouchRequired ? "touch required" : "no touch requirement");
+        var parts = [pg.skAuthMode === "mfa" ? I18n.tr("security key + password") : I18n.tr("security key or password")];
+        parts.push(pg.skTouchRequired ? I18n.tr("touch required") : I18n.tr("no touch requirement"));
         if (pg.skPinVerification)
-            parts.push("PIN required");
+            parts.push(I18n.tr("PIN required"));
         if (pg.skUserVerification)
-            parts.push("user verification required");
+            parts.push(I18n.tr("user verification required"));
         return parts.join("  \u00b7  ");
     }
 
     readonly property string skStatusLine: {
         if (pg.skLoading)
-            return "Checking\u2026";
+            return I18n.tr("Checking\u2026");
         if (!pg.skSupported)
-            return "security-key support is unavailable";
+            return I18n.tr("security-key support is unavailable");
         var parts = [];
-        parts.push(pg.skDevicePresent ? (pg.skDeviceName || "security key detected") : "no security key detected");
-        parts.push(pg.skEnrolled ? (pg.skCredentials + (pg.skCredentials === 1 ? " key enrolled" : " keys enrolled")) : "not enrolled yet");
+        parts.push(pg.skDevicePresent ? (pg.skDeviceName || I18n.tr("security key detected")) : I18n.tr("no security key detected"));
+        parts.push(pg.skEnrolled ? (pg.skCredentials === 1 ? I18n.tr("%1 key enrolled").arg(pg.skCredentials) : I18n.tr("%1 keys enrolled").arg(pg.skCredentials)) : I18n.tr("not enrolled yet"));
         return parts.join("  \u00b7  ");
     }
 
@@ -645,7 +645,7 @@ Item {
         stderr: StdioCollector { id: actErr }
         onExited: code => {
             if (code !== 0)
-                pg.error = "Couldn't switch skin: " + (actErr.text.trim() || ("exit " + code));
+                pg.error = I18n.tr("Couldn't switch skin: %1").arg(actErr.text.trim() || ("exit " + code));
             pg.pendingSlug = "";
             pg.reload();
         }
@@ -675,7 +675,7 @@ Item {
                     if (pg.kmode === "never-ask" && pg.kdefFormat === "encrypted" && pg.kpending === "")
                         pg.kconvertFor = "never-ask";
                 } catch (e) {
-                    pg.kerror = "Couldn't read the keyring status.";
+                    pg.kerror = I18n.tr("Couldn't read the keyring status.");
                 }
                 pg.kloading = false;
             }
@@ -728,7 +728,7 @@ Item {
                     pg.skUserVerification = o.userVerification === true;
                     pg.skError = "";
                 } catch (e) {
-                    pg.skError = "Couldn't read the security-key status.";
+                    pg.skError = I18n.tr("Couldn't read the security-key status.");
                 }
                 pg.skLoading = false;
             }
@@ -777,7 +777,7 @@ Item {
         onExited: (code) => {
             if (code !== 0 && flistOut.text.trim() === "") {
                 pg.fdaemon = false; pg.fready = false; pg.ffingers = []; pg.floading = false; fpTimeout.stop();
-                pg.ferr = "The fingerprint service is not running.";
+                pg.ferr = I18n.tr("The fingerprint service is not running.");
                 return;
             }
             pg.ferr = "";
@@ -959,8 +959,8 @@ Item {
                 var t = pamApplyProc.target === "sudo" ? I18n.tr("sudo")
                     : (pamApplyProc.target === "sddm" ? I18n.tr("the sign-in screen") : I18n.tr("admin prompts"));
                 pg.ferr = (pamApplyErr.text.trim() !== "")
-                    ? I18n.tr("Couldn't update") + " " + t + ": " + pamApplyErr.text.trim()
-                    : I18n.tr("Couldn't update") + " " + t + " (" + I18n.tr("cancelled?") + ")";
+                    ? I18n.tr("Couldn't update %1: %2").arg(t).arg(pamApplyErr.text.trim())
+                    : I18n.tr("Couldn't update %1 (cancelled?)").arg(t);
             } else {
                 pg.ferr = "";
             }
@@ -1261,7 +1261,7 @@ Item {
                                         return I18n.tr("No sensor found. Check the USB connection, then retry.");
                                     if (pg.ffingers.length === 0)
                                         return I18n.tr("Ready. Enroll a finger to unlock with a touch.");
-                                    return I18n.tr("Listening at the lock screen") + (pg.ffpEnabled ? "" : " \u00b7 " + I18n.tr("currently switched off"));
+                                    return pg.ffpEnabled ? I18n.tr("Listening at the lock screen") : I18n.tr("Listening at the lock screen \u00b7 currently switched off");
                                 }
                                 color: Tokens.inkDim; font.family: Tokens.ui
                                 font.pixelSize: Tokens.fSmall; wrapMode: Text.WordWrap
@@ -1878,13 +1878,13 @@ Item {
                                         id: passkeyName
                                         anchors { left: parent.left; leftMargin: Tokens.s2; verticalCenter: parent.verticalCenter }
                                         width: Math.min(180, passkeyRow.width - 170)
-                                        text: passkeyRow.modelData.label || (I18n.tr("Security key") + " " + passkeyRow.modelData.id)
+                                        text: passkeyRow.modelData.label || I18n.tr("Security key %1").arg(passkeyRow.modelData.id)
                                         color: Tokens.ink; font.family: Tokens.ui; font.pixelSize: Tokens.fSmall
                                         elide: Text.ElideRight
                                     }
                                     Text {
                                         anchors { left: passkeyName.right; leftMargin: Tokens.s3; right: skRemoveBtn.left; rightMargin: Tokens.s3; verticalCenter: parent.verticalCenter }
-                                        text: I18n.tr("Credential") + " " + passkeyRow.modelData.id
+                                        text: I18n.tr("Credential %1").arg(passkeyRow.modelData.id)
                                         color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: Tokens.fTiny
                                         elide: Text.ElideRight
                                     }
@@ -2492,7 +2492,7 @@ Item {
                         width: parent.width
                         horizontalAlignment: Text.AlignHCenter
                         visible: pg.fpending === "verify" && pg.ffingers.length > 0
-                        text: I18n.tr("Comparing against") + " " + (pg.ffingers.length === 1 ? I18n.tr("one enrolled finger") : pg.ffingers.length + " " + I18n.tr("enrolled fingers"))
+                        text: pg.ffingers.length === 1 ? I18n.tr("Comparing against one enrolled finger") : I18n.tr("Comparing against %1 enrolled fingers").arg(pg.ffingers.length)
                         color: Tokens.inkDim; font.family: Tokens.ui
                         font.pixelSize: Tokens.fSmall
                     }

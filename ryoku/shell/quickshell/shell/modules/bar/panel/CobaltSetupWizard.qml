@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import shell.services
 import "../../../components"
+import Ryoku.Ui.Singletons
 
 // First-run setup for the stash Cobalt engine, as a modal over the Tools panel.
 //
@@ -69,7 +70,7 @@ Item {
             spacing: 7 * root.s
 
             Text {
-                text: qsTr("Set up the cobalt engine")
+                text: I18n.tr("Set up the cobalt engine")
                 color: Theme.inkOn(Theme.surfaceContainer, Theme.onSurface)
                 font.family: Theme.fontPrimary
                 font.pixelSize: 11 * root.s
@@ -82,11 +83,11 @@ Item {
                 text: {
                     switch (Stash.setupState) {
                     case "done":
-                        return qsTr("Ready. Downloads now run through your local cobalt.");
+                        return I18n.tr("Ready. Downloads now run through your local cobalt.");
                     case "failed":
-                        return qsTr("Setup stopped. Nothing was left running.");
+                        return I18n.tr("Setup stopped. Nothing was left running.");
                     default:
-                        return qsTr("cobalt ships only as a container, so this starts the runtime and pulls the image once. No reboot needed.");
+                        return I18n.tr("cobalt ships only as a container, so this starts the runtime and pulls the image once. No reboot needed.");
                     }
                 }
                 color: Theme.inkOn(Theme.surfaceContainer, Theme.onSurfaceVariant, 3.0)
@@ -151,7 +152,7 @@ Item {
                             Text {
                                 width: parent.width
                                 wrapMode: Text.WordWrap
-                                text: stepRow.label
+                                text: I18n.tr(stepRow.label)
                                 color: stepRow.tone
                                 font.family: Theme.fontPrimary
                                 font.pixelSize: 9 * root.s
@@ -181,14 +182,14 @@ Item {
 
                 WizButton {
                     s: root.s
-                    label: Stash.setupState === "done" ? qsTr("Done") : qsTr("Close")
+                    label: Stash.setupState === "done" ? I18n.tr("Done") : I18n.tr("Close")
                     enabled: !root.busy
                     onTapped: root.closed()
                 }
 
                 WizButton {
                     s: root.s
-                    label: qsTr("Retry")
+                    label: I18n.tr("Retry")
                     accent: true
                     visible: Stash.setupState === "failed"
                     onTapped: Stash.startSetup()
@@ -196,7 +197,7 @@ Item {
 
                 WizButton {
                     s: root.s
-                    label: qsTr("Start setup")
+                    label: I18n.tr("Start setup")
                     accent: true
                     visible: Stash.setupState === "idle"
                     onTapped: Stash.startSetup()
@@ -230,7 +231,7 @@ Item {
             Text {
                 id: btnText
                 anchors.centerIn: parent
-                text: btn.label
+                text: I18n.tr(btn.label)
                 color: btn.accent ? Theme.inkOn(Theme.primary, Theme.onPrimary)
                     : Theme.inkOn(Theme.surfaceContainer, Theme.onSurface)
                 font.family: Theme.fontPrimary

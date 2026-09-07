@@ -11,6 +11,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	i18n "ryoku-i18n"
 )
 
 // plugin_audit.go is the static security audit `ryoku plugin validate` and
@@ -132,7 +134,7 @@ func auditPlugin(dir string, allow map[string]bool) auditResult {
 			return nil
 		}
 		if d.Type()&fs.ModeSymlink != 0 {
-			add("symlink", relSlash, 0, "symlinks are not allowed in a plugin (R2)")
+			add("symlink", relSlash, 0, i18n.T("symlinks are not allowed in a plugin (R2)"))
 			return nil
 		}
 		if info, ierr := d.Info(); ierr == nil {
@@ -140,7 +142,7 @@ func auditPlugin(dir string, allow map[string]bool) auditResult {
 		}
 		ext := strings.ToLower(filepath.Ext(p))
 		if ext == ".so" || ext == ".dylib" || ext == ".exe" {
-			add("binary", relSlash, 0, "a compiled binary; a plugin ships scripts only (R10)")
+			add("binary", relSlash, 0, i18n.T("a compiled binary; a plugin ships scripts only (R10)"))
 			return nil
 		}
 		content, rerr := os.ReadFile(p)
@@ -148,14 +150,14 @@ func auditPlugin(dir string, allow map[string]bool) auditResult {
 			return nil
 		}
 		if hasBinaryMagic(content) {
-			add("binary", relSlash, 0, "a compiled binary; a plugin ships scripts only (R10)")
+			add("binary", relSlash, 0, i18n.T("a compiled binary; a plugin ships scripts only (R10)"))
 			return nil
 		}
 		auditFile(relSlash, content, am, add)
 		return nil
 	})
 	if total > 20*1024*1024 {
-		add("large-tree", ".", 0, fmt.Sprintf("the plugin tree is %d MB; keep it under 20 MB", total/(1024*1024)))
+		add("large-tree", ".", 0, fmt.Sprintf(i18n.T("the plugin tree is %d MB; keep it under 20 MB"), total/(1024*1024)))
 	}
 
 	res := auditResult{Blocking: []Finding{}, Warnings: []Finding{}}
@@ -194,7 +196,7 @@ func auditFile(p string, content []byte, am auditManifest, add func(rule, p stri
 	// secret: every text file, raw.
 	for i, ln := range rawLines {
 		if secretRe.MatchString(ln) {
-			add("secret", p, i+1, "looks like a hardcoded secret or key (R10)")
+			add("secret", p, i+1, i18n.T("looks like a hardcoded secret or key (R10)"))
 		}
 	}
 
@@ -212,24 +214,24 @@ func auditFile(p string, content []byte, am auditManifest, add func(rule, p stri
 		line := i + 1
 
 		if m := escalationRe.FindString(code); m != "" {
-			add("escalation", p, line, fmt.Sprintf("uses %q; a plugin must never escalate privilege (R6)", m))
+			add("escalation", p, line, fmt.Sprintf(i18n.T("uses %q; a plugin must never escalate privilege (R6)"), m))
 		}
 		if idx := strings.Index(code, "pkexec"); idx >= 0 && !pkexecAllowed(code[idx:], am.Privileged) {
-			add("escalation", p, line, "runs pkexec without an exact match in capabilities.privileged (R6)")
+			add("escalation", p, line, i18n.T("runs pkexec without an exact match in capabilities.privileged (R6)"))
 		}
 		if pipeShellRe.MatchString(code) {
-			add("pipe-shell", p, line, "downloads and pipes code into a shell (R7)")
+			add("pipe-shell", p, line, i18n.T("downloads and pipes code into a shell (R7)"))
 		}
 
 		if qmlLike {
 			switch {
 			case importShellRe.MatchString(code):
-				add("internal-import", p, line, "imports shell internals; only Ryoku.PluginKit is allowed (R4)")
+				add("internal-import", p, line, i18n.T("imports shell internals; only Ryoku.PluginKit is allowed (R4)"))
 			case importUiRe.MatchString(code):
-				add("internal-import", p, line, "imports Ryoku.Ui internals; only Ryoku.PluginKit is allowed (R4)")
+				add("internal-import", p, line, i18n.T("imports Ryoku.Ui internals; only Ryoku.PluginKit is allowed (R4)"))
 			default:
 				if mm := importRelRe.FindStringSubmatch(code); mm != nil && importEscapes(p, mm[1]) {
-					add("internal-import", p, line, "a relative import climbs out of the plugin folder (R4)")
+					add("internal-import", p, line, i18n.T("a relative import climbs out of the plugin folder (R4)"))
 				}
 			}
 		}
@@ -239,21 +241,21 @@ func auditFile(p string, content []byte, am auditManifest, add func(rule, p stri
 		if qmlLike {
 			for _, name := range extractCommands(code) {
 				if !commandAllowed(name, am.Commands) {
-					add("undeclared-command", p, line, fmt.Sprintf("runs %q, not in bin/, dependencies.commands, or the allowlist", name))
+					add("undeclared-command", p, line, fmt.Sprintf(i18n.T("runs %q, not in bin/, dependencies.commands, or the allowlist"), name))
 				}
 			}
 		}
 		for _, hm := range undeclaredHost.FindAllStringSubmatch(code, -1) {
 			h := stripPort(hm[1])
 			if h != "" && !hostAllowed(h, am.Network) {
-				add("undeclared-host", p, line, fmt.Sprintf("contacts %q, not listed in capabilities.network", h))
+				add("undeclared-host", p, line, fmt.Sprintf(i18n.T("contacts %q, not listed in capabilities.network"), h))
 			}
 		}
 		if isDynamicShell(code) {
-			add("dynamic-shell", p, line, "sh/bash -c with a built-up argument invites injection (R9)")
+			add("dynamic-shell", p, line, i18n.T("sh/bash -c with a built-up argument invites injection (R9)"))
 		}
 		if outsideWriteRe.MatchString(code) {
-			add("outside-write", p, line, "writes outside the plugin state dir (R8)")
+			add("outside-write", p, line, i18n.T("writes outside the plugin state dir (R8)"))
 		}
 	}
 }
@@ -426,20 +428,20 @@ func normalizeCmd(s string) string {
 // line hands it to ryoku-plugins-place, the sanctioned placement tool.
 func auditConfigWrite(p string, line int, code string, add func(rule, p string, line int, msg string)) {
 	if strings.Contains(code, "shell.json") {
-		add("config-write", p, line, "references shell.json; settings go through pluginApi.saveSetting (R5)")
+		add("config-write", p, line, i18n.T("references shell.json; settings go through pluginApi.saveSetting (R5)"))
 	}
 	if strings.Contains(code, "plugins.json") && !strings.Contains(code, "ryoku-plugins-place") {
-		add("config-write", p, line, "references plugins.json; settings go through pluginApi.saveSetting (R5)")
+		add("config-write", p, line, i18n.T("references plugins.json; settings go through pluginApi.saveSetting (R5)"))
 	}
 	if strings.Contains(code, "~/.ssh") {
-		add("config-write", p, line, "touches ~/.ssh; write only under stateDir (R8)")
+		add("config-write", p, line, i18n.T("touches ~/.ssh; write only under stateDir (R8)"))
 	}
 	if strings.Contains(code, "/etc/") {
-		add("config-write", p, line, "writes under /etc; write only under stateDir (R8)")
+		add("config-write", p, line, i18n.T("writes under /etc; write only under stateDir (R8)"))
 	}
 	for _, rc := range []string{".bashrc", ".zshrc", "config.fish"} {
 		if strings.Contains(code, rc) {
-			add("config-write", p, line, "touches a shell rc file ("+rc+"); write only under stateDir (R8)")
+			add("config-write", p, line, i18n.T("touches a shell rc file (")+rc+i18n.T("); write only under stateDir (R8)"))
 			break
 		}
 	}
@@ -564,5 +566,5 @@ func printAudit(res auditResult, asJSON bool) {
 	for _, f := range res.Warnings {
 		fmt.Printf("%s  %s:%d  %s\n", f.Rule, f.Path, f.Line, f.Message)
 	}
-	fmt.Printf("%d blocking, %d warnings\n", len(res.Blocking), len(res.Warnings))
+	fmt.Printf(i18n.T("%d blocking, %d warnings\n"), len(res.Blocking), len(res.Warnings))
 }

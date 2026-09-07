@@ -15,6 +15,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	i18n "ryoku-i18n"
 )
 
 // doctor = the convergent reconcilers. idempotent checks (plus a fix where
@@ -98,103 +100,107 @@ type reconciler struct {
 
 func reconcilers() []reconciler {
 	return []reconciler{
-		{"swap kept out of snapshots", reconcileSwapSubvolume},
-		{"snapper configuration", reconcileSnapper},
-		{"snapshot cleanup", reconcileSnapperCleanup},
-		{"limine boot menu layout", reconcileLimineLayout},
-		{"limine boot entry", reconcileLimineBootEntry},
-		{"alongside boot entry", reconcileAlongsideBootEntry},
-		{"limine UKI boot tree", reconcileLimineUKITree},
-		{"limine kernel boot images", reconcileLimineKernelImages},
-		{"limine autoboot", reconcileLimineAutoboot},
-		{"limine snapshot sync", reconcileLimineOSName},
-		{"updatedb snapshot prune", reconcileUpdatedbPrune},
-		{"pacman database lock", reconcilePacmanLock},
-		{"pacman progress bar", reconcilePacmanCandy},
-		{"conflicting Ryoku files", reconcileConflictingRyokuFiles},
-		{"stale update run-state", reconcileStaleUpdateRun},
-		{"stale install crypt mapper", reconcileStaleCryptMapper},
-		{"ryoku package channel", reconcileRyokuChannel},
-		{"ryoku package database", reconcileRyokuSyncDB},
-		{"boot guard", reconcileBootGuard},
-		{"update channel checkout", reconcileUpdateChannel},
-		{"update checkout pointer", reconcileRepoPointer},
-		{"stale dev residue", reconcileDevResidue},
-		{"ryostore cache location", reconcileRyostoreCache},
-		{"desktop session components", reconcileSessionComponents},
-		{"desktop portal routing", reconcilePortalRouting},
-		{"desktop portal session", reconcilePortalSession},
-		{"audio service health", reconcileAudioService},
-		{"audio playback routing", reconcileAudioRouting},
-		{"keyboard layout", reconcileKeymap},
-		{"keyboard layout detection", reconcileKeyboardSeed},
-		{"in-session lockscreen", reconcileLockscreen},
-		{"cursor theme", reconcileCursorTheme},
-		{"GTK session theme", reconcileGtkSession},
-		{"Material Symbols icon font", reconcileIconFont},
-		{"frame bar style name", reconcileFrameBarsStyle},
-		{"shell config schema", reconcileShellConfig},
-		{"shell style knobs", reconcileLegacyStyleKnobs},
-		{"sumi bar simplification", reconcileSumiBar},
-		{"dock config store", reconcileDockStore},
-		{"retired shell menus", reconcileRetiredMenus},
-		{"retired wallpaper keys", reconcileRetiredWallpaperKeys},
-		{"ryogami wallpaper daemon", reconcileRyogamiWallpaper},
-		{"ryowalls app leftovers", reconcileRyowallsRemoval},
-		{"quick-settings capture tab", reconcileCaptureModule},
-		{"quick-settings stage tab", reconcileStageModule},
-		{"ryostage cache", reconcileRyostageCache},
-		{"stage migration leftovers", reconcileStageLeftovers},
-		{"retired system sidebar", reconcileLegacySystemSidebar},
-		{"stash features sidebar anchor", reconcileStashSidebar},
-		{"shipped app packages", reconcileShippedApps},
-		{"ghostty theme include", reconcileGhostty},
-		{"obsidian palette snippet", reconcileObsidianSnippet},
-		{"flatpak app channel", reconcileFlatpakRemote},
-		{"browser theme host", reconcileBrowserTheme},
-		{"zen browser policy", reconcileZen},
-		{"zen browser animations", reconcileZenUserChrome},
-		{"launcher local-frost default", reconcileLauncherLocalFrostDefault},
-		{"user edits overlay", reconcileUserEdits},
-		{"default app map", reconcileMimeDefaults},
-		{"keyring unlock policy", reconcileKeyring},
-		{"SDDM greeter theme", reconcileGreeterTheme},
-		{"SDDM greeter display server", reconcileGreeterDisplayServer},
-		{"login screen cursor", reconcileGreeterCursor},
-		{"fastfetch readout emblem", reconcileFastfetchEmblem},
-		{"rice fastfetch emblem", reconcileRiceEmblem},
-		{"ryotunes", reconcileRyotunes},
-		{"fastfetch OS line", reconcileFastfetchOSLine},
-		{"brand mark image", reconcileBrandLogo},
-		{"decor art", reconcileRyodecors},
-		{"Hyprland config integrity", reconcileHyprlandConfig},
-		{"Hyprland plugin builds", reconcileHyprPlugins},
-		{"stale window-border pin", reconcileBorderPin},
-		{"orphaned theme.lua", reconcileThemeLua},
-		{"follow-mouse default", reconcileFollowMouseDefault},
-		{"quickshell runtime", reconcileQuickshell},
-		{"desktop loads", reconcileShellLoad},
-		{"ryoku shell daemon", reconcileShellDaemon},
-		{"duplicate desktop instances", reconcileShellInstances},
-		{"rashin agent daemon", reconcileRashinDaemon},
-		{"prowl-agent for rashin", reconcileProwlAgent},
-		{"recordings directory", reconcileRecordingsDir},
-		{"failed services", reconcileFailedUnits},
-		{"btrfs device health", reconcileBtrfsHealth},
-		{"wireless regulatory domain", reconcileWifiRegdom},
-		{"ASUS Aura lighting provider", reconcileAsusAura},
-		{"QMK/VIA keyboard lighting provider", reconcileQMK},
-		{"display backlight", reconcileBacklight},
-		{"discrete GPU idle drain", reconcileDgpuPanel},
-		{"stale GPU render pin", reconcileGpuPin},
-		{"power profiles vs AMD GPU", reconcilePpdAmdgpu},
-		{"display resolution", reconcileDisplayModes},
-		{"phantom Wayland output", reconcilePhantomOutput},
-		{"Kepler NVIDIA recovery", reconcileKeplerNvidia},
-		{"NVIDIA boot reliability", reconcileNvidiaModeset},
-		{"NVIDIA update guard hook", reconcileNvidiaGuardHook},
-		{"pending config (.pacnew)", reconcilePacnew},
-		{"orphaned packages", reconcileOrphans},
+		{i18n.T("interface language"), reconcileShellLanguage},
+		{i18n.T("swap kept out of snapshots"), reconcileSwapSubvolume},
+		{i18n.T("snapper configuration"), reconcileSnapper},
+		{i18n.T("snapshot cleanup"), reconcileSnapperCleanup},
+		{i18n.T("limine boot menu layout"), reconcileLimineLayout},
+		{i18n.T("limine boot entry"), reconcileLimineBootEntry},
+		{i18n.T("alongside boot entry"), reconcileAlongsideBootEntry},
+		{i18n.T("limine UKI boot tree"), reconcileLimineUKITree},
+		{i18n.T("limine kernel boot images"), reconcileLimineKernelImages},
+		{i18n.T("boot menu dead entries"), reconcileLimineDeadEntries},
+		{i18n.T("boot partition headroom"), reconcileBootSpace},
+		{i18n.T("initramfs GPU trim"), reconcileInitramfsGPUTrim},
+		{i18n.T("limine autoboot"), reconcileLimineAutoboot},
+		{i18n.T("limine snapshot sync"), reconcileLimineOSName},
+		{i18n.T("updatedb snapshot prune"), reconcileUpdatedbPrune},
+		{i18n.T("pacman database lock"), reconcilePacmanLock},
+		{i18n.T("pacman progress bar"), reconcilePacmanCandy},
+		{i18n.T("conflicting Ryoku files"), reconcileConflictingRyokuFiles},
+		{i18n.T("stale update run-state"), reconcileStaleUpdateRun},
+		{i18n.T("stale install crypt mapper"), reconcileStaleCryptMapper},
+		{i18n.T("ryoku package channel"), reconcileRyokuChannel},
+		{i18n.T("ryoku package database"), reconcileRyokuSyncDB},
+		{i18n.T("boot guard"), reconcileBootGuard},
+		{i18n.T("update channel checkout"), reconcileUpdateChannel},
+		{i18n.T("update checkout pointer"), reconcileRepoPointer},
+		{i18n.T("stale dev residue"), reconcileDevResidue},
+		{i18n.T("ryostore cache location"), reconcileRyostoreCache},
+		{i18n.T("desktop session components"), reconcileSessionComponents},
+		{i18n.T("desktop portal routing"), reconcilePortalRouting},
+		{i18n.T("desktop portal session"), reconcilePortalSession},
+		{i18n.T("audio service health"), reconcileAudioService},
+		{i18n.T("audio playback routing"), reconcileAudioRouting},
+		{i18n.T("keyboard layout"), reconcileKeymap},
+		{i18n.T("keyboard layout detection"), reconcileKeyboardSeed},
+		{i18n.T("in-session lockscreen"), reconcileLockscreen},
+		{i18n.T("cursor theme"), reconcileCursorTheme},
+		{i18n.T("GTK session theme"), reconcileGtkSession},
+		{i18n.T("Material Symbols icon font"), reconcileIconFont},
+		{i18n.T("frame bar style name"), reconcileFrameBarsStyle},
+		{i18n.T("shell config schema"), reconcileShellConfig},
+		{i18n.T("shell style knobs"), reconcileLegacyStyleKnobs},
+		{i18n.T("sumi bar simplification"), reconcileSumiBar},
+		{i18n.T("dock config store"), reconcileDockStore},
+		{i18n.T("retired shell menus"), reconcileRetiredMenus},
+		{i18n.T("retired wallpaper keys"), reconcileRetiredWallpaperKeys},
+		{i18n.T("ryogami wallpaper daemon"), reconcileRyogamiWallpaper},
+		{i18n.T("ryowalls app leftovers"), reconcileRyowallsRemoval},
+		{i18n.T("quick-settings capture tab"), reconcileCaptureModule},
+		{i18n.T("quick-settings stage tab"), reconcileStageModule},
+		{i18n.T("ryostage cache"), reconcileRyostageCache},
+		{i18n.T("stage migration leftovers"), reconcileStageLeftovers},
+		{i18n.T("retired system sidebar"), reconcileLegacySystemSidebar},
+		{i18n.T("stash features sidebar anchor"), reconcileStashSidebar},
+		{i18n.T("shipped app packages"), reconcileShippedApps},
+		{i18n.T("ghostty theme include"), reconcileGhostty},
+		{i18n.T("obsidian palette snippet"), reconcileObsidianSnippet},
+		{i18n.T("flatpak app channel"), reconcileFlatpakRemote},
+		{i18n.T("browser theme host"), reconcileBrowserTheme},
+		{i18n.T("zen browser policy"), reconcileZen},
+		{i18n.T("zen browser animations"), reconcileZenUserChrome},
+		{i18n.T("launcher local-frost default"), reconcileLauncherLocalFrostDefault},
+		{i18n.T("user edits overlay"), reconcileUserEdits},
+		{i18n.T("default app map"), reconcileMimeDefaults},
+		{i18n.T("keyring unlock policy"), reconcileKeyring},
+		{i18n.T("SDDM greeter theme"), reconcileGreeterTheme},
+		{i18n.T("SDDM greeter display server"), reconcileGreeterDisplayServer},
+		{i18n.T("login screen cursor"), reconcileGreeterCursor},
+		{i18n.T("fastfetch readout emblem"), reconcileFastfetchEmblem},
+		{i18n.T("rice fastfetch emblem"), reconcileRiceEmblem},
+		{i18n.T("ryotunes"), reconcileRyotunes},
+		{i18n.T("fastfetch OS line"), reconcileFastfetchOSLine},
+		{i18n.T("brand mark image"), reconcileBrandLogo},
+		{i18n.T("decor art"), reconcileRyodecors},
+		{i18n.T("Hyprland config integrity"), reconcileHyprlandConfig},
+		{i18n.T("Hyprland plugin builds"), reconcileHyprPlugins},
+		{i18n.T("stale window-border pin"), reconcileBorderPin},
+		{i18n.T("orphaned theme.lua"), reconcileThemeLua},
+		{i18n.T("follow-mouse default"), reconcileFollowMouseDefault},
+		{i18n.T("quickshell runtime"), reconcileQuickshell},
+		{i18n.T("desktop loads"), reconcileShellLoad},
+		{i18n.T("ryoku shell daemon"), reconcileShellDaemon},
+		{i18n.T("duplicate desktop instances"), reconcileShellInstances},
+		{i18n.T("rashin agent daemon"), reconcileRashinDaemon},
+		{i18n.T("prowl-agent for rashin"), reconcileProwlAgent},
+		{i18n.T("recordings directory"), reconcileRecordingsDir},
+		{i18n.T("failed services"), reconcileFailedUnits},
+		{i18n.T("btrfs device health"), reconcileBtrfsHealth},
+		{i18n.T("wireless regulatory domain"), reconcileWifiRegdom},
+		{i18n.T("ASUS Aura lighting provider"), reconcileAsusAura},
+		{i18n.T("QMK/VIA keyboard lighting provider"), reconcileQMK},
+		{i18n.T("display backlight"), reconcileBacklight},
+		{i18n.T("discrete GPU idle drain"), reconcileDgpuPanel},
+		{i18n.T("stale GPU render pin"), reconcileGpuPin},
+		{i18n.T("power profiles vs AMD GPU"), reconcilePpdAmdgpu},
+		{i18n.T("display resolution"), reconcileDisplayModes},
+		{i18n.T("phantom Wayland output"), reconcilePhantomOutput},
+		{i18n.T("Kepler NVIDIA recovery"), reconcileKeplerNvidia},
+		{i18n.T("NVIDIA boot reliability"), reconcileNvidiaModeset},
+		{i18n.T("NVIDIA update guard hook"), reconcileNvidiaGuardHook},
+		{i18n.T("pending config (.pacnew)"), reconcilePacnew},
+		{i18n.T("orphaned packages"), reconcileOrphans},
 	}
 }
 
@@ -240,7 +246,7 @@ func printFindings(fs []finding, verbose bool) (warns, fails int) {
 		}
 	}
 	if printed == 0 {
-		fmt.Println("  " + sys.Green("✓") + " all checks passed")
+		fmt.Println("  " + sys.Green("✓") + " " + i18n.T("all checks passed"))
 	}
 	return warns, fails
 }
@@ -267,7 +273,7 @@ func statusName(f finding) string {
 	}
 	name := sys.Bold(f.name)
 	if f.res.status == recFixed {
-		name += sys.Dim(" (fixed)")
+		name += sys.Dim(" " + i18n.T("(fixed)"))
 	}
 	return name
 }
@@ -280,16 +286,7 @@ func detailStyle(s recStatus, text string) string {
 }
 
 func doctorUsage() {
-	fmt.Print(`Usage: ryoku doctor [--check] [--verbose] [--report [file]] [--explain]
-
-  (no args)        check, and apply the safe automatic fixes
-  --check, -n      report what is wrong without changing anything
-  --verbose, -v    also list the checks that passed and advisory notes
-  --report [file]  write a shareable diagnostic report for the maintainers
-                   (default: ` + reportPath("") + `)
-  --explain        ask your cloud model (Groq/OpenRouter) to reason over the report
-  --json           emit findings as JSON (read-only; powers the Hub System Check)
-`)
+	fmt.Print(i18n.Tf("Usage: ryoku doctor [--check] [--verbose] [--report [file]] [--explain]\n\n  (no args)        check, and apply the safe automatic fixes\n  --check, -n      report what is wrong without changing anything\n  --verbose, -v    also list the checks that passed and advisory notes\n  --report [file]  write a shareable diagnostic report for the maintainers\n                   (default: %s)\n  --explain        ask your cloud model (Groq/OpenRouter) to reason over the report\n  --json           emit findings as JSON (read-only; powers the Hub System Check)\n", reportPath("")))
 }
 
 // Run: check, apply the safe fixes; on anything it can't fix, write a
@@ -317,7 +314,7 @@ func Run(args []string) error {
 			doctorUsage()
 			return nil
 		default:
-			return fmt.Errorf("unknown argument: %s (try --help)", a)
+			return fmt.Errorf(i18n.T("unknown argument: %s (try --help)"), a)
 		}
 	}
 
@@ -337,10 +334,10 @@ func Run(args []string) error {
 	if wantReport {
 		path, err := writeReport(reportTo, findings)
 		if err != nil {
-			return fmt.Errorf("writing report: %w", err)
+			return fmt.Errorf(i18n.T("writing report: %w"), err)
 		}
-		fmt.Printf("\n  %s diagnostic report written to %s\n", sys.Brand("➜"), path)
-		fmt.Println("    " + sys.Dim("share it with the maintainers: "+ryokuIssuesURL))
+		fmt.Printf(i18n.T("\n  %s diagnostic report written to %s\n"), sys.Brand("➜"), path)
+		fmt.Println("    " + sys.Dim(i18n.Tf("share it with the maintainers: %s", ryokuIssuesURL)))
 		return nil
 	}
 
@@ -348,18 +345,18 @@ func Run(args []string) error {
 	// user always has a next step and a file to share.
 	if warns+fails > 0 {
 		path, _ := writeReport("", findings)
-		noun := "issue"
+		noun := i18n.T("issue")
 		if warns+fails > 1 {
-			noun = "issues"
+			noun = i18n.T("issues")
 		}
-		fmt.Fprintf(os.Stderr, "\n  %s %s\n", sys.Brand("➜"), sys.Bold(fmt.Sprintf("found %d %s", warns+fails, noun)))
-		fmt.Fprintf(os.Stderr, "    %s  %s\n", sys.Brand("ryoku doctor --explain"), sys.Dim("AI diagnosis and a suggested fix"))
+		fmt.Fprintf(os.Stderr, "\n  %s %s\n", sys.Brand("➜"), sys.Bold(fmt.Sprintf(i18n.T("found %d %s"), warns+fails, noun)))
+		fmt.Fprintf(os.Stderr, "    %s  %s\n", sys.Brand("ryoku doctor --explain"), sys.Dim(i18n.T("AI diagnosis and a suggested fix")))
 		if path != "" {
-			fmt.Fprintf(os.Stderr, "    %s\n", sys.Dim("report saved: "+path))
+			fmt.Fprintf(os.Stderr, "    %s\n", sys.Dim(i18n.Tf("report saved: %s", path)))
 		}
 	}
 	if fails > 0 {
-		return fmt.Errorf("%d check(s) failed", fails)
+		return fmt.Errorf(i18n.T("%d check(s) failed"), fails)
 	}
 	return nil
 }
@@ -404,7 +401,7 @@ func emitFindingsJSON(findings []finding) error {
 // root.
 func reconcileSwapSubvolume(checkOnly bool) recResult {
 	if !sys.Exists("/etc/snapper/configs/root") {
-		return okRes("root snapshots not configured, nothing to keep out of them")
+		return okRes(i18n.T("root snapshots not configured, nothing to keep out of them"))
 	}
 	for _, sw := range activeSwapFiles() {
 		dir := filepath.Dir(sw.path)
@@ -412,19 +409,19 @@ func reconcileSwapSubvolume(checkOnly bool) recResult {
 			continue
 		}
 		if !dirOnlyContains(dir, filepath.Base(sw.path)) {
-			return warnRes("swapfile %s blocks snapshots; %s holds other files", sw.path, dir).
-				withFix("move the swapfile into its own subvolume by hand")
+			return warnRes(i18n.T("swapfile %s blocks snapshots; %s holds other files"), sw.path, dir).
+				withFix(i18n.T("move the swapfile into its own subvolume by hand"))
 		}
 		if checkOnly {
-			return wouldRes("swapfile %s sits in snapshotted %s", sw.path, dir).
-				withFix("ryoku doctor (moves it into its own btrfs subvolume)")
+			return wouldRes(i18n.T("swapfile %s sits in snapshotted %s"), sw.path, dir).
+				withFix(i18n.T("ryoku doctor (moves it into its own btrfs subvolume)"))
 		}
 		if err := relocateSwapToSubvolume(sw, dir); err != nil {
-			return failRes("relocating %s: %v", sw.path, err)
+			return failRes(i18n.T("relocating %s: %v"), sw.path, err)
 		}
-		return fixedRes("moved %s into its own btrfs subvolume so snapshots work", sw.path)
+		return fixedRes(i18n.T("moved %s into its own btrfs subvolume so snapshots work"), sw.path)
 	}
-	return okRes("swap is out of snapshots")
+	return okRes(i18n.T("swap is out of snapshots"))
 }
 
 // ---- reconciler: snapper configuration ---------------------------------------
@@ -531,27 +528,27 @@ func planSnapper(s snapperState) (snapperOutcome, []string) {
 	}
 	var problems []string
 	if s.snapshotsExists && !s.snapshotsIsSubvol {
-		problems = append(problems, "/.snapshots is a plain directory, not a btrfs subvolume")
+		problems = append(problems, i18n.T("/.snapshots is a plain directory, not a btrfs subvolume"))
 	}
 	if s.snapshotsExists && s.snapshotsMode != 0o750 {
-		problems = append(problems, fmt.Sprintf("/.snapshots is mode %04o, expected 0750", s.snapshotsMode))
+		problems = append(problems, fmt.Sprintf(i18n.T("/.snapshots is mode %04o, expected 0750"), s.snapshotsMode))
 	}
 	if s.confdExists && !strings.Contains(s.confdContents, "root") {
-		problems = append(problems, "/etc/conf.d/snapper does not list the root config (timers and hooks will skip it)")
+		problems = append(problems, i18n.T("/etc/conf.d/snapper does not list the root config (timers and hooks will skip it)"))
 	}
 	if !s.snapperInstalled {
-		problems = append(problems, "snapper is not installed; the root config exists but cannot be used (sudo pacman -S snapper)")
+		problems = append(problems, i18n.T("snapper is not installed; the root config exists but cannot be used (sudo pacman -S snapper)"))
 	}
 	if !s.snapPacInstalled {
-		problems = append(problems, "snap-pac is not installed, so pacman transactions are not auto-snapshotted (sudo pacman -S snap-pac)")
+		problems = append(problems, i18n.T("snap-pac is not installed, so pacman transactions are not auto-snapshotted (sudo pacman -S snap-pac)"))
 	}
 	// only meaningful under Limine; a GRUB box (converted CachyOS and the
 	// like) is healthy without it and must not warn forever.
 	if s.limineInstalled {
 		if !s.limineSyncInstalled {
-			problems = append(problems, "limine-snapper-sync is not installed, so snapshots are not in the Limine boot menu (ryoku-pkg-aur-add limine-snapper-sync)")
+			problems = append(problems, i18n.T("limine-snapper-sync is not installed, so snapshots are not in the Limine boot menu (ryoku-pkg-aur-add limine-snapper-sync)"))
 		} else if !s.limineSyncEnabled {
-			problems = append(problems, "limine-snapper-sync.service is disabled, so new snapshots never reach the Limine boot menu (sudo systemctl enable --now limine-snapper-sync.service)")
+			problems = append(problems, i18n.T("limine-snapper-sync.service is disabled, so new snapshots never reach the Limine boot menu (sudo systemctl enable --now limine-snapper-sync.service)"))
 		}
 	}
 	if len(problems) == 0 {
@@ -594,23 +591,23 @@ func reconcileSnapper(checkOnly bool) recResult {
 	outcome, problems := planSnapper(st)
 	switch outcome {
 	case snapperWarnNotBtrfs:
-		return warnRes("root filesystem is not btrfs; snapshot and rollback are unavailable on this machine")
+		return warnRes(i18n.T("root filesystem is not btrfs; snapshot and rollback are unavailable on this machine"))
 	case snapperWarnMissingPkgs:
-		return warnRes("root is btrfs but snapper is not installed; snapshots and rollback are off").
-			withFix("sudo pacman -S snapper snap-pac, then ryoku doctor")
+		return warnRes(i18n.T("root is btrfs but snapper is not installed; snapshots and rollback are off")).
+			withFix(i18n.T("sudo pacman -S snapper snap-pac, then ryoku doctor"))
 	case snapperOptedOut:
-		return okRes("snapshots were declined at install (/etc/ryoku/snapshots-disabled); delete the marker and run `ryoku doctor` to enable them")
+		return okRes(i18n.T("snapshots were declined at install (/etc/ryoku/snapshots-disabled); delete the marker and run `ryoku doctor` to enable them"))
 	case snapperCreate:
 		if checkOnly {
-			return wouldRes("snapper root config is missing; snapshots and rollback are off").
-				withFix("ryoku doctor (creates the snapper root config)")
+			return wouldRes(i18n.T("snapper root config is missing; snapshots and rollback are off")).
+				withFix(i18n.T("ryoku doctor (creates the snapper root config)"))
 		}
 		return createSnapperRootConfig(st)
 	case snapperWarnInconsistent:
 		return warnRes("%s", strings.Join(problems, "; ")).
-			withFix("see https://wiki.archlinux.org/title/Snapper")
+			withFix(i18n.T("see https://wiki.archlinux.org/title/Snapper"))
 	}
-	return okRes("snapper root config is consistent")
+	return okRes(i18n.T("snapper root config is consistent"))
 }
 
 // createSnapperRootConfig lays the installer's layout down on a live box.
@@ -630,31 +627,31 @@ func createSnapperRootConfig(st snapperState) recResult {
 	switch {
 	case !st.snapshotsExists:
 		if err := sys.Run("sudo", "btrfs", "subvolume", "create", "/.snapshots"); err != nil {
-			return failRes("creating /.snapshots subvolume: %v", err).
-				withFix("sudo btrfs subvolume create /.snapshots, then re-run ryoku doctor")
+			return failRes(i18n.T("creating /.snapshots subvolume: %v"), err).
+				withFix(i18n.T("sudo btrfs subvolume create /.snapshots, then re-run ryoku doctor"))
 		}
 		actions = append(actions, "/.snapshots subvolume")
 	case !st.snapshotsIsSubvol:
-		return warnRes("/.snapshots exists as a plain directory; remove or convert it before the snapper config can be created").
-			withFix("inspect /.snapshots, then `sudo rmdir /.snapshots && sudo btrfs subvolume create /.snapshots` and re-run ryoku doctor")
+		return warnRes(i18n.T("/.snapshots exists as a plain directory; remove or convert it before the snapper config can be created")).
+			withFix(i18n.T("inspect /.snapshots, then `sudo rmdir /.snapshots && sudo btrfs subvolume create /.snapshots` and re-run ryoku doctor"))
 	}
 
 	if err := sys.Run("sudo", "chmod", "0750", "/.snapshots"); err != nil {
-		return failRes("chmod /.snapshots: %v", err)
+		return failRes(i18n.T("chmod /.snapshots: %v"), err)
 	}
 	if err := sys.Run("sudo", "chown", "root:root", "/.snapshots"); err != nil {
-		return failRes("chown /.snapshots: %v", err)
+		return failRes(i18n.T("chown /.snapshots: %v"), err)
 	}
 
 	if err := writeRootFile("/etc/snapper/configs/root", snapperRootConfig, "0640"); err != nil {
-		return failRes("writing /etc/snapper/configs/root: %v", err)
+		return failRes(i18n.T("writing /etc/snapper/configs/root: %v"), err)
 	}
 	actions = append(actions, "/etc/snapper/configs/root")
 
 	newConfd, changed := mergedConfdRoot(st.confdExists, st.confdContents)
 	if changed {
 		if err := writeRootFile("/etc/conf.d/snapper", newConfd, "0644"); err != nil {
-			return failRes("writing /etc/conf.d/snapper: %v", err)
+			return failRes(i18n.T("writing /etc/conf.d/snapper: %v"), err)
 		}
 		actions = append(actions, "/etc/conf.d/snapper")
 	}
@@ -667,7 +664,7 @@ func createSnapperRootConfig(st snapperState) recResult {
 		_ = sys.Run("sudo", "systemctl", "enable", "--now", "limine-snapper-sync.service")
 	}
 
-	return fixedRes("created snapper root config: %s", strings.Join(actions, ", "))
+	return fixedRes(i18n.T("created snapper root config: %s"), strings.Join(actions, ", "))
 }
 
 // mergedConfdRoot returns the desired /etc/conf.d/snapper contents + whether
@@ -760,18 +757,18 @@ func markMigration(marker string) error {
 func reconcilePacmanLock(checkOnly bool) recResult {
 	const lock = "/var/lib/pacman/db.lck"
 	if !sys.Exists(lock) {
-		return okRes("no stale pacman lock")
+		return okRes(i18n.T("no stale pacman lock"))
 	}
 	if processRunning("pacman") {
-		return okRes("pacman is running; lock is in use")
+		return okRes(i18n.T("pacman is running; lock is in use"))
 	}
 	if checkOnly {
-		return wouldRes("stale pacman lock present (no pacman running)").withFix("sudo rm %s", lock)
+		return wouldRes(i18n.T("stale pacman lock present (no pacman running)")).withFix("sudo rm %s", lock)
 	}
 	if err := sys.Run("sudo", "rm", "-f", lock); err != nil {
-		return failRes("could not remove stale lock: %v", err).withFix("sudo rm %s", lock)
+		return failRes(i18n.T("could not remove stale lock: %v"), err).withFix("sudo rm %s", lock)
 	}
-	return fixedRes("removed stale pacman lock")
+	return fixedRes(i18n.T("removed stale pacman lock"))
 }
 
 // ---- reconciler: stale update run-state --------------------------------------
@@ -796,28 +793,28 @@ func reconcileStaleUpdateRun(checkOnly bool) recResult {
 	path := filepath.Join(dir, "ryoku-update.json")
 	b, err := os.ReadFile(path)
 	if err != nil {
-		return okRes("no update run-state")
+		return okRes(i18n.T("no update run-state"))
 	}
 	var st struct {
 		Phase string `json:"phase"`
 	}
 	if json.Unmarshal(b, &st) != nil || (st.Phase != "running" && st.Phase != "prompt") {
-		return okRes("update run-state is settled")
+		return okRes(i18n.T("update run-state is settled"))
 	}
 	if updateProcessLive() {
-		return okRes("an update is running; run-state is live")
+		return okRes(i18n.T("an update is running; run-state is live"))
 	}
 	if checkOnly {
-		return wouldRes("update island stuck on a crashed run (phase %s)", st.Phase).withFix("rm %s", path)
+		return wouldRes(i18n.T("update island stuck on a crashed run (phase %s)"), st.Phase).withFix("rm %s", path)
 	}
 	idle := []byte(`{"phase":"idle"}`)
 	if os.WriteFile(path+".tmp", idle, 0o644) == nil && os.Rename(path+".tmp", path) == nil {
-		return fixedRes("cleared a crashed update's run-state")
+		return fixedRes(i18n.T("cleared a crashed update's run-state"))
 	}
 	if err := os.Remove(path); err != nil {
-		return failRes("could not clear the stale run-state: %v", err).withFix("rm %s", path)
+		return failRes(i18n.T("could not clear the stale run-state: %v"), err).withFix("rm %s", path)
 	}
-	return fixedRes("cleared a crashed update's run-state")
+	return fixedRes(i18n.T("cleared a crashed update's run-state"))
 }
 
 // ---- reconciler: stale install crypt mapper ----------------------------------
@@ -831,22 +828,22 @@ func reconcileStaleUpdateRun(checkOnly bool) recResult {
 func reconcileStaleCryptMapper(checkOnly bool) recResult {
 	nodes := cryptMapperNodes()
 	if len(nodes) == 0 {
-		return okRes("no crypt mappers present")
+		return okRes(i18n.T("no crypt mappers present"))
 	}
 	stale := staleInstallMapper(nodes, mountSourceOf("/"), mountedSources())
 	if stale == "" {
-		return okRes("no orphaned install crypt mapper")
+		return okRes(i18n.T("no orphaned install crypt mapper"))
 	}
 	node := "/dev/mapper/" + stale
 	if checkOnly {
-		return wouldRes("orphaned crypt mapper %s from a failed install blocks `cryptsetup open ... %s`", node, stale).
+		return wouldRes(i18n.T("orphaned crypt mapper %s from a failed install blocks `cryptsetup open ... %s`"), node, stale).
 			withFix("sudo cryptsetup close %s", stale)
 	}
 	if err := sys.Run("sudo", "cryptsetup", "close", stale); err != nil {
-		return failRes("could not close orphaned crypt mapper %s: %v", node, err).
+		return failRes(i18n.T("could not close orphaned crypt mapper %s: %v"), node, err).
 			withFix("sudo cryptsetup close %s", stale)
 	}
-	return fixedRes("closed orphaned crypt mapper %s left by a failed install", node)
+	return fixedRes(i18n.T("closed orphaned crypt mapper %s left by a failed install"), node)
 }
 
 // staleInstallMapper returns "root" only when /dev/mapper/root is a true orphan:
@@ -934,17 +931,17 @@ const ryokuRepoStanza = "\n[ryoku]\nSigLevel = Required\nServer = " + sys.RepoBa
 
 func reconcileRyokuChannel(checkOnly bool) recResult {
 	if !sys.PkgInstalled("ryoku-desktop") {
-		return okRes("not a packaged install (desktop runs from a checkout)")
+		return okRes(i18n.T("not a packaged install (desktop runs from a checkout)"))
 	}
 	conf, err := os.ReadFile("/etc/pacman.conf")
 	if err != nil {
-		return warnRes("could not read /etc/pacman.conf: %v", err)
+		return warnRes(i18n.T("could not read /etc/pacman.conf: %v"), err)
 	}
 	if !sys.PkgInstalled("ryoku-keyring") {
 		// without the trusted key a Required repo fails every fetch, and the key
 		// only comes from the package, so adding the stanza alone would not help.
-		return warnRes("ryoku-keyring is missing, so the [ryoku] repo cannot be trusted; updates will fail signature checks").
-			withFix("sudo pacman -S ryoku-keyring, then run ryoku doctor")
+		return warnRes(i18n.T("ryoku-keyring is missing, so the [ryoku] repo cannot be trusted; updates will fail signature checks")).
+			withFix(i18n.T("sudo pacman -S ryoku-keyring, then run ryoku doctor"))
 	}
 	if strings.Contains(string(conf), "[ryoku]") {
 		// the Server line is the channel. name it, and flag a server Ryoku
@@ -952,13 +949,13 @@ func reconcileRyokuChannel(checkOnly bool) recResult {
 		// a private mirror is deliberate, but it means no release reaches here.
 		switch ch := sys.ChannelOfServer(sys.RyokuServer()); {
 		case ch == sys.ChannelStable:
-			return okRes("ryoku channel: stable packages (named releases); `ryoku track unstable-dev` follows testing")
+			return okRes(i18n.T("ryoku channel: stable packages (named releases); `ryoku track unstable-dev` follows testing"))
 		case ch == sys.ChannelTesting:
-			return okRes("ryoku channel: testing packages (rebuilt on every unstable-dev push); `ryoku track main` returns to stable releases")
+			return okRes(i18n.T("ryoku channel: testing packages (rebuilt on every unstable-dev push); `ryoku track main` returns to stable releases"))
 		case sys.IsReleaseTag(ch):
-			return okRes("ryoku channel: pinned to release %s (packages); `ryoku track main` follows releases again", ch)
+			return okRes(i18n.T("ryoku channel: pinned to release %s (packages); `ryoku track main` follows releases again"), ch)
 		default:
-			return warnRes("the [ryoku] repo points at %s, which Ryoku does not publish; releases will not arrive from it", sys.RyokuServer()).
+			return warnRes(i18n.T("the [ryoku] repo points at %s, which Ryoku does not publish; releases will not arrive from it"), sys.RyokuServer()).
 				withFix("ryoku track main")
 		}
 	}
@@ -966,17 +963,17 @@ func reconcileRyokuChannel(checkOnly bool) recResult {
 	// hand-edit dropped it): re-add it so `ryoku update` reaches the package
 	// channel again, instead of stranding the box with no way to get updates.
 	if checkOnly {
-		return wouldRes("ryoku-desktop is installed but the [ryoku] repo is not in pacman.conf; updates will not arrive").
+		return wouldRes(i18n.T("ryoku-desktop is installed but the [ryoku] repo is not in pacman.conf; updates will not arrive")).
 			withFix("ryoku doctor")
 	}
 	if err := writeRootFile("/etc/pacman.conf", string(conf)+ryokuRepoStanza, "0644"); err != nil {
-		return warnRes("the [ryoku] repo is missing from pacman.conf and could not be re-added: %v", err).
-			withFix("add the [ryoku] repo by hand (see docs/development.md)")
+		return warnRes(i18n.T("the [ryoku] repo is missing from pacman.conf and could not be re-added: %v"), err).
+			withFix(i18n.T("add the [ryoku] repo by hand (see docs/development.md)"))
 	}
 	// a reset trustdb would still fail Required even with the keyring installed;
 	// re-populating is idempotent and cheap.
 	_ = sys.Sudo("pacman-key", "--populate", "ryoku")
-	return fixedRes("re-added the [ryoku] repo to pacman.conf so updates arrive again")
+	return fixedRes(i18n.T("re-added the [ryoku] repo to pacman.conf so updates arrive again"))
 }
 
 // ---- reconciler: ryoku sync database health ----------------------------------
@@ -994,36 +991,36 @@ func reconcileRyokuChannel(checkOnly bool) recResult {
 // and pulls a fresh, matched pair.
 func reconcileRyokuSyncDB(checkOnly bool) recResult {
 	if !sys.PkgInstalled("ryoku-desktop") {
-		return okRes("not a packaged install (desktop runs from a checkout)")
+		return okRes(i18n.T("not a packaged install (desktop runs from a checkout)"))
 	}
 	// a missing key is a keyring problem the channel reconciler owns; dropping
 	// the db would only refetch one that fails the same way.
 	if !sys.PkgInstalled("ryoku-keyring") || sys.RyokuServer() == "" {
-		return okRes("[ryoku] repo or keyring absent; nothing to verify")
+		return okRes(i18n.T("[ryoku] repo or keyring absent; nothing to verify"))
 	}
 	if !sys.Exists("/var/lib/pacman/sync/ryoku.db") {
-		return okRes("no cached [ryoku] sync db to check")
+		return okRes(i18n.T("no cached [ryoku] sync db to check"))
 	}
 	out, err := sys.RunOut("sh", "-c", "LC_ALL=C pacman -Sl ryoku 2>&1")
 	if err == nil {
-		return okRes("the [ryoku] sync db loads and verifies")
+		return okRes(i18n.T("the [ryoku] sync db loads and verifies"))
 	}
 	if !strings.Contains(out, "invalid or corrupted database") && !strings.Contains(out, "signature") {
 		// another failure (offline, transient); not the stale-signature wedge.
-		return okRes("the [ryoku] sync db is present; no signature wedge")
+		return okRes(i18n.T("the [ryoku] sync db is present; no signature wedge"))
 	}
 	if checkOnly {
-		return wouldRes("the cached [ryoku] sync db no longer matches its signature; every pacman transaction fails until it is refreshed").
+		return wouldRes(i18n.T("the cached [ryoku] sync db no longer matches its signature; every pacman transaction fails until it is refreshed")).
 			withFix("ryoku doctor")
 	}
 	if err := sys.DropRyokuSyncDB(); err != nil {
-		return failRes("could not drop the stale [ryoku] sync db: %v", err).
+		return failRes(i18n.T("could not drop the stale [ryoku] sync db: %v"), err).
 			withFix("sudo rm -f /var/lib/pacman/sync/ryoku.* && sudo pacman -Syy")
 	}
 	// the db is gone now, so a plain -Sy pulls a fresh, matched pair; best-effort
 	// so an offline box simply refetches on its next update.
 	_ = sys.Sudo("pacman", "-Sy", "--noconfirm")
-	return fixedRes("dropped the stale [ryoku] sync db so pacman refetches a matched db and signature")
+	return fixedRes(i18n.T("dropped the stale [ryoku] sync db so pacman refetches a matched db and signature"))
 }
 
 // ---- reconciler: Material Symbols icon font ------------------------------------
@@ -1036,20 +1033,20 @@ func reconcileRyokuSyncDB(checkOnly bool) recResult {
 // broken today.
 func reconcileIconFont(checkOnly bool) recResult {
 	if !sys.Exists(filepath.Join(sys.Home(), ".config", "hypr")) && !sys.Has("Hyprland") {
-		return okRes("not a Hyprland desktop")
+		return okRes(i18n.T("not a Hyprland desktop"))
 	}
 	if anyPkgInstalled("ttf-material-symbols-variable", "ttf-material-symbols-variable-git") {
-		return okRes("Material Symbols icon font installed")
+		return okRes(i18n.T("Material Symbols icon font installed"))
 	}
 	if checkOnly {
-		return wouldRes("Material Symbols font missing; every shell icon renders as its ligature name").
-			withFix("ryoku doctor installs ttf-material-symbols-variable")
+		return wouldRes(i18n.T("Material Symbols font missing; every shell icon renders as its ligature name")).
+			withFix(i18n.T("ryoku doctor installs ttf-material-symbols-variable"))
 	}
 	if err := sys.Sudo("pacman", "-S", "--needed", "--noconfirm", "ttf-material-symbols-variable"); err != nil {
-		return failRes("could not install ttf-material-symbols-variable: %v", err).
+		return failRes(i18n.T("could not install ttf-material-symbols-variable: %v"), err).
 			withFix("sudo pacman -S ttf-material-symbols-variable")
 	}
-	return fixedRes("installed the Material Symbols icon font; `ryoku reload` picks it up")
+	return fixedRes(i18n.T("installed the Material Symbols icon font; `ryoku reload` picks it up"))
 }
 
 // ---- reconciler: stale dev/recovery residue ------------------------------------
@@ -1063,10 +1060,10 @@ func reconcileIconFont(checkOnly bool) recResult {
 // (git channel) IS the dev loop: left alone.
 func reconcileDevResidue(checkOnly bool) recResult {
 	if sys.ResolveRepo() != "" {
-		return okRes("checkout box; home-deployed artifacts are the live desktop")
+		return okRes(i18n.T("checkout box; home-deployed artifacts are the live desktop"))
 	}
 	if !sys.PkgInstalled("ryoku-desktop") {
-		return okRes("not a packaged install")
+		return okRes(i18n.T("not a packaged install"))
 	}
 	var residue []string
 	if qml := filepath.Join(sys.Home(), ".local", "lib", "qt6", "qml", "Ryoku"); sys.Exists(qml) {
@@ -1096,11 +1093,11 @@ func reconcileDevResidue(checkOnly bool) recResult {
 		residue = append(residue, filepath.Join(localBin, e.Name()))
 	}
 	if len(residue) == 0 {
-		return okRes("no home-deployed artifacts shadowing the packages")
+		return okRes(i18n.T("no home-deployed artifacts shadowing the packages"))
 	}
 	if checkOnly {
-		return wouldRes("stale home-deployed artifacts shadow the packaged install: %s", strings.Join(residue, ", ")).
-			withFix("ryoku doctor removes them; the packaged copies take over on the next reload")
+		return wouldRes(i18n.T("stale home-deployed artifacts shadow the packaged install: %s"), strings.Join(residue, ", ")).
+			withFix(i18n.T("ryoku doctor removes them; the packaged copies take over on the next reload"))
 	}
 	// report what could not be removed: a survivor keeps shadowing the packaged
 	// install (Hyprland's autostart relaunches it by PATH at next login), so
@@ -1112,10 +1109,10 @@ func reconcileDevResidue(checkOnly bool) recResult {
 		}
 	}
 	if len(kept) > 0 {
-		return failRes("could not remove home-deployed artifact(s) still shadowing the packaged install: %s", strings.Join(kept, ", ")).
-			withFix("remove them by hand (check ownership/permissions), then `ryoku reload`")
+		return failRes(i18n.T("could not remove home-deployed artifact(s) still shadowing the packaged install: %s"), strings.Join(kept, ", ")).
+			withFix(i18n.T("remove them by hand (check ownership/permissions), then `ryoku reload`"))
 	}
-	return fixedRes("removed %d home-deployed artifact(s) shadowing the packaged install; `ryoku reload` switches to the packaged shell", len(residue))
+	return fixedRes(i18n.T("removed %d home-deployed artifact(s) shadowing the packaged install; `ryoku reload` switches to the packaged shell"), len(residue))
 }
 
 // ---- reconciler: ryostore cache directory ------------------------------------
@@ -1133,19 +1130,19 @@ func reconcileRyostoreCache(checkOnly bool) recResult {
 	old := filepath.Join(cacheHome, "ryoku", "extras")
 	cur := filepath.Join(cacheHome, "ryoku", "ryostore")
 	if !sys.Exists(old) || sys.Exists(cur) {
-		return okRes("ryostore cache is on the current path")
+		return okRes(i18n.T("ryostore cache is on the current path"))
 	}
 	if checkOnly {
-		return wouldRes("the store cache still lives at the pre-rename %s", old).
-			withFix("ryoku doctor moves it to %s", cur)
+		return wouldRes(i18n.T("the store cache still lives at the pre-rename %s"), old).
+			withFix(i18n.T("ryoku doctor moves it to %s"), cur)
 	}
 	if err := os.MkdirAll(filepath.Dir(cur), 0o755); err != nil {
-		return failRes("could not create %s: %v", filepath.Dir(cur), err)
+		return failRes(i18n.T("could not create %s: %v"), filepath.Dir(cur), err)
 	}
 	if err := os.Rename(old, cur); err != nil {
-		return failRes("could not move %s to %s: %v", old, cur, err)
+		return failRes(i18n.T("could not move %s to %s: %v"), old, cur, err)
 	}
-	return fixedRes("moved the store cache from %s to %s", old, cur)
+	return fixedRes(i18n.T("moved the store cache from %s to %s"), old, cur)
 }
 
 // ---- reconciler: shell config schema -------------------------------------------
@@ -1154,29 +1151,29 @@ func reconcileShellConfig(checkOnly bool) recResult {
 	path := filepath.Join(sys.ConfigHome(), "ryoku", "shell.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return okRes("no shell.json yet (seeded on first shell run)")
+		return okRes(i18n.T("no shell.json yet (seeded on first shell run)"))
 	}
 	migrated, changes, err := migrateShellConfig(raw)
 	if err != nil {
-		return warnRes("shell.json does not parse (%v); the shell falls back to defaults", err).
-			withFix("delete %s to re-seed it", path)
+		return warnRes(i18n.T("shell.json does not parse (%v); the shell falls back to defaults"), err).
+			withFix(i18n.T("delete %s to re-seed it"), path)
 	}
 	if len(changes) == 0 {
-		return okRes("shell.json is on the current schema")
+		return okRes(i18n.T("shell.json is on the current schema"))
 	}
 	if checkOnly {
-		return wouldRes("shell.json carries retired state: %s", strings.Join(changes, "; ")).
-			withFix("ryoku doctor migrates it in place")
+		return wouldRes(i18n.T("shell.json carries retired state: %s"), strings.Join(changes, "; ")).
+			withFix(i18n.T("ryoku doctor migrates it in place"))
 	}
 	tmp := path + ".ryoku-tmp"
 	if err := os.WriteFile(tmp, migrated, 0o644); err != nil {
-		return failRes("could not write %s: %v", tmp, err)
+		return failRes(i18n.T("could not write %s: %v"), tmp, err)
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		os.Remove(tmp)
-		return failRes("could not replace %s: %v", path, err)
+		return failRes(i18n.T("could not replace %s: %v"), path, err)
 	}
-	return fixedRes("migrated shell.json to the current schema: %s", strings.Join(changes, "; "))
+	return fixedRes(i18n.T("migrated shell.json to the current schema: %s"), strings.Join(changes, "; "))
 }
 
 // ---- reconciler: dock config store -------------------------------------------
@@ -1193,29 +1190,29 @@ func reconcileDockStore(checkOnly bool) recResult {
 	path := filepath.Join(sys.ConfigHome(), "ryoku", "shell.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return okRes("no shell.json yet (seeded on first shell run)")
+		return okRes(i18n.T("no shell.json yet (seeded on first shell run)"))
 	}
 	migrated, changed, err := migrateDockStore(raw)
 	if err != nil {
-		return warnRes("shell.json does not parse (%v); the shell falls back to defaults", err).
-			withFix("delete %s to re-seed it", path)
+		return warnRes(i18n.T("shell.json does not parse (%v); the shell falls back to defaults"), err).
+			withFix(i18n.T("delete %s to re-seed it"), path)
 	}
 	if !changed {
-		return okRes("dock config lives in the top-level dock object")
+		return okRes(i18n.T("dock config lives in the top-level dock object"))
 	}
 	if checkOnly {
-		return wouldRes("shell.json still keeps dock knobs in the qsbar map").
-			withFix("ryoku doctor moves them into the top-level dock object in place")
+		return wouldRes(i18n.T("shell.json still keeps dock knobs in the qsbar map")).
+			withFix(i18n.T("ryoku doctor moves them into the top-level dock object in place"))
 	}
 	tmp := path + ".ryoku-tmp"
 	if err := os.WriteFile(tmp, migrated, 0o644); err != nil {
-		return failRes("could not write %s: %v", tmp, err)
+		return failRes(i18n.T("could not write %s: %v"), tmp, err)
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		os.Remove(tmp)
-		return failRes("could not replace %s: %v", path, err)
+		return failRes(i18n.T("could not replace %s: %v"), path, err)
 	}
-	return fixedRes("moved the retired qsbar dock knobs into the top-level dock object")
+	return fixedRes(i18n.T("moved the retired qsbar dock knobs into the top-level dock object"))
 }
 
 // oldDockKeys map each retired qsbar dock knob to its key in the top-level dock
@@ -1299,29 +1296,29 @@ func reconcileFrameBarsStyle(checkOnly bool) recResult {
 	path := filepath.Join(sys.ConfigHome(), "ryoku", "shell.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return okRes("no shell.json yet (seeded on first shell run)")
+		return okRes(i18n.T("no shell.json yet (seeded on first shell run)"))
 	}
 	migrated, changed, err := migrateFrameBarsStyle(raw)
 	if err != nil {
-		return warnRes("shell.json does not parse (%v); the shell falls back to defaults", err).
-			withFix("delete %s to re-seed it", path)
+		return warnRes(i18n.T("shell.json does not parse (%v); the shell falls back to defaults"), err).
+			withFix(i18n.T("delete %s to re-seed it"), path)
 	}
 	if !changed {
-		return okRes("frameBars.style names a current bar style")
+		return okRes(i18n.T("frameBars.style names a current bar style"))
 	}
 	if checkOnly {
-		return wouldRes("frameBars.style still names the retired bar style").
-			withFix("ryoku doctor renames it in place")
+		return wouldRes(i18n.T("frameBars.style still names the retired bar style")).
+			withFix(i18n.T("ryoku doctor renames it in place"))
 	}
 	tmp := path + ".ryoku-tmp"
 	if err := os.WriteFile(tmp, migrated, 0o644); err != nil {
-		return failRes("could not write %s: %v", tmp, err)
+		return failRes(i18n.T("could not write %s: %v"), tmp, err)
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		os.Remove(tmp)
-		return failRes("could not replace %s: %v", path, err)
+		return failRes(i18n.T("could not replace %s: %v"), path, err)
 	}
-	return fixedRes("renamed the retired frameBars.style to the current bar style")
+	return fixedRes(i18n.T("renamed the retired frameBars.style to the current bar style"))
 }
 
 // migrateFrameBarsStyle rewrites a shell store whose frameBars.style names a
@@ -1380,29 +1377,29 @@ func reconcileLegacyStyleKnobs(checkOnly bool) recResult {
 	path := filepath.Join(sys.ConfigHome(), "ryoku", "shell.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return okRes("no shell.json yet (seeded on first shell run)")
+		return okRes(i18n.T("no shell.json yet (seeded on first shell run)"))
 	}
 	migrated, changed, err := stripLegacyStyleKnobs(raw)
 	if err != nil {
-		return warnRes("shell.json does not parse (%v); the shell falls back to defaults", err).
-			withFix("delete %s to re-seed it", path)
+		return warnRes(i18n.T("shell.json does not parse (%v); the shell falls back to defaults"), err).
+			withFix(i18n.T("delete %s to re-seed it"), path)
 	}
 	if !changed {
-		return okRes("shell.json carries no retired style knobs")
+		return okRes(i18n.T("shell.json carries no retired style knobs"))
 	}
 	if checkOnly {
-		return wouldRes("shell.json still carries retired style knobs (%s)", strings.Join(legacyStyleKnobs, " / ")).
-			withFix("ryoku doctor strips them in place")
+		return wouldRes(i18n.T("shell.json still carries retired style knobs (%s)"), strings.Join(legacyStyleKnobs, " / ")).
+			withFix(i18n.T("ryoku doctor strips them in place"))
 	}
 	tmp := path + ".ryoku-tmp"
 	if err := os.WriteFile(tmp, migrated, 0o644); err != nil {
-		return failRes("could not write %s: %v", tmp, err)
+		return failRes(i18n.T("could not write %s: %v"), tmp, err)
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		os.Remove(tmp)
-		return failRes("could not replace %s: %v", path, err)
+		return failRes(i18n.T("could not replace %s: %v"), path, err)
 	}
-	return fixedRes("stripped retired style knobs from shell.json")
+	return fixedRes(i18n.T("stripped retired style knobs from shell.json"))
 }
 
 // legacyStyleKnobs are shell.json keys the shell no longer reads: each was a look
@@ -1452,29 +1449,29 @@ func reconcileSumiBar(checkOnly bool) recResult {
 	path := filepath.Join(sys.ConfigHome(), "ryoku", "shell.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return okRes("no shell.json yet (seeded on first shell run)")
+		return okRes(i18n.T("no shell.json yet (seeded on first shell run)"))
 	}
 	migrated, changed, err := migrateSumiBar(raw)
 	if err != nil {
-		return warnRes("shell.json does not parse (%v); the shell falls back to defaults", err).
-			withFix("delete %s to re-seed it", path)
+		return warnRes(i18n.T("shell.json does not parse (%v); the shell falls back to defaults"), err).
+			withFix(i18n.T("delete %s to re-seed it"), path)
 	}
 	if !changed {
-		return okRes("barStyle names a current style; any Sumi frame is left-only")
+		return okRes(i18n.T("barStyle names a current style; any Sumi frame is left-only"))
 	}
 	if checkOnly {
-		return wouldRes("shell.json is missing barStyle or names a retired bar style (or a Sumi frame still has extra rails)").
-			withFix("ryoku doctor converges it to the qsbar default in place")
+		return wouldRes(i18n.T("shell.json is missing barStyle or names a retired bar style (or a Sumi frame still has extra rails)")).
+			withFix(i18n.T("ryoku doctor converges it to the qsbar default in place"))
 	}
 	tmp := path + ".ryoku-tmp"
 	if err := os.WriteFile(tmp, migrated, 0o644); err != nil {
-		return failRes("could not write %s: %v", tmp, err)
+		return failRes(i18n.T("could not write %s: %v"), tmp, err)
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		os.Remove(tmp)
-		return failRes("could not replace %s: %v", path, err)
+		return failRes(i18n.T("could not replace %s: %v"), path, err)
 	}
-	return fixedRes("defaulted the bar to qsbar / reduced any Sumi frame to left-only")
+	return fixedRes(i18n.T("defaulted the bar to qsbar / reduced any Sumi frame to left-only"))
 }
 
 // retiredBarStyles are old top-level barStyle values from the pre-pluggable
@@ -1770,7 +1767,7 @@ func normalizeFrameBars(v any) (map[string]any, []string) {
 	if bytes.Equal(before, after) {
 		return out, nil
 	}
-	return out, []string{"normalized frameBars"}
+	return out, []string{i18n.T("normalized frameBars")}
 }
 
 // retiredShellKeys are shell.json keys no shipped surface reads any more: the
@@ -1796,7 +1793,7 @@ func migrateShellConfig(raw []byte) ([]byte, []string, error) {
 	var changes []string
 	if _, present := cfg["frameBars"]; !present {
 		cfg["frameBars"] = defaultFrameBarsFromLegacy(cfg)
-		changes = append(changes, "migrated Atoll settings to frame bars")
+		changes = append(changes, i18n.T("migrated Atoll settings to frame bars"))
 	}
 	if _, left := cfg["sidebarLeftPanes"]; left || cfg["sidebarRightPanes"] != nil || cfg["sidebarWidth"] != nil {
 		frameBars := frameMap(cfg["frameBars"])
@@ -1814,7 +1811,7 @@ func migrateShellConfig(raw []byte) ([]byte, []string, error) {
 		delete(cfg, "sidebarLeftPanes")
 		delete(cfg, "sidebarRightPanes")
 		delete(cfg, "sidebarWidth")
-		changes = append(changes, "migrated stash sidebar and retired system sidebar settings")
+		changes = append(changes, i18n.T("migrated stash sidebar and retired system sidebar settings"))
 	}
 	normalized, frameChanges := normalizeFrameBars(cfg["frameBars"])
 	cfg["frameBars"] = normalized
@@ -1827,7 +1824,7 @@ func migrateShellConfig(raw []byte) ([]byte, []string, error) {
 		}
 	}
 	if removed {
-		changes = append(changes, "removed retired settings")
+		changes = append(changes, i18n.T("removed retired settings"))
 	}
 	if len(changes) == 0 {
 		return nil, nil, nil
@@ -1843,16 +1840,16 @@ func migrateShellConfig(raw []byte) ([]byte, []string, error) {
 
 func reconcileSessionComponents(_ bool) recResult {
 	if !sys.Exists(filepath.Join(sys.Home(), ".config", "hypr")) && !sys.Has("Hyprland") {
-		return okRes("not a Hyprland desktop")
+		return okRes(i18n.T("not a Hyprland desktop"))
 	}
 	checks := []struct {
 		role, fix string
 		any       []string
 	}{
-		{"authentication agent", "sudo pacman -S hyprpolkitagent", []string{"hyprpolkitagent", "polkit-gnome", "polkit-kde-agent", "lxsession"}},
-		{"desktop portal", "sudo pacman -S xdg-desktop-portal-hyprland", []string{"xdg-desktop-portal-hyprland"}},
-		{"audio server", "sudo pacman -S pipewire wireplumber", []string{"pipewire"}},
-		{"network manager", "sudo pacman -S networkmanager", []string{"networkmanager"}},
+		{i18n.T("authentication agent"), "sudo pacman -S hyprpolkitagent", []string{"hyprpolkitagent", "polkit-gnome", "polkit-kde-agent", "lxsession"}},
+		{i18n.T("desktop portal"), "sudo pacman -S xdg-desktop-portal-hyprland", []string{"xdg-desktop-portal-hyprland"}},
+		{i18n.T("audio server"), "sudo pacman -S pipewire wireplumber", []string{"pipewire"}},
+		{i18n.T("network manager"), "sudo pacman -S networkmanager", []string{"networkmanager"}},
 	}
 	var missing []string
 	for _, c := range checks {
@@ -1861,9 +1858,9 @@ func reconcileSessionComponents(_ bool) recResult {
 		}
 	}
 	if len(missing) == 0 {
-		return okRes("desktop session components present")
+		return okRes(i18n.T("desktop session components present"))
 	}
-	return warnRes("missing: %s", strings.Join(missing, "; "))
+	return warnRes(i18n.T("missing: %s"), strings.Join(missing, "; "))
 }
 
 // ---- reconciler: desktop portal routing ----------------------------------------
@@ -1947,7 +1944,7 @@ func portalRoutesHyprland(content string) bool {
 // before the installer started moving the user file aside, and the /etc case.
 func reconcilePortalRouting(checkOnly bool) recResult {
 	if !sys.Exists(filepath.Join(sys.Home(), ".config", "hypr")) && !sys.Has("Hyprland") {
-		return okRes("not a Hyprland desktop")
+		return okRes(i18n.T("not a Hyprland desktop"))
 	}
 	// the first existing candidate is the one the portal loads, so every
 	// misrouted file ahead of a healthy one has to move aside.
@@ -1968,18 +1965,18 @@ func reconcilePortalRouting(checkOnly bool) recResult {
 		if healthy == "" {
 			// no config at all: xdg-desktop-portal-hyprland is missing and the
 			// session components check already flags that.
-			return okRes("no portal routing config found")
+			return okRes(i18n.T("no portal routing config found"))
 		}
-		return okRes("portal routing follows %s", healthy)
+		return okRes(i18n.T("portal routing follows %s"), healthy)
 	}
 	if healthy == "" {
-		return warnRes("no config routes portals to the hyprland backend; screenshare and portal dialogs cannot work").
+		return warnRes(i18n.T("no config routes portals to the hyprland backend; screenshare and portal dialogs cannot work")).
 			withFix("sudo pacman -S xdg-desktop-portal-hyprland")
 	}
 	list := strings.Join(offenders, ", ")
 	if checkOnly {
-		return wouldRes("%s routes portals away from hyprland; apps stall ~25s at launch and screenshare breaks", list).
-			withFix("ryoku doctor moves the file(s) aside and restarts the portal")
+		return wouldRes(i18n.T("%s routes portals away from hyprland; apps stall ~25s at launch and screenshare breaks"), list).
+			withFix(i18n.T("ryoku doctor moves the file(s) aside and restarts the portal"))
 	}
 	for _, p := range offenders {
 		bak := p + ".ryoku-bak"
@@ -1990,7 +1987,7 @@ func reconcilePortalRouting(checkOnly bool) recResult {
 			err = sys.Sudo("mv", p, bak)
 		}
 		if err != nil {
-			return failRes("could not move %s aside: %v", p, err).withFix("mv %s %s", p, bak)
+			return failRes(i18n.T("could not move %s aside: %v"), p, err).withFix("mv %s %s", p, bak)
 		}
 	}
 	// a hung foreign backend keeps its stall alive until it dies. best-effort
@@ -2000,7 +1997,7 @@ func reconcilePortalRouting(checkOnly bool) recResult {
 		_ = exec.Command("systemctl", "--user", "stop", u).Run()
 	}
 	_ = exec.Command("systemctl", "--user", "try-restart", "xdg-desktop-portal.service").Run()
-	return fixedRes("moved %s aside; the portal now follows %s", list, healthy)
+	return fixedRes(i18n.T("moved %s aside; the portal now follows %s"), list, healthy)
 }
 
 // ---- reconciler: cursor theme ------------------------------------------------
@@ -2086,41 +2083,41 @@ func resetCursorTheme(raw []byte, def string) ([]byte, error) {
 // there is nothing config can heal, so it only warns.
 func reconcileCursorTheme(checkOnly bool) recResult {
 	if !sys.Exists(filepath.Join(sys.Home(), ".config", "hypr")) && !sys.Has("Hyprland") {
-		return okRes("not a Hyprland desktop")
+		return okRes(i18n.T("not a Hyprland desktop"))
 	}
 	dirs := cursorSearchDirs()
 	store := filepath.Join(sys.ConfigHome(), "ryoku", "hypr.json")
 	raw, _ := os.ReadFile(store)
 	theme, size := configuredCursor(raw)
 	if cursorThemeInstalled(theme, dirs) {
-		return okRes("configured cursor theme %q is installed", theme)
+		return okRes(i18n.T("configured cursor theme %q is installed"), theme)
 	}
 	if !cursorThemeInstalled(defaultCursorTheme, dirs) {
 		// the package default is missing too: no config edit can conjure the
 		// theme files, and doctor never drives pacman.
-		return warnRes("cursor theme %q is missing on disk and so is the default %q; the pointer falls back to a bitmap", theme, defaultCursorTheme).
-			withFix("install ryoku-cursors (it ships the Bibata family and is a ryoku-desktop dependency)")
+		return warnRes(i18n.T("cursor theme %q is missing on disk and so is the default %q; the pointer falls back to a bitmap"), theme, defaultCursorTheme).
+			withFix(i18n.T("install ryoku-cursors (it ships the Bibata family and is a ryoku-desktop dependency)"))
 	}
 	if checkOnly {
-		return wouldRes("cursor theme %q missing on disk; would reset to %s", theme, defaultCursorTheme).
-			withFix("ryoku doctor resets it to %s; re-pick your theme in the Hub after installing it", defaultCursorTheme)
+		return wouldRes(i18n.T("cursor theme %q missing on disk; would reset to %s"), theme, defaultCursorTheme).
+			withFix(i18n.T("ryoku doctor resets it to %s; re-pick your theme in the Hub after installing it"), defaultCursorTheme)
 	}
 	out, err := resetCursorTheme(raw, defaultCursorTheme)
 	if err != nil {
-		return warnRes("cursor theme %q missing on disk and hypr.json does not parse (%v)", theme, err).
-			withFix("set cursor.theme to %s in %s", defaultCursorTheme, store)
+		return warnRes(i18n.T("cursor theme %q missing on disk and hypr.json does not parse (%v)"), theme, err).
+			withFix(i18n.T("set cursor.theme to %s in %s"), defaultCursorTheme, store)
 	}
 	tmp := store + ".ryoku-tmp"
 	if err := os.WriteFile(tmp, out, 0o644); err != nil {
-		return failRes("could not write %s: %v", tmp, err)
+		return failRes(i18n.T("could not write %s: %v"), tmp, err)
 	}
 	if err := os.Rename(tmp, store); err != nil {
 		os.Remove(tmp)
-		return failRes("could not replace %s: %v", store, err)
+		return failRes(i18n.T("could not replace %s: %v"), store, err)
 	}
 	// best-effort live apply; no-ops off a running session.
 	_ = exec.Command("hyprctl", "setcursor", defaultCursorTheme, fmt.Sprintf("%d", size)).Run()
-	return fixedRes("cursor theme %q missing on disk; reset to %s (re-pick your theme in the Hub after installing it)", theme, defaultCursorTheme)
+	return fixedRes(i18n.T("cursor theme %q missing on disk; reset to %s (re-pick your theme in the Hub after installing it)"), theme, defaultCursorTheme)
 }
 
 // ---- reconciler: GTK session theme -------------------------------------------
@@ -2202,19 +2199,19 @@ func restoreGtkSettingsIni(missingRel []string) (bool, error) {
 func reconcileGtkSession(checkOnly bool) recResult {
 	pref := gtkThemePref()
 	if pref == "system" {
-		return okRes("GTK theme left to the system (gtkTheme=system); gtk-theme not managed")
+		return okRes(i18n.T("GTK theme left to the system (gtkTheme=system); gtk-theme not managed"))
 	}
 	if !sys.Has("gsettings") {
-		return okRes("gsettings unavailable; GTK theme not managed here")
+		return okRes(i18n.T("gsettings unavailable; GTK theme not managed here"))
 	}
 	scheme, ok := gsettingsInterface("color-scheme")
 	if !ok {
-		return okRes("no reachable settings bus; GTK theme reconciled at next login")
+		return okRes(i18n.T("no reachable settings bus; GTK theme reconciled at next login"))
 	}
 	want := resolveGtkThemeName(pref, !strings.Contains(scheme, "light"))
 	cur, ok := gsettingsInterface("gtk-theme")
 	if !ok {
-		return okRes("no reachable settings bus; GTK theme reconciled at next login")
+		return okRes(i18n.T("no reachable settings bus; GTK theme reconciled at next login"))
 	}
 
 	var missing []string
@@ -2225,38 +2222,38 @@ func reconcileGtkSession(checkOnly bool) recResult {
 	}
 	themeDrift := cur != want
 	if !themeDrift && len(missing) == 0 {
-		return okRes("GTK session theme is %s and the settings.ini baselines are present", want)
+		return okRes(i18n.T("GTK session theme is %s and the settings.ini baselines are present"), want)
 	}
 
 	if checkOnly {
 		switch {
 		case themeDrift && len(missing) > 0:
-			return wouldRes("GTK theme is %q, want %q, and %s missing", cur, want, strings.Join(missing, ", ")).withFix("ryoku doctor")
+			return wouldRes(i18n.T("GTK theme is %q, want %q, and %s missing"), cur, want, strings.Join(missing, ", ")).withFix("ryoku doctor")
 		case themeDrift:
-			return wouldRes("GTK theme is %q, want %q for the current mode", cur, want).withFix("ryoku doctor")
+			return wouldRes(i18n.T("GTK theme is %q, want %q for the current mode"), cur, want).withFix("ryoku doctor")
 		default:
-			return wouldRes("GTK settings.ini baseline(s) missing: %s", strings.Join(missing, ", ")).withFix("ryoku doctor")
+			return wouldRes(i18n.T("GTK settings.ini baseline(s) missing: %s"), strings.Join(missing, ", ")).withFix("ryoku doctor")
 		}
 	}
 
 	var did []string
 	if themeDrift {
 		if err := sys.Run("gsettings", "set", "org.gnome.desktop.interface", "gtk-theme", want); err != nil {
-			return failRes("could not set gtk-theme to %s: %v", want, err).withFix("ryoku doctor")
+			return failRes(i18n.T("could not set gtk-theme to %s: %v"), want, err).withFix("ryoku doctor")
 		}
-		did = append(did, fmt.Sprintf("set gtk-theme to %s", want))
+		did = append(did, fmt.Sprintf(i18n.T("set gtk-theme to %s"), want))
 	}
 	if len(missing) > 0 {
 		restored, err := restoreGtkSettingsIni(missing)
 		if err != nil {
-			return failRes("could not restore GTK settings.ini: %v", err).withFix("ryoku materialize")
+			return failRes(i18n.T("could not restore GTK settings.ini: %v"), err).withFix("ryoku materialize")
 		}
 		if !restored {
-			return warnRes("GTK settings.ini missing (%s) and no packaged baseline to restore", strings.Join(missing, ", ")).withFix("ryoku update")
+			return warnRes(i18n.T("GTK settings.ini missing (%s) and no packaged baseline to restore"), strings.Join(missing, ", ")).withFix("ryoku update")
 		}
-		did = append(did, "restored "+strings.Join(missing, ", "))
+		did = append(did, i18n.Tf("restored %s", strings.Join(missing, ", ")))
 	}
-	return fixedRes("GTK session reconciled: %s", strings.Join(did, "; "))
+	return fixedRes(i18n.T("GTK session reconciled: %s"), strings.Join(did, "; "))
 }
 
 // ---- reconciler: SDDM greeter theme readable ---------------------------------
@@ -2281,30 +2278,30 @@ func greeterThemeHealthy(ownerUID uint32, dirPerm, mainPerm os.FileMode) bool {
 func reconcileGreeterTheme(checkOnly bool) recResult {
 	di, err := os.Stat(greeterThemeDir)
 	if err != nil {
-		return okRes("no Ryoku greeter theme installed")
+		return okRes(i18n.T("no Ryoku greeter theme installed"))
 	}
 	mi, err := os.Stat(filepath.Join(greeterThemeDir, "Main.qml"))
 	if err != nil {
-		return okRes("no Ryoku greeter theme installed")
+		return okRes(i18n.T("no Ryoku greeter theme installed"))
 	}
 	st, ok := di.Sys().(*syscall.Stat_t)
 	if !ok {
-		return okRes("greeter theme ownership not checkable")
+		return okRes(i18n.T("greeter theme ownership not checkable"))
 	}
 	if greeterThemeHealthy(st.Uid, di.Mode().Perm(), mi.Mode().Perm()) {
-		return okRes("greeter theme readable by the sddm greeter")
+		return okRes(i18n.T("greeter theme readable by the sddm greeter"))
 	}
 	fix := fmt.Sprintf("sudo chown -R root:root %s && sudo chmod -R a+rX %s", greeterThemeDir, greeterThemeDir)
 	if checkOnly {
-		return wouldRes("greeter theme unreadable by the sddm greeter; SDDM falls back to its default").withFix(fix)
+		return wouldRes(i18n.T("greeter theme unreadable by the sddm greeter; SDDM falls back to its default")).withFix(fix)
 	}
 	if err := sys.Run("sudo", "chown", "-R", "root:root", greeterThemeDir); err != nil {
-		return failRes("could not fix greeter theme ownership: %v", err).withFix(fix)
+		return failRes(i18n.T("could not fix greeter theme ownership: %v"), err).withFix(fix)
 	}
 	if err := sys.Run("sudo", "chmod", "-R", "a+rX", greeterThemeDir); err != nil {
-		return failRes("could not fix greeter theme permissions: %v", err).withFix(fix)
+		return failRes(i18n.T("could not fix greeter theme permissions: %v"), err).withFix(fix)
 	}
-	return fixedRes("normalized greeter theme so the sddm greeter can read it")
+	return fixedRes(i18n.T("normalized greeter theme so the sddm greeter can read it"))
 }
 
 // ---- reconciler: SDDM greeter on Wayland ------------------------------------
@@ -2347,37 +2344,37 @@ func sddmWaylandBody() string {
 // that has not pulled the package yet.
 func reconcileGreeterDisplayServer(checkOnly bool) recResult {
 	if !sys.Exists(greeterThemeDir) {
-		return okRes("no Ryoku greeter installed")
+		return okRes(i18n.T("no Ryoku greeter installed"))
 	}
 	if !sys.Exists("/usr/bin/weston") {
-		return warnRes("the Wayland greeter needs weston, which is not installed yet").
+		return warnRes(i18n.T("the Wayland greeter needs weston, which is not installed yet")).
 			withFix("ryoku update")
 	}
 	want := sddmWaylandBody()
 	have := readFileSafe(sddmWaylandConf)
 	if have == strings.TrimRight(want, "\n") {
-		return okRes("SDDM greeter runs on Wayland (weston kiosk)")
+		return okRes(i18n.T("SDDM greeter runs on Wayland (weston kiosk)"))
 	}
 	if have != "" {
 		if checkOnly {
-			return wouldRes("SDDM greeter config is out of date (the pinned cursor theme, the compositor wrapper)").
+			return wouldRes(i18n.T("SDDM greeter config is out of date (the pinned cursor theme, the compositor wrapper)")).
 				withFix("ryoku doctor")
 		}
 		if err := writeRootFile(sddmWaylandConf, want, "0644"); err != nil {
-			return failRes("could not write %s: %v", sddmWaylandConf, err).
-				withFix("check sudo access, then re-run ryoku doctor")
+			return failRes(i18n.T("could not write %s: %v"), sddmWaylandConf, err).
+				withFix(i18n.T("check sudo access, then re-run ryoku doctor"))
 		}
-		return fixedRes("refreshed the SDDM greeter config; the login screen pointer uses the shipped cursor theme")
+		return fixedRes(i18n.T("refreshed the SDDM greeter config; the login screen pointer uses the shipped cursor theme"))
 	}
 	if checkOnly {
-		return wouldRes("SDDM greeter still runs on X11; it is orphaned when a Wayland session starts and keeps drawing power").
+		return wouldRes(i18n.T("SDDM greeter still runs on X11; it is orphaned when a Wayland session starts and keeps drawing power")).
 			withFix("ryoku doctor")
 	}
 	if err := writeRootFile(sddmWaylandConf, want, "0644"); err != nil {
-		return failRes("could not write %s: %v", sddmWaylandConf, err).
-			withFix("check sudo access, then re-run ryoku doctor")
+		return failRes(i18n.T("could not write %s: %v"), sddmWaylandConf, err).
+			withFix(i18n.T("check sudo access, then re-run ryoku doctor"))
 	}
-	return fixedRes("moved the SDDM greeter to Wayland (weston kiosk); it is torn down cleanly at login now")
+	return fixedRes(i18n.T("moved the SDDM greeter to Wayland (weston kiosk); it is torn down cleanly at login now"))
 }
 
 // ---- reconciler: login screen cursor -----------------------------------------
@@ -2417,24 +2414,24 @@ func defaultCursorEstablished() bool {
 // ships Bibata, has landed.
 func reconcileGreeterCursor(checkOnly bool) recResult {
 	if !sys.Exists(greeterThemeDir) {
-		return okRes("no Ryoku greeter installed")
+		return okRes(i18n.T("no Ryoku greeter installed"))
 	}
 	if defaultCursorEstablished() {
-		return okRes(`the "default" cursor theme resolves; the login screen has a pointer`)
+		return okRes(i18n.T("the \"default\" cursor theme resolves; the login screen has a pointer"))
 	}
 	if !cursorThemeInstalled(defaultCursorTheme, []string{"/usr/share/icons"}) {
-		return warnRes("cursor theme %q is not on disk yet; the login screen pointer cannot be pinned", defaultCursorTheme).
+		return warnRes(i18n.T("cursor theme %q is not on disk yet; the login screen pointer cannot be pinned"), defaultCursorTheme).
 			withFix("ryoku update")
 	}
 	if checkOnly {
-		return wouldRes(`no "default" cursor theme; the SDDM greeter draws no pointer at system start or after logout`).
+		return wouldRes(i18n.T("no \"default\" cursor theme; the SDDM greeter draws no pointer at system start or after logout")).
 			withFix("ryoku doctor")
 	}
 	if err := writeRootFile(defaultCursorIndex, defaultCursorIndexBody(), "0644"); err != nil {
-		return failRes("could not write %s: %v", defaultCursorIndex, err).
-			withFix("check sudo access, then re-run ryoku doctor")
+		return failRes(i18n.T("could not write %s: %v"), defaultCursorIndex, err).
+			withFix(i18n.T("check sudo access, then re-run ryoku doctor"))
 	}
-	return fixedRes(`pointed the "default" cursor theme at %s; the login screen has a pointer now`, defaultCursorTheme)
+	return fixedRes(i18n.T("pointed the \"default\" cursor theme at %s; the login screen has a pointer now"), defaultCursorTheme)
 }
 
 // ---- reconciler: fastfetch readout emblem ------------------------------------
@@ -2493,30 +2490,30 @@ func expandTilde(p string) string {
 func reconcileFastfetchEmblem(checkOnly bool) recResult {
 	src, ok := fastfetchLogoSource(readFileSafe(filepath.Join(sys.ConfigHome(), "fastfetch", "config.jsonc")))
 	if !ok {
-		return okRes("no Ryoku fastfetch logo configured")
+		return okRes(i18n.T("no Ryoku fastfetch logo configured"))
 	}
 	if filepath.Base(src) != fastfetchEmblem {
-		return okRes("fastfetch logo is user-customized")
+		return okRes(i18n.T("fastfetch logo is user-customized"))
 	}
 	dst := expandTilde(src)
 	if sys.Exists(dst) {
-		return okRes("fastfetch emblem present")
+		return okRes(i18n.T("fastfetch emblem present"))
 	}
 	// the canonical copy materialize lays; absent only on a box still on the
 	// pre-fix package, where the cure is to pull it first.
 	base := filepath.Join(sys.BaseConfigDir(), "fastfetch", fastfetchEmblem)
 	if !sys.Exists(base) {
-		return warnRes("fastfetch emblem missing (%s); the readout shows the Arch logo", dst).
+		return warnRes(i18n.T("fastfetch emblem missing (%s); the readout shows the Arch logo"), dst).
 			withFix("ryoku update")
 	}
 	if checkOnly {
-		return wouldRes("fastfetch emblem missing (%s); the readout shows the Arch logo", dst).
+		return wouldRes(i18n.T("fastfetch emblem missing (%s); the readout shows the Arch logo"), dst).
 			withFix("ryoku materialize")
 	}
 	if err := sys.CopyFile(base, dst); err != nil {
-		return failRes("could not restore fastfetch emblem: %v", err).withFix("ryoku materialize")
+		return failRes(i18n.T("could not restore fastfetch emblem: %v"), err).withFix("ryoku materialize")
 	}
-	return fixedRes("restored the fastfetch emblem; the readout no longer falls back to the Arch logo")
+	return fixedRes(i18n.T("restored the fastfetch emblem; the readout no longer falls back to the Arch logo"))
 }
 
 // ---- reconciler: fastfetch OS line -------------------------------------------
@@ -2543,25 +2540,25 @@ func reconcileFastfetchOSLine(checkOnly bool) recResult {
 	path := filepath.Join(sys.ConfigHome(), "fastfetch", "config.jsonc")
 	raw := readFileSafe(path)
 	if raw == "" {
-		return okRes("no Ryoku fastfetch config")
+		return okRes(i18n.T("no Ryoku fastfetch config"))
 	}
 	migrated, changed := upgradeFastfetchOSLine(raw)
 	if !changed {
-		return okRes("fastfetch's OS line names the release")
+		return okRes(i18n.T("fastfetch's OS line names the release"))
 	}
 	if checkOnly {
-		return wouldRes("fastfetch's OS line predates named releases (ryoku version -> ryoku version --pretty)").
-			withFix("ryoku doctor rewrites that one line")
+		return wouldRes(i18n.T("fastfetch's OS line predates named releases (ryoku version -> ryoku version --pretty)")).
+			withFix(i18n.T("ryoku doctor rewrites that one line"))
 	}
 	tmp := path + ".ryoku-tmp"
 	if err := os.WriteFile(tmp, []byte(migrated), 0o644); err != nil {
-		return failRes("could not write %s: %v", tmp, err)
+		return failRes(i18n.T("could not write %s: %v"), tmp, err)
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		os.Remove(tmp)
-		return failRes("could not replace %s: %v", path, err)
+		return failRes(i18n.T("could not replace %s: %v"), path, err)
 	}
-	return fixedRes("fastfetch's OS line now names the release (ryoku version --pretty)")
+	return fixedRes(i18n.T("fastfetch's OS line now names the release (ryoku version --pretty)"))
 }
 
 // ---- reconciler: rice fastfetch emblem ---------------------------------------
@@ -2595,28 +2592,28 @@ func riceEmblemAsset() (string, bool) {
 func reconcileRiceEmblem(checkOnly bool) recResult {
 	asset, ok := riceEmblemAsset()
 	if !ok {
-		return okRes("no rice emblem to keep")
+		return okRes(i18n.T("no rice emblem to keep"))
 	}
 	if !sys.Exists(asset) {
-		return okRes("active rice's emblem file is gone; nothing to restore")
+		return okRes(i18n.T("active rice's emblem file is gone; nothing to restore"))
 	}
 	src, ok := fastfetchLogoSource(readFileSafe(filepath.Join(sys.ConfigHome(), "fastfetch", "config.jsonc")))
 	if ok && filepath.Base(src) != fastfetchEmblem {
-		return okRes("rice emblem in place")
+		return okRes(i18n.T("rice emblem in place"))
 	}
 	if !sys.Has("ryoku-hub") {
-		return warnRes("the rice's fastfetch emblem was reset by an update; ryoku-hub is not installed to restore it").
+		return warnRes(i18n.T("the rice's fastfetch emblem was reset by an update; ryoku-hub is not installed to restore it")).
 			withFix("ryoku update")
 	}
 	if checkOnly {
-		return wouldRes("the rice's fastfetch emblem was reset to the brand mark by an update").
-			withFix("ryoku doctor (runs `ryoku-hub rice emblem`)")
+		return wouldRes(i18n.T("the rice's fastfetch emblem was reset to the brand mark by an update")).
+			withFix(i18n.T("ryoku doctor (runs `ryoku-hub rice emblem`)"))
 	}
 	if err := sys.Run("ryoku-hub", "rice", "emblem"); err != nil {
-		return failRes("could not restore the rice's fastfetch emblem: %v", err).
-			withFix("re-apply the rice from Ryoku Settings")
+		return failRes(i18n.T("could not restore the rice's fastfetch emblem: %v"), err).
+			withFix(i18n.T("re-apply the rice from Ryoku Settings"))
 	}
-	return fixedRes("restored the rice's fastfetch emblem on a path updates never overwrite")
+	return fixedRes(i18n.T("restored the rice's fastfetch emblem on a path updates never overwrite"))
 }
 
 // ---- reconciler: brand mark image --------------------------------------------
@@ -2682,33 +2679,33 @@ func reconcileBrandLogo(checkOnly bool) recResult {
 	path := filepath.Join(sys.ConfigHome(), "ryoku", "brand.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return okRes("no brand override yet (seeded on first shell run)")
+		return okRes(i18n.T("no brand override yet (seeded on first shell run)"))
 	}
 	img, ok := brandMarkImage(raw)
 	if !ok || img == "" {
-		return okRes("brand mark uses the text seal")
+		return okRes(i18n.T("brand mark uses the text seal"))
 	}
 	resolved := expandBrandImage(img)
 	if brandImageUsable(resolved) {
-		return okRes("brand mark image resolves (%s)", resolved)
+		return okRes(i18n.T("brand mark image resolves (%s)"), resolved)
 	}
 	if checkOnly {
-		return wouldRes("brand mark image missing or unreadable (%s); the mark renders empty", resolved).
-			withFix("ryoku doctor clears it back to the text seal")
+		return wouldRes(i18n.T("brand mark image missing or unreadable (%s); the mark renders empty"), resolved).
+			withFix(i18n.T("ryoku doctor clears it back to the text seal"))
 	}
 	cleared, err := clearBrandImage(raw)
 	if err != nil {
-		return failRes("could not rewrite brand.json: %v", err).withFix("delete %s to re-seed it", path)
+		return failRes(i18n.T("could not rewrite brand.json: %v"), err).withFix(i18n.T("delete %s to re-seed it"), path)
 	}
 	tmp := path + ".ryoku-tmp"
 	if err := os.WriteFile(tmp, cleared, 0o644); err != nil {
-		return failRes("could not write %s: %v", tmp, err)
+		return failRes(i18n.T("could not write %s: %v"), tmp, err)
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		os.Remove(tmp)
-		return failRes("could not replace %s: %v", path, err)
+		return failRes(i18n.T("could not replace %s: %v"), path, err)
 	}
-	return fixedRes("cleared the broken brand image (%s); the mark falls back to the text seal", img)
+	return fixedRes(i18n.T("cleared the broken brand image (%s); the mark falls back to the text seal"), img)
 }
 
 // ---- reconciler: decor art (Pictures/ryodecors) ------------------------------
@@ -2738,11 +2735,11 @@ func ryodecorsSource() string {
 func reconcileRyodecors(checkOnly bool) recResult {
 	src := ryodecorsSource()
 	if src == "" {
-		return okRes("no decor art source yet (ships with the desktop package)")
+		return okRes(i18n.T("no decor art source yet (ships with the desktop package)"))
 	}
 	entries, err := os.ReadDir(src)
 	if err != nil {
-		return okRes("decor art source unreadable (%v)", err)
+		return okRes(i18n.T("decor art source unreadable (%v)"), err)
 	}
 	dst := filepath.Join(sys.Home(), "Pictures", "ryodecors")
 	var missing []string
@@ -2755,18 +2752,18 @@ func reconcileRyodecors(checkOnly bool) recResult {
 		}
 	}
 	if len(missing) == 0 {
-		return okRes("decor art present in %s", dst)
+		return okRes(i18n.T("decor art present in %s"), dst)
 	}
 	if checkOnly {
-		return wouldRes("%d decor art file(s) missing from %s", len(missing), dst).
+		return wouldRes(i18n.T("%d decor art file(s) missing from %s"), len(missing), dst).
 			withFix("ryoku doctor")
 	}
 	for _, name := range missing {
 		if err := sys.CopyFile(filepath.Join(src, name), filepath.Join(dst, name)); err != nil {
-			return failRes("could not seed decor art %s: %v", name, err).withFix("ryoku doctor")
+			return failRes(i18n.T("could not seed decor art %s: %v"), name, err).withFix("ryoku doctor")
 		}
 	}
-	return fixedRes("seeded %d decor art file(s) into %s", len(missing), dst)
+	return fixedRes(i18n.T("seeded %d decor art file(s) into %s"), len(missing), dst)
 }
 
 // ---- reconciler: retired follow-mouse default --------------------------------
@@ -2818,7 +2815,7 @@ func hyprSetFollowMouse(raw string, v int) (string, error) {
 func reconcileFollowMouseDefault(checkOnly bool) recResult {
 	marker := followMouseMarker()
 	if sys.Exists(marker) {
-		return okRes("follow-mouse default already reconciled")
+		return okRes(i18n.T("follow-mouse default already reconciled"))
 	}
 	mark := func() {
 		if checkOnly {
@@ -2830,32 +2827,32 @@ func reconcileFollowMouseDefault(checkOnly bool) recResult {
 	hyprJSON := filepath.Join(sys.ConfigHome(), "ryoku", "hypr.json")
 	if !sys.Has("ryoku-hub") || !sys.Exists(hyprJSON) {
 		mark() // nothing saved to migrate; the base module's follow_mouse = 2 stands.
-		return okRes("no saved hypr input; follow-mouse uses the base default")
+		return okRes(i18n.T("no saved hypr input; follow-mouse uses the base default"))
 	}
 	// check against the saved file directly: `ryoku-hub hypr get` rewrites the
 	// hypr config as a side effect, which a --check/--report run must never do.
 	fm, ok := hyprGetFollowMouse(readFileSafe(hyprJSON))
 	if !ok || fm != 1 {
 		mark()
-		return okRes("follow-mouse is not on the retired default")
+		return okRes(i18n.T("follow-mouse is not on the retired default"))
 	}
 	if checkOnly {
-		return wouldRes("follow-mouse is pinned to the retired default 1; keyboard focus follows the cursor").
+		return wouldRes(i18n.T("follow-mouse is pinned to the retired default 1; keyboard focus follows the cursor")).
 			withFix("ryoku doctor")
 	}
 	raw, err := sys.RunOut("ryoku-hub", "hypr", "get")
 	if err != nil {
-		return warnRes("could not read hypr settings to fix follow-mouse: %v", err)
+		return warnRes(i18n.T("could not read hypr settings to fix follow-mouse: %v"), err)
 	}
 	fixed, err := hyprSetFollowMouse(raw, 2)
 	if err != nil {
-		return failRes("could not update hypr settings: %v", err)
+		return failRes(i18n.T("could not update hypr settings: %v"), err)
 	}
 	if err := sys.Run("ryoku-hub", "hypr", "save", fixed); err != nil {
-		return failRes("could not save the follow-mouse fix: %v", err).withFix("ryoku doctor")
+		return failRes(i18n.T("could not save the follow-mouse fix: %v"), err).withFix("ryoku doctor")
 	}
 	mark()
-	return fixedRes("restored follow-mouse to 2 (Loose); keyboard focus no longer follows the cursor")
+	return fixedRes(i18n.T("restored follow-mouse to 2 (Loose); keyboard focus no longer follows the cursor"))
 }
 
 // ---- reconciler: ryoku shell daemon ------------------------------------------
@@ -2869,11 +2866,11 @@ func reconcileFollowMouseDefault(checkOnly bool) recResult {
 // there's no shell to manage, so it stays quiet.
 func reconcileShellDaemon(checkOnly bool) recResult {
 	if os.Getenv("HYPRLAND_INSTANCE_SIGNATURE") == "" {
-		return okRes("not in a live Hyprland session")
+		return okRes(i18n.T("not in a live Hyprland session"))
 	}
 	if !sys.Has("ryoku-shell") {
-		return warnRes("ryoku-shell is not installed; the desktop shell cannot run").
-			withFix("redeploy the shell: `ryoku update` (or ryoku/shell/deploy.sh from a checkout)")
+		return warnRes(i18n.T("ryoku-shell is not installed; the desktop shell cannot run")).
+			withFix(i18n.T("redeploy the shell: `ryoku update` (or ryoku/shell/deploy.sh from a checkout)"))
 	}
 	if shellDaemonReachable() {
 		// A reachable daemon can still be stale. One left over from a previous
@@ -2891,49 +2888,49 @@ func reconcileShellDaemon(checkOnly bool) recResult {
 			// surfaces that hot-reload QML newer than it can host -- the
 			// "module Ryoku.FrameBars is not installed" class of breakage.
 			if !shellDaemonOutdated() {
-				return okRes("shell daemon reachable")
+				return okRes(i18n.T("shell daemon reachable"))
 			}
 			if checkOnly {
-				return wouldRes("shell daemon is running a replaced binary; its surfaces load config newer than it").
-					withFix("ryoku doctor restarts the daemon on the installed binary")
+				return wouldRes(i18n.T("shell daemon is running a replaced binary; its surfaces load config newer than it")).
+					withFix(i18n.T("ryoku doctor restarts the daemon on the installed binary"))
 			}
 			if err := restartShellDaemon(); err != nil {
-				return failRes("shell daemon runs a replaced binary and could not be restarted: %v", err).
-					withFix("`ryoku-shell quit`, then `ryoku-shell daemon` in a terminal")
+				return failRes(i18n.T("shell daemon runs a replaced binary and could not be restarted: %v"), err).
+					withFix(i18n.T("`ryoku-shell quit`, then `ryoku-shell daemon` in a terminal"))
 			}
 			if waitDaemonReachable(5 * time.Second) {
-				return fixedRes("shell daemon was running a replaced binary; restarted it on the installed one")
+				return fixedRes(i18n.T("shell daemon was running a replaced binary; restarted it on the installed one"))
 			}
-			return failRes("restarted the outdated shell daemon but it did not come back").
-				withFix("run `ryoku-shell daemon` in a terminal to see why it exits")
+			return failRes(i18n.T("restarted the outdated shell daemon but it did not come back")).
+				withFix(i18n.T("run `ryoku-shell daemon` in a terminal to see why it exits"))
 		}
 		if checkOnly {
-			return wouldRes("shell daemon is bound to a previous Hyprland instance; workspaces and monitor-aware menus are dead").
-				withFix("ryoku doctor restarts the daemon against the live session")
+			return wouldRes(i18n.T("shell daemon is bound to a previous Hyprland instance; workspaces and monitor-aware menus are dead")).
+				withFix(i18n.T("ryoku doctor restarts the daemon against the live session"))
 		}
 		if err := restartShellDaemon(); err != nil {
-			return failRes("shell daemon is stale and could not be restarted: %v", err).
-				withFix("`ryoku-shell quit`, then `ryoku-shell daemon` in a terminal")
+			return failRes(i18n.T("shell daemon is stale and could not be restarted: %v"), err).
+				withFix(i18n.T("`ryoku-shell quit`, then `ryoku-shell daemon` in a terminal"))
 		}
 		if waitDaemonReachable(5 * time.Second) {
-			return fixedRes("shell daemon was bound to a dead Hyprland instance; restarted it against the live session")
+			return fixedRes(i18n.T("shell daemon was bound to a dead Hyprland instance; restarted it against the live session"))
 		}
-		return failRes("restarted the stale shell daemon but it did not come back").
-			withFix("run `ryoku-shell daemon` in a terminal to see why it exits")
+		return failRes(i18n.T("restarted the stale shell daemon but it did not come back")).
+			withFix(i18n.T("run `ryoku-shell daemon` in a terminal to see why it exits"))
 	}
 	if checkOnly {
-		return wouldRes("shell daemon is down; the shell, keybinds and panels are dead").
-			withFix("start it with `ryoku-shell daemon` (Hyprland autostarts it at login)")
+		return wouldRes(i18n.T("shell daemon is down; the shell, keybinds and panels are dead")).
+			withFix(i18n.T("start it with `ryoku-shell daemon` (Hyprland autostarts it at login)"))
 	}
 	if err := startShellDaemon(); err != nil {
-		return failRes("shell daemon is down and could not be started: %v", err).
-			withFix("start it in a terminal to see why: `ryoku-shell daemon`")
+		return failRes(i18n.T("shell daemon is down and could not be started: %v"), err).
+			withFix(i18n.T("start it in a terminal to see why: `ryoku-shell daemon`"))
 	}
 	if waitDaemonReachable(5 * time.Second) {
-		return fixedRes("shell daemon was down; restarted it")
+		return fixedRes(i18n.T("shell daemon was down; restarted it"))
 	}
-	return failRes("started ryoku-shell daemon but it did not come up").
-		withFix("run `ryoku-shell daemon` in a terminal to see why it exits")
+	return failRes(i18n.T("started ryoku-shell daemon but it did not come up")).
+		withFix(i18n.T("run `ryoku-shell daemon` in a terminal to see why it exits"))
 }
 
 // shellDaemonReachable dials the shell control socket and pings it: same
@@ -3170,7 +3167,7 @@ func hyprDropins() []hyprDropin {
 func reconcileHyprlandConfig(checkOnly bool) recResult {
 	dir := filepath.Join(sys.ConfigHome(), "hypr")
 	if !sys.Exists(filepath.Join(dir, "hyprland.lua")) {
-		return okRes("no Hyprland config present")
+		return okRes(i18n.T("no Hyprland config present"))
 	}
 	live := sys.HyprLive()
 
@@ -3183,18 +3180,18 @@ func reconcileHyprlandConfig(checkOnly bool) recResult {
 			}
 		}
 		if len(broken) > 0 {
-			return wouldRes("corrupt Hyprland drop-in(s) would wedge the next reload into emergency mode: %s", strings.Join(broken, ", ")).
-				withFix("run `ryoku doctor` to regenerate them")
+			return wouldRes(i18n.T("corrupt Hyprland drop-in(s) would wedge the next reload into emergency mode: %s"), strings.Join(broken, ", ")).
+				withFix(i18n.T("run `ryoku doctor` to regenerate them"))
 		}
 		if e := liveConfigErrors(live); e != "" {
 			if hyprDispatchNoise(e) {
-				return wouldRes("Hyprland is holding a stale `hyprctl dispatch` error, not a config error: %s", firstLine(e)).
-					withFix("run `ryoku doctor` (it reloads Hyprland, which clears it); the config on disk is fine")
+				return wouldRes(i18n.T("Hyprland is holding a stale `hyprctl dispatch` error, not a config error: %s"), firstLine(e)).
+					withFix(i18n.T("run `ryoku doctor` (it reloads Hyprland, which clears it); the config on disk is fine"))
 			}
-			return wouldRes("Hyprland is rejecting its config (emergency mode): %s", firstLine(e)).
-				withFix("run `ryoku doctor`, then check ~/.config/hypr/user.lua")
+			return wouldRes(i18n.T("Hyprland is rejecting its config (emergency mode): %s"), firstLine(e)).
+				withFix(i18n.T("run `ryoku doctor`, then check ~/.config/hypr/user.lua"))
 		}
-		return okRes("Hyprland config loads cleanly")
+		return okRes(i18n.T("Hyprland config loads cleanly"))
 	}
 
 	var repaired, failed []string
@@ -3217,10 +3214,10 @@ func reconcileHyprlandConfig(checkOnly bool) recResult {
 
 	switch {
 	case len(failed) > 0:
-		return failRes("could not repair Hyprland drop-in(s): %s", strings.Join(failed, ", ")).
-			withFix("inspect ~/.config/hypr/%s by hand", failed[0])
+		return failRes(i18n.T("could not repair Hyprland drop-in(s): %s"), strings.Join(failed, ", ")).
+			withFix(i18n.T("inspect ~/.config/hypr/%s by hand"), failed[0])
 	case len(repaired) > 0:
-		return fixedRes("regenerated corrupt Hyprland drop-in(s): %s; the config loads cleanly again", strings.Join(repaired, ", "))
+		return fixedRes(i18n.T("regenerated corrupt Hyprland drop-in(s): %s; the config loads cleanly again"), strings.Join(repaired, ", "))
 	}
 
 	if e := liveConfigErrors(live); e != "" {
@@ -3228,24 +3225,24 @@ func reconcileHyprlandConfig(checkOnly bool) recResult {
 		// reload rather than sending the user to audit config they never broke.
 		if hyprDispatchNoise(e) {
 			if !live {
-				return okRes("Hyprland config loads cleanly")
+				return okRes(i18n.T("Hyprland config loads cleanly"))
 			}
 			_ = exec.Command("hyprctl", "reload").Run()
 			again := liveConfigErrors(live)
 			switch {
 			case again == "":
-				return fixedRes("cleared a stale `hyprctl dispatch` error Hyprland was holding in its config-error buffer; the config itself never failed")
+				return fixedRes(i18n.T("cleared a stale `hyprctl dispatch` error Hyprland was holding in its config-error buffer; the config itself never failed"))
 			case !hyprDispatchNoise(again):
-				return warnRes("Hyprland is rejecting its config: %s", firstLine(again)).
-					withFix("check ~/.config/hypr/user.lua or settings.lua")
+				return warnRes(i18n.T("Hyprland is rejecting its config: %s"), firstLine(again)).
+					withFix(i18n.T("check ~/.config/hypr/user.lua or settings.lua"))
 			}
-			return warnRes("Hyprland kept a `hyprctl dispatch` error after a reload: %s", firstLine(again)).
-				withFix("re-run the dispatch by hand to see it, or restart the session; the config on disk is fine")
+			return warnRes(i18n.T("Hyprland kept a `hyprctl dispatch` error after a reload: %s"), firstLine(again)).
+				withFix(i18n.T("re-run the dispatch by hand to see it, or restart the session; the config on disk is fine"))
 		}
-		return warnRes("Hyprland is rejecting its config: %s", firstLine(e)).
-			withFix("check ~/.config/hypr/user.lua or settings.lua")
+		return warnRes(i18n.T("Hyprland is rejecting its config: %s"), firstLine(e)).
+			withFix(i18n.T("check ~/.config/hypr/user.lua or settings.lua"))
 	}
-	return okRes("Hyprland config loads cleanly")
+	return okRes(i18n.T("Hyprland config loads cleanly"))
 }
 
 // reconcileThemeLua prunes an orphaned ~/.config/hypr/theme.lua. The Appearance
@@ -3256,17 +3253,17 @@ func reconcileHyprlandConfig(checkOnly bool) recResult {
 func reconcileThemeLua(checkOnly bool) recResult {
 	p := filepath.Join(sys.ConfigHome(), "hypr", "theme.lua")
 	if !sys.Exists(p) {
-		return okRes("no orphaned theme.lua")
+		return okRes(i18n.T("no orphaned theme.lua"))
 	}
 	if checkOnly {
-		return wouldRes("orphaned theme.lua from the retired Themes feature: %s", p).
-			withFix("run `ryoku doctor` to remove it")
+		return wouldRes(i18n.T("orphaned theme.lua from the retired Themes feature: %s"), p).
+			withFix(i18n.T("run `ryoku doctor` to remove it"))
 	}
 	if err := os.Remove(p); err != nil {
-		return failRes("could not remove orphaned theme.lua: %v", err).
-			withFix("remove %s by hand", p)
+		return failRes(i18n.T("could not remove orphaned theme.lua: %v"), err).
+			withFix(i18n.T("remove %s by hand"), p)
 	}
-	return fixedRes("removed the orphaned theme.lua left by the retired Themes feature")
+	return fixedRes(i18n.T("removed the orphaned theme.lua left by the retired Themes feature"))
 }
 
 // reconcileDisplayModes recovers a monitor a degraded link left below its
@@ -3280,23 +3277,23 @@ func reconcileThemeLua(checkOnly bool) recResult {
 // next login takes care of it.
 func reconcileDisplayModes(checkOnly bool) recResult {
 	if !sys.HyprLive() {
-		return okRes("no live Hyprland session; displays settle at the next login")
+		return okRes(i18n.T("no live Hyprland session; displays settle at the next login"))
 	}
 	if !sys.Has("ryoku-monitor") {
-		return okRes("ryoku-monitor not installed")
+		return okRes(i18n.T("ryoku-monitor not installed"))
 	}
 	if exec.Command("ryoku-monitor", "settle", "--check").Run() == nil {
-		return okRes("every display is at its best available resolution")
+		return okRes(i18n.T("every display is at its best available resolution"))
 	}
 	if checkOnly {
-		return wouldRes("a display is below its available resolution (the link came up degraded)").
-			withFix("ryoku doctor (re-asserts each display's intended mode)")
+		return wouldRes(i18n.T("a display is below its available resolution (the link came up degraded)")).
+			withFix(i18n.T("ryoku doctor (re-asserts each display's intended mode)"))
 	}
 	if err := exec.Command("ryoku-monitor", "settle").Run(); err != nil {
-		return warnRes("a display is below its available resolution and ryoku-monitor settle did not recover it").
-			withFix("open Ryoku Settings > Displays and pick the resolution, or replug the cable")
+		return warnRes(i18n.T("a display is below its available resolution and ryoku-monitor settle did not recover it")).
+			withFix(i18n.T("open Ryoku Settings > Displays and pick the resolution, or replug the cable"))
 	}
-	return fixedRes("re-asserted a display that came up below its available resolution")
+	return fixedRes(i18n.T("re-asserted a display that came up below its available resolution"))
 }
 
 // repairHyprDropin rewrites a corrupt drop-in: regenerate from the live box
@@ -3398,44 +3395,44 @@ func reconcileFailedUnits(checkOnly bool) recResult {
 	failed = append(failed, failedUnits()...)
 	for _, u := range failedUnits("--user") {
 		if checkOnly && transientAppScope(u) {
-			failed = append(failed, u+" (user, clearable)")
+			failed = append(failed, u+i18n.T(" (user, clearable)"))
 		} else {
-			failed = append(failed, u+" (user)")
+			failed = append(failed, u+i18n.T(" (user)"))
 		}
 	}
 	if len(failed) == 0 {
 		if reset > 0 {
-			return fixedRes("reset %d stale app scope(s)", reset)
+			return fixedRes(i18n.T("reset %d stale app scope(s)"), reset)
 		}
-		return okRes("no failed services")
+		return okRes(i18n.T("no failed services"))
 	}
-	return warnRes("failed: %s", strings.Join(failed, ", ")).
-		withFix("inspect with `systemctl status <unit>` and `journalctl -u <unit>`")
+	return warnRes(i18n.T("failed: %s"), strings.Join(failed, ", ")).
+		withFix(i18n.T("inspect with `systemctl status <unit>` and `journalctl -u <unit>`"))
 }
 
 // ---- reconciler: btrfs device health -----------------------------------------
 
 func reconcileBtrfsHealth(_ bool) recResult {
 	if !sys.IsBtrfs("/") {
-		return okRes("root is not btrfs")
+		return okRes(i18n.T("root is not btrfs"))
 	}
 	opts, _ := sys.RunOut("findmnt", "-n", "-o", "OPTIONS", "/")
 	if first := strings.SplitN(strings.TrimSpace(opts), ",", 2); len(first) > 0 && first[0] == "ro" {
-		return warnRes("root filesystem is mounted read-only (btrfs may be protecting itself)").
-			withFix("check `btrfs filesystem usage /`; may need `btrfs balance` or more free space")
+		return warnRes(i18n.T("root filesystem is mounted read-only (btrfs may be protecting itself)")).
+			withFix(i18n.T("check `btrfs filesystem usage /`; may need `btrfs balance` or more free space"))
 	}
 	stats, err := sys.RunOut("sudo", "-n", "btrfs", "device", "stats", "/")
 	if err != nil || strings.TrimSpace(stats) == "" {
-		return okRes("btrfs ok (device error counters need root for full detail)")
+		return okRes(i18n.T("btrfs ok (device error counters need root for full detail)"))
 	}
 	for _, l := range nonEmptyLines(stats) {
 		f := strings.Fields(l)
 		if len(f) == 2 && f[1] != "0" {
-			return warnRes("btrfs reports device errors: %s", strings.TrimSpace(l)).
-				withFix("back up, then `sudo btrfs scrub start /`; a non-zero counter can mean a failing disk")
+			return warnRes(i18n.T("btrfs reports device errors: %s"), strings.TrimSpace(l)).
+				withFix(i18n.T("back up, then `sudo btrfs scrub start /`; a non-zero counter can mean a failing disk"))
 		}
 	}
-	return okRes("btrfs device error counters clean")
+	return okRes(i18n.T("btrfs device error counters clean"))
 }
 
 // ---- reconciler: pending .pacnew config --------------------------------------
@@ -3542,7 +3539,7 @@ func reconcilePacnew(checkOnly bool) recResult {
 	out, _ := sys.RunOut("find", "/etc", "-name", "*.pacnew")
 	files := nonEmptyLines(out)
 	if len(files) == 0 {
-		return okRes("no pending config updates")
+		return okRes(i18n.T("no pending config updates"))
 	}
 	resolved, conflicts := 0, 0
 	for _, pacnew := range files {
@@ -3565,19 +3562,19 @@ func reconcilePacnew(checkOnly bool) recResult {
 	}
 	if conflicts == 0 {
 		if checkOnly {
-			return wouldRes("%d pending .pacnew are safe to drop (identical to the live config, only the [ryoku] repo addition, or a re-commented locale.gen)", resolved)
+			return wouldRes(i18n.T("%d pending .pacnew are safe to drop (identical to the live config, only the [ryoku] repo addition, or a re-commented locale.gen)"), resolved)
 		}
-		return fixedRes("cleared %d safe .pacnew (identical to the live config, only the [ryoku] repo addition, or a re-commented locale.gen)", resolved)
+		return fixedRes(i18n.T("cleared %d safe .pacnew (identical to the live config, only the [ryoku] repo addition, or a re-commented locale.gen)"), resolved)
 	}
-	msg := warnRes("%d pending config update(s) (.pacnew) need review", conflicts)
+	msg := warnRes(i18n.T("%d pending config update(s) (.pacnew) need review"), conflicts)
 	if resolved > 0 {
-		verb := "cleared"
+		verb := i18n.T("cleared")
 		if checkOnly {
-			verb = "safe to drop"
+			verb = i18n.T("safe to drop")
 		}
-		msg = warnRes("%d pending config update(s) (.pacnew) need review (%d %s)", conflicts, resolved, verb)
+		msg = warnRes(i18n.T("%d pending config update(s) (.pacnew) need review (%d %s)"), conflicts, resolved, verb)
 	}
-	return msg.withFix("review and merge with `sudo pacdiff` (from pacman-contrib)")
+	return msg.withFix(i18n.T("review and merge with `sudo pacdiff` (from pacman-contrib)"))
 }
 
 // ---- reconciler: orphaned packages -------------------------------------------
@@ -3586,10 +3583,10 @@ func reconcileOrphans(_ bool) recResult {
 	out, err := sys.RunOut("pacman", "-Qtdq")
 	orphans := nonEmptyLines(out)
 	if err != nil || len(orphans) == 0 {
-		return okRes("no orphaned packages")
+		return okRes(i18n.T("no orphaned packages"))
 	}
-	return noteRes("%d orphaned package(s)", len(orphans)).
-		withFix("review `pacman -Qtd`, then `sudo pacman -Rns $(pacman -Qtdq)` if unneeded")
+	return noteRes(i18n.T("%d orphaned package(s)"), len(orphans)).
+		withFix(i18n.T("review `pacman -Qtd`, then `sudo pacman -Rns $(pacman -Qtdq)` if unneeded"))
 }
 
 // ---- swap helpers ------------------------------------------------------------
@@ -3770,24 +3767,24 @@ func reconcileConflictingRyokuFiles(checkOnly bool) recResult {
 	// Only a packaged box hits the conflict. A dev checkout has no ryoku-desktop,
 	// and deploy.sh's unowned helpers there are correct, so leave them be.
 	if !sys.PkgInstalled("ryoku-desktop") {
-		return okRes("dev checkout (no ryoku-desktop); deploy-seeded helpers are expected")
+		return okRes(i18n.T("dev checkout (no ryoku-desktop); deploy-seeded helpers are expected"))
 	}
 	stray := strayRyokuFiles(ryokuSystemGlobs, filepath.Glob, pkgOwnsFile)
 	if len(stray) == 0 {
-		return okRes("no unowned Ryoku files blocking pacman")
+		return okRes(i18n.T("no unowned Ryoku files blocking pacman"))
 	}
 	if checkOnly {
-		return wouldRes("%d unowned Ryoku file(s) block `pacman -Syu` (deploy-seeded): %s",
+		return wouldRes(i18n.T("%d unowned Ryoku file(s) block `pacman -Syu` (deploy-seeded): %s"),
 			len(stray), strings.Join(stray, ", ")).
 			withFix("sudo rm -f %s", strings.Join(stray, " "))
 	}
 	for _, f := range stray {
 		if err := sys.Sudo("rm", "-f", f); err != nil {
-			return failRes("could not remove %s: %v", f, err).
+			return failRes(i18n.T("could not remove %s: %v"), f, err).
 				withFix("sudo rm -f %s", strings.Join(stray, " "))
 		}
 	}
-	return fixedRes("removed %d unowned Ryoku file(s) so the next update adopts them: %s",
+	return fixedRes(i18n.T("removed %d unowned Ryoku file(s) so the next update adopts them: %s"),
 		len(stray), strings.Join(stray, ", "))
 }
 

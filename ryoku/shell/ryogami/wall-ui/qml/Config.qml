@@ -99,49 +99,6 @@ QtObject {
     readonly property bool videoPreviewInstant: _data.features?.videoPreviewInstant === true
     readonly property bool videoAutoScale: _data.features?.videoAutoScale === true
 
-    readonly property string wallpaperEngine: {
-        var v = _data.paper?.engine
-        return (v === "awww") ? "awww" : "ryogami-paper"
-    }
-
-    readonly property string awwwTransitionType: _data.paper?.awww?.transitionType ?? "wipe"
-    readonly property int    awwwTransitionDurationMs: {
-        var v = _data.paper?.awww?.transitionDurationMs
-        if (typeof v !== "number") return 1000
-        return Math.max(100, Math.min(10000, Math.round(v)))
-    }
-    readonly property int    awwwTransitionFps: {
-        var v = _data.paper?.awww?.transitionFps
-        if (typeof v !== "number") return 60
-        return Math.max(15, Math.min(240, Math.round(v)))
-    }
-    readonly property int    awwwTransitionStep: {
-        var v = _data.paper?.awww?.transitionStep
-        if (typeof v !== "number") return 90
-        return Math.max(1, Math.min(255, Math.round(v)))
-    }
-
-    readonly property int    awwwTransitionAngle: {
-        var v = _data.paper?.awww?.transitionAngle
-        if (typeof v !== "number") return 45
-        return Math.max(0, Math.min(360, Math.round(v)))
-    }
-    readonly property int    awwwTransitionWaveWidth: {
-        var v = _data.paper?.awww?.transitionWaveWidth
-        if (typeof v !== "number") return 20
-        return Math.max(1, Math.min(500, Math.round(v)))
-    }
-    readonly property int    awwwTransitionWaveHeight: {
-        var v = _data.paper?.awww?.transitionWaveHeight
-        if (typeof v !== "number") return 20
-        return Math.max(1, Math.min(500, Math.round(v)))
-    }
-    readonly property string awwwTransitionPos:    _data.paper?.awww?.transitionPos    ?? "center"
-    readonly property string awwwTransitionBezier: _data.paper?.awww?.transitionBezier ?? ".54,0,.34,.99"
-    readonly property bool   awwwInvertY:          _data.paper?.awww?.invertY === true
-    readonly property string awwwFilter:           _data.paper?.awww?.filter ?? "Lanczos3"
-    readonly property string awwwFillColor:        _data.paper?.awww?.fillColor ?? "000000ff"
-
     readonly property bool transitionEnabled: _data.transition?.enabled !== false
     readonly property string transitionShader: _data.transition?.shader ?? "random"
     readonly property int transitionDurationMs: {

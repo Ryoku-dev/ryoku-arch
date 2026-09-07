@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 )
 
 // plugin_share.go is the way a widget leaves a desktop: `ryoku plugin export`
@@ -48,7 +49,7 @@ func installedPluginDir(id string) (string, error) {
 			return r.Dir, nil
 		}
 	}
-	return "", fmt.Errorf("plugin %q is not installed (ryoku plugin list)", id)
+	return "", fmt.Errorf(i18n.T("plugin %q is not installed (ryoku plugin list)"), id)
 }
 
 func cmdPluginExport(args []string) error {
@@ -58,29 +59,29 @@ func cmdPluginExport(args []string) error {
 		case args[i] == "--to":
 			i++
 			if i >= len(args) {
-				return fmt.Errorf("--to needs a directory")
+				return fmt.Errorf(i18n.T("--to needs a directory"))
 			}
 			to = args[i]
 		case strings.HasPrefix(args[i], "-"):
-			return fmt.Errorf("unknown flag %q", args[i])
+			return fmt.Errorf(i18n.T("unknown flag %q"), args[i])
 		default:
 			if id != "" {
-				return fmt.Errorf("give one plugin id")
+				return fmt.Errorf(i18n.T("give one plugin id"))
 			}
 			id = args[i]
 		}
 	}
 	if id == "" {
-		return fmt.Errorf("usage: ryoku plugin export <id> [--to <dir>]")
+		return fmt.Errorf(i18n.T("usage: ryoku plugin export <id> [--to <dir>]"))
 	}
 	dest, err := exportPlugin(id, to)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s %s -> %s\n", sys.Green("exported"), id, dest)
-	fmt.Println("  product-manifest.json  the per-file hashes Ryostore verifies against")
-	fmt.Println("  registry-entry.json    the catalogue entry, ready for plugins/registry.json")
-	fmt.Println("Next: `ryoku plugin share " + id + "` opens the Ryostore pull request for you.")
+	fmt.Printf("%s %s -> %s\n", sys.Green(i18n.T("exported")), id, dest)
+	fmt.Println(i18n.T("  product-manifest.json  the per-file hashes Ryostore verifies against"))
+	fmt.Println(i18n.T("  registry-entry.json    the catalogue entry, ready for plugins/registry.json"))
+	fmt.Println(i18n.T("Next: `ryoku plugin share ") + id + i18n.T("` opens the Ryostore pull request for you."))
 	return nil
 }
 
@@ -93,7 +94,7 @@ func exportPlugin(id, dest string) (string, error) {
 	}
 	m, err := validateManifest(src, map[string]bool{})
 	if err != nil {
-		return "", fmt.Errorf("installed plugin %q: %w", id, err)
+		return "", fmt.Errorf(i18n.T("installed plugin %q: %w"), id, err)
 	}
 	if dest == "" {
 		dest = filepath.Join(exportRoot(), id)
@@ -154,7 +155,7 @@ func copyPluginTree(src, dest string) error {
 			return os.MkdirAll(filepath.Join(dest, rel), 0o755)
 		}
 		if d.Type()&fs.ModeSymlink != 0 {
-			return fmt.Errorf("symlink in plugin tree: %s", rel)
+			return fmt.Errorf(i18n.T("symlink in plugin tree: %s"), rel)
 		}
 		if rel == "product-manifest.json" || rel == "registry-entry.json" {
 			return nil
@@ -502,20 +503,20 @@ func cmdPluginShare(args []string) error {
 		case args[i] == "--from":
 			i++
 			if i >= len(args) {
-				return fmt.Errorf("--from needs a directory")
+				return fmt.Errorf(i18n.T("--from needs a directory"))
 			}
 			from = args[i]
 		case strings.HasPrefix(args[i], "-"):
-			return fmt.Errorf("unknown flag %q", args[i])
+			return fmt.Errorf(i18n.T("unknown flag %q"), args[i])
 		default:
 			if id != "" {
-				return fmt.Errorf("give one plugin id")
+				return fmt.Errorf(i18n.T("give one plugin id"))
 			}
 			id = args[i]
 		}
 	}
 	if id == "" {
-		return fmt.Errorf("usage: ryoku plugin share <id> [--from <exported-dir>]")
+		return fmt.Errorf(i18n.T("usage: ryoku plugin share <id> [--from <exported-dir>]"))
 	}
 	dir := from
 	if dir == "" {
@@ -524,18 +525,18 @@ func cmdPluginShare(args []string) error {
 			return err
 		}
 		dir = d
-		fmt.Printf("%s %s -> %s\n", sys.Green("exported"), id, dir)
+		fmt.Printf("%s %s -> %s\n", sys.Green(i18n.T("exported")), id, dir)
 	}
 	var entry registryEntry
 	eb, err := os.ReadFile(filepath.Join(dir, "registry-entry.json"))
 	if err != nil {
-		return fmt.Errorf("%s is not an export (run `ryoku plugin export %s` first)", dir, id)
+		return fmt.Errorf(i18n.T("%s is not an export (run `ryoku plugin export %s` first)"), dir, id)
 	}
 	if err := json.Unmarshal(eb, &entry); err != nil {
 		return fmt.Errorf("registry-entry.json: %w", err)
 	}
 	if entry.Preview == "" {
-		fmt.Println(sys.Amber("Warning: no preview image under assets/; Ryostore needs a real screenshot (assets/preview-widget.png)."))
+		fmt.Println(sys.Amber(i18n.T("Warning: no preview image under assets/; Ryostore needs a real screenshot (assets/preview-widget.png).")))
 	}
 	if sys.Has("gh") && ghLoggedIn() {
 		return shareByPullRequest(dir, entry)
@@ -566,9 +567,9 @@ func shareByPullRequest(dir string, entry registryEntry) error {
 	owner := strings.SplitN(ryostoreRepo, "/", 2)[0]
 	head := ryostoreRepo
 	if login != owner {
-		fmt.Println("forking " + ryostoreRepo + " ...")
+		fmt.Println(i18n.T("forking ") + ryostoreRepo + " ...")
 		if err := sys.Run("gh", "repo", "fork", ryostoreRepo, "--clone=false"); err != nil {
-			return fmt.Errorf("fork: %w", err)
+			return fmt.Errorf(i18n.T("fork: %w"), err)
 		}
 		head = login + "/ryostore"
 	}
@@ -577,9 +578,9 @@ func shareByPullRequest(dir string, entry registryEntry) error {
 		return err
 	}
 	defer os.RemoveAll(work)
-	fmt.Println("cloning " + head + " ...")
+	fmt.Println(i18n.T("cloning ") + head + " ...")
 	if err := sys.Run("gh", "repo", "clone", head, work, "--", "--depth", "1", "--quiet"); err != nil {
-		return fmt.Errorf("clone: %w", err)
+		return fmt.Errorf(i18n.T("clone: %w"), err)
 	}
 	if head != ryostoreRepo {
 		_ = gitIn(work, "remote", "add", "upstream", "https://github.com/"+ryostoreRepo+".git")
@@ -606,15 +607,15 @@ func shareByPullRequest(dir string, entry registryEntry) error {
 		return err
 	}
 	if out, err := gitOut(work, "status", "--porcelain"); err != nil || out == "" {
-		return fmt.Errorf("nothing to submit: the catalogue already carries %s %s", entry.ID, entry.Version)
+		return fmt.Errorf(i18n.T("nothing to submit: the catalogue already carries %s %s"), entry.ID, entry.Version)
 	}
 	_ = gitIn(work, "add", "-A")
 	subject := fmt.Sprintf("plugins: add %s %s", entry.Name, entry.Version)
 	if err := gitCommitAs(work, entry.Author, subject); err != nil {
-		return fmt.Errorf("commit: %w", err)
+		return fmt.Errorf(i18n.T("commit: %w"), err)
 	}
 	if err := gitIn(work, "push", "-q", "-f", "-u", "origin", branch); err != nil {
-		return fmt.Errorf("push: %w", err)
+		return fmt.Errorf(i18n.T("push: %w"), err)
 	}
 	kind := "desktop plugin"
 	for _, h := range entry.Hosts {
@@ -647,12 +648,12 @@ Opened with `+"`ryoku plugin share`"+`; the product manifest and the registry en
 	text := strings.TrimSpace(string(out))
 	if err != nil {
 		if strings.Contains(text, "already exists") {
-			fmt.Println(sys.Green("updated") + " the open pull request for " + entry.ID)
+			fmt.Println(sys.Green(i18n.T("updated")) + i18n.T(" the open pull request for ") + entry.ID)
 			return nil
 		}
-		return fmt.Errorf("gh pr create: %s", text)
+		return fmt.Errorf(i18n.T("gh pr create: %s"), text)
 	}
-	fmt.Println(sys.Green("submitted") + " " + text)
+	fmt.Println(sys.Green(i18n.T("submitted")) + " " + text)
 	return nil
 }
 
@@ -746,8 +747,8 @@ func shareByForm(dir string, entry registryEntry) error {
 	q.Set("description", entry.Description)
 	q.Set("source", source)
 	u := ryostoreFormURL + "?" + q.Encode()
-	fmt.Println("gh is not set up, so the submission goes through the form.")
-	fmt.Println("Push " + dir + " to a public git repo first, then paste its URL in the form:")
+	fmt.Println(i18n.T("gh is not set up, so the submission goes through the form."))
+	fmt.Println(i18n.T("Push ") + dir + i18n.T(" to a public git repo first, then paste its URL in the form:"))
 	fmt.Println("  " + u)
 	if sys.Has("xdg-open") {
 		_ = exec.Command("xdg-open", u).Start()

@@ -84,7 +84,7 @@ Singleton {
     // Append the agent bubble and start the turn (shared by send + regenerate).
     function _run(q, imgs) {
         messages.append({ who: "agent", body: "", imagesJson: "[]",
-            working: "waking the needle", streaming: true, failed: false, activityJson: "[]", permJson: "" });
+            working: I18n.tr("waking the needle"), streaming: true, failed: false, activityJson: "[]", permJson: "" });
         root.liveIdx = messages.count - 1;
         root.busy = true;
         root.lastSeen = Date.now();
@@ -108,7 +108,7 @@ Singleton {
             messages.setProperty(root.liveIdx, "streaming", false);
             if (messages.get(root.liveIdx).body.length === 0) {
                 messages.setProperty(root.liveIdx, "failed", true);
-                messages.setProperty(root.liveIdx, "body", "cancelled");
+                messages.setProperty(root.liveIdx, "body", I18n.tr("cancelled"));
             }
         }
         root.busy = false;
@@ -141,7 +141,7 @@ Singleton {
         var req;
         try { req = JSON.parse(messages.get(i).permJson); } catch (e) { return; }
         messages.setProperty(i, "permJson", "");
-        messages.setProperty(i, "working", optionId ? "approved, continuing" : "declined");
+        messages.setProperty(i, "working", optionId ? I18n.tr("approved, continuing") : I18n.tr("declined"));
         Quickshell.execDetached(["ryoku-rashin", "chat", "--perm", String(req.id), String(optionId || "")]);
     }
 
@@ -223,7 +223,7 @@ Singleton {
                     root.touched();
                     break;
                 case "perm":
-                    messages.setProperty(i, "working", "waiting for approval: " + String(f.title || ""));
+                    messages.setProperty(i, "working", I18n.tr("waiting for approval: %1").arg(String(f.title || "")));
                     messages.setProperty(i, "permJson", JSON.stringify({ id: String(f.requestId || ""), title: String(f.title || ""), options: f.options || [] }));
                     root.touched();
                     break;
@@ -237,7 +237,7 @@ Singleton {
                     if (imgs.length > 0)
                         messages.setProperty(i, "imagesJson", JSON.stringify(imgs));
                     if (messages.get(i).body.length === 0 && imgs.length === 0) {
-                        messages.setProperty(i, "body", "(no response)");
+                        messages.setProperty(i, "body", I18n.tr("(no response)"));
                         messages.setProperty(i, "failed", true);
                     }
                     root._finishActivity(i);
@@ -250,7 +250,7 @@ Singleton {
                     break;
                 case "error":
                     if (messages.get(i).body.length === 0)
-                        messages.setProperty(i, "body", String(f.message || "failed"));
+                        messages.setProperty(i, "body", String(f.message || I18n.tr("failed")));
                     messages.setProperty(i, "failed", true);
                     messages.setProperty(i, "working", "");
                     messages.setProperty(i, "streaming", false);
@@ -268,7 +268,7 @@ Singleton {
                 messages.setProperty(root.liveIdx, "streaming", false);
                 if (messages.get(root.liveIdx).body.length === 0) {
                     messages.setProperty(root.liveIdx, "failed", true);
-                    messages.setProperty(root.liveIdx, "body", code === 0 ? "no answer" : "chat failed");
+                    messages.setProperty(root.liveIdx, "body", code === 0 ? I18n.tr("no answer") : I18n.tr("chat failed"));
                 }
             }
             root.busy = false;

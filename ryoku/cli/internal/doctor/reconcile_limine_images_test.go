@@ -8,20 +8,35 @@ import (
 	"time"
 )
 
-// A CachyOS box carries linux-cachyos beside the stock linux fallback; the
-// bootloader is meant to default to the cachyos kernel, but limine-entry-tool
-// lists "linux" first, so a plain first-kernel default booted Arch (#140).
-func TestLimineDefaultKernelPathPrefersCachyos(t *testing.T) {
-	conf := "/Ryoku Linux\n  //linux\n  //linux-cachyos\n     //Snapshots\n"
-	if got := limineDefaultKernelPath(conf); got != "Ryoku Linux/linux-cachyos" {
-		t.Errorf("default kernel path = %q, want the cachyos kernel", got)
+// Which kernel the countdown autoboots is decided from the box, never from the
+// entry names: the install records the kernel it was built around, and the
+// kernel this session booted is the next-best statement. No brand is preferred,
+// so a plain install that added a second kernel keeps its menu order.
+func TestPickKernelPath(t *testing.T) {
+	both := []string{"Ryoku Linux/linux", "Ryoku Linux/linux-cachyos"}
+	for _, c := range []struct {
+		name   string
+		paths  []string
+		prefer []string
+		want   string
+	}{
+		{"recorded kernel wins", both, []string{"linux-cachyos", "linux"}, "Ryoku Linux/linux-cachyos"},
+		{"recorded stock kernel is honoured even beside a cachyos entry", both, []string{"linux"}, "Ryoku Linux/linux"},
+		{"running kernel when nothing is recorded", both, []string{"", "linux-cachyos"}, "Ryoku Linux/linux-cachyos"},
+		{"box says nothing: menu order, no brand preference", both, nil, "Ryoku Linux/linux"},
+		{"a preferred kernel with no entry falls through", both, []string{"linux-lts"}, "Ryoku Linux/linux"},
+		{"no kernel entries at all", nil, []string{"linux"}, ""},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			if got := pickKernelPath(c.paths, c.prefer); got != c.want {
+				t.Errorf("pickKernelPath = %q, want %q", got, c.want)
+			}
+		})
 	}
+
+	conf := "/Ryoku Linux\n  //linux\n  //linux-cachyos\n     //Snapshots\n"
 	if got := limineFirstKernelPath(conf); got != "Ryoku Linux/linux" {
 		t.Errorf("first kernel path = %q, want the stock linux kernel", got)
-	}
-	only := "/Ryoku Linux\n  //linux\n  //linux-zen\n"
-	if got := limineDefaultKernelPath(only); got != "Ryoku Linux/linux" {
-		t.Errorf("default kernel path = %q, want the first kernel when no cachyos", got)
 	}
 	if got := limineDefaultKernelPath("/Ryoku Linux\n    protocol: linux\n"); got != "" {
 		t.Errorf("flat menu should have no kernel path, got %q", got)
@@ -49,8 +64,10 @@ func TestLimineEnsureAutobootPreservesUserChoices(t *testing.T) {
 	if !ch {
 		t.Fatal("a numeric default on the nested layout loops and must be repointed")
 	}
-	if !strings.Contains(fixed, "default_entry: Ryoku Linux/linux-cachyos") {
-		t.Errorf("numeric default not repointed at the cachyos kernel:\n%s", fixed)
+	// Which kernel it lands on comes from the box (TestPickKernelPath covers
+	// that); here it only has to stop being an index that loops.
+	if !strings.Contains(fixed, "default_entry: Ryoku Linux/linux") {
+		t.Errorf("numeric default not repointed at a kernel entry:\n%s", fixed)
 	}
 	if !strings.Contains(fixed, "remember_last_entry: yes") {
 		t.Errorf("remember_last_entry not seeded:\n%s", fixed)

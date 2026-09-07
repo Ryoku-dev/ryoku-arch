@@ -29,11 +29,11 @@ PillSurface {
     readonly property string fieldLabel: {
         const p = Polkit.prompt.trim();
         if (p === "")
-            return "Password";
+            return I18n.tr("Password");
         return p.replace(/:\s*$/, "");
     }
     readonly property string bodyText: Polkit.message !== "" ? Polkit.message
-        : "An application is asking for administrator access."
+        : I18n.tr("An application is asking for administrator access.")
 
     implicitHeight: col.implicitHeight
 

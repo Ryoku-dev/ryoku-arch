@@ -1,6 +1,10 @@
 package keyring
 
-import "fmt"
+import (
+	"fmt"
+
+	i18n "ryoku-i18n"
+)
 
 // runInit is the first-login keyring default, run by the Hyprland autostart
 // (`ryoku keyring init`) every login. Its job is that no app ever prompts for a
@@ -19,10 +23,10 @@ import "fmt"
 //     state.
 func runInit(args []string) error {
 	if len(args) > 0 {
-		return fmt.Errorf("usage: ryoku keyring init")
+		return fmt.Errorf(i18n.T("usage: ryoku keyring init"))
 	}
 	if mode, ok := readConfig(); ok {
-		fmt.Printf("keyring: already configured (%s); leaving it\n", mode)
+		fmt.Printf(i18n.T("keyring: already configured (%s); leaving it\n"), mode)
 		return nil
 	}
 
@@ -31,9 +35,9 @@ func runInit(args []string) error {
 		// inferred unlock-on-login (PAM wired): the user chose a secured keyring;
 		// record it and leave the files alone.
 		if err := writeConfig(st.Mode); err != nil {
-			return fmt.Errorf("record keyring mode: %w", err)
+			return fmt.Errorf(i18n.T("record keyring mode: %w"), err)
 		}
-		fmt.Printf("keyring: defaulted to %s\n", st.Mode)
+		fmt.Printf(i18n.T("keyring: defaulted to %s\n"), st.Mode)
 		return nil
 	}
 
@@ -43,23 +47,23 @@ func runInit(args []string) error {
 		// a secured keyring already exists: never destroy it silently. Record the
 		// policy so status/doctor stop inferring and point at the fix.
 		if err := writeConfig(ModeNeverAsk); err != nil {
-			return fmt.Errorf("record keyring mode: %w", err)
+			return fmt.Errorf(i18n.T("record keyring mode: %w"), err)
 		}
-		fmt.Printf("keyring: the %q keyring is password-protected; leaving it intact\n", name)
-		fmt.Println("keyring: run 'ryoku keyring set never-ask --reset' (or use Ryoku Settings) to blank it and stop the prompts")
+		fmt.Printf(i18n.T("keyring: the %q keyring is password-protected; leaving it intact\n"), name)
+		fmt.Println(i18n.T("keyring: run 'ryoku keyring set never-ask --reset' (or use Ryoku Settings) to blank it and stop the prompts"))
 		return nil
 	default:
 		// absent or already blank: make sure a blank passwordless keyring is the
 		// default, so no app prompts. Only record once that actually took, so a
 		// daemon-not-ready race just retries next login.
 		if err := setNeverAsk(setOpts{mode: ModeNeverAsk}); err != nil {
-			fmt.Printf("keyring: secret service not ready yet (%v); will set up on next login\n", err)
+			fmt.Printf(i18n.T("keyring: secret service not ready yet (%v); will set up on next login\n"), err)
 			return nil
 		}
 		if err := writeConfig(ModeNeverAsk); err != nil {
-			return fmt.Errorf("record keyring mode: %w", err)
+			return fmt.Errorf(i18n.T("record keyring mode: %w"), err)
 		}
-		fmt.Println("keyring: defaulted to never-ask (blank keyring, no prompts)")
+		fmt.Println(i18n.T("keyring: defaulted to never-ask (blank keyring, no prompts)"))
 		return nil
 	}
 }

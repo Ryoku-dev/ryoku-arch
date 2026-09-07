@@ -5,6 +5,7 @@ import QtQuick.Controls
 import QtMultimedia
 import ".."
 import "../services"
+import Ryoku.Ui.Singletons
 
 Item {
     id: delegateItem
@@ -398,7 +399,7 @@ Item {
         Text {
             id: typeBadgeText
             anchors.centerIn: parent
-            text: delegateItem.model.type === "static" ? "PIC" : ((delegateItem.model.type === "video" || delegateItem.model.videoFile) ? "VID" : "WE")
+            text: delegateItem.model.type === "static" ? I18n.tr("PIC") : ((delegateItem.model.type === "video" || delegateItem.model.videoFile) ? I18n.tr("VID") : I18n.tr("WE"))
             font.family: Style.fontFamily
             font.pixelSize: 9
             font.weight: Font.Bold
@@ -569,7 +570,7 @@ Item {
 
                     Text {
                         anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                        text: "FAVOURITE"
+                        text: I18n.tr("FAVOURITE")
                         color: delegateItem.colors ? delegateItem.colors.tertiary : "#8bceff"
                         font.family: Style.fontFamily; font.pixelSize: 11
                         font.weight: Font.Medium; font.letterSpacing: 0.5
@@ -639,7 +640,7 @@ Item {
 
                     Text {
                         anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-                        text: "OVERVIEW BACKDROP"
+                        text: I18n.tr("OVERVIEW BACKDROP")
                         color: delegateItem.colors ? delegateItem.colors.tertiary : "#8bceff"
                         font.family: Style.fontFamily; font.pixelSize: 11
                         font.weight: Font.Medium; font.letterSpacing: 0.5
@@ -657,7 +658,7 @@ Item {
                         Text {
                             id: bdBtnLbl
                             anchors.centerIn: parent
-                            text: bdBtn.parent._isBackdrop ? "Current ✓" : "Set"
+                            text: bdBtn.parent._isBackdrop ? I18n.tr("Current ✓") : I18n.tr("Set")
                             color: bdBtn.parent._isBackdrop
                                 ? (delegateItem.colors ? delegateItem.colors.primaryText : "#000")
                                 : (delegateItem.colors ? delegateItem.colors.surfaceText : "#fff")
@@ -693,7 +694,7 @@ Item {
                     ActionButton {
                         width: backActionRow._slotWidth
                         colors: delegateItem.colors
-                        icon: "\u{f0208}"; label: "VIEW"
+                        icon: "\u{f0208}"; label: I18n.tr("VIEW")
                         skew: Math.abs(delegateItem.skewOffset) * 0.4
                         onClicked: {
                             var dir = delegateItem.model.path.substring(0, delegateItem.model.path.lastIndexOf("/"))
@@ -705,7 +706,7 @@ Item {
                     ActionButton {
                         width: backActionRow._slotWidth
                         colors: delegateItem.colors
-                        icon: "\u{f0a79}"; label: "DELETE"; danger: true
+                        icon: "\u{f0a79}"; label: I18n.tr("DELETE"); danger: true
                         skew: Math.abs(delegateItem.skewOffset) * 0.4
                         onClicked: {
                             var idx = index
@@ -723,7 +724,7 @@ Item {
                         visible: delegateItem.model.type === "we"
                         width: visible ? backActionRow._slotWidth : 0
                         colors: delegateItem.colors
-                        icon: "\u{f0bef}"; label: "STEAM"
+                        icon: "\u{f0bef}"; label: I18n.tr("STEAM")
                         skew: Math.abs(delegateItem.skewOffset) * 0.4
                         onClicked: { delegateItem.service.openSteamPage(delegateItem.model.weId || ""); delegateItem.flipped = false }
                     }

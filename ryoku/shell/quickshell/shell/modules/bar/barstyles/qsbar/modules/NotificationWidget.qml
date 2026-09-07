@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Ryoku.Ui.Singletons
 
 Item {
     id: rootMod
@@ -7,8 +8,9 @@ Item {
     readonly property color contentColor: root.widgetContentColor("G3", root.ink)
 
     readonly property string tooltipText: root.notifCount > 0
-        ? (root.notifCount + (root.notifCount === 1 ? " notification" : " notifications"))
-        : "No notifications"
+        ? (root.notifCount === 1 ? I18n.tr("%1 notification").arg(root.notifCount)
+                                 : I18n.tr("%1 notifications").arg(root.notifCount))
+        : I18n.tr("No notifications")
 
     implicitWidth: 26
     implicitHeight: 28

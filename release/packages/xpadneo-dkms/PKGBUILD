@@ -13,7 +13,7 @@
 #   - system/hardware/input/99-ryoku-uinput.conf loads uinput, which Steam Input
 #     and the userspace pad drivers need to create their virtual gamepads
 #
-# shipped from [ryoku] instead of the AUR for the reason awww and ryoku-cursors
+# shipped from [ryoku] instead of the AUR for the reason ryogami and ryoku-cursors
 # were: `ryoku update` is pacman and pacman never touches the AUR, so a machine
 # that installed before this package set, or whose one-shot AUR build failed, had
 # a controller that does not work and no route to a fix but a manual `yay -S`. As

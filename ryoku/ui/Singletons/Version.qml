@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 // One source for the shipped Ryoku edition strings every surface shows. The CLI
 // already knows how to resolve the version from a checkout and from an installed
@@ -32,14 +33,14 @@ Singleton {
         const clean = (text || "").trim();
         const dash = clean.indexOf("-");
         if (dash < 0)
-            return { index: "STABLE", number: "" };
+            return { index: I18n.tr("STABLE"), number: "" };
 
         const prerelease = clean.slice(dash + 1).trim();
         const parts = prerelease.split(".");
         const tail = parts.length > 0 ? parts[parts.length - 1] : "";
         const head = parts.slice(0, -1).join(" ").trim();
         if (!/^\d+$/.test(tail) || head.length === 0)
-            return { index: "STABLE", number: "" };
+            return { index: I18n.tr("STABLE"), number: "" };
         return { index: head.toUpperCase(), number: tail };
     }
 

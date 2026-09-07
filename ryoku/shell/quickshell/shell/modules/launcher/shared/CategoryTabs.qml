@@ -1,4 +1,5 @@
 import QtQuick
+import Ryoku.Ui.Singletons
 import "Singletons"
 import "providers/actions/catalog.js" as Catalog
 
@@ -39,7 +40,7 @@ Item {
                 Text {
                     id: label
                     anchors.top: parent.top
-                    text: root.categories[index]
+                    text: I18n.tr(root.categories[index])
                     color: parent.sel ? Theme.bright : Theme.faint
                     font.family: Theme.font
                     font.pixelSize: Metrics.fontSubtitle * root.s

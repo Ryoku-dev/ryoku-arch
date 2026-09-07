@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 )
 
 // plugin.go is the `ryoku plugin` CLI: install a shell plugin from a git repo
@@ -79,30 +80,11 @@ func cmdPlugin(args []string) error {
 	case "-h", "--help", "help":
 		return pluginUsage()
 	}
-	return fmt.Errorf("unknown plugin command %q (use: new, add, remove, list, validate, export, share)", args[0])
+	return fmt.Errorf(i18n.T("unknown plugin command %q (use: new, add, remove, list, validate, export, share)"), args[0])
 }
 
 func pluginUsage() error {
-	fmt.Print(`Usage: ryoku plugin <command>
-
-  new <id> [--bar|--desktop|--popout] [--name N] [--author "N <m>"] [--to <dir>]
-                                     scaffold a new plugin folder and git-init it
-                                     (--bar is the default host; adds a panel)
-  add <git-url|dir> [--bar] [--yes] [--allow-findings]
-                                     fetch, validate, audit, and install a plugin;
-                                     --bar puts it on the QS Bar;
-                                     --allow-findings installs despite blocking audit findings
-  remove <id>                        uninstall a plugin and drop its placement
-  list [--json]                      installed plugins (--json adds capabilities)
-  validate <dir> [--json] [--allow <rule>,...]
-                                     check a local plugin's manifest and run the
-                                     static security audit; --allow downgrades a
-                                     blocking rule to a warning for this run
-  export <id> [--to <dir>]           copy an installed plugin out as a Ryostore
-                                     folder (product manifest + registry entry)
-  share <id> [--from <dir>]          export, then open the Ryostore pull request
-                                     (or the submission form without gh)
-`)
+	fmt.Print(i18n.T("Usage: ryoku plugin <command>\n\n  new <id> [--bar|--desktop|--popout] [--name N] [--author \"N <m>\"] [--to <dir>]\n                                     scaffold a new plugin folder and git-init it\n                                     (--bar is the default host; adds a panel)\n  add <git-url|dir> [--bar] [--yes] [--allow-findings]\n                                     fetch, validate, audit, and install a plugin;\n                                     --bar puts it on the QS Bar;\n                                     --allow-findings installs despite blocking audit findings\n  remove <id>                        uninstall a plugin and drop its placement\n  list [--json]                      installed plugins (--json adds capabilities)\n  validate <dir> [--json] [--allow <rule>,...]\n                                     check a local plugin's manifest and run the\n                                     static security audit; --allow downgrades a\n                                     blocking rule to a warning for this run\n  export <id> [--to <dir>]           copy an installed plugin out as a Ryostore\n                                     folder (product manifest + registry entry)\n  share <id> [--from <dir>]          export, then open the Ryostore pull request\n                                     (or the submission form without gh)\n"))
 	return nil
 }
 
@@ -177,44 +159,44 @@ func safeRel(p string) bool {
 func validateManifest(dir string, reserved map[string]bool) (manifest, error) {
 	b, err := os.ReadFile(filepath.Join(dir, "manifest.json"))
 	if err != nil {
-		return manifest{}, fmt.Errorf("no manifest.json in %s", dir)
+		return manifest{}, fmt.Errorf(i18n.T("no manifest.json in %s"), dir)
 	}
 	var rm rawManifest
 	if err := json.Unmarshal(b, &rm); err != nil {
-		return manifest{}, fmt.Errorf("manifest.json is not valid JSON: %v", err)
+		return manifest{}, fmt.Errorf(i18n.T("manifest.json is not valid JSON: %v"), err)
 	}
 	if !pluginIDRe.MatchString(rm.ID) {
-		return manifest{}, fmt.Errorf("manifest id %q must be lowercase letters, digits and dashes", rm.ID)
+		return manifest{}, fmt.Errorf(i18n.T("manifest id %q must be lowercase letters, digits and dashes"), rm.ID)
 	}
 	if reserved[rm.ID] {
-		return manifest{}, fmt.Errorf("%q is a reserved built-in widget id", rm.ID)
+		return manifest{}, fmt.Errorf(i18n.T("%q is a reserved built-in widget id"), rm.ID)
 	}
 	if strings.TrimSpace(rm.Name) == "" {
-		return manifest{}, fmt.Errorf("manifest is missing a name")
+		return manifest{}, fmt.Errorf(i18n.T("manifest is missing a name"))
 	}
 	if strings.TrimSpace(rm.Version) == "" {
-		return manifest{}, fmt.Errorf("manifest is missing a version")
+		return manifest{}, fmt.Errorf(i18n.T("manifest is missing a version"))
 	}
 	if len(rm.Hosts) == 0 {
-		return manifest{}, fmt.Errorf("manifest declares no hosts")
+		return manifest{}, fmt.Errorf(i18n.T("manifest declares no hosts"))
 	}
 	for _, h := range rm.Hosts {
 		if !knownHosts[h] {
-			return manifest{}, fmt.Errorf("unknown host %q (allowed: framePopout, desktopWidget, topbarGlyph)", h)
+			return manifest{}, fmt.Errorf(i18n.T("unknown host %q (allowed: framePopout, desktopWidget, topbarGlyph)"), h)
 		}
 	}
 	for label, p := range map[string]string{"entryPoints.main": rm.EntryPoints.Main, "entryPoints.content": rm.EntryPoints.Content} {
 		if !safeRel(p) {
-			return manifest{}, fmt.Errorf("%s %q must be a relative path with no ..", label, p)
+			return manifest{}, fmt.Errorf(i18n.T("%s %q must be a relative path with no .."), label, p)
 		}
 		if !sys.Exists(filepath.Join(dir, p)) {
-			return manifest{}, fmt.Errorf("%s %q does not exist in the plugin", label, p)
+			return manifest{}, fmt.Errorf(i18n.T("%s %q does not exist in the plugin"), label, p)
 		}
 	}
 	if link, err := firstSymlink(dir); err != nil {
 		return manifest{}, err
 	} else if link != "" {
-		return manifest{}, fmt.Errorf("plugin contains a symlink (%s); symlinks are not allowed", link)
+		return manifest{}, fmt.Errorf(i18n.T("plugin contains a symlink (%s); symlinks are not allowed"), link)
 	}
 	return manifest{ID: rm.ID, Name: rm.Name, Version: rm.Version, Hosts: rm.Hosts}, nil
 }
@@ -249,32 +231,32 @@ func cmdPluginAdd(args []string) error {
 		case a == "--allow-findings":
 			allowFindings = true
 		case strings.HasPrefix(a, "-"):
-			return fmt.Errorf("unknown flag %q", a)
+			return fmt.Errorf(i18n.T("unknown flag %q"), a)
 		default:
 			if url != "" {
-				return fmt.Errorf("give one git url")
+				return fmt.Errorf(i18n.T("give one git url"))
 			}
 			url = a
 		}
 	}
 	if url == "" {
-		return fmt.Errorf("usage: ryoku plugin add <git-url|dir> [--bar] [--yes] [--allow-findings]")
+		return fmt.Errorf(i18n.T("usage: ryoku plugin add <git-url|dir> [--bar] [--yes] [--allow-findings]"))
 	}
 	// A local folder (a widget written on this desktop, by hand or by an agent)
 	// is copied; anything else is a git URL and is cloned.
 	local := sys.Exists(filepath.Join(url, "manifest.json"))
 	if !local && !sys.Has("git") {
-		return fmt.Errorf("git is required to add a plugin from a URL")
+		return fmt.Errorf(i18n.T("git is required to add a plugin from a URL"))
 	}
 
-	fmt.Println(sys.Amber("Warning: a plugin runs unsandboxed inside your shell, with your"))
-	fmt.Println(sys.Amber("permissions. Only install plugins you trust."))
-	verb := "Clone"
+	fmt.Println(sys.Amber(i18n.T("Warning: a plugin runs unsandboxed inside your shell, with your")))
+	fmt.Println(sys.Amber(i18n.T("permissions. Only install plugins you trust.")))
+	verb := i18n.T("Clone")
 	if local {
-		verb = "Copy"
+		verb = i18n.T("Copy")
 	}
-	if !yes && !confirm(fmt.Sprintf("%s and install %s?", verb, url)) {
-		return fmt.Errorf("aborted")
+	if !yes && !confirm(fmt.Sprintf(i18n.T("%s and install %s?"), verb, url)) {
+		return fmt.Errorf(i18n.T("aborted"))
 	}
 
 	// Stage a copy in a temp dir; ryostore reads the bytes from here and installs
@@ -288,11 +270,11 @@ func cmdPluginAdd(args []string) error {
 	src := filepath.Join(staging, "src")
 	if local {
 		if err := copyPluginTree(url, src); err != nil {
-			return fmt.Errorf("copy failed: %w", err)
+			return fmt.Errorf(i18n.T("copy failed: %w"), err)
 		}
 	} else {
 		if err := sys.Run("git", "clone", "--depth", "1", url, src); err != nil {
-			return fmt.Errorf("clone failed: %w", err)
+			return fmt.Errorf(i18n.T("clone failed: %w"), err)
 		}
 		// Drop the git metadata: it is not part of the plugin and can carry symlinks.
 		_ = os.RemoveAll(filepath.Join(src, ".git"))
@@ -310,44 +292,44 @@ func cmdPluginAdd(args []string) error {
 		printAudit(res, false)
 	}
 	if len(res.Blocking) > 0 && !allowFindings {
-		return fmt.Errorf("%d blocking audit finding(s); fix them or re-run with --allow-findings", len(res.Blocking))
+		return fmt.Errorf(i18n.T("%d blocking audit finding(s); fix them or re-run with --allow-findings"), len(res.Blocking))
 	}
 	if sys.Exists(filepath.Join(pluginsInstallRoot(), m.ID)) || pluginHasReceipt(m.ID) {
-		return fmt.Errorf("plugin %q is already installed (remove it first)", m.ID)
+		return fmt.Errorf(i18n.T("plugin %q is already installed (remove it first)"), m.ID)
 	}
 	if err := sys.Run(storeTool(), "install", "plugins", m.ID, "--from", src); err != nil {
-		return fmt.Errorf("install %q: %w", m.ID, err)
+		return fmt.Errorf(i18n.T("install %q: %w"), m.ID, err)
 	}
-	fmt.Printf("%s %s (%s)\n", sys.Green("installed"), m.Name, m.Version)
+	fmt.Printf("%s %s (%s)\n", sys.Green(i18n.T("installed")), m.Name, m.Version)
 
 	if bar {
 		if err := sys.Run(placeTool(), m.ID, "enabled", "true"); err != nil {
-			return fmt.Errorf("enable on bar: %w", err)
+			return fmt.Errorf(i18n.T("enable on bar: %w"), err)
 		}
 		if err := sys.Run(placeTool(), m.ID, "host", "topbarGlyph"); err != nil {
-			return fmt.Errorf("place on bar: %w", err)
+			return fmt.Errorf(i18n.T("place on bar: %w"), err)
 		}
-		fmt.Println(sys.Green("enabled") + " on the bar")
+		fmt.Println(sys.Green(i18n.T("enabled")) + i18n.T(" on the bar"))
 	}
 	return nil
 }
 
 func cmdPluginRemove(args []string) error {
 	if len(args) != 1 {
-		return fmt.Errorf("usage: ryoku plugin remove <id>")
+		return fmt.Errorf(i18n.T("usage: ryoku plugin remove <id>"))
 	}
 	id := args[0]
 	if !pluginHasReceipt(id) && !sys.Exists(filepath.Join(pluginsInstallRoot(), id)) {
-		return fmt.Errorf("plugin %q is not installed", id)
+		return fmt.Errorf(i18n.T("plugin %q is not installed"), id)
 	}
 	// Remove THROUGH ryostore so the receipt, the content-hashed view, and the
 	// index entry are torn down together.
 	if err := sys.Run(storeTool(), "remove", "plugins", id); err != nil {
-		return fmt.Errorf("remove %q: %w", id, err)
+		return fmt.Errorf(i18n.T("remove %q: %w"), id, err)
 	}
 	// Drop its placement so the shell stops loading it (best-effort).
 	_ = sys.Run(placeTool(), id, "forget")
-	fmt.Printf("%s %s\n", sys.Green("removed"), id)
+	fmt.Printf("%s %s\n", sys.Green(i18n.T("removed")), id)
 	return nil
 }
 
@@ -363,22 +345,22 @@ func cmdPluginValidate(args []string) error {
 		case a == "--allow":
 			i++
 			if i >= len(args) {
-				return fmt.Errorf("--allow needs a rule list")
+				return fmt.Errorf(i18n.T("--allow needs a rule list"))
 			}
 			addAllowed(allow, args[i])
 		case strings.HasPrefix(a, "--allow="):
 			addAllowed(allow, strings.TrimPrefix(a, "--allow="))
 		case strings.HasPrefix(a, "-"):
-			return fmt.Errorf("unknown flag %q", a)
+			return fmt.Errorf(i18n.T("unknown flag %q"), a)
 		default:
 			if dir != "" {
-				return fmt.Errorf("give one directory")
+				return fmt.Errorf(i18n.T("give one directory"))
 			}
 			dir = a
 		}
 	}
 	if dir == "" {
-		return fmt.Errorf("usage: ryoku plugin validate <dir> [--json] [--allow <rule>,...]")
+		return fmt.Errorf(i18n.T("usage: ryoku plugin validate <dir> [--json] [--allow <rule>,...]"))
 	}
 	_, mErr := validateManifest(dir, reservedIDs())
 	res := auditPlugin(dir, allow)
@@ -387,7 +369,7 @@ func cmdPluginValidate(args []string) error {
 		return mErr
 	}
 	if len(res.Blocking) > 0 {
-		return fmt.Errorf("%d blocking finding(s); fix them or re-run with --allow", len(res.Blocking))
+		return fmt.Errorf(i18n.T("%d blocking finding(s); fix them or re-run with --allow"), len(res.Blocking))
 	}
 	return nil
 }
@@ -429,13 +411,13 @@ func cmdPluginList(args []string) error {
 		return nil
 	}
 	if len(rows) == 0 {
-		fmt.Println("no plugins installed")
+		fmt.Println(i18n.T("no plugins installed"))
 		return nil
 	}
 	for _, r := range rows {
-		state := "off"
+		state := i18n.T("off")
 		if r.Enabled {
-			state = "on:" + r.Host
+			state = i18n.T("on:") + r.Host
 		}
 		fmt.Printf("%-20s %-10s %-6s %-12s %s\n", r.ID, r.Version, r.Source, state, strings.Join(r.Hosts, ","))
 	}
@@ -614,7 +596,7 @@ func confirm(prompt string) bool {
 	if !sys.StdinIsTTY() {
 		return false
 	}
-	fmt.Printf("%s [y/N] ", prompt)
+	fmt.Printf(i18n.T("%s [y/N] "), prompt)
 	var resp string
 	_, _ = fmt.Scanln(&resp)
 	resp = strings.ToLower(strings.TrimSpace(resp))

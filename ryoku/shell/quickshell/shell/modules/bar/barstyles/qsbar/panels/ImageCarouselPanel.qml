@@ -64,8 +64,8 @@ PanelWindow {
 
     readonly property string currentLabel:
         (filtered.length > 0 && selFilt >= 0 && selFilt < filtered.length)
-            ? filtered[selFilt].label
-            : (filterText ? "No matches" : "")
+            ? I18n.tr(filtered[selFilt].label)
+            : (filterText ? I18n.tr("No matches") : "")
     function thumbUrlFor(img) {
         if (!img || !img.thumbnailPath || img.thumbnailPath === img.filePath) return ""
         return "file://" + img.thumbnailPath
@@ -443,7 +443,7 @@ PanelWindow {
         visible: root.imagePickerVisible && panel.active && panel.ready && panel.filtered.length === 0
         anchors.centerIn: parent
         horizontalAlignment: Text.AlignHCenter
-        text: I18n.tr("No matches: ") + panel.filterText + I18n.tr("\n\nBackspace to edit, or Esc to clear")
+        text: I18n.tr("No matches: %1").arg(panel.filterText) + I18n.tr("\n\nBackspace to edit, or Esc to clear")
         color: root.ink
         font.family: root.mono; font.pixelSize: 16; font.letterSpacing: 1
     }
@@ -697,7 +697,7 @@ PanelWindow {
             Text {
                 visible: panel.isThemeMode && panel.selMeta && panel.selMeta.author.length > 0
                 anchors.verticalCenter: parent.verticalCenter
-                text: "by " + (panel.selMeta ? panel.selMeta.author : "") + "  ↗"
+                text: I18n.tr("by %1  ↗").arg(panel.selMeta ? panel.selMeta.author : "")
                 color: authorMa.containsMouse ? root.seal : panel.uiDim
                 font.family: root.mono; font.pixelSize: 11
                 Behavior on color { ColorAnimation { duration: 120 } }

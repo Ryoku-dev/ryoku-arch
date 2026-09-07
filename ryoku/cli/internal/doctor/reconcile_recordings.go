@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	i18n "ryoku-i18n"
 )
 
 // Recordings land in one directory. Three writers used to disagree about which:
@@ -73,7 +75,7 @@ func configHome() string {
 func reconcileRecordingsDir(checkOnly bool) recResult {
 	home := homeDir()
 	if home == "" {
-		return okRes("no HOME; nothing to reconcile")
+		return okRes(i18n.T("no HOME; nothing to reconcile"))
 	}
 	dir := recordingsDir()
 	motion := filepath.Join(configHome(), "ryomotion", "recordings")
@@ -83,12 +85,12 @@ func reconcileRecordingsDir(checkOnly bool) recResult {
 	// The target has to exist before anything can be pointed at it.
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if checkOnly {
-			return wouldRes("recordings directory %s is missing", tildeOf(dir))
+			return wouldRes(i18n.T("recordings directory %s is missing"), tildeOf(dir))
 		}
 		if err := os.MkdirAll(dir, 0o755); err != nil {
-			return failRes("could not create %s: %v", tildeOf(dir), err)
+			return failRes(i18n.T("could not create %s: %v"), tildeOf(dir), err)
 		}
-		did = append(did, "created "+tildeOf(dir))
+		did = append(did, i18n.Tf("created %s", tildeOf(dir)))
 	}
 
 	// Ryoku Motion: move anything it already recorded, then leave a symlink so
@@ -100,31 +102,31 @@ func reconcileRecordingsDir(checkOnly bool) recResult {
 			// already pointed somewhere; only correct it if it points elsewhere.
 			if target, _ := os.Readlink(motion); !sameDir(target, dir) {
 				if checkOnly {
-					return wouldRes("Ryoku Motion records into %s, not %s", tildeOf(target), tildeOf(dir))
+					return wouldRes(i18n.T("Ryoku Motion records into %s, not %s"), tildeOf(target), tildeOf(dir))
 				}
 				_ = os.Remove(motion)
 				if err := os.Symlink(dir, motion); err != nil {
-					return failRes("could not point Ryoku Motion at %s: %v", tildeOf(dir), err)
+					return failRes(i18n.T("could not point Ryoku Motion at %s: %v"), tildeOf(dir), err)
 				}
-				did = append(did, "repointed Ryoku Motion")
+				did = append(did, i18n.T("repointed Ryoku Motion"))
 			}
 		case err == nil && fi.IsDir():
 			if checkOnly {
-				return wouldRes("Ryoku Motion records into %s instead of %s", tildeOf(motion), tildeOf(dir))
+				return wouldRes(i18n.T("Ryoku Motion records into %s instead of %s"), tildeOf(motion), tildeOf(dir))
 			}
 			moved, err := moveContents(motion, dir)
 			if err != nil {
-				return failRes("could not move Ryoku Motion's recordings: %v", err)
+				return failRes(i18n.T("could not move Ryoku Motion's recordings: %v"), err)
 			}
 			if err := os.Remove(motion); err != nil {
-				return warnRes("moved %d file(s) out of %s but could not replace it with a link: %v",
+				return warnRes(i18n.T("moved %d file(s) out of %s but could not replace it with a link: %v"),
 					moved, tildeOf(motion), err).
-					withFix("remove " + tildeOf(motion) + " once it is empty, then rerun ryoku doctor")
+					withFix(i18n.T("remove %s once it is empty, then rerun ryoku doctor"), tildeOf(motion))
 			}
 			if err := os.Symlink(dir, motion); err != nil {
-				return failRes("could not point Ryoku Motion at %s: %v", tildeOf(dir), err)
+				return failRes(i18n.T("could not point Ryoku Motion at %s: %v"), tildeOf(dir), err)
 			}
-			did = append(did, fmt.Sprintf("folded Ryoku Motion in (%d file(s))", moved))
+			did = append(did, fmt.Sprintf(i18n.T("folded Ryoku Motion in (%d file(s))"), moved))
 		}
 	}
 
@@ -132,10 +134,10 @@ func reconcileRecordingsDir(checkOnly bool) recResult {
 	legacy := filepath.Join(videosDir(), "Ryoku Motion")
 	if entries, err := os.ReadDir(legacy); err == nil && len(entries) == 0 {
 		if checkOnly {
-			return wouldRes("empty legacy directory %s", tildeOf(legacy))
+			return wouldRes(i18n.T("empty legacy directory %s"), tildeOf(legacy))
 		}
 		if os.Remove(legacy) == nil {
-			did = append(did, "removed the empty "+tildeOf(legacy))
+			did = append(did, i18n.Tf("removed the empty %s", tildeOf(legacy)))
 		}
 	}
 
@@ -146,7 +148,7 @@ func reconcileRecordingsDir(checkOnly bool) recResult {
 	// is the user's call.
 	stray := filepath.Join(videosDir(), "ScreenRecordings")
 	if entries, err := os.ReadDir(stray); err == nil && len(entries) > 0 {
-		return noteRes("%d recording(s) from another recorder sit in %s, outside %s",
+		return noteRes(i18n.T("%d recording(s) from another recorder sit in %s, outside %s"),
 			len(entries), tildeOf(stray), tildeOf(dir)).
 			withFix("mv " + tildeOf(stray) + "/* " + tildeOf(dir) + "/ && rmdir " + tildeOf(stray))
 	}
@@ -154,7 +156,7 @@ func reconcileRecordingsDir(checkOnly bool) recResult {
 	if len(did) > 0 {
 		return fixedRes("%s", strings.Join(did, "; "))
 	}
-	return okRes("everything records into %s", tildeOf(dir))
+	return okRes(i18n.T("everything records into %s"), tildeOf(dir))
 }
 
 // moveContents moves every entry of src into dst without overwriting: a name

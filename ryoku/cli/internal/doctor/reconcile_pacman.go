@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // Ryoku's pacman progress bar. The installer sets this in the target's
@@ -71,39 +73,39 @@ func reconcilePacmanCandy(checkOnly bool) recResult {
 	const conf = "/etc/pacman.conf"
 	marker := pacmanCandyMarker()
 	if sys.Exists(marker) {
-		return okRes("pacman progress bar already seeded (yours to change)")
+		return okRes(i18n.T("pacman progress bar already seeded (yours to change)"))
 	}
 
 	live, err := os.ReadFile(conf)
 	if err != nil {
-		return warnRes("could not read %s: %v", conf, err).
-			withFix("fix the file permissions, then run `ryoku doctor`")
+		return warnRes(i18n.T("could not read %s: %v"), conf, err).
+			withFix(i18n.T("fix the file permissions, then run `ryoku doctor`"))
 	}
 	next, changed, ok := enableILoveCandy(live)
 	if !ok {
-		return warnRes("%s has no [options] section to hold the progress-bar default", conf).
-			withFix("repair %s (`pacman-conf` parses it), then run `ryoku doctor`", conf)
+		return warnRes(i18n.T("%s has no [options] section to hold the progress-bar default"), conf).
+			withFix(i18n.T("repair %s (`pacman-conf` parses it), then run `ryoku doctor`"), conf)
 	}
 	if !changed {
 		if checkOnly {
-			return okRes("pacman draws Ryoku's candy progress bar")
+			return okRes(i18n.T("pacman draws Ryoku's candy progress bar"))
 		}
 		if err := markMigration(marker); err != nil {
-			return failRes("could not record the pacman progress-bar seed: %v", err)
+			return failRes(i18n.T("could not record the pacman progress-bar seed: %v"), err)
 		}
-		return okRes("pacman draws Ryoku's candy progress bar")
+		return okRes(i18n.T("pacman draws Ryoku's candy progress bar"))
 	}
 	if checkOnly {
-		return wouldRes("pacman still draws the stock hash progress bar").
-			withFix("ryoku doctor  (adds ILoveCandy under [options] in %s)", conf)
+		return wouldRes(i18n.T("pacman still draws the stock hash progress bar")).
+			withFix(i18n.T("ryoku doctor  (adds ILoveCandy under [options] in %s)"), conf)
 	}
 	if err := writeRootFile(conf, string(next), "0644"); err != nil {
-		return failRes("could not add the progress-bar default to %s: %v", conf, err).
+		return failRes(i18n.T("could not add the progress-bar default to %s: %v"), conf, err).
 			withFix("sudo sed -i '/^\\[options\\]/a %s' %s", pacmanCandyDirective, conf)
 	}
 	if err := markMigration(marker); err != nil {
-		return failRes("set the pacman progress bar, but its seed marker could not be written: %v", err).
-			withFix("run `ryoku doctor` again")
+		return failRes(i18n.T("set the pacman progress bar, but its seed marker could not be written: %v"), err).
+			withFix(i18n.T("run `ryoku doctor` again"))
 	}
-	return fixedRes("set pacman's candy progress bar in %s (delete the ILoveCandy line to go back; it is not re-added)", conf)
+	return fixedRes(i18n.T("set pacman's candy progress bar in %s (delete the ILoveCandy line to go back; it is not re-added)"), conf)
 }

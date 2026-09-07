@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 )
 
 // A keyboard cannot be asked what it is. USB and HID report scancodes and a
@@ -83,18 +84,18 @@ func Detect(x11, console, locale string) Detected {
 	// 1. an explicit X11 layout is already an xkb code, set on purpose.
 	if v := strings.TrimSpace(x11); v != "" {
 		if first := strings.SplitN(v, ",", 2)[0]; first != "" {
-			return Detected{Layout: first, Source: "the X11 keymap"}
+			return Detected{Layout: first, Source: i18n.T("the X11 keymap")}
 		}
 	}
 	// 2. the console keymap: what was picked during installation.
 	if v := ConsoleAsXkb(console); v != "" {
-		return Detected{Layout: v, Source: "the console keymap"}
+		return Detected{Layout: v, Source: i18n.T("the console keymap")}
 	}
 	// 3. the locale's country, the weakest of the three. A locale never
 	//    outranks a keymap: typing French on a US board is common.
 	if c := localeCountry(locale); c != "" {
 		if mapped, ok := localeToXkb[c]; ok {
-			return Detected{Layout: mapped, Source: "the system locale"}
+			return Detected{Layout: mapped, Source: i18n.T("the system locale")}
 		}
 	}
 	return Detected{}
@@ -253,10 +254,10 @@ func (l Layout) Primary() string {
 func ApplySystem(l Layout) error {
 	p := l.Primary()
 	if p == "" {
-		return fmt.Errorf("no layout to apply")
+		return fmt.Errorf(i18n.T("no layout to apply"))
 	}
 	if err := sys.Run("localectl", "set-x11-keymap", p, "", l.Variant, l.Options); err != nil {
-		return fmt.Errorf("set the greeter and console keymap: %w", err)
+		return fmt.Errorf(i18n.T("set the greeter and console keymap: %w"), err)
 	}
 	return nil
 }
@@ -266,10 +267,10 @@ func ApplySystem(l Layout) error {
 // regenerates what the machine boots from, so callers decide when it runs.
 func RebuildBootImage() error {
 	if !sys.Has("mkinitcpio") {
-		return fmt.Errorf("mkinitcpio not installed")
+		return fmt.Errorf(i18n.T("mkinitcpio not installed"))
 	}
 	if err := sys.Sudo("mkinitcpio", "-P"); err != nil {
-		return fmt.Errorf("rebuild the boot image: %w", err)
+		return fmt.Errorf(i18n.T("rebuild the boot image: %w"), err)
 	}
 	return nil
 }

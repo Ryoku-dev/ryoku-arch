@@ -4,6 +4,7 @@ import QtQuick.Shapes
 import QtQuick.Effects
 import ".."
 import "../services"
+import Ryoku.Ui.Singletons
 
 Item {
     id: filterBar
@@ -91,15 +92,15 @@ Item {
 
         Repeater {
             model: [
-                { type: "", label: "ALL" },
-                { type: "static", label: "PIC" },
-                { type: "video", label: "VID" },
-                { type: "we", label: "WE" }
+                { type: "", label: I18n.tr("ALL") },
+                { type: "static", label: I18n.tr("PIC") },
+                { type: "video", label: I18n.tr("VID") },
+                { type: "we", label: I18n.tr("WE") }
             ]
 
             FilterButton {
                 colors: filterBar.colors
-                label: modelData.label
+                label: I18n.tr(modelData.label)
                 register: false
                 isActive: filterBar.service ? filterBar.service.selectedTypeFilter === modelData.type : false
                 onClicked: {
@@ -117,18 +118,18 @@ Item {
 
         Repeater {
             model: [
-                { mode: "date",       icon: "󰃰", label: "Newest" },
-                { mode: "color",      icon: "󰏘", label: "Default (by color)" },
-                { mode: "pop",        icon: "󰈸", label: "Color pop" },
-                { mode: "richness",   icon: "󰭴", label: "Colourful" },
-                { mode: "minimalist", icon: "󰝤", label: "Minimalist" },
-                { mode: "applied",    icon: "󰓅", label: "Most applied" }
+                { mode: "date",       icon: "\u{f00f0}", label: I18n.tr("Newest") },
+                { mode: "color",      icon: "\u{f03d8}", label: I18n.tr("Default (by color)") },
+                { mode: "pop",        icon: "\u{f0238}", label: I18n.tr("Color pop") },
+                { mode: "richness",   icon: "\u{f0b74}", label: I18n.tr("Colourful") },
+                { mode: "minimalist", icon: "\u{f0764}", label: I18n.tr("Minimalist") },
+                { mode: "applied",    icon: "\u{f04c5}", label: I18n.tr("Most applied") }
             ]
 
             FilterButton {
                 colors: filterBar.colors
                 icon: modelData.icon
-                tooltip: modelData.label
+                tooltip: I18n.tr(modelData.label)
                 isActive: filterBar.service ? filterBar.service.sortMode === modelData.mode : false
                 onClicked: {
                     filterBar.service.sortMode = modelData.mode
@@ -140,7 +141,7 @@ Item {
         FilterButton {
             colors: filterBar.colors
             icon: "\u{f02d1}"
-            tooltip: "Favourites"
+            tooltip: I18n.tr("Favourites")
             isActive: filterBar.service ? filterBar.service.favouriteFilterActive : false
             onClicked: filterBar.service.favouriteFilterActive = !filterBar.service.favouriteFilterActive
         }
@@ -150,8 +151,8 @@ Item {
             colors: filterBar.colors
             icon: "\u{f049d}"
             tooltip: DaemonClient.rotationActive
-                ? "Stop auto-rotate (random + playlists)"
-                : "Auto-rotate: continuous random wallpapers. Configure interval in settings."
+                ? I18n.tr("Stop auto-rotate (random + playlists)")
+                : I18n.tr("Auto-rotate: continuous random wallpapers. Configure interval in settings.")
             isActive: DaemonClient.rotationActive
             onClicked: {
                 if (DaemonClient.rotationActive) { DaemonClient.rotationStop(); return }
@@ -195,7 +196,7 @@ Item {
                     }
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: "Select at least one random source category in settings"
+                        text: I18n.tr("Select at least one random source category in settings")
                         font.family: Style.fontFamily
                         font.pixelSize: 11 * Config.uiScale
                         font.letterSpacing: 0.2
@@ -216,8 +217,8 @@ Item {
             colors: filterBar.colors
             icon: !Config.wallpaperMute ? "\u{f057e}" : "\u{f075f}"
             tooltip: !Config.wallpaperMute
-                ? ("Audio on (" + Config.wallpaperVolume + "%) - click to mute, right-click for slider")
-                : ("Audio muted - click to unmute, right-click for slider")
+                ? I18n.tr("Audio on (%1%) - click to mute, right-click for slider").arg(Config.wallpaperVolume)
+                : I18n.tr("Audio muted - click to unmute, right-click for slider")
             isActive: !Config.wallpaperMute
             onClicked: {
                 var nextMute = !Config.wallpaperMute
@@ -319,7 +320,7 @@ Item {
                         }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "Wallpaper audio"
+                            text: I18n.tr("Wallpaper audio")
                             font.family: Style.fontFamily
                             font.pixelSize: 11 * Config.uiScale
                             font.weight: Font.Bold
@@ -331,7 +332,7 @@ Item {
                     Text {
                         visible: (DaemonClient.audioGroups || []).length === 0
                         width: parent.width
-                        text: "No audio sources are active right now."
+                        text: I18n.tr("No audio sources are active right now.")
                         wrapMode: Text.WordWrap
                         font.family: Style.fontFamily
                         font.pixelSize: 10 * Config.uiScale
@@ -565,7 +566,7 @@ Item {
         FilterButton {
             colors: filterBar.colors
             icon: "\u{f020a}"
-            tooltip: "Follow wallpaper colours"
+            tooltip: I18n.tr("Follow wallpaper colours")
             isActive: filterBar.followActive
             onClicked: filterBar.followToggled()
         }
@@ -573,7 +574,7 @@ Item {
         FilterButton {
             colors: filterBar.colors
             icon: "\u{f0599}"
-            tooltip: "Light mode"
+            tooltip: I18n.tr("Light mode")
             isActive: Config.matugenMode === "light"
             onClicked: filterBar.modeToggled("light")
         }
@@ -581,7 +582,7 @@ Item {
         FilterButton {
             colors: filterBar.colors
             icon: "\u{f0594}"
-            tooltip: "Dark mode"
+            tooltip: I18n.tr("Dark mode")
             isActive: Config.matugenMode === "dark"
             onClicked: filterBar.modeToggled("dark")
         }
@@ -590,7 +591,7 @@ Item {
             visible: Config.wallhavenEnabled || Config.steamEnabled
             colors: filterBar.colors
             icon: "\u{f01da}"
-            tooltip: "Browse online sources"
+            tooltip: I18n.tr("Browse online sources")
             isActive: filterBar.browseOpen
             onClicked: filterBar.browseToggled()
         }
@@ -598,14 +599,14 @@ Item {
         FilterButton {
             colors: filterBar.colors
             icon: "\u{f0334}"
-            tooltip: "Themes"
+            tooltip: I18n.tr("Themes")
             onClicked: filterBar.themesToggled()
         }
 
         FilterButton {
             colors: filterBar.colors
             icon: "\u{f0b84}"
-            tooltip: "Rices"
+            tooltip: I18n.tr("Rices")
             onClicked: filterBar.ricesToggled()
         }
 
@@ -613,14 +614,14 @@ Item {
             visible: filterBar.ricesOpen
             colors: filterBar.colors
             icon: "\u{f0193}"
-            tooltip: "Save current look as a rice"
+            tooltip: I18n.tr("Save current look as a rice")
             onClicked: filterBar.saveLookRequested()
         }
 
         FilterButton {
             colors: filterBar.colors
             icon: "\u{f0493}"
-            tooltip: "Settings"
+            tooltip: I18n.tr("Settings")
             isActive: filterBar.settingsOpen
             onClicked: filterBar.settingsToggled()
         }
@@ -725,21 +726,21 @@ Item {
                         var parts = []
                         if (filterBar.cacheLoading) {
                             if (filterBar.cacheTotal > 0)
-                                parts.push("CACHE " + filterBar.cacheProgress + "/" + filterBar.cacheTotal)
+                                parts.push(I18n.tr("CACHE %1/%2").arg(filterBar.cacheProgress).arg(filterBar.cacheTotal))
                             else
-                                parts.push("PROCESSING")
+                                parts.push(I18n.tr("PROCESSING"))
                         }
                         if (filterBar.videoConvertRunning) {
                             if (filterBar.videoConvertTotal > 0)
-                                parts.push("CONVERT " + filterBar.videoConvertProgress + "/" + filterBar.videoConvertTotal)
+                                parts.push(I18n.tr("CONVERT %1/%2").arg(filterBar.videoConvertProgress).arg(filterBar.videoConvertTotal))
                             else
-                                parts.push("CONVERT")
+                                parts.push(I18n.tr("CONVERT"))
                         }
                         if (filterBar.imageOptimizeRunning) {
                             if (filterBar.imageOptimizeTotal > 0)
-                                parts.push("OPTIMIZE " + filterBar.imageOptimizeProgress + "/" + filterBar.imageOptimizeTotal)
+                                parts.push(I18n.tr("OPTIMIZE %1/%2").arg(filterBar.imageOptimizeProgress).arg(filterBar.imageOptimizeTotal))
                             else
-                                parts.push("OPTIMIZE")
+                                parts.push(I18n.tr("OPTIMIZE"))
                         }
                         return parts.join(" · ")
                     }

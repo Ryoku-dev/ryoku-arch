@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 )
 
 const (
@@ -42,24 +43,15 @@ func Run(args []string) error {
 	case "apply-pam":
 		return runApplyPAM(args[1:])
 	case "-h", "--help", "help":
-		fmt.Print(usage)
+		fmt.Print(usageText())
 		return nil
 	default:
-		return fmt.Errorf("unknown security-key command %q\n\n%s", args[0], usage)
+		return fmt.Errorf(i18n.T("unknown security-key command %q\n\n%s"), args[0], usageText())
 	}
 }
 
-const usage = `Usage: ryoku security-key <command>
+func usageText() string {
+	return i18n.T("Usage: ryoku security-key <command>\n\n  status [--json]                        show security-key status and wiring\n  enroll                                 enroll the inserted FIDO2/U2F key\n  remove <id|all>                        remove one enrolled key (1-based) or all\n  set <sudo|polkit|login> <on|off>       enable or disable pam_u2f for that target\n  set mode <either|mfa>                  security key or password vs key + password\n  set touch-required <on|off>            require touching the security key\n  set pin-verification <on|off>          require the authenticator PIN when supported\n  set user-verification <on|off>         require built-in user verification when supported\n  apply-pam <sudo|polkit|login> <on|off> privileged: edit /etc/pam.d for that target\n")
+}
 
-  status [--json]                        show security-key status and wiring
-  enroll                                 enroll the inserted FIDO2/U2F key
-  remove <id|all>                        remove one enrolled key (1-based) or all
-  set <sudo|polkit|login> <on|off>       enable or disable pam_u2f for that target
-  set mode <either|mfa>                  security key or password vs key + password
-  set touch-required <on|off>            require touching the security key
-  set pin-verification <on|off>          require the authenticator PIN when supported
-  set user-verification <on|off>         require built-in user verification when supported
-  apply-pam <sudo|polkit|login> <on|off> privileged: edit /etc/pam.d for that target
-`
-
-func usageErr() error { return fmt.Errorf("%s", usage) }
+func usageErr() error { return fmt.Errorf("%s", usageText()) }

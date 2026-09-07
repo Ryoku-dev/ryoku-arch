@@ -38,7 +38,7 @@ Flow {
             Text {
                 id: t
                 anchors.centerIn: parent
-                text: I18n.tr(chip.modelData.label)
+                text: chip.modelData.label
                 color: chip.on ? Tokens.inkOnBone : Tokens.inkDim
                 font.family: Tokens.ui
                 font.pixelSize: 10

@@ -55,9 +55,9 @@ Item {
     readonly property string home: Quickshell.env("HOME") || ""
 
     readonly property var stepDefs: [
-        { key: "source", label: "Source" }, { key: "review", label: "Review" },
-        { key: "resolve", label: "Resolve" }, { key: "preview", label: "Preview" },
-        { key: "done", label: "Done" }
+        { key: "source", label: I18n.tr("Source") }, { key: "review", label: I18n.tr("Review") },
+        { key: "resolve", label: I18n.tr("Resolve") }, { key: "preview", label: I18n.tr("Preview") },
+        { key: "done", label: I18n.tr("Done") }
     ]
     function stepIndex(k) {
         for (var i = 0; i < pg.stepDefs.length; i++)
@@ -176,14 +176,14 @@ Item {
     }
 
     function tierLabel(t) {
-        return t === "deep" ? "Deep ingest" : (t === "layer" ? "Layer on top" : "Drop in");
+        return t === "deep" ? I18n.tr("Deep ingest") : (t === "layer" ? I18n.tr("Layer on top") : I18n.tr("Drop in"));
     }
     function tierNote(t) {
         if (t === "deep")
-            return "Keybinds and window rules become Ryoku settings; raw config layers into hypr/user.lua and wins.";
+            return I18n.tr("Keybinds and window rules become Ryoku settings; raw config layers into hypr/user.lua and wins.");
         if (t === "layer")
-            return "Layered into this app's override file, which already wins over the shipped config.";
-        return "Dropped into this app's override slot, clearly labelled, applied as-is.";
+            return I18n.tr("Layered into this app's override file, which already wins over the shipped config.");
+        return I18n.tr("Dropped into this app's override slot, clearly labelled, applied as-is.");
     }
 
     // ── the forecast shown on Preview, built from the scan model + decisions ───
@@ -229,7 +229,7 @@ Item {
         pg.appInclude = ({});
         pg.conflictDecision = ({});
         pg.busy = true;
-        pg.busyLabel = "Scanning your config";
+        pg.busyLabel = I18n.tr("Scanning your config");
         scanProc.command = ["ryoku-hub", "import", "scan", arg];
         scanProc.running = true;
     }
@@ -252,7 +252,7 @@ Item {
         pg.errorMsg = "";
         pg.pendingDecisions = pg.buildDecisions();
         pg.busy = true;
-        pg.busyLabel = "Applying and backing up";
+        pg.busyLabel = I18n.tr("Applying and backing up");
         applyProc.stdinEnabled = true;
         applyProc.command = ["ryoku-hub", "import", "apply", "-"];
         applyProc.running = true;
@@ -260,7 +260,7 @@ Item {
     function undo() {
         pg.errorMsg = "";
         pg.busy = true;
-        pg.busyLabel = "Undoing the import";
+        pg.busyLabel = I18n.tr("Undoing the import");
         undoProc.command = ["ryoku-hub", "import", "undo"];
         undoProc.running = true;
     }
@@ -287,9 +287,9 @@ Item {
         else if (pg.step === "preview") pg.step = (pg.conflictTotal > 0 ? "resolve" : "review");
     }
     function primaryLabel() {
-        if (pg.step === "review") return "Continue";
-        if (pg.step === "resolve") return "Preview changes";
-        if (pg.step === "preview") return "Apply import";
+        if (pg.step === "review") return I18n.tr("Continue");
+        if (pg.step === "resolve") return I18n.tr("Preview changes");
+        if (pg.step === "preview") return I18n.tr("Apply import");
         return "";
     }
     readonly property bool footerVisible: pg.step === "review" || pg.step === "resolve" || pg.step === "preview"
@@ -317,7 +317,7 @@ Item {
                     pg.scan = JSON.parse(t);
                     pg.step = "review";
                 } catch (e) {
-                    pg.errorMsg = "Could not read the scan result.";
+                    pg.errorMsg = I18n.tr("Could not read the scan result.");
                 }
                 pg.busy = false;
             }
@@ -325,7 +325,7 @@ Item {
         stderr: StdioCollector { id: scanErr }
         onExited: (code) => {
             if (code !== 0) {
-                pg.errorMsg = scanErr.text.trim() || ("Scan failed (exit " + code + ").");
+                pg.errorMsg = scanErr.text.trim() || I18n.tr("Scan failed (exit %1).").arg(code);
                 pg.busy = false;
             }
         }
@@ -344,7 +344,7 @@ Item {
                     pg.applyResult = JSON.parse(t);
                     pg.step = "done";
                 } catch (e) {
-                    pg.errorMsg = "Could not read the apply result.";
+                    pg.errorMsg = I18n.tr("Could not read the apply result.");
                 }
                 pg.busy = false;
             }
@@ -356,7 +356,7 @@ Item {
         }
         onExited: (code) => {
             if (code !== 0) {
-                pg.errorMsg = applyErr.text.trim() || ("Import failed (exit " + code + ").");
+                pg.errorMsg = applyErr.text.trim() || I18n.tr("Import failed (exit %1).").arg(code);
                 pg.busy = false;
             }
         }
@@ -374,7 +374,7 @@ Item {
                     pg.undoResult = JSON.parse(t);
                     pg.undone = true;
                 } catch (e) {
-                    pg.errorMsg = "Could not read the undo result.";
+                    pg.errorMsg = I18n.tr("Could not read the undo result.");
                 }
                 pg.busy = false;
             }
@@ -382,7 +382,7 @@ Item {
         stderr: StdioCollector { id: undoErr }
         onExited: (code) => {
             if (code !== 0) {
-                pg.errorMsg = undoErr.text.trim() || ("Undo failed (exit " + code + ").");
+                pg.errorMsg = undoErr.text.trim() || I18n.tr("Undo failed (exit %1).").arg(code);
                 pg.busy = false;
             }
         }
@@ -813,14 +813,14 @@ Item {
                     width: resCol.width
                     spacing: Tokens.s2
                     Text {
-                        text: pg.resolvedCount + " / " + pg.conflictTotal + " " + I18n.tr("resolved")
+                        text: I18n.tr("%1 / %2 resolved").arg(pg.resolvedCount).arg(pg.conflictTotal)
                         color: Tokens.ink; font.family: Tokens.ui
                         font.pixelSize: Tokens.fRow; font.weight: Font.Medium
                     }
                     Pill {
                         anchors.verticalCenter: parent.verticalCenter
                         visible: pg.conflictTotal - pg.resolvedCount > 0
-                        label: (pg.conflictTotal - pg.resolvedCount) + " " + I18n.tr("on the default")
+                        label: I18n.tr("%1 on the default").arg(pg.conflictTotal - pg.resolvedCount)
                         tint: Tokens.inkMuted
                     }
                 }
@@ -872,7 +872,7 @@ Item {
                                     Pill {
                                         anchors.verticalCenter: parent.verticalCenter
                                         visible: confRow.modelData.kind === "duplicate"
-                                        label: "DUPLICATE"
+                                        label: I18n.tr("DUPLICATE")
                                         tint: Tokens.inkMuted
                                     }
                                 }
@@ -888,7 +888,7 @@ Item {
 
                             Text {
                                 width: parent.width
-                                text: I18n.tr("Ryoku") + ": " + (confRow.modelData.ryoku.desc || I18n.tr("a shipped shortcut"))
+                                text: "Ryoku" + ": " + (confRow.modelData.ryoku.desc || I18n.tr("a shipped shortcut"))
                                 color: Tokens.inkDim; font.family: Tokens.ui
                                 font.pixelSize: Tokens.fSmall; wrapMode: Text.WordWrap
                             }
@@ -929,7 +929,7 @@ Item {
                         spacing: Tokens.s2
                         Text {
                             text: (layeredSection.expanded ? "\u25be " : "\u25b8 ")
-                                + pg.layeredItems.length + " " + I18n.tr("settings layer on top and win")
+                                + I18n.tr("%1 settings layer on top and win").arg(pg.layeredItems.length)
                             color: Tokens.inkDim; font.family: Tokens.ui
                             font.pixelSize: Tokens.fMicro; font.weight: Font.Medium
                             font.letterSpacing: Tokens.trackLabel
@@ -1021,15 +1021,15 @@ Item {
                         anchors { left: parent.left; right: parent.right; top: parent.top; margins: Tokens.s4 }
                         spacing: Tokens.s2
                         Text {
-                            text: pg.forecast.binds + " " + I18n.tr("keybinds ingested into the GUI")
+                            text: I18n.tr("%1 keybinds ingested into the GUI").arg(pg.forecast.binds)
                             color: Tokens.ink; font.family: Tokens.ui; font.pixelSize: Tokens.fSmall
                         }
                         Text {
-                            text: pg.forecast.rules + " " + I18n.tr("window rules ingested")
+                            text: I18n.tr("%1 window rules ingested").arg(pg.forecast.rules)
                             color: Tokens.ink; font.family: Tokens.ui; font.pixelSize: Tokens.fSmall
                         }
                         Text {
-                            text: pg.forecast.unbinds + " " + I18n.tr("unbinds added so your shortcuts win")
+                            text: I18n.tr("%1 unbinds added so your shortcuts win").arg(pg.forecast.unbinds)
                             color: Tokens.ink; font.family: Tokens.ui; font.pixelSize: Tokens.fSmall
                         }
                         Rectangle { width: parent.width; height: 1; color: Tokens.lineSoft }
@@ -1100,9 +1100,10 @@ Item {
                         anchors { left: parent.left; right: parent.right; top: parent.top; margins: Tokens.s4 }
                         spacing: Tokens.s2
                         Text {
-                            text: ((pg.applyResult ? pg.applyResult.bindsIngested : 0) || 0) + " " + I18n.tr("keybinds")
-                                + ", " + ((pg.applyResult ? pg.applyResult.rulesIngested : 0) || 0) + " " + I18n.tr("rules")
-                                + ", " + ((pg.applyResult ? pg.applyResult.unbinds : 0) || 0) + " " + I18n.tr("unbinds")
+                            text: I18n.tr("%1 keybinds, %2 rules, %3 unbinds")
+                                .arg((pg.applyResult ? pg.applyResult.bindsIngested : 0) || 0)
+                                .arg((pg.applyResult ? pg.applyResult.rulesIngested : 0) || 0)
+                                .arg((pg.applyResult ? pg.applyResult.unbinds : 0) || 0)
                             color: Tokens.ink; font.family: Tokens.ui; font.pixelSize: Tokens.fSmall; font.weight: Font.Medium
                         }
                         Text {

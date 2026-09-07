@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 import "../../Singletons"
 import "calc.js" as Calc
 import "../requeststate.js" as RequestState
@@ -101,7 +102,7 @@ Provider {
             score: -10,   // a valid calc result outranks app matches
             actions: [{
                 id: "copy",
-                name: "Copy",
+                name: I18n.tr("Copy"),
                 icon: "",
                 execute: function () { Quickshell.clipboardText = result; }
             }]

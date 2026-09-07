@@ -1,5 +1,6 @@
 import QtQuick
 import ".."
+import Ryoku.Ui.Singletons
 
 // A miniature of the live desktop under the focused wallpaper, recoloured by
 // the candidate matugen palette (from `pv`, the daemon's matugen-preview) so you
@@ -118,9 +119,9 @@ Item {
             }
             Row {
                 Text { text: "ryoku"; color: mock.cGreen; font.family: Style.fontFamilyMono; font.pixelSize: 10 * mock.s; font.weight: Font.DemiBold }
-                Text { text: "@arch"; color: mock.cMag; font.family: Style.fontFamilyMono; font.pixelSize: 10 * mock.s }
+                Text { text: I18n.tr("@arch"); color: mock.cMag; font.family: Style.fontFamilyMono; font.pixelSize: 10 * mock.s }
                 Text { text: " ~ "; color: mock.cBlue; font.family: Style.fontFamilyMono; font.pixelSize: 10 * mock.s }
-                Text { text: "\u276f fastfetch"; color: mock.cFg; font.family: Style.fontFamilyMono; font.pixelSize: 10 * mock.s }
+                Text { text: I18n.tr("\u276f fastfetch"); color: mock.cFg; font.family: Style.fontFamilyMono; font.pixelSize: 10 * mock.s }
             }
             Repeater {
                 model: ["OS    Ryoku Linux", "WM    Hyprland", "SH    fish"]

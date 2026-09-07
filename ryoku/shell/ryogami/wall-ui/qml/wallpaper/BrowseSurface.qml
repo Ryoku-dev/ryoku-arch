@@ -3,6 +3,7 @@ import QtQuick.Effects
 import ".."
 import "../components"
 import "../services"
+import Ryoku.Ui.Singletons
 
 // One Browse surface for every remote source. The active source's browser fills
 // the width; a SOURCES button opens a slide-out drawer that switches source and
@@ -50,7 +51,7 @@ Item {
   }
   readonly property string _activeLabel: {
     for (var i = 0; i < _sources.length; i++) if (_sources[i].key === source) return _sources[i].label
-    return "SOURCES"
+    return I18n.tr("SOURCES")
   }
   function _validSource(k) {
     for (var i = 0; i < _sources.length; i++) if (_sources[i].key === k) return true
@@ -89,10 +90,10 @@ Item {
   }
   readonly property bool _searchable: !_isLib || source !== "repos" || activeRepo !== ""
   readonly property string _searchHint: {
-    if (source === "wallhaven") return "SEARCH WALLHAVEN\u2026"
-    if (source === "steam") return "SEARCH STEAM WORKSHOP\u2026"
+    if (source === "wallhaven") return I18n.tr("SEARCH %1…").arg("WALLHAVEN")
+    if (source === "steam") return I18n.tr("SEARCH %1…").arg("STEAM WORKSHOP")
     var d = _libDefs[source]
-    return d ? "SEARCH " + d.label + "\u2026" : "SEARCH\u2026"
+    return d ? I18n.tr("SEARCH %1…").arg(d.label) : I18n.tr("SEARCH…")
   }
   readonly property real _barHeight: 84 * Config.uiScale
   function _runSearch(q) {
@@ -150,7 +151,7 @@ Item {
         needsPost: root._libDefs[root.source] ? root._libDefs[root.source].post : false
         extraArgs: root.source === "repos" && root.activeRepo !== "" ? ["--repo", root.activeRepo] : []
         searchable: root.source !== "repos" || root.activeRepo !== ""
-        idleHint: "Add a GitHub repo in the Sources drawer (owner/repo)."
+        idleHint: I18n.tr("Add a GitHub repo in the Sources drawer (owner/repo).")
         onEscapePressed: root.escapePressed()
       }
     }
@@ -195,7 +196,7 @@ Item {
         register: false
         skew: 8
         height: 26 * Config.uiScale
-        tooltip: "Back to wallpapers"
+        tooltip: I18n.tr("Back to wallpapers")
         onClicked: root.escapePressed()
       }
 
@@ -208,7 +209,7 @@ Item {
         skew: 8
         height: 26 * Config.uiScale
         isActive: root.drawerOpen
-        tooltip: "Switch source · keys & setup"
+        tooltip: I18n.tr("Switch source · keys & setup")
         onClicked: root.drawerOpen = !root.drawerOpen
       }
 
@@ -252,7 +253,7 @@ Item {
       FilterButton {
         anchors.verticalCenter: parent.verticalCenter
         colors: root.colors
-        label: "SEARCH"
+        label: I18n.tr("SEARCH")
         register: false
         skew: 8
         height: 26 * Config.uiScale
@@ -270,12 +271,12 @@ Item {
           register: false; skew: 8
           height: 26 * Config.uiScale
           activeOpacity: (root._activeItem && root._activeItem.pageCanPrev) ? 1 : 0.3
-          tooltip: "Previous page"
+          tooltip: I18n.tr("Previous page")
           onClicked: if (root._activeItem) root._activeItem.pagePrev()
         }
         Text {
           anchors.verticalCenter: parent.verticalCenter
-          text: "PAGE " + (root._activeItem ? root._activeItem.pageNum : 1)
+          text: I18n.tr("PAGE %1").arg(root._activeItem ? root._activeItem.pageNum : 1)
           font.family: Style.fontFamily; font.pixelSize: 10 * Config.uiScale
           font.weight: Font.Medium; font.letterSpacing: 1.2
           color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.7) : "#c2c7cf"
@@ -286,7 +287,7 @@ Item {
           register: false; skew: 8
           height: 26 * Config.uiScale
           activeOpacity: (root._activeItem && root._activeItem.pageCanNext) ? 1 : 0.3
-          tooltip: "Next page"
+          tooltip: I18n.tr("Next page")
           onClicked: if (root._activeItem) root._activeItem.pageNext()
         }
       }
@@ -344,7 +345,7 @@ Item {
           Row {
             spacing: Style.spacingMedium
             Text {
-              text: "SOURCES"
+              text: I18n.tr("SOURCES")
               font.family: Style.fontFamilyHeading
               font.pixelSize: 20 * Config.uiScale
               font.weight: Font.Medium
@@ -359,7 +360,7 @@ Item {
             }
           }
           Text {
-            text: "Pick where wallpapers come from."
+            text: I18n.tr("Pick where wallpapers come from.")
             font.family: Style.fontFamily
             font.pixelSize: 11 * Config.uiScale
             color: root.colors ? Qt.rgba(root.colors.surfaceVariantText.r, root.colors.surfaceVariantText.g, root.colors.surfaceVariantText.b, 0.7) : "#8a8f97"
@@ -373,7 +374,7 @@ Item {
             model: root._sources
             FilterButton {
               colors: root.colors
-              label: modelData.label
+              label: I18n.tr(modelData.label)
               register: false
               skew: 8
               height: 28 * Config.uiScale
@@ -391,8 +392,8 @@ Item {
         Text {
           text: {
             var d = root._libDefs[root.source]
-            if (d) return d.label + " · NO KEYS NEEDED"
-            return (root.source === "steam" ? "STEAM" : "WALLHAVEN") + " · KEYS & SETUP"
+            if (d) return I18n.tr("%1 · NO KEYS NEEDED").arg(d.label)
+            return I18n.tr("%1 · KEYS & SETUP").arg(root.source === "steam" ? "STEAM" : "WALLHAVEN")
           }
           font.family: Style.fontFamily
           font.pixelSize: 11 * Config.uiScale
@@ -405,7 +406,7 @@ Item {
           visible: root._isLib
           width: parent.width
           wrapMode: Text.WordWrap
-          text: "Scraped source. Browse and click to apply; downloads land in your video library."
+          text: I18n.tr("Scraped source. Browse and click to apply; downloads land in your video library.")
           font.family: Style.fontFamily
           font.pixelSize: 10 * Config.uiScale
           color: root.colors ? Qt.rgba(root.colors.surfaceVariantText.r, root.colors.surfaceVariantText.g, root.colors.surfaceVariantText.b, 0.7) : "#8a8f97"
@@ -482,7 +483,7 @@ Item {
               Text {
                 visible: repoInput.text.length === 0
                 anchors.left: parent.left; anchors.leftMargin: 10; anchors.verticalCenter: parent.verticalCenter
-                text: "owner/repo"
+                text: I18n.tr("owner/repo")
                 font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale
                 color: root.colors ? Qt.rgba(root.colors.surfaceVariantText.r, root.colors.surfaceVariantText.g, root.colors.surfaceVariantText.b, 0.7) : "#8a8f97"
               }
@@ -499,7 +500,7 @@ Item {
             FilterButton {
               id: addBtn
               colors: root.colors
-              label: "ADD"
+              label: I18n.tr("ADD")
               register: false
               skew: 8
               height: 28 * Config.uiScale

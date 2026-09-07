@@ -4,6 +4,7 @@ import QtQuick
 import "../.." as Pill
 import shell.services
 import "../../../../components"
+import Ryoku.Ui.Singletons
 
 // Network entry (contract 06 sec 2.6): a RevealerRow whose inert action button
 // carries the connection-status icon and whose label reports the current link;
@@ -126,14 +127,14 @@ Item {
     readonly property string statusLabel: {
         var base;
         if (Network.kind === "ethernet")
-            base = qsTr("Wired");
+            base = I18n.tr("Wired");
         else if (Network.kind === "wifi")
-            base = Network.activeSsid.length > 0 ? Network.activeSsid : qsTr("Wi-Fi Connected");
+            base = Network.activeSsid.length > 0 ? Network.activeSsid : I18n.tr("Wi-Fi Connected");
         else if (Network.wifiConnectivity === "Connecting")
-            base = qsTr("Connecting…");
+            base = I18n.tr("Connecting…");
         else
-            base = qsTr("Not Connected");
-        return Network.vpnActive ? base + qsTr(" (+WG)") : base;
+            base = I18n.tr("Not Connected");
+        return Network.vpnActive ? I18n.tr("%1 (+WG)").arg(base) : base;
     }
 
     // A full-width primary-accent action button (the reference .ok-button-primary),
@@ -222,7 +223,7 @@ Item {
                 spacing: 10
                 visible: Network.wifiPresent && Network.activeSsid.length > 0
 
-                SectionLabel { text: qsTr("Active Network") }
+                SectionLabel { text: I18n.tr("Active Network") }
 
                 RevealerButton {
                     width: parent.width
@@ -231,7 +232,7 @@ Item {
 
                     PrimaryButton {
                         width: parent.width
-                        text: qsTr("Disconnect")
+                        text: I18n.tr("Disconnect")
                         onClicked: Network.disconnectWifi()
                     }
                 }
@@ -249,7 +250,7 @@ Item {
                         id: wgTitle
                         anchors.centerIn: parent
                         width: parent.width
-                        text: qsTr("Wireguard Connections")
+                        text: I18n.tr("Wireguard Connections")
                     }
                     MenuButton {
                         id: wgAdd
@@ -298,7 +299,7 @@ Item {
                             Text {
                                 anchors.fill: parent
                                 verticalAlignment: Text.AlignVCenter
-                                text: qsTr("Path to .conf")
+                                text: I18n.tr("Path to .conf")
                                 color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
                                 font: wgPath.font
                                 visible: wgPath.text.length === 0 && !wgPath.activeFocus
@@ -307,13 +308,13 @@ Item {
                     }
                     PrimaryButton {
                         width: parent.width
-                        text: qsTr("Import")
+                        text: I18n.tr("Import")
                         onClicked: if (wgPath.text.length > 0) { Network.wgImport(wgPath.text); wgPath.text = ""; wgImport.expanded = false; }
                     }
                 }
 
                 EmptyLabel {
-                    text: qsTr("No Available WG Connections")
+                    text: I18n.tr("No Available WG Connections")
                     visible: Network.wgTunnels.length === 0
                 }
 
@@ -335,10 +336,10 @@ Item {
                 spacing: 10
                 visible: Network.wifiPresent
 
-                SectionLabel { text: qsTr("Available Networks") }
+                SectionLabel { text: I18n.tr("Available Networks") }
 
                 EmptyLabel {
-                    text: qsTr("No Available Networks")
+                    text: I18n.tr("No Available Networks")
                     visible: root.availableNets.length === 0 && !root.scanning
                 }
 
@@ -354,7 +355,7 @@ Item {
                 }
 
                 EmptyLabel {
-                    text: qsTr("Scanning…")
+                    text: I18n.tr("Scanning…")
                     visible: root.scanning
                 }
             }
@@ -382,18 +383,18 @@ Item {
                 PrimaryButton {
                     width: parent.width
                     visible: !wgRow.tun.active
-                    text: qsTr("Connect")
+                    text: I18n.tr("Connect")
                     onClicked: Network.wgActivate(wgRow.tun.uuid)
                 }
                 PrimaryButton {
                     width: parent.width
                     visible: wgRow.tun.active
-                    text: qsTr("Disconnect")
+                    text: I18n.tr("Disconnect")
                     onClicked: Network.wgDeactivate(wgRow.tun.uuid)
                 }
                 PrimaryButton {
                     width: parent.width
-                    text: qsTr("Delete")
+                    text: I18n.tr("Delete")
                     onClicked: Network.wgDelete(wgRow.tun.uuid)
                 }
             }
@@ -469,7 +470,7 @@ Item {
                         Text {
                             anchors.fill: parent
                             verticalAlignment: Text.AlignVCenter
-                            text: qsTr("Password")
+                            text: I18n.tr("Password")
                             color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
                             font: pwEntry.font
                             visible: pwEntry.text.length === 0 && !pwEntry.activeFocus
@@ -498,7 +499,7 @@ Item {
                     Text {
                         id: errText
                         anchors.centerIn: parent
-                        text: qsTr("Error Connecting")
+                        text: I18n.tr("Error Connecting")
                         color: Theme.inkOn(Theme.error, Theme.onError)
                         font.family: Theme.fontPrimary
                         font.pixelSize: Theme.fontMd
@@ -508,7 +509,7 @@ Item {
 
                 PrimaryButton {
                     width: parent.width
-                    text: qsTr("Connect")
+                    text: I18n.tr("Connect")
                     enabled: !apRow.connecting
                     onClicked: apRow.doConnect()
                 }

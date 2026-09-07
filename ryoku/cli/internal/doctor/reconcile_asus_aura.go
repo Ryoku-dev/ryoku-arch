@@ -4,6 +4,8 @@ import (
 	"os/exec"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 type asusAuraStatus struct {
@@ -37,39 +39,39 @@ func probeAsusAuraStatus() asusAuraStatus {
 func reconcileAsusAura(checkOnly bool) recResult {
 	st := readAsusAuraStatus()
 	if !st.supported {
-		return okRes("this machine has no supported ASUS Aura laptop controller")
+		return okRes(i18n.T("this machine has no supported ASUS Aura laptop controller"))
 	}
 	if !st.installed && st.tlp {
-		return warnRes("ASUS Aura keyboard support needs asusctl, which conflicts with the installed TLP power stack").
-			withFix("choose TLP or ASUS Aura control; remove TLP before installing asusctl")
+		return warnRes(i18n.T("ASUS Aura keyboard support needs asusctl, which conflicts with the installed TLP power stack")).
+			withFix(i18n.T("choose TLP or ASUS Aura control; remove TLP before installing asusctl"))
 	}
 	if !st.installed {
 		if removedByUser("asusctl") {
-			return okRes("asusctl was removed by hand; leaving the Aura keyboard unmanaged")
+			return okRes(i18n.T("asusctl was removed by hand; leaving the Aura keyboard unmanaged"))
 		}
 		if checkOnly {
-			return wouldRes("ASUS Aura keyboard provider is missing").
-				withFix("ryoku doctor installs asusctl and starts asusd")
+			return wouldRes(i18n.T("ASUS Aura keyboard provider is missing")).
+				withFix(i18n.T("ryoku doctor installs asusctl and starts asusd"))
 		}
 		if err := installAsusAura(); err != nil {
-			return failRes("could not install the ASUS Aura provider: %v", err).
+			return failRes(i18n.T("could not install the ASUS Aura provider: %v"), err).
 				withFix("sudo pacman -S asusctl")
 		}
 		recordProvisioned("asusctl")
 	}
 	if st.installed && st.running {
-		return okRes("ASUS Aura keyboard provider is installed and running")
+		return okRes(i18n.T("ASUS Aura keyboard provider is installed and running"))
 	}
 	if checkOnly {
-		return wouldRes("asusd is installed but not running, so the Aura keyboard is absent from Appearance").
-			withFix("ryoku doctor starts asusd")
+		return wouldRes(i18n.T("asusd is installed but not running, so the Aura keyboard is absent from Appearance")).
+			withFix(i18n.T("ryoku doctor starts asusd"))
 	}
 	if err := startAsusAura(); err != nil {
-		return failRes("could not start the ASUS Aura provider: %v", err).
+		return failRes(i18n.T("could not start the ASUS Aura provider: %v"), err).
 			withFix("sudo systemctl start asusd.service")
 	}
 	if st.installed {
-		return fixedRes("started asusd; the ASUS Aura keyboard is available in Appearance")
+		return fixedRes(i18n.T("started asusd; the ASUS Aura keyboard is available in Appearance"))
 	}
-	return fixedRes("installed asusctl and started asusd; the ASUS Aura keyboard is available in Appearance")
+	return fixedRes(i18n.T("installed asusctl and started asusd; the ASUS Aura keyboard is available in Appearance"))
 }

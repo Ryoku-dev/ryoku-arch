@@ -104,7 +104,7 @@ Item {
                 visible: tile.primaryLabel.length > 0
                 compact: true
                 text: tile.primaryLabel
-                primary: tile.on === false && tile.primaryLabel === "LAUNCH"
+                primary: tile.on === false
                 onAct: tile.primary()
             }
             Btn {

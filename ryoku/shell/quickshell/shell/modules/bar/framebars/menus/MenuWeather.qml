@@ -35,7 +35,7 @@ Item {
     readonly property color glyphInk: Theme.inkOn(Theme.effectiveSurface, Theme.onSurface, 3.0)
     readonly property color trackTone: Qt.rgba(root.inkVar.r, root.inkVar.g, root.inkVar.b, 0.20)
 
-    readonly property string windU: (root.cur && String(root.cur.windUnits).indexOf("mph") >= 0) ? qsTr("mph") : qsTr("km/h")
+    readonly property string windU: (root.cur && String(root.cur.windUnits).indexOf("mph") >= 0) ? I18n.tr("mph") : I18n.tr("km/h")
 
     // The active display unit: an explicit weatherUnit wins; "auto" is read off
     // the frame's own temperature suffix so the toggle reflects what is shown.
@@ -48,12 +48,12 @@ Item {
 
     // The six-metric grid, driven off the daemon's pre-formatted strings.
     readonly property var metrics: root.cur ? [
-        { icon: "thermostat",          label: qsTr("Feels"),      value: root.cur.feelsLike,                    sub: "" },
-        { icon: "humidity_percentage", label: qsTr("Humidity"),   value: root.cur.humidity + "%",               sub: "" },
-        { icon: "air",                 label: qsTr("Wind"),       value: root.cur.windDir + " " + root.cur.windValue, sub: root.windU },
-        { icon: "rainy",               label: qsTr("Precip"),     value: root.cur.precipProb + "%",             sub: root.cur.precip },
-        { icon: "visibility",          label: qsTr("Visibility"), value: root.cur.visibility,                   sub: "" },
-        { icon: "compress",            label: qsTr("Pressure"),   value: root.cur.pressure,                     sub: "" }
+        { icon: "thermostat",          label: I18n.tr("Feels"),      value: root.cur.feelsLike,                    sub: "" },
+        { icon: "humidity_percentage", label: I18n.tr("Humidity"),   value: root.cur.humidity + "%",               sub: "" },
+        { icon: "air",                 label: I18n.tr("Wind"),       value: root.cur.windDir + " " + root.cur.windValue, sub: root.windU },
+        { icon: "rainy",               label: I18n.tr("Precip"),     value: root.cur.precipProb + "%",             sub: root.cur.precip },
+        { icon: "visibility",          label: I18n.tr("Visibility"), value: root.cur.visibility,                   sub: "" },
+        { icon: "compress",            label: I18n.tr("Pressure"),   value: root.cur.pressure,                     sub: "" }
     ] : []
 
     // Canonical illumination for each of the 8 strip glyphs; the current index
@@ -86,7 +86,7 @@ Item {
         Text {
             id: loadingLabel
             anchors.centerIn: parent
-            text: qsTr("Weather loading\u2026")
+            text: I18n.tr("Weather loading\u2026")
             color: root.glyphInk
             horizontalAlignment: Text.AlignHCenter
             font.family: Theme.fontPrimary
@@ -106,7 +106,7 @@ Item {
 
         Text {
             width: parent.width
-            text: Weather.errorText.length > 0 ? Weather.errorText : qsTr("Error loading weather.")
+            text: Weather.errorText.length > 0 ? Weather.errorText : I18n.tr("Error loading weather.")
             color: Theme.inkOn(Theme.effectiveSurface, Theme.error, 3.0)
             horizontalAlignment: Text.AlignHCenter
             font.family: Theme.fontPrimary
@@ -123,7 +123,7 @@ Item {
             Text {
                 id: retryLabel
                 anchors.centerIn: parent
-                text: qsTr("Retry")
+                text: I18n.tr("Retry")
                 color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurface)
                 font.family: Theme.fontPrimary
                 font.pixelSize: Theme.fontSm * root.s
@@ -216,7 +216,7 @@ Item {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     icon: "refresh"
-                    tip: qsTr("Refresh")
+                    tip: I18n.tr("Refresh")
                     tipBelow: true
                     tipAlign: "right"
                     onClicked: Weather.retry()
@@ -263,7 +263,7 @@ Item {
         WeatherCard {
             s: root.s
             width: parent.width
-            eyebrow: qsTr("Hourly")
+            eyebrow: I18n.tr("Hourly")
 
             Row {
                 width: parent.width
@@ -306,7 +306,7 @@ Item {
         WeatherCard {
             s: root.s
             width: parent.width
-            eyebrow: qsTr("3-Day")
+            eyebrow: I18n.tr("3-Day")
 
             Repeater {
                 model: Math.min(3, Weather.daily.length)
@@ -401,14 +401,14 @@ Item {
         WeatherCard {
             s: root.s
             width: parent.width
-            eyebrow: qsTr("Sun")
+            eyebrow: I18n.tr("Sun")
 
             Row {
                 width: parent.width
                 Repeater {
                     model: [
-                        { label: qsTr("Sunrise"), icon: "wb_sunny",    value: root.cur ? root.cur.sunrise : "" },
-                        { label: qsTr("Sunset"),  icon: "wb_twilight", value: root.cur ? root.cur.sunset : "" }
+                        { label: I18n.tr("Sunrise"), icon: "wb_sunny",    value: root.cur ? root.cur.sunrise : "" },
+                        { label: I18n.tr("Sunset"),  icon: "wb_twilight", value: root.cur ? root.cur.sunset : "" }
                     ]
                     delegate: Column {
                         required property var modelData
@@ -449,7 +449,7 @@ Item {
         WeatherCard {
             s: root.s
             width: parent.width
-            eyebrow: qsTr("Moon")
+            eyebrow: I18n.tr("Moon")
 
             Row {
                 width: parent.width
@@ -473,7 +473,7 @@ Item {
                         font.weight: Font.DemiBold
                     }
                     Text {
-                        text: (root.moon ? root.moon.illumination : 0) + qsTr("% illuminated")
+                        text: I18n.tr("%1% illuminated").arg(root.moon ? root.moon.illumination : 0)
                         color: root.inkVar
                         font.family: Theme.fontPrimary
                         font.pixelSize: Theme.fontSm * root.s
@@ -520,7 +520,7 @@ Item {
         WeatherCard {
             s: root.s
             width: parent.width
-            eyebrow: qsTr("Conditions")
+            eyebrow: I18n.tr("Conditions")
 
             Grid {
                 width: parent.width
@@ -574,7 +574,7 @@ Item {
         WeatherCard {
             s: root.s
             width: parent.width
-            eyebrow: qsTr("Air Quality")
+            eyebrow: I18n.tr("Air Quality")
 
             Row {
                 width: parent.width
@@ -598,7 +598,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 1 * root.s
                     Text {
-                        text: qsTr("EU AQI")
+                        text: I18n.tr("EU AQI")
                         color: root.inkVar
                         font.family: Theme.mono
                         font.pixelSize: (Theme.fontSm - 4) * root.s
@@ -648,9 +648,9 @@ Item {
                 visible: root.air && root.air.available
                 Repeater {
                     model: root.air ? [
-                        { label: qsTr("PM2.5"), value: root.air.pm25 },
-                        { label: qsTr("PM10"),  value: root.air.pm10 },
-                        { label: qsTr("Ozone"), value: root.air.ozone }
+                        { label: I18n.tr("PM2.5"), value: root.air.pm25 },
+                        { label: I18n.tr("PM10"),  value: root.air.pm10 },
+                        { label: I18n.tr("Ozone"), value: root.air.ozone }
                     ] : []
                     delegate: Column {
                         required property var modelData
@@ -687,7 +687,7 @@ Item {
                 width: parent.width
                 visible: !(root.air && root.air.available)
                 horizontalAlignment: Text.AlignHCenter
-                text: qsTr("Air quality unavailable")
+                text: I18n.tr("Air quality unavailable")
                 color: root.inkVar
                 font.family: Theme.fontPrimary
                 font.pixelSize: Theme.fontSm * root.s
@@ -699,7 +699,7 @@ Item {
             width: parent.width
             visible: Weather.updatedAt.length > 0
             horizontalAlignment: Text.AlignHCenter
-            text: qsTr("Updated ") + Weather.updatedAt
+            text: I18n.tr("Updated %1").arg(Weather.updatedAt)
             color: root.inkVar
             font.family: Theme.fontPrimary
             font.pixelSize: (Theme.fontSm - 1) * root.s

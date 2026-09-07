@@ -2,8 +2,26 @@
 # shared helpers for ryoku-install: logging, the dry-run wrapper, small utils
 # every step lib leans on. sourced, never run directly.
 
+# translation for everything log() and die() print, from the same catalog the
+# desktop reads. sourced next to this file so the staged copy on the ISO keeps
+# them together.
+# shellcheck source=installation/backend/lib/i18n.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/i18n.sh"
+i18n_init
+
 # log: progress line on stdout. the TUI streams these into its scroll view.
-log() { printf '  %s\n' "$*"; }
+# takes a format plus its arguments (`log 'locale: %s' "$RYOKU_LOCALE"`) so the
+# sentence reaches the translator whole instead of pre-spliced. a lone literal
+# with no arguments still works, and a stray % in one is printed as itself.
+log() {
+  local f=$1
+  shift || true
+  if (($#)); then
+    printf '  %s\n' "$(tf "$f" "$@")"
+  else
+    printf '  %s\n' "$(t "$f")"
+  fi
+}
 
 # step: staged-progress sentinel the TUI watches. ids, in order:
 # partition, filesystems, mount, pacstrap, configure, bootloader. also records
@@ -12,8 +30,18 @@ log() { printf '  %s\n' "$*"; }
 # shellcheck disable=SC2034  # consumed by ryoku-install's exit trap, not here
 step() { RYOKU_STAGE=$1; printf '@@RYOKU_STEP %s\n' "$1"; }
 
-# die: abort with a stderr message + non-zero exit.
-die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
+# die: abort with a stderr message + non-zero exit. same format-plus-arguments
+# shape as log.
+die() {
+  local f=$1
+  shift || true
+  if (($#)); then
+    printf 'ERROR: %s\n' "$(tf "$f" "$@")" >&2
+  else
+    printf 'ERROR: %s\n' "$(t "$f")" >&2
+  fi
+  exit 1
+}
 
 # run: execute a destructive/system command, or print it (prefixed DRYRUN:)
 # when RYOKU_DRYRUN is set. plain argv only, no shell features. stdin is

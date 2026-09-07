@@ -116,7 +116,7 @@ PanelWindow {
                 UiText {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    text: I18n.tr("GPU")
+                    text: "GPU"
                     color: root.ink
                     font.family: root.mono
                     font.pixelSize: 13

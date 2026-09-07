@@ -63,15 +63,15 @@ Item {
     readonly property var routed: Dispatcher.route(query)
     readonly property string modeLabel: {
         var p = routed.prefix;
-        if (p === "/file") return "FILE";
-        if (p === "/folder") return "FOLDER";
-        if (p === "/image") return "IMAGE";
-        if (p === "/video") return "VIDEO";
-        if (p === "/") return "ACTIONS";
-        if (p === ">") return "PACKAGE";
-        if (p === "=") return "CALC";
-        if (p === "?") return "WEB";
-        if (p === "@") return "RADIO";
+        if (p === "/file") return I18n.tr("FILE");
+        if (p === "/folder") return I18n.tr("FOLDER");
+        if (p === "/image") return I18n.tr("IMAGE");
+        if (p === "/video") return I18n.tr("VIDEO");
+        if (p === "/") return I18n.tr("ACTIONS");
+        if (p === ">") return I18n.tr("PACKAGE");
+        if (p === "=") return I18n.tr("CALC");
+        if (p === "?") return I18n.tr("WEB");
+        if (p === "@") return I18n.tr("RADIO");
         if (askMode) return "RASHIN";
         return "";
     }

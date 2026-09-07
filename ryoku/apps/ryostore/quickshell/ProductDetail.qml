@@ -41,11 +41,11 @@ FocusScope {
     readonly property string errorText: installErrorKey === actionKey ? installError : ""
     readonly property string transitionMode: reducedMotion ? "immediate" : "shared"
     readonly property string metadataText: [
-        actionItem.author ? "AUTHOR / " + actionItem.author : "",
-        actionItem.version ? "VERSION / " + actionItem.version : "",
-        actionItem.size ? "SIZE / " + actionItem.size : "",
-        actionItem.compatibility ? "COMPATIBILITY / " + valueText(actionItem.compatibility) : "",
-        actionItem.contents ? "CONTENTS / " + valueText(actionItem.contents) : ""
+        actionItem.author ? I18n.tr("AUTHOR / %1").arg(actionItem.author) : "",
+        actionItem.version ? I18n.tr("VERSION / %1").arg(actionItem.version) : "",
+        actionItem.size ? I18n.tr("SIZE / %1").arg(actionItem.size) : "",
+        actionItem.compatibility ? I18n.tr("COMPATIBILITY / %1").arg(valueText(actionItem.compatibility)) : "",
+        actionItem.contents ? I18n.tr("CONTENTS / %1").arg(valueText(actionItem.contents)) : ""
     ].filter(Boolean).join("\n")
     readonly property bool isBundle: String(actionItem.category || "") === "bundles"
     // A plugins-category item the registry did not mark official: the store shows
@@ -478,7 +478,7 @@ FocusScope {
                 objectName: "ryostore-detail-selected"
                 width: parent.width
                 visible: detail.isBundle && detail.components.length > 0
-                text: detail.selectedNames.length + " / " + detail.components.length + I18n.tr(" SELECTED")
+                text: I18n.tr("%1 / %2 SELECTED").arg(detail.selectedNames.length).arg(detail.components.length)
                 color: Tokens.inkDim
                 font.family: Tokens.mono
                 font.pixelSize: Tokens.fMicro
@@ -524,7 +524,7 @@ FocusScope {
                     objectName: "ryostore-detail-install-selected"
                     visible: detail.isBundle
                     text: detail.busyKey === detail.actionKey && detail.installStage !== ""
-                            ? detail.installStage
+                            ? I18n.tr(detail.installStage)
                             : I18n.tr("INSTALL SELECTED")
                     primary: true
                     armed: detail.item !== null && detail.busyKey === "" && detail.selectedNames.length > 0
@@ -549,8 +549,8 @@ FocusScope {
                     objectName: "ryostore-detail-install"
                     visible: !detail.isBundle
                     text: detail.busyKey === detail.actionKey && detail.installStage !== ""
-                            ? detail.installStage
-                            : StoreLogic.primaryAction(detail.actionItem)
+                            ? I18n.tr(detail.installStage)
+                            : I18n.tr(StoreLogic.primaryAction(detail.actionItem))
                     primary: true
                     armed: detail.item !== null && detail.busyKey === ""
                             && StoreLogic.primaryAction(detail.actionItem) !== "INSTALLED"
@@ -689,7 +689,7 @@ FocusScope {
                             width: Math.round(screenshotRow.height * 16 / 9)
                             height: screenshotRow.height
                             Accessible.role: Accessible.Button
-                            Accessible.name: "Screenshot " + String(index + 1) + " of " + detail.screenshotCount
+                            Accessible.name: I18n.tr("Screenshot %1 of %2").arg(index + 1).arg(detail.screenshotCount)
                             Accessible.onPressAction: detail.openLightbox(thumb.index)
 
                             ProductMedia {
@@ -757,7 +757,7 @@ FocusScope {
             armed: visible
             onAct: detail.stepLightbox(-1)
             Accessible.role: Accessible.Button
-            Accessible.name: "Previous screenshot"
+            Accessible.name: I18n.tr("Previous screenshot")
             Accessible.onPressAction: detail.stepLightbox(-1)
         }
 
@@ -768,7 +768,7 @@ FocusScope {
             armed: visible
             onAct: detail.stepLightbox(1)
             Accessible.role: Accessible.Button
-            Accessible.name: "Next screenshot"
+            Accessible.name: I18n.tr("Next screenshot")
             Accessible.onPressAction: detail.stepLightbox(1)
         }
     }

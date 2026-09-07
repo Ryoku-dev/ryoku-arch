@@ -3,6 +3,26 @@
 ## Unreleased
 
 ### Added
+- **`ryoku-desktop` ships the `ryoku-gpu-trim` initramfs hook.**
+  `/usr/lib/initcpio/install/ryoku-gpu-trim`, from
+  `system/boot/mkinitcpio/install/`. The HOOKS drop-in names it and mkinitcpio
+  aborts on a hook it cannot find, so the package has to own it on every box;
+  it keeps the denylisted nouveau driver and its GSP firmware out of each
+  kernel image, about 107 MiB of a 2 GiB boot partition per kernel.
+- **The release ledger names the ISO of each variant.** `releases/index.json`
+  entries gain an `images` map (`plain`, `cachyos`), each with the ISO,
+  signature, checksum, per-ISO manifest and public URL, derived from the
+  per-ISO manifests already at the bucket root (keyed by their `installer_ref`,
+  which is the release tag on a release build, and `variant`). Both variants
+  are dispatched and uploaded per release already, but only the mutable
+  `latest.json` / `latest-cachyos.json` pointers named them, so an older
+  release's image was in the bucket and discoverable by nobody: a CachyOS box
+  could roll its packages back and not find the matching installer. The rebuild
+  stays derived and idempotent, skips `latest*.json` and anything that is not a
+  manifest (with a message, never an abort), and keeps every existing field, so
+  a consumer that ignores `images` reads byte-identical entries
+  (`bin/ryoku-release-ledger`).
+
 - **`ryoku-keysounds`: the key sounds compositor plugin.** Built from
   `ryoku/hyprland/plugins/keysounds` (depends on `hyprland`, `libcanberra`),
   it installs `keysounds.so` under `/usr/lib/hyprland/plugins/`, eleven
@@ -11,6 +31,16 @@
   plugin source under `/usr/share/ryoku/hypr-plugins/keysounds/` so a box with
   no checkout can rebuild it for a newer Hyprland. `ryoku-desktop` pins it like
   the other plugin packages.
+
+### Removed
+- **The `awww` package is gone from `[ryoku]`.** The wallpaper backend moved to
+  Ryogami, which paints and animates its own transitions from the built-in
+  engine, so nothing on the box drives `awww` any more: the shell talks to
+  `ryogami.sock` and `ryoku doctor` retires a leftover `awww-daemon`. The recipe
+  and its vendored 136K Rust snapshot still built a package on every repo pass
+  and kept the daemon installable, so `release/packages/awww/` is deleted and the
+  build toolchain drops `lz4` (awww's only pkg-config probe). `ryoku recovery`
+  ensures `ryogami` instead of `awww` when it puts the wallpaper daemon back.
 
 ### Changed
 - **`ryoku-shell` ships `ryostage`, not the two old engines.** Depth and Parallax

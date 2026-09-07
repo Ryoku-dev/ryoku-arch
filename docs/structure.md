@@ -75,6 +75,17 @@ truth for the live desktop.
   band math, `lib/place.js` (with `place.test.mjs`) the placement math for a box that turns
   and leans.
   Installs to `/usr/lib/qt6/qml/Ryoku/Ui`.
+- `i18n/` the translation catalog and the three runtimes that read it. English
+  source strings are the keys, so a developer only ever writes English and a
+  missing translation shows English rather than nothing: `langs.json` is the one
+  language table (35 languages, add one here and nowhere else),
+  `catalog/<code>.json` the generated strings, `catalog/overrides/<code>.json`
+  the human fixes the generator may never overwrite, `i18n.go`/`langs.go` the Go
+  runtime the CLI and both installers link (module `ryoku-i18n`), and `tools/`
+  the extractor/translator (`sync.py`, shipped as `/usr/bin/ryoku-i18n`) and the
+  QML AST wrapper. Installs to `/usr/share/ryoku/i18n`, which the QML singleton
+  (`ui/Singletons/I18n.qml`), the Go runtime and the installer's shell
+  (`installation/backend/lib/i18n.sh`) all read. See `docs/i18n.md`.
 - `cli/` the user-facing control CLI, one Go program (`ryoku`): `update`,
   `rollback`, `snapshots`, `status`, `materialize` (lay the base configs into
   `~/.config`), and `reload`. It orchestrates pacman, yay, and snapper; it does
@@ -194,15 +205,16 @@ raw.githubusercontent.com serves them with no release infrastructure.
 ## `release/` packaging
 
 - `packages/` one directory per pacman package in the `[ryoku]` repo, each a
-  `PKGBUILD`. 27 in all, in four groups by why they exist:
+  `PKGBUILD`. 31 in all, in four groups by why they exist:
   - built from the checked-out monorepo: the components (`ryoku-shell`,
-    `ryoku-hub`, `ryoku-rashin`, `ryoku`, `ryoku-blobs`, `ryomotion`), the
-    `ryoku-desktop` umbrella, `ryoku-keyring`, and the `gpk` package manager.
+    `ryoku-hub`, `ryoku-rashin`, `ryoku`, `ryoku-blobs`, `ryomotion`,
+    `ryotunes`, `ryogami` the wallpaper daemon), the `ryoku-desktop` umbrella,
+    `ryoku-keyring`, and the `gpk` package manager.
   - Hyprland plugins: `hypr-dynamic-cursors`, `ryoku-hypr-plugins`, `hyprglass`,
     `imgborders`, `ryoku-keysounds`; each lays an `.abi` receipt beside its
     `.so` (see `docs/hyprland-plugins.md`).
   - rebuilt from upstream so `ryoku update` can reach them, because it is pacman
-    and pacman never touches the AUR: `asusctl`, `awww`,
+    and pacman never touches the AUR: `asusctl`,
     `hyprland-preview-share-picker`, `limine-mkinitcpio-hook`,
     `limine-snapper-sync`, `otf-space-grotesk`, `ryoku-cursors`,
     `ryoku-cursor-material`.

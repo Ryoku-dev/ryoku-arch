@@ -1,4 +1,5 @@
 import QtQuick
+import Ryoku.Ui.Singletons
 import "Singletons"
 
 // F1 reference for internal modes, provider prefixes, and the progressive
@@ -11,33 +12,33 @@ Item {
     implicitHeight: col.implicitHeight
 
     readonly property var searchRows: [
-        { k: "type",   d: "federated apps, open windows, web and quick math" },
-        { k: "ALL",    d: "browse apps alphabetically; typing stays apps-only" },
-        { k: "IMG FILE REC", d: "scope to images, files, or standard recent files" },
-        { k: "/",      d: "actions: lock, screenshot, media, settings" },
-        { k: "/file",  d: "find files (also /folder /image /video)" },
-        { k: ">",      d: "packages: >install, >remove, >search" },
-        { k: "=",      d: "calculator" },
-        { k: "?",      d: "web search (supports !bangs)" },
-        { k: "@",      d: "live radio: @lofi tunes in, @stop tunes out" },
-        { k: "\\",     d: "ask the Rashin agent (one terse answer)" }
+        { k: "type",   d: I18n.tr("federated apps, open windows, web and quick math") },
+        { k: "ALL",    d: I18n.tr("browse apps alphabetically; typing stays apps-only") },
+        { k: "IMG FILE REC", d: I18n.tr("scope to images, files, or standard recent files") },
+        { k: "/",      d: I18n.tr("actions: lock, screenshot, media, settings") },
+        { k: "/file",  d: I18n.tr("find files (also /folder /image /video)") },
+        { k: ">",      d: I18n.tr("packages: >install, >remove, >search") },
+        { k: "=",      d: I18n.tr("calculator") },
+        { k: "?",      d: I18n.tr("web search (supports !bangs)") },
+        { k: "@",      d: I18n.tr("live radio: @lofi tunes in, @stop tunes out") },
+        { k: "\\",     d: I18n.tr("ask the Rashin agent (one terse answer)") }
     ]
     readonly property var keyRows: [
-        { k: "Enter",  d: "run the selected result's primary action" },
-        { k: "Up Down", d: "move selection" },
-        { k: "Ctrl+K", d: "open real secondary actions; no-op when there are none" },
-        { k: "Ctrl+A", d: "open ALL mode" },
-        { k: "Tab / arrows", d: "walk an open shelf; the query keeps input focus" },
-        { k: "F1",     d: "open or close this reference" },
-        { k: "Esc",    d: "cancel preedit, close shelf, leave mode, then close" }
+        { k: "Enter",  d: I18n.tr("run the selected result's primary action") },
+        { k: "Up Down", d: I18n.tr("move selection") },
+        { k: "Ctrl+K", d: I18n.tr("open real secondary actions; no-op when there are none") },
+        { k: "Ctrl+A", d: I18n.tr("open ALL mode") },
+        { k: "Tab / arrows", d: I18n.tr("walk an open shelf; the query keeps input focus") },
+        { k: "F1",     d: I18n.tr("open or close this reference") },
+        { k: "Esc",    d: I18n.tr("cancel preedit, close shelf, leave mode, then close") }
     ]
     readonly property var actionRows: [
-        { k: "APP OPTIONS", d: "only real .desktop actions appear; apps without them never open a shelf" },
-        { k: "0 MORE", d: "no extra option and no empty space; Enter runs the primary directly" },
-        { k: "1 MORE", d: "one extra option in a full-width 38px row" },
-        { k: "2-3 MORE", d: "one equal-width 38px action row" },
-        { k: "4+ MORE", d: "two per row; an odd final action spans full width" },
-        { k: "7+ MORE", d: "three rows stay visible and the shelf scrolls" }
+        { k: "APP OPTIONS", d: I18n.tr("only real .desktop actions appear; apps without them never open a shelf") },
+        { k: "0 MORE", d: I18n.tr("no extra option and no empty space; Enter runs the primary directly") },
+        { k: "1 MORE", d: I18n.tr("one extra option in a full-width 38px row") },
+        { k: "2-3 MORE", d: I18n.tr("one equal-width 38px action row") },
+        { k: "4+ MORE", d: I18n.tr("two per row; an odd final action spans full width") },
+        { k: "7+ MORE", d: I18n.tr("three rows stay visible and the shelf scrolls") }
     ]
 
     Column {
@@ -46,9 +47,9 @@ Item {
         spacing: 10 * root.s
 
         Repeater {
-            model: [{ title: "SEARCH + MODES", rows: root.searchRows },
-                    { title: "KEYS", rows: root.keyRows },
-                    { title: "EXPANDED OPTIONS", rows: root.actionRows }]
+            model: [{ title: I18n.tr("SEARCH + MODES"), rows: root.searchRows },
+                    { title: I18n.tr("KEYS"), rows: root.keyRows },
+                    { title: I18n.tr("EXPANDED OPTIONS"), rows: root.actionRows }]
             delegate: Column {
                 id: group
                 required property var modelData

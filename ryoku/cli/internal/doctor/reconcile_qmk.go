@@ -4,6 +4,8 @@ import (
 	"os/exec"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 type qmkStatus struct {
@@ -42,19 +44,19 @@ func probeQMKStatus() qmkStatus {
 func reconcileQMK(checkOnly bool) recResult {
 	st := readQMKStatus()
 	if !st.supported {
-		return okRes("this machine has no QMK/VIA keyboard for lighting")
+		return okRes(i18n.T("this machine has no QMK/VIA keyboard for lighting"))
 	}
 	if st.installed {
-		return okRes("QMK/VIA keyboard lighting provider is installed")
+		return okRes(i18n.T("QMK/VIA keyboard lighting provider is installed"))
 	}
 	if checkOnly {
-		return wouldRes("QMK/VIA keyboard lighting provider is missing").
-			withFix("ryoku doctor installs qmk-hid so the keyboard follows the theme")
+		return wouldRes(i18n.T("QMK/VIA keyboard lighting provider is missing")).
+			withFix(i18n.T("ryoku doctor installs qmk-hid so the keyboard follows the theme"))
 	}
 	if err := installQMK(); err != nil {
-		return failRes("could not install the QMK lighting provider: %v", err).
+		return failRes(i18n.T("could not install the QMK lighting provider: %v"), err).
 			withFix("ryoku-pkg-aur-add qmk-hid")
 	}
 	_ = reloadQMKUdev()
-	return fixedRes("installed qmk-hid; the QMK/VIA keyboard is available in Appearance")
+	return fixedRes(i18n.T("installed qmk-hid; the QMK/VIA keyboard is available in Appearance"))
 }

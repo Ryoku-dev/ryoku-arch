@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import shell.services
 import "../Singletons"
+import Ryoku.Ui.Singletons
 
 // The lyric sheet: the song's words scrolling under the line being sung. The
 // timing comes from the daemon (Music), so this only places lines and follows the
@@ -38,9 +39,9 @@ Item {
         visible: sheet.empty
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.WordWrap
-        text: Music.searching ? qsTr("Looking for lyrics")
-            : Music.status === "error" ? qsTr("Lyrics unavailable")
-            : qsTr("No lyrics for this track")
+        text: Music.searching ? I18n.tr("Looking for lyrics")
+            : Music.status === "error" ? I18n.tr("Lyrics unavailable")
+            : I18n.tr("No lyrics for this track")
         color: sheet.dim
         font.family: Theme.font
         font.pixelSize: sheet.base * sheet.s

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import ".."
+import Ryoku.Ui.Singletons
 
 Item {
     id: dropdown
@@ -126,7 +127,7 @@ Item {
                     Text {
                         id: _itemLabel
                         anchors.centerIn: parent
-                        text: modelData.label
+                        text: I18n.tr(modelData.label)
                         font.family: Style.fontFamily
                         font.pixelSize: 10 * Config.uiScale
                         font.weight: parent._itemIsActive ? Font.Bold : Font.Medium

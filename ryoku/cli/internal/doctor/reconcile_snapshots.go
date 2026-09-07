@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // one `snapper delete` handles at most this many: a huge batch can time out
@@ -22,10 +24,10 @@ const snapshotDrainBatch = 20
 // Draining runs only under a number-only config (TIMELINE_CREATE="no").
 func reconcileSnapperCleanup(checkOnly bool) recResult {
 	if !sys.Exists("/etc/snapper/configs/root") {
-		return okRes("root snapshots not configured, nothing to prune")
+		return okRes(i18n.T("root snapshots not configured, nothing to prune"))
 	}
 	if !sys.Has("snapper") {
-		return okRes("snapper is not installed, so there is nothing to prune")
+		return okRes(i18n.T("snapper is not installed, so there is nothing to prune"))
 	}
 
 	cleanupOff := !sys.UnitEnabled("snapper-cleanup.timer")
@@ -43,44 +45,44 @@ func reconcileSnapperCleanup(checkOnly bool) recResult {
 	if checkOnly {
 		switch {
 		case cleanupOff:
-			return wouldRes("snapper-cleanup.timer is disabled, so snapshots are never pruned on a schedule").
-				withFix("ryoku doctor (enables snapper-cleanup.timer)")
+			return wouldRes(i18n.T("snapper-cleanup.timer is disabled, so snapshots are never pruned on a schedule")).
+				withFix(i18n.T("ryoku doctor (enables snapper-cleanup.timer)"))
 		case timelineOn && numberOnly:
-			return wouldRes("snapper-timeline.timer is enabled; Ryoku prunes by number only, so timeline snapshots leak").
-				withFix("ryoku doctor (disables snapper-timeline.timer)")
+			return wouldRes(i18n.T("snapper-timeline.timer is enabled; Ryoku prunes by number only, so timeline snapshots leak")).
+				withFix(i18n.T("ryoku doctor (disables snapper-timeline.timer)"))
 		case len(leaked) > 0:
-			return wouldRes("%d leaked timeline snapshot(s) that number cleanup never reclaims", len(leaked)).
-				withFix("ryoku doctor (deletes them in batches, then runs snapper cleanup number)")
+			return wouldRes(i18n.T("%d leaked timeline snapshot(s) that number cleanup never reclaims"), len(leaked)).
+				withFix(i18n.T("ryoku doctor (deletes them in batches, then runs snapper cleanup number)"))
 		case len(orphans) > 0:
-			return wouldRes("%d untagged Ryoku snapshot(s) that number cleanup never reclaims", len(orphans)).
-				withFix("ryoku doctor (tags them for number cleanup, then prunes to NUMBER_LIMIT)")
+			return wouldRes(i18n.T("%d untagged Ryoku snapshot(s) that number cleanup never reclaims"), len(orphans)).
+				withFix(i18n.T("ryoku doctor (tags them for number cleanup, then prunes to NUMBER_LIMIT)"))
 		}
-		return okRes("snapshot cleanup is healthy")
+		return okRes(i18n.T("snapshot cleanup is healthy"))
 	}
 
 	var fixes []string
 	if cleanupOff {
 		if err := sys.Run("sudo", "systemctl", "enable", "--now", "snapper-cleanup.timer"); err == nil {
-			fixes = append(fixes, "enabled snapper-cleanup.timer")
+			fixes = append(fixes, i18n.T("enabled snapper-cleanup.timer"))
 		}
 	}
 	if timelineOn && numberOnly {
 		if err := sys.Run("sudo", "systemctl", "disable", "--now", "snapper-timeline.timer"); err == nil {
-			fixes = append(fixes, "disabled snapper-timeline.timer")
+			fixes = append(fixes, i18n.T("disabled snapper-timeline.timer"))
 		}
 	}
 	if len(leaked) > 0 {
 		deleted, failed := drainSnapshots(leaked, snapshotDrainBatch)
 		if deleted > 0 {
-			fixes = append(fixes, fmt.Sprintf("deleted %d leaked timeline snapshot(s)", deleted))
+			fixes = append(fixes, fmt.Sprintf(i18n.T("deleted %d leaked timeline snapshot(s)"), deleted))
 		}
 		if failed > 0 {
-			fixes = append(fixes, fmt.Sprintf("%d timeline snapshot(s) could not be deleted (retry: sudo snapper -c root cleanup number)", failed))
+			fixes = append(fixes, fmt.Sprintf(i18n.T("%d timeline snapshot(s) could not be deleted (retry: sudo snapper -c root cleanup number)"), failed))
 		}
 	}
 	if len(orphans) > 0 {
 		if tagged := retagSnapshotsNumber(orphans); tagged > 0 {
-			fixes = append(fixes, fmt.Sprintf("tagged %d untagged Ryoku snapshot(s) for number cleanup", tagged))
+			fixes = append(fixes, fmt.Sprintf(i18n.T("tagged %d untagged Ryoku snapshot(s) for number cleanup"), tagged))
 		}
 	}
 	// catch the numbered pile up now, not at the next timer tick.
@@ -89,7 +91,7 @@ func reconcileSnapperCleanup(checkOnly bool) recResult {
 	}
 
 	if len(fixes) == 0 {
-		return okRes("snapshot cleanup is healthy")
+		return okRes(i18n.T("snapshot cleanup is healthy"))
 	}
 	return fixedRes("%s", strings.Join(fixes, "; "))
 }
@@ -237,24 +239,24 @@ func allDigits(s string) bool {
 func reconcileUpdatedbPrune(checkOnly bool) recResult {
 	const path = "/etc/updatedb.conf"
 	if !sys.Exists(path) {
-		return okRes("no /etc/updatedb.conf (locate not installed)")
+		return okRes(i18n.T("no /etc/updatedb.conf (locate not installed)"))
 	}
 	b, err := os.ReadFile(path)
 	if err != nil {
-		return okRes("cannot read %s (%v); leaving it alone", path, err)
+		return okRes(i18n.T("cannot read %s (%v); leaving it alone"), path, err)
 	}
 	next, changed := addUpdatedbPrunePath(string(b), "/.snapshots")
 	if !changed {
-		return okRes("updatedb already skips /.snapshots")
+		return okRes(i18n.T("updatedb already skips /.snapshots"))
 	}
 	if checkOnly {
-		return wouldRes("updatedb indexes /.snapshots, so plocate crawls every snapshot").
-			withFix("ryoku doctor (adds /.snapshots to PRUNEPATHS in /etc/updatedb.conf)")
+		return wouldRes(i18n.T("updatedb indexes /.snapshots, so plocate crawls every snapshot")).
+			withFix(i18n.T("ryoku doctor (adds /.snapshots to PRUNEPATHS in /etc/updatedb.conf)"))
 	}
 	if err := writeRootFile(path, next, "0644"); err != nil {
-		return failRes("updating %s: %v", path, err)
+		return failRes(i18n.T("updating %s: %v"), path, err)
 	}
-	return fixedRes("added /.snapshots to updatedb PRUNEPATHS so plocate skips snapshots")
+	return fixedRes(i18n.T("added /.snapshots to updatedb PRUNEPATHS so plocate skips snapshots"))
 }
 
 // updatedbPrunePathsLine accepts both the package's `PRUNEPATHS = "..."` and

@@ -7,6 +7,9 @@ Rectangle {
     id: bar
     property string value: ""
     property int count: 0
+    // optional key -> display label, the same map the Picker overlay takes, so
+    // the closed bar reads "Polski" where the stored value is "pl".
+    property var labels: ({})
     signal opened()
 
     implicitHeight: 26
@@ -18,7 +21,7 @@ Rectangle {
 
     Text {
         anchors { left: parent.left; leftMargin: 9; verticalCenter: parent.verticalCenter }
-        text: bar.value
+        text: (bar.labels && bar.labels[bar.value] !== undefined) ? bar.labels[bar.value] : I18n.tr(bar.value)
         color: Tokens.ink
         font.family: Tokens.ui
         font.pixelSize: 11

@@ -6,6 +6,7 @@ import QtQuick.Window
 import Quickshell.Io
 import ".."
 import "../services"
+import Ryoku.Ui.Singletons
 
 Item {
   id: settingsPanel
@@ -64,10 +65,10 @@ Item {
     target: ImageOptimizeService
     function onFinished(optimized, skippedCount, failed) {
       var parts = []
-      if (optimized > 0) parts.push(optimized + " optimized")
-      if (skippedCount > 0) parts.push(skippedCount + " skipped")
-      if (failed > 0) parts.push(failed + " failed")
-      settingsPanel._lastOptimizeResult = parts.join(" · ") || "Nothing to optimize"
+      if (optimized > 0) parts.push(I18n.tr("%1 optimized").arg(optimized))
+      if (skippedCount > 0) parts.push(I18n.tr("%1 skipped").arg(skippedCount))
+      if (failed > 0) parts.push(I18n.tr("%1 failed").arg(failed))
+      settingsPanel._lastOptimizeResult = parts.join(" · ") || I18n.tr("Nothing to optimize")
     }
   }
 
@@ -241,29 +242,29 @@ Item {
       model: {
         if (!settingsPanel.showAdvanced)
           return [
-            { key: "selector", label: "SELECTOR" },
-            { key: "paper",    label: "PAPER" },
-            { key: "edit",     label: "EDIT" },
-            { key: "theme",    label: "THEME" }
+            { key: "selector", label: I18n.tr("SELECTOR") },
+            { key: "paper",    label: I18n.tr("PAPER") },
+            { key: "edit",     label: I18n.tr("EDIT") },
+            { key: "theme",    label: I18n.tr("THEME") }
           ]
         var tabs = [
-          { key: "general",     label: "GENERAL" },
-          { key: "playlists",   label: "PLAYLISTS" },
-          { key: "paths",       label: "PATHS" },
-          { key: "comfort",     label: "COMFORT" },
-          { key: "lighting",    label: "LIGHTING" },
-          { key: "performance", label: "PERFORMANCE" },
-          { key: "postprocessing", label: "EXTERNAL" }
+          { key: "general",     label: I18n.tr("GENERAL") },
+          { key: "playlists",   label: I18n.tr("PLAYLISTS") },
+          { key: "paths",       label: I18n.tr("PATHS") },
+          { key: "comfort",     label: I18n.tr("COMFORT") },
+          { key: "lighting",    label: I18n.tr("LIGHTING") },
+          { key: "performance", label: I18n.tr("PERFORMANCE") },
+          { key: "postprocessing", label: I18n.tr("EXTERNAL") }
         ]
-        if (Config.matugenEnabled) tabs.push({ key: "matugen", label: "MATUGEN" })
-        if (Config.isNiri) tabs.push({ key: "niri", label: "NIRI" })
-        if (Config.steamEnabled) tabs.push({ key: "wallpaper-engine", label: "WALLPAPER ENGINE" })
+        if (Config.matugenEnabled) tabs.push({ key: "matugen", label: I18n.tr("MATUGEN") })
+        if (Config.isNiri) tabs.push({ key: "niri", label: I18n.tr("NIRI") })
+        if (Config.steamEnabled) tabs.push({ key: "wallpaper-engine", label: I18n.tr("WALLPAPER ENGINE") })
         return tabs
       }
 
       FilterButton {
         colors: settingsPanel.colors
-        label: modelData.label
+        label: I18n.tr(modelData.label)
         skew: settingsPanel._tabSkew
         height: 28
         isActive: settingsPanel.activeTab === modelData.key
@@ -280,14 +281,14 @@ Item {
 
     FilterButton {
       colors: settingsPanel.colors
-      label: "ADVANCED"
+      label: I18n.tr("ADVANCED")
       register: false
       skew: settingsPanel._tabSkew
       height: 28
       isActive: settingsPanel.showAdvanced
       tooltip: settingsPanel.showAdvanced
-        ? "Showing backend settings. Click for the visual tabs."
-        : "Show advanced / backend settings."
+        ? I18n.tr("Showing backend settings. Click for the visual tabs.")
+        : I18n.tr("Show advanced / backend settings.")
       onClicked: settingsPanel.showAdvanced = !settingsPanel.showAdvanced
     }
   }
@@ -545,7 +546,7 @@ Item {
 
       Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        text: "OPTIMIZE ALL IMAGES?"
+        text: I18n.tr("OPTIMIZE ALL IMAGES?")
         font.family: Style.fontFamily; font.pixelSize: settingsPanel._s(14); font.weight: Font.Bold; font.letterSpacing: 1.5
         color: settingsPanel.colors ? settingsPanel.colors.surfaceText : "#fff"
       }
@@ -557,10 +558,11 @@ Item {
           var p = ImageOptimizeService.presets[Config.imageOptimizePreset]
           var r = ImageOptimizeService.resolutions[Config.imageOptimizeResolution]
           var fmts = p ? p.formats.join(", ").toUpperCase() : "?"
-          return "This will convert " + fmts + " images to WebP using the " +
-            Config.imageOptimizePreset.toUpperCase() + " preset (quality " + (p ? p.quality : "?") +
-            ", max " + (r ? r.maxW + "x" + r.maxH : "?") +
-            "). Originals are moved to trash. Already optimized files will be skipped."
+          return I18n.tr("This will convert %1 images to WebP using the %2 preset (quality %3, max %4). Originals are moved to trash. Already optimized files will be skipped.")
+            .arg(fmts)
+            .arg(Config.imageOptimizePreset.toUpperCase())
+            .arg(p ? p.quality : "?")
+            .arg(r ? r.maxW + "x" + r.maxH : "?")
         }
         font.family: Style.fontFamily; font.pixelSize: settingsPanel._s(11); font.letterSpacing: 0.2
         color: settingsPanel.colors ? Qt.rgba(settingsPanel.colors.surfaceText.r, settingsPanel.colors.surfaceText.g, settingsPanel.colors.surfaceText.b, 0.6) : Qt.rgba(1, 1, 1, 0.5)
@@ -571,7 +573,7 @@ Item {
       Text {
         width: parent.width
         horizontalAlignment: Text.AlignHCenter
-        text: "Only images in your wallpaper directory are processed"
+        text: I18n.tr("Only images in your wallpaper directory are processed")
         font.family: Style.fontFamily; font.pixelSize: settingsPanel._s(10); font.letterSpacing: 0.2
         color: settingsPanel.colors ? Qt.rgba(settingsPanel.colors.surfaceText.r, settingsPanel.colors.surfaceText.g, settingsPanel.colors.surfaceText.b, 0.4) : Qt.rgba(1, 1, 1, 0.35)
         wrapMode: Text.WordWrap
@@ -586,14 +588,14 @@ Item {
 
         FilterButton {
           colors: settingsPanel.colors
-          label: "CANCEL"
+          label: I18n.tr("CANCEL")
           skew: 8 * Config.uiScale; height: 26 * Config.uiScale
           onClicked: _optimizeConfirmPopup.close()
         }
 
         FilterButton {
           colors: settingsPanel.colors
-          label: "OPTIMIZE"
+          label: I18n.tr("OPTIMIZE")
           skew: 8 * Config.uiScale; height: 26 * Config.uiScale
           isActive: true
           onClicked: {
@@ -632,7 +634,7 @@ Item {
 
       Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        text: "OPTIMIZE ALL VIDEOS?"
+        text: I18n.tr("OPTIMIZE ALL VIDEOS?")
         font.family: Style.fontFamily; font.pixelSize: settingsPanel._s(14); font.weight: Font.Bold; font.letterSpacing: 1.5
         color: settingsPanel.colors ? settingsPanel.colors.surfaceText : "#fff"
       }
@@ -643,10 +645,11 @@ Item {
         text: {
           var p = VideoConvertService.presets[Config.videoConvertPreset]
           var r = VideoConvertService.resolutions[Config.videoConvertResolution]
-          return "This will convert all video wallpapers to HEVC (H.265) using the " +
-            Config.videoConvertPreset.toUpperCase() + " preset (CRF " + (p ? p.crf : "?") +
-            ", max " + (p ? p.maxrate : "?") + ", " + (r ? r.maxW + "x" + r.maxH : "?") +
-            "). Originals are moved to trash. Already converted files will be skipped."
+          return I18n.tr("This will convert all video wallpapers to HEVC (H.265) using the %1 preset (CRF %2, max %3, %4). Originals are moved to trash. Already converted files will be skipped.")
+            .arg(Config.videoConvertPreset.toUpperCase())
+            .arg(p ? p.crf : "?")
+            .arg(p ? p.maxrate : "?")
+            .arg(r ? r.maxW + "x" + r.maxH : "?")
         }
         font.family: Style.fontFamily; font.pixelSize: settingsPanel._s(11); font.letterSpacing: 0.2
         color: settingsPanel.colors ? Qt.rgba(settingsPanel.colors.surfaceText.r, settingsPanel.colors.surfaceText.g, settingsPanel.colors.surfaceText.b, 0.6) : Qt.rgba(1, 1, 1, 0.5)
@@ -657,7 +660,7 @@ Item {
       Text {
         width: parent.width
         horizontalAlignment: Text.AlignHCenter
-        text: "This may take a while depending on the number and size of videos."
+        text: I18n.tr("This may take a while depending on the number and size of videos.")
         font.family: Style.fontFamily; font.pixelSize: settingsPanel._s(10); font.letterSpacing: 0.2
         color: settingsPanel.colors ? Qt.rgba(settingsPanel.colors.surfaceText.r, settingsPanel.colors.surfaceText.g, settingsPanel.colors.surfaceText.b, 0.4) : Qt.rgba(1, 1, 1, 0.35)
         wrapMode: Text.WordWrap
@@ -672,14 +675,14 @@ Item {
 
         FilterButton {
           colors: settingsPanel.colors
-          label: "CANCEL"
+          label: I18n.tr("CANCEL")
           skew: 8 * Config.uiScale; height: 26 * Config.uiScale
           onClicked: _convertConfirmPopup.close()
         }
 
         FilterButton {
           colors: settingsPanel.colors
-          label: "CONVERT"
+          label: I18n.tr("CONVERT")
           skew: 8 * Config.uiScale; height: 26 * Config.uiScale
           isActive: false
           enabled: false
@@ -697,8 +700,8 @@ Item {
     color: settingsPanel.colors ? Qt.rgba(settingsPanel.colors.surface.r, settingsPanel.colors.surface.g, settingsPanel.colors.surface.b, 0.97) : Qt.rgba(0.08, 0.08, 0.12, 0.97)
     radius: 8
 
-    property string title: "RESTART REQUIRED"
-    property string message: "Directory changes will take effect after restarting the app. Don't forget that includes the daemon!"
+    property string title: I18n.tr("RESTART REQUIRED")
+    property string message: I18n.tr("Directory changes will take effect after restarting the app. Don't forget that includes the daemon!")
 
     function open() { visible = true }
     function close() { visible = false }
@@ -739,7 +742,7 @@ Item {
       FilterButton {
         anchors.horizontalCenter: parent.horizontalCenter
         colors: settingsPanel.colors
-        label: "OK"
+        label: I18n.tr("OK")
         skew: 8 * Config.uiScale; height: 26 * Config.uiScale
         isActive: true
         onClicked: _warningPopup.close()

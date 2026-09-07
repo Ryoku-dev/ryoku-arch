@@ -43,20 +43,20 @@ Item {
 
     // Working-phase actions and answer chips share the selection model.
     readonly property var workChips: [
-        { kind: "dash", value: "", label: "CONTINUE IN DASHBOARD" },
-        { kind: "cancel", value: "", label: "CANCEL" }
+        { kind: "dash", value: "", label: I18n.tr("CONTINUE IN DASHBOARD") },
+        { kind: "cancel", value: "", label: I18n.tr("CANCEL") }
     ]
     readonly property var chips: {
         if (busy)
             return workChips;
         if (permPending)
-            return [{ kind: "dash", value: "", label: "APPROVE IN DASHBOARD" }];
+            return [{ kind: "dash", value: "", label: I18n.tr("APPROVE IN DASHBOARD") }];
         if (phase !== "done")
             return [];
-        var c = [{ kind: "copy", value: answerText, label: "COPY" }];
+        var c = [{ kind: "copy", value: answerText, label: I18n.tr("COPY") }];
         for (var i = 0; i < answerActions.length; i++)
             c.push(answerActions[i]);
-        c.push({ kind: "dash", value: "", label: "DASHBOARD" });
+        c.push({ kind: "dash", value: "", label: I18n.tr("DASHBOARD") });
         return c;
     }
 
@@ -104,7 +104,7 @@ Item {
         selectedChip = 0;
         resumeMode = false;
         askedQuestion = q;
-        working = "waking the needle";
+        working = I18n.tr("waking the needle");
         phase = "working";
         askProc.command = ["ryoku-rashin", "ask", q];
         askProc.running = true;
@@ -189,10 +189,10 @@ Item {
 
     function chipCaption(chip) {
         if (root.flash === chip.kind + "\u0000" + chip.value)
-            return "COPIED";
+            return I18n.tr("COPIED");
         switch (chip.kind) {
         case "file": return "nvim " + chip.label;
-        case "dir": return "open " + chip.label;
+        case "dir": return I18n.tr("open %1").arg(chip.label);
         case "url": return chip.label;
         case "cmd": return "$ " + chip.label;
         case "color": return chip.label;
@@ -228,7 +228,7 @@ Item {
                     root.working = line.slice(9);
                 } else if (line.indexOf("@perm ") === 0) {
                     root.permPending = true;
-                    root.working = "waiting for approval: " + line.slice(6);
+                    root.working = I18n.tr("waiting for approval: %1").arg(line.slice(6));
                 } else if (line.indexOf("@answer ") === 0) {
                     try {
                         var a = JSON.parse(line.slice(8));
@@ -239,7 +239,7 @@ Item {
                         root.phase = "done";
                         root.selectedChip = 0;
                     } catch (e) {
-                        root.errorText = "unreadable answer";
+                        root.errorText = I18n.tr("unreadable answer");
                         root.phase = "failed";
                     }
                 } else if (line.indexOf("@error ") === 0) {
@@ -250,7 +250,7 @@ Item {
         }
         onExited: (code) => {
             if (root.phase === "working" && !root.permPending) {
-                root.errorText = code === 0 ? "no answer" : "ask failed";
+                root.errorText = code === 0 ? I18n.tr("no answer") : I18n.tr("ask failed");
                 root.phase = "failed";
             }
         }
@@ -276,7 +276,7 @@ Item {
             visible: root.phase === "idle" && !root.resumeMode
             text: root.question.trim().length === 0
                 ? I18n.tr("Ask the needle anything. ENTER sends; \\resume recalls recent asks.")
-                : I18n.tr("ENTER to ask: ") + root.question.trim()
+                : I18n.tr("ENTER to ask: %1").arg(root.question.trim())
             color: Theme.subtle
             font.family: Theme.font
             font.pixelSize: Metrics.fontSubtitle * root.s

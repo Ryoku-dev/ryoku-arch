@@ -38,15 +38,14 @@ full checkout. The Go binaries and the QML plugin are built into `$srcdir`, so
 the source tree is never modified, and `makepkg --clean` removes `$srcdir` and
 `$pkgdir` afterward.
 
-The `gpk`, `awww`, and `ryoku-keyring` PKGBUILDs are the exceptions: they
-fetch a pinned upstream artifact (a release binary, a git commit, and the
-release key material, respectively) rather than building from the checkout.
+The `gpk` and `ryoku-keyring` PKGBUILDs are the exceptions: they fetch a pinned
+upstream artifact (a release binary and the release key material, respectively)
+rather than building from the checkout.
 
 makedepends across the set: `go` (ryoku-shell, ryoku-hub, ryoku),
 `cmake ninja qt6-shadertools qt6-declarative` (ryoku-blobs), and `rust` + `git`
-(awww, built from a pinned upstream git commit with cargo), on top of the assumed
-`base-devel`. `ryoku-hub` (`github.com/BurntSushi/toml`) and `awww` (cargo
-fetches its crates) both need network at build time.
+(hyprland-preview-share-picker, asusctl), on top of the assumed `base-devel`.
+`ryoku-hub` (`github.com/BurntSushi/toml`) needs network at build time.
 
 ## Configs and materialize
 

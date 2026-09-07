@@ -18,10 +18,11 @@
 ryoku_deploy() {
   local u=$RYOKU_USERNAME
   local h="/mnt/home/$u"
-  log "deploying the Ryoku desktop for user $u"
+  log 'deploying the Ryoku desktop for user %s' "$u"
 
   ryoku_deploy_repo              # [ryoku] stanza + mirrorlist + keyring trust (local)
   ryoku_deploy_packages          # pacman -S the desktop set (needs net)
+  ryoku_seed_initcpio_hook       # the HOOKS-named trim hook, if that set never came
   ryoku_seed_hypr_keymap         # chosen kb_layout into the base config, pre-materialize
   ryoku_deploy_materialize "$u"  # `ryoku materialize` as the user
   ryoku_deploy_seed "$h"         # unpackaged: brand, wallpapers, ~/.npmrc
@@ -36,7 +37,7 @@ deploy_file() {
     printf 'DRYRUN: install -Dm644 %s %s\n' "$src" "$dst"
     return 0
   fi
-  [[ -f $src ]] || { log "skip: $src not present"; return 0; }
+  [[ -f $src ]] || { log 'skip: %s not present' "$src"; return 0; }
   install -Dm644 "$src" "$dst"
 }
 
@@ -61,10 +62,10 @@ ryoku_repo_pacman_conf() {
   local server="${RYOKU_REPO_SERVER:-https://repo.ryoku.dev/stable/\$arch}"
   local siglevel=${RYOKU_REPO_SIGLEVEL:-Required}
   if [[ -z ${RYOKU_DRYRUN:-} ]] && grep -q '^\[ryoku\]' "$conf" 2>/dev/null; then
-    log "[ryoku] repository already present in $conf"
+    log '[ryoku] repository already present in %s' "$conf"
     return 0
   fi
-  log "adding the [ryoku] repository to $conf"
+  log 'adding the [ryoku] repository to %s' "$conf"
   append_file "$conf" <<EOF
 
 [ryoku]
@@ -81,7 +82,7 @@ ryoku_repo_mirrorlist() {
     printf 'DRYRUN: cp %s %s\n' "$src" "$dst"
     return 0
   fi
-  [[ -s $src ]] || { log "skip: no live mirrorlist at $src"; return 0; }
+  [[ -s $src ]] || { log 'skip: no live mirrorlist at %s' "$src"; return 0; }
   mkdir -p "$(dirname "$dst")"
   cp "$src" "$dst"
 }
@@ -96,7 +97,7 @@ ryoku_repo_keyring() {
   local kdir="$RYOKU_REPO/release/packages/ryoku-keyring"
   local kd=/mnt/usr/share/pacman/keyrings
   if [[ -z ${RYOKU_DRYRUN:-} && ! -f "$kdir/ryoku.gpg" ]]; then
-    log "warning: $kdir/ryoku.gpg missing; cannot trust [ryoku] (Ryoku packages will be skipped)"
+    log 'warning: %s/ryoku.gpg missing; cannot trust [ryoku] (Ryoku packages will be skipped)' "$kdir"
     return 0
   fi
   log "importing the Ryoku release key into the target keyring"
@@ -154,14 +155,14 @@ ryoku_deploy_packages() {
       # config): the target's own pacman.conf also registers core/extra/multilib,
       # the CachyOS repos and [ryoku], none of them synced, and pacman refuses the
       # whole transaction over that with "could not find database".
-      log "packages: installing the Ryoku desktop set from the baked [offline] repo: ${pkgs[*]}"
+      log 'packages: installing the Ryoku desktop set from the baked [offline] repo: %s' "${pkgs[*]}"
       if ! ryoku_offline_pacman -S --noconfirm --needed --noprogressbar "${pkgs[@]}"; then
         # a re-run over a target a killed first attempt left half-extracted trips
         # "exists in filesystem"; retry once with --overwrite to adopt the orphaned
         # files (same recovery as pacstrap.sh), before giving up.
         log "offline desktop set install failed; retrying once with --overwrite to adopt any half-extracted files"
         if ! ryoku_offline_pacman -S --noconfirm --needed --noprogressbar --overwrite '*' "${pkgs[@]}"; then
-          die "the offline install laid the base system but could not install the Ryoku desktop set (${pkgs[*]}) from the ISO's baked [offline] repo. The base is bootable; check /var/log/ryoku-install.log for the failing package (a corrupt or conflicting package in the baked repo), then run 'ryoku update' once online."
+          die 'the offline install laid the base system but could not install the Ryoku desktop set (%s) from the ISO'\''s baked [offline] repo. The base is bootable; check /var/log/ryoku-install.log for the failing package (a corrupt or conflicting package in the baked repo), then run '\''ryoku update'\'' once online.' "${pkgs[*]}"
         fi
       fi
       return 0
@@ -176,7 +177,7 @@ ryoku_deploy_packages() {
     made_resolv=1
   fi
 
-  log "installing the Ryoku desktop set: ${pkgs[*]}"
+  log 'installing the Ryoku desktop set: %s' "${pkgs[*]}"
   local rc=0
   # --noprogressbar: the TUI streams this output through a line viewport that the
   # \r-driven pacman bar would shred; the download still runs, just without the bar.
@@ -219,7 +220,7 @@ ryoku_deploy_version_skew() {
   baked_n=${baked//[-_]/.}
   repo_n=${repo%-*}; repo_n=${repo_n//[-_]/.}
   [[ $baked_n == "$repo_n" ]] && return 0
-  log "WARNING: this ISO's baked payload is version '$baked' but [ryoku] publishes ryoku-desktop '$repo'. The installed desktop matches the repo; reinstall from a current ISO if anything looks off."
+  log 'WARNING: this ISO'\''s baked payload is version '\''%s'\'' but [ryoku] publishes ryoku-desktop '\''%s'\''. The installed desktop matches the repo; reinstall from a current ISO if anything looks off.' "$baked" "$repo"
 }
 
 # materialize: lay the base config (/usr/share/ryoku/config, owned by
@@ -236,10 +237,29 @@ ryoku_deploy_materialize() {
     log "materialize: skipped (ryoku CLI not installed)"
     return 0
   fi
-  log "materializing the Ryoku config into /home/$u/.config"
+  log 'materializing the Ryoku config into /home/%s/.config' "$u"
   arch-chroot /mnt runuser -u "$u" -- env "HOME=/home/$u" "USER=$u" "LOGNAME=$u" \
     ryoku materialize \
     || log "materialize: warning, ryoku materialize failed (continuing)"
+}
+
+# the HOOKS drop-in (chroot.sh) names ryoku-gpu-trim, and mkinitcpio aborts on a
+# hook it cannot find, so the file has to be there before the bootloader step
+# builds the images. ryoku-desktop owns it; this only covers the install that
+# never got that set (offline with no baked desktop payload). Seeding a packaged
+# path unowned is deliberate here -- a box with no boot image is worse -- and
+# updater.ryokuOverwriteGlob lets the package adopt the copy later.
+ryoku_seed_initcpio_hook() {
+  local src="$RYOKU_REPO/system/boot/mkinitcpio/install/ryoku-gpu-trim"
+  local dst=/mnt/usr/lib/initcpio/install/ryoku-gpu-trim
+  if [[ -n ${RYOKU_DRYRUN:-} ]]; then
+    printf 'DRYRUN: install -Dm644 %s %s (only when the desktop set did not ship it)\n' "$src" "$dst"
+    return 0
+  fi
+  [[ -e $dst ]] && return 0            # ryoku-desktop shipped it: leave the owned file
+  [[ -f $src ]] || return 0            # nothing to seed; chroot.sh already dropped the name
+  log 'seeding the ryoku-gpu-trim initramfs hook (the desktop set did not install it)'
+  install -Dm644 "$src" "$dst"
 }
 
 # seed the desktop keyboard layout into the base config BEFORE materialize copies
@@ -255,12 +275,12 @@ ryoku_seed_hypr_keymap() {
     log "DRYRUN: seed $kb -> kb_layout=$xkbl kb_variant=$xkbv"
     return 0
   fi
-  [[ -f $kb ]] || { log "keyboard seed: skip ($kb not present)"; return 0; }
+  [[ -f $kb ]] || { log 'keyboard seed: skip (%s not present)' "$kb"; return 0; }
   sed -i \
     -e "s|kb_layout = \"[^\"]*\"|kb_layout = \"$xkbl\"|" \
     -e "s|kb_variant = \"[^\"]*\"|kb_variant = \"$xkbv\"|" \
     "$kb"
-  log "seeded Hyprland keyboard layout: $xkbl${xkbv:+ ($xkbv)}"
+  log 'seeded Hyprland keyboard layout: %s%s' "$xkbl" "${xkbv:+ ($xkbv)}"
 }
 
 # seed the user-data nothing else owns: brand assets + wallpapers (shell
@@ -268,7 +288,7 @@ ryoku_seed_hypr_keymap() {
 # sources are fine.
 ryoku_deploy_seed() {
   local h=$1
-  log "seeding brand assets, wallpapers, decor art, and ~/.npmrc into $h"
+  log 'seeding brand assets, wallpapers, decor art, and ~/.npmrc into %s' "$h"
   deploy_dir "$RYOKU_REPO/ryoku/assets/brand" "$h/.local/share/ryoku/assets/brand"
   # ship a wallpaper set so a fresh install has something to pick from;
   # ryoku-shell picks one at random on first start.
@@ -300,6 +320,6 @@ ryoku_deploy_qylock() {
 
 ryoku_deploy_chown() {
   local u=$1
-  log "fixing ownership of /home/$u"
+  log 'fixing ownership of /home/%s' "$u"
   run arch-chroot /mnt chown -R "$u:$u" "/home/$u"
 }

@@ -12,7 +12,7 @@ Item {
 
     property var providers: []        // names, or {key, label} objects
     property string active: ""        // the picked key
-    property string allLabel: "ALL"   // "" hides the leading plate
+    property string allLabel: I18n.tr("ALL")   // "" hides the leading plate
     property string trailingLabel: "" // "" hides the trailing plate
     property string trailingKey: ""
     property int installableCount: 0  // uninstalled items in the focused entry

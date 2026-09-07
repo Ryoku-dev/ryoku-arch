@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell.Widgets
 import shell.services
+import Ryoku.Ui.Singletons
 
 // One per-app mixer row, shared by the audio menu and the audio popout: the app
 // icon doubles as a mute toggle and the app name sits above its own live VU
@@ -70,7 +71,7 @@ Row {
             lit: root.open
             value: root.appAudio ? root.appAudio.volume : 0
             muted: root.appMuted
-            valueLabel: root.appAudio ? (root.appMuted ? qsTr("off") : Math.round(root.appAudio.volume * 100) + "%") : ""
+            valueLabel: root.appAudio ? (root.appMuted ? I18n.tr("off") : Math.round(root.appAudio.volume * 100) + "%") : ""
             peakNode: root.stream
             peakEnabled: root.open
             onMoved: v => { if (root.appAudio) root.appAudio.volume = v; }

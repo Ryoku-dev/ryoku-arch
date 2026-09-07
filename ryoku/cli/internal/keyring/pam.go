@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 )
 
 // The pam_gnome_keyring lines that make unlock-on-login work: the auth module
@@ -107,12 +108,12 @@ func applyPAMText(content string, want bool) (out string, missing []string) {
 func applyPAMFile(path, mode string) error {
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return fmt.Errorf("read %s: %w", path, err)
+		return fmt.Errorf(i18n.T("read %s: %w"), path, err)
 	}
 	want := mode == ModeUnlockOnLogin
 	out, missing := applyPAMText(string(raw), want)
 	if len(missing) > 0 {
-		return fmt.Errorf("%s has no %s anchor to wire pam_gnome_keyring after", path, strings.Join(missing, " / "))
+		return fmt.Errorf(i18n.T("%s has no %s anchor to wire pam_gnome_keyring after"), path, strings.Join(missing, " / "))
 	}
 	if out == string(raw) {
 		return nil
@@ -159,14 +160,14 @@ func pamWritable(path string) bool {
 
 func runApplyPAM(args []string) error {
 	if len(args) != 1 || !validMode(args[0]) {
-		return fmt.Errorf("usage: ryoku keyring apply-pam <unlock-on-login|never-ask|ask>")
+		return fmt.Errorf(i18n.T("usage: ryoku keyring apply-pam <unlock-on-login|never-ask|ask>"))
 	}
 	path := pamFilePath()
 	if !sys.Exists(path) {
-		return fmt.Errorf("%s not present; nothing to wire", path)
+		return fmt.Errorf(i18n.T("%s not present; nothing to wire"), path)
 	}
 	if !pamWritable(path) {
-		return fmt.Errorf("%s is not writable (run via pkexec/root)", path)
+		return fmt.Errorf(i18n.T("%s is not writable (run via pkexec/root)"), path)
 	}
 	return applyPAMFile(path, args[0])
 }

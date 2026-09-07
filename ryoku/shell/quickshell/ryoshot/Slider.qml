@@ -35,7 +35,7 @@ Item {
         id: lab
         anchors.left: parent.left
         anchors.top: parent.top
-        text: I18n.tr(sl.label)
+        text: sl.label
         color: sl.idle
         font.family: "Space Grotesk"
         font.pixelSize: 12

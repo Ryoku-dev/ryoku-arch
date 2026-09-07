@@ -4,6 +4,13 @@
 
 ### Added
 
+- **`deploy.sh` lays the `ryoku-gpu-trim` initramfs hook.** The shipped HOOKS
+  drop-in names it, and mkinitcpio aborts on a hook it cannot find, so a dev
+  checkout needs the file before `ryoku-boot-apply` rebuilds the images. It also
+  keeps the denylisted nouveau driver, and the ~107 MiB of GSP firmware it
+  pulls, out of every kernel image. `--overwrite` in the `ryotunes` step grew
+  the matching `/usr/lib/initcpio/install/ryoku-*` glob.
+
 - **Depth and Parallax are one feature now: Stage.** The old Depth (a still
   subject cut in front of the widgets) and the unreleased Parallax (the subject
   and extra layers drifting with the cursor over a recoloured backdrop) are the
@@ -18,6 +25,13 @@
   loopback HTTP listener for the retired spicetify extension. The per-song
   backdrop still plays a clip you keep in `~/.config/ryoku/canvas/<id>.<ext>`
   (`ipc/music.go`).
+
+- **Ryogami's dead `awww` settings are gone.** `paper.engine` and the thirteen
+  `paper.awww.*` transition keys (type, duration, fps, step, angle, wave size,
+  position, bezier, invertY, filter, fill colour) were read into `Config.qml`
+  properties nothing had bound since the cutover: transitions come from
+  `transition.shader` and the built-in engine. Nothing wrote the keys, so no
+  config migrates (`ryogami/wall-ui/qml/Config.qml`).
 
 ### Fixed
 - **The now-playing spectrum follows the wallpaper.** With Follow System on, the

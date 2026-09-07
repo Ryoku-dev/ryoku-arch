@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: the in-session lockscreen -----------------------------------
@@ -144,18 +146,18 @@ func reconcileLockscreen(checkOnly bool) recResult {
 	installer := lockscreenInstaller()
 	if installer == "" {
 		if legacyTape {
-			return warnRes("the legacy Tape lockscreen needs migration and no lockscreen bundle is available").
-				withFix("ryoku update (ships the lockscreen bundle), then ryoku doctor")
+			return warnRes(i18n.T("the legacy Tape lockscreen needs migration and no lockscreen bundle is available")).
+				withFix(i18n.T("ryoku update (ships the lockscreen bundle), then ryoku doctor"))
 		}
-		return warnRes("the in-session lockscreen is missing and no bundle is available to install it; the lock button and lock-on-sleep do nothing").
-			withFix("ryoku update (ships the lockscreen bundle), then ryoku doctor")
+		return warnRes(i18n.T("the in-session lockscreen is missing and no bundle is available to install it; the lock button and lock-on-sleep do nothing")).
+			withFix(i18n.T("ryoku update (ships the lockscreen bundle), then ryoku doctor"))
 	}
 	if checkOnly {
 		if legacyTape {
-			return wouldRes("the legacy Tape lockscreen needs one-time Store migration").
+			return wouldRes(i18n.T("the legacy Tape lockscreen needs one-time Store migration")).
 				withFix("ryoku doctor")
 		}
-		return wouldRes("the in-session lockscreen is missing; the lock button and lock-on-sleep do nothing").
+		return wouldRes(i18n.T("the in-session lockscreen is missing; the lock button and lock-on-sleep do nothing")).
 			withFix("ryoku doctor")
 	}
 	// RYOKU_QYLOCK_USER_ONLY skips the SDDM greeter half: it needs root, the
@@ -164,19 +166,19 @@ func reconcileLockscreen(checkOnly bool) recResult {
 	cmd := exec.Command(installer)
 	cmd.Env = append(os.Environ(), "RYOKU_QYLOCK_USER_ONLY=1")
 	if out, err := cmd.CombinedOutput(); err != nil {
-		return failRes("lockscreen install failed: %v (%s)", err, firstLine(string(out))).
-			withFix("run %s by hand to see why", installer)
+		return failRes(i18n.T("lockscreen install failed: %v (%s)"), err, firstLine(string(out))).
+			withFix(i18n.T("run %s by hand to see why"), installer)
 	}
 	if !sys.Exists(lockerPath()) {
-		return failRes("lockscreen installer ran but %s did not appear", lockerPath())
+		return failRes(i18n.T("lockscreen installer ran but %s did not appear"), lockerPath())
 	}
 	if legacyTape && !sys.Exists(legacyTapePath()) {
-		return fixedRes("migrated the legacy Tape lockscreen into Store ownership")
+		return fixedRes(i18n.T("migrated the legacy Tape lockscreen into Store ownership"))
 	}
 	if lockerPresent {
-		return okRes("in-session lockscreen installed; custom legacy Tape retained")
+		return okRes(i18n.T("in-session lockscreen installed; custom legacy Tape retained"))
 	}
-	return fixedRes("installed the in-session lockscreen; the lock button and lock-on-sleep work again")
+	return fixedRes(i18n.T("installed the in-session lockscreen; the lock button and lock-on-sleep work again"))
 }
 
 // reconcileLockscreenDrift refreshes an installed lock onto the shipped bundle
@@ -187,42 +189,42 @@ func reconcileLockscreen(checkOnly bool) recResult {
 func reconcileLockscreenDrift(checkOnly bool) recResult {
 	bundle := lockBundle()
 	if bundle == "" {
-		return okRes("in-session lockscreen installed")
+		return okRes(i18n.T("in-session lockscreen installed"))
 	}
 	lockStale := lockscreenStale(bundle)
 	greeter := greeterStale(bundle)
 	if !lockStale && !greeter {
-		return okRes("in-session lockscreen installed and current")
+		return okRes(i18n.T("in-session lockscreen installed and current"))
 	}
 	if checkOnly {
-		return wouldRes("the installed lockscreen predates the shipped one; lock fixes have not reached this box").
+		return wouldRes(i18n.T("the installed lockscreen predates the shipped one; lock fixes have not reached this box")).
 			withFix("ryoku doctor")
 	}
 	var did []string
 	if lockStale {
 		installer := lockscreenInstaller()
 		if installer == "" {
-			return warnRes("the installed lockscreen predates the shipped one and no installer is available").
+			return warnRes(i18n.T("the installed lockscreen predates the shipped one and no installer is available")).
 				withFix("ryoku update")
 		}
 		cmd := exec.Command(installer)
 		cmd.Env = append(os.Environ(), "RYOKU_QYLOCK_USER_ONLY=1")
 		if out, err := cmd.CombinedOutput(); err != nil {
-			return failRes("lockscreen refresh failed: %v (%s)", err, firstLine(string(out))).
-				withFix("run %s by hand to see why", installer)
+			return failRes(i18n.T("lockscreen refresh failed: %v (%s)"), err, firstLine(string(out))).
+				withFix(i18n.T("run %s by hand to see why"), installer)
 		}
-		did = append(did, "in-session lock")
+		did = append(did, i18n.T("in-session lock"))
 	}
 	if greeter {
 		if exec.Command("sudo", "-n", "true").Run() != nil {
-			return noteRes("the SDDM greeter predates the shipped skin; refreshing it needs sudo").
-				withFix("sudo ryoku doctor (or the next ryoku update)")
+			return noteRes(i18n.T("the SDDM greeter predates the shipped skin; refreshing it needs sudo")).
+				withFix(i18n.T("sudo ryoku doctor (or the next ryoku update)"))
 		}
 		if err := refreshGreeter(bundle); err != nil {
-			return failRes("could not refresh the SDDM greeter skin: %v", err).
+			return failRes(i18n.T("could not refresh the SDDM greeter skin: %v"), err).
 				withFix("sudo " + lockscreenInstaller())
 		}
-		did = append(did, "SDDM greeter")
+		did = append(did, i18n.T("SDDM greeter"))
 	}
-	return fixedRes("refreshed the %s to the shipped lockscreen bundle", strings.Join(did, " and "))
+	return fixedRes(i18n.T("refreshed the %s to the shipped lockscreen bundle"), strings.Join(did, " and "))
 }

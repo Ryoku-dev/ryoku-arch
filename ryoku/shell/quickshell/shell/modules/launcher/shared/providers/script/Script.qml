@@ -165,7 +165,7 @@ Provider {
             score: 0,
             actions: [{
                 id: "run",
-                name: "Select",
+                name: I18n.tr("Select"),
                 icon: "",
                 execute: function () {
                     activateProc.command = def.exec.concat([row.text]);

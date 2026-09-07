@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Ryoku.FrameBars
 import shell.services
+import Ryoku.Ui.Singletons
 
 // Quick settings is a fixed-width module host: the configured module rail and
 // one content sheet share the same frame. Modules are catalogued centrally and
@@ -154,12 +155,12 @@ Item {
 
     function pageTitle() {
         switch (root.page) {
-        case "network": return qsTr("Wi-Fi");
-        case "bluetooth": return qsTr("Bluetooth");
-        case "audio-out": return qsTr("Sound output");
-        case "audio-in": return qsTr("Microphone");
-        case "theme": return qsTr("Colour scheme");
-        case "clipboard": return qsTr("Clipboard");
+        case "network": return I18n.tr("Wi-Fi");
+        case "bluetooth": return I18n.tr("Bluetooth");
+        case "audio-out": return I18n.tr("Sound output");
+        case "audio-in": return I18n.tr("Microphone");
+        case "theme": return I18n.tr("Colour scheme");
+        case "clipboard": return I18n.tr("Clipboard");
         }
         return "";
     }

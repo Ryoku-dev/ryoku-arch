@@ -61,7 +61,7 @@ Rectangle {
 
     Text {
         anchors { top: parent.top; left: parent.left; margins: Tokens.s2 }
-        text: root.islandId.toUpperCase()
+        text: I18n.tr(root.islandId.toUpperCase())
         color: Tokens.inkFaint
         font.family: Tokens.mono
         font.pixelSize: Tokens.fTiny
@@ -91,7 +91,7 @@ Rectangle {
         objectName: "nacre-empty-drop-" + root.islandId
         anchors.centerIn: parent
         visible: root.items.length === 0
-        text: qsTr("DROP WIDGET")
+        text: I18n.tr("DROP WIDGET")
         color: root.dragPreview ? Tokens.ink : Tokens.inkFaint
         font.family: Tokens.mono
         font.pixelSize: Tokens.fTiny

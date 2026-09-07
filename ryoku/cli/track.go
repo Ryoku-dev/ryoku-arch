@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"ryoku-cli/internal/sys"
 	"ryoku-cli/internal/updater"
+	i18n "ryoku-i18n"
 	"strings"
 )
 
@@ -30,15 +31,15 @@ func cmdTrack(args []string) error {
 	}
 	if source {
 		if !sourceChannels[channel] {
-			return fmt.Errorf("`--source` builds from a checkout and takes main or unstable-dev, not %q", channel)
+			return fmt.Errorf(i18n.T("`--source` builds from a checkout and takes main or unstable-dev, not %q"), channel)
 		}
 		return trackFromSource(channel)
 	}
 	pkg := packageChannelFor(channel)
 	if pkg == "" {
-		return fmt.Errorf("unknown channel %q\n"+
+		return fmt.Errorf(i18n.T("unknown channel %q\n"+
 			"  packaged: stable, testing, unstable-dev, main, or a release tag (v0.55.7-beta.19)\n"+
-			"  source:   main or unstable-dev, with --source", channel)
+			"  source:   main or unstable-dev, with --source"), channel)
 	}
 	return updater.Track(pkg)
 }
@@ -51,16 +52,16 @@ func parseTrackArgs(args []string) (channel string, source bool, err error) {
 		case a == "--source":
 			source = true
 		case strings.HasPrefix(a, "-"):
-			return "", false, fmt.Errorf("unknown flag %q (only --source is accepted)", a)
+			return "", false, fmt.Errorf(i18n.T("unknown flag %q (only --source is accepted)"), a)
 		case channel != "":
-			return "", false, fmt.Errorf("track takes one channel, got %q and %q", channel, a)
+			return "", false, fmt.Errorf(i18n.T("track takes one channel, got %q and %q"), channel, a)
 		default:
 			channel = a
 		}
 	}
 	if channel == "" {
-		return "", false, fmt.Errorf("usage: ryoku track <stable|testing|unstable-dev|main|v<release>>\n" +
-			"       ryoku track <main|unstable-dev> --source   (build from a git checkout)")
+		return "", false, fmt.Errorf(i18n.T("usage: ryoku track <stable|testing|unstable-dev|main|v<release>>\n" +
+			"       ryoku track <main|unstable-dev> --source   (build from a git checkout)"))
 	}
 	return channel, source, nil
 }
@@ -94,7 +95,7 @@ func trackFromSource(channel string) error {
 		}
 	}
 	if !sys.Has("curl") {
-		return fmt.Errorf("no local track script and curl is missing; run it by hand:\n  curl -fsSL %s | bash -s -- %s", trackURL, channel)
+		return fmt.Errorf(i18n.T("no local track script and curl is missing; run it by hand:\n  curl -fsSL %s | bash -s -- %s"), trackURL, channel)
 	}
 	tmp, err := os.CreateTemp("", "ryoku-track-*.sh")
 	if err != nil {
@@ -103,7 +104,7 @@ func trackFromSource(channel string) error {
 	tmp.Close()
 	defer os.Remove(tmp.Name())
 	if err := sys.Run("curl", "-fsSL", trackURL, "-o", tmp.Name()); err != nil {
-		return fmt.Errorf("fetch track script from %s: %w", trackURL, err)
+		return fmt.Errorf(i18n.T("fetch track script from %s: %w"), trackURL, err)
 	}
 	return sys.Run("bash", tmp.Name(), channel)
 }

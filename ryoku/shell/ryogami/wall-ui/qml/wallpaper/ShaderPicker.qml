@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import ".."
+import Ryoku.Ui.Singletons
 
 Item {
     id: picker
@@ -178,7 +179,7 @@ Item {
                                 anchors.leftMargin: 14 * Config.uiScale
                                 anchors.right: parent.right
                                 anchors.rightMargin: 10 * Config.uiScale
-                                text: modelData.label
+                                text: I18n.tr(modelData.label)
                                 elide: Text.ElideRight
                                 font.family: Style.fontFamily
                                 font.pixelSize: 11 * Config.uiScale

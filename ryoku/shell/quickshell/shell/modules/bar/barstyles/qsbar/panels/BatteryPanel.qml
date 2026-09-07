@@ -26,19 +26,25 @@ PanelWindow {
     property string batteryId: ""
     property string healthText: ""
     property string sizeText: ""
-    property string timeLabel: "Time left"
+    property string timeLabel: I18n.tr("Time left")
     property string timeText: ""
     property string powerRate: ""
     property int    cycles:   0
-    readonly property string healthLabel: batteryId !== "" ? "Health (" + batteryId + ")" : "Health"
+    readonly property string healthLabel: batteryId !== "" ? I18n.tr("Health (%1)").arg(batteryId) : I18n.tr("Health")
     readonly property bool charging: status === "charging"
     function refreshBatteryData() {
         if (!batData.running) batData.running = true
     }
     function statusTitle(s) {
         var t = String(s || "unknown")
-        if (t === "fully-charged") return "Full"
-        return t.length > 0 ? t.charAt(0).toUpperCase() + t.slice(1) : "Unknown"
+        if (t === "charging") return I18n.tr("Charging")
+        if (t === "discharging") return I18n.tr("Discharging")
+        if (t === "fully-charged") return I18n.tr("Full")
+        if (t === "empty") return I18n.tr("Empty")
+        if (t === "pending-charge") return I18n.tr("Pending charge")
+        if (t === "pending-discharge") return I18n.tr("Pending discharge")
+        if (t === "unknown") return I18n.tr("Unknown")
+        return t.length > 0 ? t.charAt(0).toUpperCase() + t.slice(1) : I18n.tr("Unknown")
     }
 
     property real reveal: root.batteryVisible ? 1 : 0
@@ -158,7 +164,7 @@ PanelWindow {
                     width: parent.width
                     visible: batPanel.powerRate !== ""
                     UiText { text: batPanel.charging ? I18n.tr("Charge rate") : I18n.tr("Power draw"); color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
-                    UiText { text: batPanel.powerRate + I18n.tr(" W"); color: root.ink; font.family: root.mono; font.pixelSize: 11 }
+                    UiText { text: batPanel.powerRate + " W"; color: root.ink; font.family: root.mono; font.pixelSize: 11 }
                 }
                 Row {
                     width: parent.width
@@ -202,7 +208,7 @@ PanelWindow {
                     batPanel.batteryId = parts[0] || ""
                     batPanel.percent = parseInt(parts[1]) || 0
                     batPanel.status = parts[2] || "unknown"
-                    batPanel.timeLabel = parts[3] || "Time left"
+                    batPanel.timeLabel = parts[3] || I18n.tr("Time left")
                     batPanel.timeText = parts[4] || ""
                     batPanel.powerRate = parts[5] || ""
                     batPanel.sizeText = parts[6] || ""

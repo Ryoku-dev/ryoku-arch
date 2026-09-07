@@ -64,8 +64,8 @@ GridView {
         Accessible.role: Accessible.ListItem
         Accessible.name: entry ? String(entry.title || "") : ""
         Accessible.description: entry
-            ? "Rank " + String(rowData.rank) + ", "
-                + String(entry.type || entry.providerId || "")
+            ? Ui.I18n.tr("Rank %1, %2").arg(String(rowData.rank))
+                .arg(String(entry.type || entry.providerId || ""))
             : ""
         Accessible.ignored: entry === null
         Accessible.focusable: false
@@ -175,7 +175,7 @@ GridView {
             Text {
                 width: parent.width
                 text: cell.entry
-                    ? String(cell.entry.type || cell.entry.providerId || "").toUpperCase()
+                    ? Ui.I18n.tr(String(cell.entry.type || cell.entry.providerId || "")).toUpperCase()
                     : ""
                 color: Theme.faint
                 font.family: Theme.mono

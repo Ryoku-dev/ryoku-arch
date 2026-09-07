@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 // The power popup's data plane: who is logged in, how long the box has been up,
 // and which wallpaper the desktop is wearing right now. All read-only probes of
@@ -32,10 +33,10 @@ Singleton {
         var h = Math.floor((t % 86400) / 3600);
         var m = Math.floor((t % 3600) / 60);
         if (d > 0)
-            return d + "d " + h + "h";
+            return I18n.tr("%1d %2h").arg(d).arg(h);
         if (h > 0)
-            return h + "h " + m + "m";
-        return m + "m";
+            return I18n.tr("%1h %2m").arg(h).arg(m);
+        return I18n.tr("%1m").arg(m);
     }
 
     // ── wallpaper ──────────────────────────────────────────────────────────

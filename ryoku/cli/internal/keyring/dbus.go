@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/godbus/dbus/v5"
+	i18n "ryoku-i18n"
 )
 
 // The keyring daemon exposes the standard Secret Service plus gnome-keyring's
@@ -40,13 +41,13 @@ type secretsClient struct {
 func dial() (*secretsClient, error) {
 	conn, err := dbus.SessionBus()
 	if err != nil {
-		return nil, fmt.Errorf("session bus: %w", err)
+		return nil, fmt.Errorf(i18n.T("session bus: %w"), err)
 	}
 	c := &secretsClient{conn: conn, obj: conn.Object(secretsService, secretsPath)}
 	var out dbus.Variant
 	if err := c.obj.Call(ifaceService+".OpenSession", 0, "plain", dbus.MakeVariant("")).Store(&out, &c.sess); err != nil {
 		conn.Close()
-		return nil, fmt.Errorf("open keyring session: %w", err)
+		return nil, fmt.Errorf(i18n.T("open keyring session: %w"), err)
 	}
 	return c, nil
 }
@@ -86,7 +87,7 @@ func (c *secretsClient) changePassword(name, old, newPw string) error {
 func (c *secretsClient) collectionByLabel(name string) (dbus.ObjectPath, error) {
 	v, err := c.obj.GetProperty(ifaceService + ".Collections")
 	if err != nil {
-		return "", fmt.Errorf("list keyrings: %w", err)
+		return "", fmt.Errorf(i18n.T("list keyrings: %w"), err)
 	}
 	paths, _ := v.Value().([]dbus.ObjectPath)
 	for _, p := range paths {
@@ -98,7 +99,7 @@ func (c *secretsClient) collectionByLabel(name string) (dbus.ObjectPath, error) 
 			return p, nil
 		}
 	}
-	return "", fmt.Errorf("keyring %q is not loaded by the daemon", name)
+	return "", fmt.Errorf(i18n.T("keyring %q is not loaded by the daemon"), name)
 }
 
 // daemonAlive best-effort reports whether something owns the secrets name. Any

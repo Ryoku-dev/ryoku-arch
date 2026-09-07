@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 )
 
 type Credential struct {
@@ -65,7 +66,7 @@ func gatherStatus() Status {
 		UserVerification: p.UserVerification,
 	}
 	for i := range a.creds {
-		st.CredentialIDs = append(st.CredentialIDs, Credential{ID: fmt.Sprintf("%d", i+1), Label: fmt.Sprintf("Security key %d", i+1)})
+		st.CredentialIDs = append(st.CredentialIDs, Credential{ID: fmt.Sprintf("%d", i+1), Label: fmt.Sprintf(i18n.T("Security key %d"), i+1)})
 	}
 	return st
 }
@@ -154,7 +155,7 @@ func runStatus(args []string) error {
 		if a == "--json" {
 			jsonOut = true
 		} else {
-			return fmt.Errorf("usage: ryoku security-key status [--json]")
+			return fmt.Errorf(i18n.T("usage: ryoku security-key status [--json]"))
 		}
 	}
 	st := gatherStatus()
@@ -168,24 +169,24 @@ func runStatus(args []string) error {
 }
 
 func printStatus(st Status) {
-	fmt.Printf("supported:   %s\n", yesno(st.Supported))
-	fmt.Printf("device:      %s\n", map[bool]string{true: st.DeviceName, false: "not detected"}[st.DevicePresent])
-	fmt.Printf("enrolled:    %s (%d credential%s)\n", yesno(st.Enrolled), st.Credentials, plural(st.Credentials))
-	fmt.Printf("mode:        %s\n", st.AuthMode)
-	fmt.Printf("touch:       %s\n", yesno(st.TouchRequired))
-	fmt.Printf("pin verify:  %s\n", yesno(st.PinVerification))
-	fmt.Printf("user verify: %s\n", yesno(st.UserVerification))
-	fmt.Printf("sudo:        %s\n", yesno(st.Sudo))
-	fmt.Printf("polkit:      %s\n", yesno(st.Polkit))
-	fmt.Printf("login:       %s\n", yesno(st.Login))
-	fmt.Printf("lockscreen:  unavailable\n")
+	fmt.Printf(i18n.T("supported:   %s\n"), yesno(st.Supported))
+	fmt.Printf(i18n.T("device:      %s\n"), map[bool]string{true: st.DeviceName, false: i18n.T("not detected")}[st.DevicePresent])
+	fmt.Printf(i18n.T("enrolled:    %s (%d credential%s)\n"), yesno(st.Enrolled), st.Credentials, plural(st.Credentials))
+	fmt.Printf(i18n.T("mode:        %s\n"), st.AuthMode)
+	fmt.Printf(i18n.T("touch:       %s\n"), yesno(st.TouchRequired))
+	fmt.Printf(i18n.T("pin verify:  %s\n"), yesno(st.PinVerification))
+	fmt.Printf(i18n.T("user verify: %s\n"), yesno(st.UserVerification))
+	fmt.Printf(i18n.T("sudo:        %s\n"), yesno(st.Sudo))
+	fmt.Printf(i18n.T("polkit:      %s\n"), yesno(st.Polkit))
+	fmt.Printf(i18n.T("login:       %s\n"), yesno(st.Login))
+	fmt.Printf(i18n.T("lockscreen:  unavailable\n"))
 }
 
 func yesno(b bool) string {
 	if b {
-		return "yes"
+		return i18n.T("yes")
 	}
-	return "no"
+	return i18n.T("no")
 }
 
 func plural(n int) string {

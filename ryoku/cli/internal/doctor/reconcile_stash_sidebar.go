@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // The stash Features page moved from a full-span left sidebar to a floating card
@@ -15,29 +17,29 @@ func reconcileStashSidebar(checkOnly bool) recResult {
 	path := filepath.Join(sys.ConfigHome(), "ryoku", "shell.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return okRes("no shell.json yet (seeded on first shell run)")
+		return okRes(i18n.T("no shell.json yet (seeded on first shell run)"))
 	}
 	migrated, changed, err := moveStashRight(raw)
 	if err != nil {
-		return warnRes("shell.json does not parse (%v); the shell falls back to defaults", err).
-			withFix("delete %s to re-seed it", path)
+		return warnRes(i18n.T("shell.json does not parse (%v); the shell falls back to defaults"), err).
+			withFix(i18n.T("delete %s to re-seed it"), path)
 	}
 	if !changed {
-		return okRes("stash Features page anchors right")
+		return okRes(i18n.T("stash Features page anchors right"))
 	}
 	if checkOnly {
-		return wouldRes("shell.json still anchors the stash Features page to the left edge").
-			withFix("ryoku doctor moves it to the right in place")
+		return wouldRes(i18n.T("shell.json still anchors the stash Features page to the left edge")).
+			withFix(i18n.T("ryoku doctor moves it to the right in place"))
 	}
 	tmp := path + ".ryoku-tmp"
 	if err := os.WriteFile(tmp, migrated, 0o644); err != nil {
-		return failRes("could not write %s: %v", tmp, err)
+		return failRes(i18n.T("could not write %s: %v"), tmp, err)
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		os.Remove(tmp)
-		return failRes("could not replace %s: %v", path, err)
+		return failRes(i18n.T("could not replace %s: %v"), path, err)
 	}
-	return fixedRes("moved the stash Features page to the right edge in shell.json")
+	return fixedRes(i18n.T("moved the stash Features page to the right edge in shell.json"))
 }
 
 // moveStashRight flips frameBars.surfaces.stash.anchor "left" -> "right", keeping

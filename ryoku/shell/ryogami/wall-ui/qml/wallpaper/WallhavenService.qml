@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import Ryoku.Ui.Singletons
 
 QtObject {
   id: whService
@@ -205,7 +206,7 @@ QtObject {
       console.log("[WH] curl exited code=" + exitCode + "  bytes=" + whService._searchOutput.length)
       whService.loading = false
       if (exitCode !== 0) {
-        whService.errorText = "Network error (curl exit " + exitCode + ")"
+        whService.errorText = I18n.tr("Network error (curl exit %1)").arg(exitCode)
         console.log("[WH] ERROR: " + whService.errorText)
         whService.resultsUpdated()
         return
@@ -236,7 +237,7 @@ QtObject {
           console.log("[WH] parsed " + newItems.length + " new items, total=" + whService.results.length + "  lastPage=" + whService.lastPage)
         }
       } catch (e) {
-        whService.errorText = "Parse error: " + e.message
+        whService.errorText = I18n.tr("Parse error: %1").arg(e.message)
         console.log("[WH] ERROR: " + whService.errorText)
       }
       whService.resultsUpdated()

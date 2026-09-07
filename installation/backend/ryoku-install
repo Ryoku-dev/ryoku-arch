@@ -69,7 +69,7 @@ if [[ ${1:-} == probe ]]; then
       [[ -n ${3:-} ]] || die "usage: ryoku-install probe resize <disk>"
       ryoku_probe_resize "$3"
       exit 0 ;;
-    *) die "unknown probe '${2:-}' (supported: 'alongside', 'resize')" ;;
+    *) die 'unknown probe '\''%s'\'' (supported: '\''alongside'\'', '\''resize'\'')' "${2:-}" ;;
   esac
 fi
 
@@ -122,12 +122,12 @@ export RYOKU_VARIANT
 case $RYOKU_DISK_STRATEGY in
   whole|alongside) ;;
   '') die "RYOKU_DISK_STRATEGY is required (use 'whole' or 'alongside'); refusing to wipe disk on empty strategy." ;;
-  *)  die "RYOKU_DISK_STRATEGY='$RYOKU_DISK_STRATEGY' not supported (use 'whole' or 'alongside')." ;;
+  *)  die 'RYOKU_DISK_STRATEGY='\''%s'\'' not supported (use '\''whole'\'' or '\''alongside'\'').' "$RYOKU_DISK_STRATEGY" ;;
 esac
 if [[ $RYOKU_DISK_STRATEGY == alongside ]]; then
   case $RYOKU_ESP_MODE in
     auto|shared|dedicated) ;;
-    *) die "RYOKU_ESP_MODE must be auto, shared, or dedicated (got '$RYOKU_ESP_MODE')" ;;
+    *) die 'RYOKU_ESP_MODE must be auto, shared, or dedicated (got '\''%s'\'')' "$RYOKU_ESP_MODE" ;;
   esac
   [[ -z $RYOKU_DRYRUN || $RYOKU_ESP_MODE != auto ]] \
     || die "alongside dry-run cannot measure the existing ESP; set RYOKU_ESP_MODE=shared or dedicated."
@@ -139,7 +139,7 @@ fi
 
 main() {
   [[ -n $RYOKU_DRYRUN ]] && log "DRY RUN: no disk is touched; commands are printed only"
-  log "Ryoku install: disk=$RYOKU_DISK host=$RYOKU_HOSTNAME user=$RYOKU_USERNAME profile=$RYOKU_PROFILE"
+  log 'Ryoku install: disk=%s host=%s user=%s profile=%s' "$RYOKU_DISK" "$RYOKU_HOSTNAME" "$RYOKU_USERNAME" "$RYOKU_PROFILE"
 
   ryoku_preflight
   # an offline install with no usable baked repo can only fail, and it must fail

@@ -83,15 +83,15 @@ Item {
     // The Obi bar's widgets, for the per-widget show/hide toggles below. Mirrors
     // barstyles/obi/Scene.qml; Workspaces is the bar's identity and has no toggle.
     readonly property var obiWidgets: [
-        { id: "activeWindow", label: qsTr("Active window"), desc: qsTr("The focused window's title, far left.") },
-        { id: "resources", label: qsTr("Resources"), desc: qsTr("CPU and memory rings.") },
-        { id: "media", label: qsTr("Media"), desc: qsTr("Now playing with a music visualizer.") },
-        { id: "audio", label: qsTr("Audio"), desc: qsTr("Output and input volume, with a mixer.") },
-        { id: "clock", label: qsTr("Clock"), desc: qsTr("Time and date.") },
-        { id: "connectivity", label: qsTr("Connections"), desc: qsTr("Wi-Fi and Bluetooth.") },
-        { id: "battery", label: qsTr("Battery"), desc: qsTr("Charge and power profile.") },
-        { id: "tray", label: qsTr("Tray"), desc: qsTr("System tray icons.") },
-        { id: "weather", label: qsTr("Weather"), desc: qsTr("Current conditions.") }
+        { id: "activeWindow", label: I18n.tr("Active window"), desc: I18n.tr("The focused window's title, far left.") },
+        { id: "resources", label: I18n.tr("Resources"), desc: I18n.tr("CPU and memory rings.") },
+        { id: "media", label: I18n.tr("Media"), desc: I18n.tr("Now playing with a music visualizer.") },
+        { id: "audio", label: I18n.tr("Audio"), desc: I18n.tr("Output and input volume, with a mixer.") },
+        { id: "clock", label: I18n.tr("Clock"), desc: I18n.tr("Time and date.") },
+        { id: "connectivity", label: I18n.tr("Connections"), desc: I18n.tr("Wi-Fi and Bluetooth.") },
+        { id: "battery", label: I18n.tr("Battery"), desc: I18n.tr("Charge and power profile.") },
+        { id: "tray", label: I18n.tr("Tray"), desc: I18n.tr("System tray icons.") },
+        { id: "weather", label: I18n.tr("Weather"), desc: I18n.tr("Current conditions.") }
     ]
     // The running bar style, default the built-in frame style. The frame, rails
     // and zone editors below are Sumi's; a folder style owns its own layout.
@@ -199,7 +199,7 @@ Item {
                     font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter
                 }
                 Text {
-                    text: qsTr("DESKTOP"); color: Tokens.inkMuted; font.family: Tokens.ui
+                    text: I18n.tr("DESKTOP"); color: Tokens.inkMuted; font.family: Tokens.ui
                     font.pixelSize: 9; font.weight: Font.Medium; font.letterSpacing: Tokens.trackMark
                     anchors.verticalCenter: parent.verticalCenter
                 }
@@ -223,14 +223,14 @@ Item {
             }
         }
         Text {
-            text: qsTr("Bar Studio")
+            text: I18n.tr("Bar Studio")
             color: Tokens.ink
             font.family: Tokens.display
             font.pixelSize: Tokens.fTitle
         }
         Text {
             width: Math.min(parent.width, 720)
-            text: qsTr("Choose which bar the desktop draws, and tune the built-in styles. QS Bar keeps its layout, widgets and dock in QS Bar Settings; Sumi's frame and rails are set below. Changes land live, and Save keeps them.")
+            text: I18n.tr("Choose which bar the desktop draws, and tune the built-in styles. QS Bar keeps its layout, widgets and dock in QS Bar Settings; Sumi's frame and rails are set below. Changes land live, and Save keeps them.")
             color: Tokens.inkMuted
             font.family: Tokens.ui
             font.pixelSize: Tokens.fBody
@@ -257,7 +257,7 @@ Item {
             SettingCard {
                 id: styleSect
                 width: col.width
-                title: qsTr("BAR STYLE")
+                title: I18n.tr("BAR STYLE")
 
                 Item {
                     width: parent.width
@@ -300,7 +300,7 @@ Item {
                                         }
                                         Text {
                                             width: parent.width
-                                            text: styleCard.modelData.desc
+                                            text: I18n.tr(styleCard.modelData.desc)
                                             color: styleCard.on ? Tokens.inkOnBoneDim : Tokens.inkFaint
                                             font.family: Tokens.ui
                                             font.pixelSize: Tokens.fTiny
@@ -319,7 +319,7 @@ Item {
                             }
                         }
                         Btn {
-                            text: qsTr("BROWSE RYOSTORE")
+                            text: I18n.tr("BROWSE RYOSTORE")
                             onAct: page.browseBarStyles()
                         }
                     }
@@ -331,7 +331,7 @@ Item {
                 id: qsbarSect
                 width: col.width
                 visible: page.activeStyle === "qsbar"
-                title: qsTr("QS BAR")
+                title: I18n.tr("QS BAR")
                 kana: "帯"
 
                 Item {
@@ -344,7 +344,7 @@ Item {
                         spacing: Tokens.s3
                         Text {
                             width: parent.width
-                            text: qsTr("The QS Bar arranges its own layout, widgets, form and dock in QS Bar Settings. The bar logo opens it, or the button below.")
+                            text: I18n.tr("The QS Bar arranges its own layout, widgets, form and dock in QS Bar Settings. The bar logo opens it, or the button below.")
                             color: Tokens.inkMuted
                             font.family: Tokens.ui
                             font.pixelSize: Tokens.fBody
@@ -360,7 +360,7 @@ Item {
                             wrapMode: Text.WordWrap
                         }
                         Btn {
-                            text: qsTr("OPEN QS BAR SETTINGS")
+                            text: I18n.tr("OPEN QS BAR SETTINGS")
                             onAct: page.openQsBarSettings()
                         }
                     }
@@ -373,13 +373,13 @@ Item {
                 id: folderNote
                 width: col.width
                 visible: !page.sumiActive && page.activeStyle !== "qsbar"
-                title: qsTr("LAYOUT")
+                title: I18n.tr("LAYOUT")
 
                 Text {
                     width: parent.width
                     leftPadding: Tokens.s4; rightPadding: Tokens.s4
                     topPadding: Tokens.s3; bottomPadding: Tokens.s4
-                    text: qsTr("The %1 style manages its own layout in barstyles/%2. Its controls are below.").arg(page.activeName).arg(page.activeStyle)
+                    text: I18n.tr("The %1 style manages its own layout in barstyles/%2. Its controls are below.").arg(page.activeName).arg(page.activeStyle)
                     color: Tokens.inkMuted
                     font.family: Tokens.ui
                     font.pixelSize: Tokens.fBody
@@ -392,7 +392,7 @@ Item {
                 id: obiSect
                 width: col.width
                 visible: page.activeStyle === "obi"
-                title: qsTr("OBI WIDGETS")
+                title: I18n.tr("OBI WIDGETS")
 
                 Repeater {
                     model: page.obiWidgets
@@ -403,8 +403,8 @@ Item {
                         anchors.right: parent.right
                         divider: index > 0
                         controlWidth: 54
-                        label: modelData.label
-                        desc: modelData.desc
+                        label: I18n.tr(modelData.label)
+                        desc: I18n.tr(modelData.desc)
                         source: "shell.json"
                         Sw {
                             objectName: "obi-" + modelData.id
@@ -421,7 +421,7 @@ Item {
                 id: nacreSect
                 width: col.width
                 visible: page.activeStyle === "nacre"
-                title: qsTr("NACRE LAYOUT")
+                title: I18n.tr("NACRE LAYOUT")
 
                 Item {
                     width: parent.width
@@ -440,17 +440,17 @@ Item {
             SettingCard {
                 id: frameSect
                 width: col.width
-                title: qsTr("FRAME")
+                title: I18n.tr("FRAME")
                 visible: page.sumiActive
 
                 SettingRow {
                     anchors.left: parent.left
                     anchors.right: parent.right
                     controlWidth: 54
-                    label: qsTr("Draw frame")
-                    def: page.fwas("frameEnabled") === undefined ? "" : (page.fwas("frameEnabled") ? qsTr("ON") : qsTr("OFF"))
+                    label: I18n.tr("Draw frame")
+                    def: page.fwas("frameEnabled") === undefined ? "" : (page.fwas("frameEnabled") ? I18n.tr("ON") : I18n.tr("OFF"))
                     changed: page.fwas("frameEnabled") !== undefined && !!page.fval("frameEnabled", true) !== !!page.fwas("frameEnabled")
-                    desc: qsTr("Draw the bounded frame around the desktop at all.")
+                    desc: I18n.tr("Draw the bounded frame around the desktop at all.")
                     source: "shell.json"
                     Sw {
                         objectName: "frame-enabled"
@@ -465,12 +465,12 @@ Item {
                     anchors.right: parent.right
                     divider: true
                     controlWidth: Math.min(240, Math.max(160, Math.round(frameSect.width * 0.34)))
-                    label: qsTr("Opacity")
+                    label: I18n.tr("Opacity")
                     unit: "%"
                     value: String(Math.round(page.fnum("frameOpacity", 1) * 100))
                     def: page.fwas("frameOpacity") === undefined ? "" : String(Math.round(Number(page.fwas("frameOpacity")) * 100))
                     changed: page.fwas("frameOpacity") !== undefined && page.fnum("frameOpacity", 1) !== Number(page.fwas("frameOpacity"))
-                    desc: qsTr("How solid the frame draws.")
+                    desc: I18n.tr("How solid the frame draws.")
                     source: "shell.json"
                     Slid {
                         objectName: "frame-opacity"
@@ -485,12 +485,12 @@ Item {
                     anchors.right: parent.right
                     divider: true
                     controlWidth: 58
-                    label: qsTr("Frame thickness")
+                    label: I18n.tr("Frame thickness")
                     unit: "px"
                     value: String(page.fnum("frameThickness", 2))
                     def: page.fwas("frameThickness") === undefined ? "" : String(page.fwas("frameThickness"))
                     changed: page.fwas("frameThickness") !== undefined && page.fnum("frameThickness", 2) !== Number(page.fwas("frameThickness"))
-                    desc: qsTr("How thick the frame band around the desktop is drawn.")
+                    desc: I18n.tr("How thick the frame band around the desktop is drawn.")
                     source: "shell.json"
                     Step {
                         objectName: "frame-thickness"
@@ -506,12 +506,12 @@ Item {
                     anchors.right: parent.right
                     divider: true
                     controlWidth: 58
-                    label: qsTr("Corner radius")
+                    label: I18n.tr("Corner radius")
                     unit: "px"
                     value: String(page.fnum("frameCorner", 8))
                     def: page.fwas("frameCorner") === undefined ? "" : String(page.fwas("frameCorner"))
                     changed: page.fwas("frameCorner") !== undefined && page.fnum("frameCorner", 8) !== Number(page.fwas("frameCorner"))
-                    desc: qsTr("How round the frame cuts the screen's corners.")
+                    desc: I18n.tr("How round the frame cuts the screen's corners.")
                     source: "shell.json"
                     Step {
                         objectName: "frame-corner"
@@ -528,7 +528,7 @@ Item {
             SettingCard {
                 id: railSect
                 width: col.width
-                title: qsTr("RAILS")
+                title: I18n.tr("RAILS")
                 visible: page.sumiActive
 
                 Item {
@@ -574,7 +574,7 @@ Item {
                                         font.letterSpacing: Tokens.trackLabel
                                     }
                                     Text {
-                                        text: plate.pRail.enabled ? qsTr("on · %1").arg(plate.count) : qsTr("off")
+                                        text: plate.pRail.enabled ? I18n.tr("on · %1").arg(plate.count) : I18n.tr("off")
                                         color: plate.on ? Tokens.inkOnBoneDim : Tokens.inkFaint
                                         font.family: Tokens.mono
                                         font.pixelSize: Tokens.fTiny
@@ -598,10 +598,10 @@ Item {
                     anchors.right: parent.right
                     divider: true
                     controlWidth: 54
-                    label: qsTr("Show this rail")
-                    def: page.railWas ? (page.railWas.enabled ? qsTr("ON") : qsTr("OFF")) : ""
+                    label: I18n.tr("Show this rail")
+                    def: page.railWas ? (page.railWas.enabled ? I18n.tr("ON") : I18n.tr("OFF")) : ""
                     changed: !!page.railWas && page.rail.enabled !== page.railWas.enabled
-                    desc: qsTr("Draw the %1 rail on the frame.").arg(labels.edge(page.edge).toLowerCase())
+                    desc: I18n.tr("Draw the %1 rail on the frame.").arg(labels.edge(page.edge).toLowerCase())
                     source: "shell.json"
                     Sw {
                         objectName: "rail-enabled"
@@ -616,12 +616,12 @@ Item {
                     anchors.right: parent.right
                     divider: true
                     controlWidth: Math.min(240, Math.max(160, Math.round(railSect.width * 0.34)))
-                    label: qsTr("Thickness")
+                    label: I18n.tr("Thickness")
                     unit: "px"
                     value: String(page.rail.size)
                     def: page.railWas ? String(page.railWas.size) : ""
                     changed: !!page.railWas && page.rail.size !== page.railWas.size
-                    desc: qsTr("How far the %1 rail stands into the screen.").arg(labels.edge(page.edge).toLowerCase())
+                    desc: I18n.tr("How far the %1 rail stands into the screen.").arg(labels.edge(page.edge).toLowerCase())
                     source: "shell.json"
                     Slid {
                         objectName: "rail-thickness"
@@ -638,7 +638,7 @@ Item {
             SettingCard {
                 id: zoneSect
                 width: col.width
-                title: qsTr("WIDGETS ON THE %1 RAIL").arg(labels.edge(page.edge).toUpperCase())
+                title: I18n.tr("WIDGETS ON THE %1 RAIL").arg(labels.edge(page.edge).toUpperCase())
                 visible: page.sumiActive
 
                 Item {

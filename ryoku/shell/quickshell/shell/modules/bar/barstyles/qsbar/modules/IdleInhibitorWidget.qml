@@ -1,4 +1,5 @@
 import QtQuick
+import Ryoku.Ui.Singletons
 
 // True idle inhibitor (Waybar-style). Toggles root.idleInhibited, which drives
 // the Quickshell.Wayland.IdleInhibitor attached to the bar window in BarSlot.qml.
@@ -12,7 +13,7 @@ Item {
     implicitHeight: 28
 
     readonly property bool on: root.idleInhibited
-    readonly property string tooltipText: on ? "Idle inhibited: ON" : "Idle inhibited: OFF"
+    readonly property string tooltipText: on ? I18n.tr("Idle inhibited: ON") : I18n.tr("Idle inhibited: OFF")
     readonly property color contentColor: root.widgetContentColor("G10", root.widgetIconColor)
 
     UiText {

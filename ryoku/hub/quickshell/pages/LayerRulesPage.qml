@@ -30,13 +30,13 @@ Item {
     // threshold); dimaround and the rest emit a plain bool on the compositor
     // side, so they keep value empty. This is the old page's action table.
     readonly property var actionOptions: [
-        { "key": "blur", "label": "Blur" },
-        { "key": "blurpopups", "label": "Blur popups" },
-        { "key": "ignorealpha", "label": "Ignore alpha" },
-        { "key": "noanim", "label": "No animations" },
-        { "key": "dimaround", "label": "Dim around" },
-        { "key": "xray", "label": "Blur X-ray" },
-        { "key": "abovelock", "label": "Show above lock" }
+        { "key": "blur", "label": I18n.tr("Blur") },
+        { "key": "blurpopups", "label": I18n.tr("Blur popups") },
+        { "key": "ignorealpha", "label": I18n.tr("Ignore alpha") },
+        { "key": "noanim", "label": I18n.tr("No animations") },
+        { "key": "dimaround", "label": I18n.tr("Dim around") },
+        { "key": "xray", "label": I18n.tr("Blur X-ray") },
+        { "key": "abovelock", "label": I18n.tr("Show above lock") }
     ]
     readonly property var valueActions: ["ignorealpha"]
     // Chips speak in labels; the draft stores keys, so map across the boundary.
@@ -165,7 +165,7 @@ Item {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 // an entry count is file-truth chrome, so mono (DESIGN.md section 2).
-                text: pg.rules.length + (pg.rules.length === 1 ? I18n.tr(" ENTRY") : I18n.tr(" ENTRIES"))
+                text: pg.rules.length === 1 ? I18n.tr("%1 ENTRY").arg(pg.rules.length) : I18n.tr("%1 ENTRIES").arg(pg.rules.length)
                 color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: Tokens.fTiny
             }
             Btn {

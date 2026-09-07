@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import shell.services
+import Ryoku.Ui.Singletons
 import "../../Singletons"
 import "../../lib/fuzzy.js" as Fuzzy
 import "appactions.js" as AppActions
@@ -27,17 +28,17 @@ Provider {
 
     function mapCategory(raw) {
         const order = [
-            ["TerminalEmulator", "Terminal"], ["WebBrowser", "Browser"],
-            ["InstantMessaging", "Chat"], ["Audio", "Media"], ["AudioVideo", "Media"],
-            ["Video", "Media"], ["Game", "Game"], ["Development", "Dev"],
-            ["Graphics", "Graphics"], ["Office", "Office"], ["Settings", "System"],
-            ["System", "System"], ["Utility", "Tool"], ["Network", "Net"]
+            ["TerminalEmulator", I18n.tr("Terminal")], ["WebBrowser", I18n.tr("Browser")],
+            ["InstantMessaging", I18n.tr("Chat")], ["Audio", I18n.tr("Media")], ["AudioVideo", I18n.tr("Media")],
+            ["Video", I18n.tr("Media")], ["Game", I18n.tr("Game")], ["Development", I18n.tr("Dev")],
+            ["Graphics", I18n.tr("Graphics")], ["Office", I18n.tr("Office")], ["Settings", I18n.tr("System")],
+            ["System", I18n.tr("System")], ["Utility", I18n.tr("Tool")], ["Network", I18n.tr("Net")]
         ];
         const cats = String(raw).split(/[;,]/);
         for (let i = 0; i < order.length; i++)
             if (cats.includes(order[i][0]))
                 return order[i][1];
-        return "App";
+        return I18n.tr("App");
     }
 
     function executeEntry(entryId) {
@@ -71,7 +72,7 @@ Provider {
         var entryId = entry.id;
         var actions = [{
             id: "launch",
-            name: "Launch",
+            name: I18n.tr("Launch"),
             icon: "",
             execute: function () { apps.executeEntry(entryId); }
         }];

@@ -21,26 +21,26 @@ Item {
     // people + projects Ryoku is built on, reused verbatim from the old page.
     // an empty url is a quiet, unlinked credit: no home was given, none invented.
     readonly property var projects: [
-        { "name": "qylock",       "by": "Darkkal44",      "role": "lockscreen",          "url": "https://github.com/Darkkal44/qylock" },
-        { "name": "caelestia",    "by": "caelestia-dots", "role": "Quickshell craft, motion + browser theming", "url": "https://github.com/caelestia-dots/shell" },
-        { "name": "dusky",        "by": "dusklinux",      "role": "recolor templates + animation presets", "url": "https://github.com/dusklinux/dusky" },
-        { "name": "OkShell",      "by": "John Oberhauser", "role": "frame and bar design (GPL-3.0)", "url": "https://github.com/JohnOberhauser/OkShell/tree/87a9d09d923163cd03f396a395be3bb02b335b6e" },
-        { "name": "rishot",       "by": "Gakuseei",       "role": "screenshot flow",      "url": "https://github.com/Gakuseei/rishot" },
-        { "name": "cava-bg",      "by": "leriart",        "role": "audio-reactive walls", "url": "https://github.com/leriart/cava-bg" },
-        { "name": "Brain_Shell",  "by": "Brainitech",     "role": "shell craft",          "url": "https://github.com/Brainitech/Brain_Shell" },
-        { "name": "ActivSpot",    "by": "Devvvmn",        "role": "window spotlight",     "url": "https://github.com/Devvvmn/ActivSpot" },
-        { "name": "hyprmod",      "by": "BlueManCZ",      "role": "Hyprland tooling",     "url": "https://github.com/BlueManCZ/hyprmod" },
-        { "name": "dotfiles",     "by": "matteogini",     "role": "dotfile craft",        "url": "https://github.com/matteogini/dotfiles" },
-        { "name": "inir",         "by": "snowarch",       "role": "launcher grid",        "url": "" },
-        { "name": "noctalia",     "by": "noctalia-dev",   "role": "shell polish",         "url": "https://github.com/noctalia-dev/noctalia-shell" },
-        { "name": "DankMaterial", "by": "AvengeMedia",    "role": "material shell",       "url": "https://github.com/AvengeMedia/DankMaterialShell" },
-        { "name": "Omarchy",      "by": "DHH",            "role": "opinionated Arch",     "url": "" },
-        { "name": "CachyOS",      "by": "CachyOS team",   "role": "performance Arch",     "url": "" },
-        { "name": "Ricelin",      "by": "Gakuseei",       "role": "washi warping pill",   "url": "https://github.com/Gakuseei/Ricelin" },
-        { "name": "nixos-configuration", "by": "ilyamiro", "role": "legacy island bar",   "url": "https://github.com/ilyamiro/nixos-configuration" },
-        { "name": "dotfiles",     "by": "Jules3182",     "role": "dyad dual-edge bar",   "url": "https://github.com/Jules3182/dotfiles" },
-        { "name": "NibrasShell",  "by": "Ahmed Saadi",    "role": "depth effect engine",  "url": "https://github.com/AhmedSaadi0/NibrasShell" },
-        { "name": "skwd-wall",    "by": "liixini",        "role": "ryogami wallpaper engine", "url": "https://github.com/liixini/skwd-wall" }
+        { "name": "qylock",       "by": "Darkkal44",      "role": I18n.tr("lockscreen"),          "url": "https://github.com/Darkkal44/qylock" },
+        { "name": "caelestia",    "by": "caelestia-dots", "role": I18n.tr("Quickshell craft, motion + browser theming"), "url": "https://github.com/caelestia-dots/shell" },
+        { "name": "dusky",        "by": "dusklinux",      "role": I18n.tr("recolor templates + animation presets"), "url": "https://github.com/dusklinux/dusky" },
+        { "name": "OkShell",      "by": "John Oberhauser", "role": I18n.tr("frame and bar design (GPL-3.0)"), "url": "https://github.com/JohnOberhauser/OkShell/tree/87a9d09d923163cd03f396a395be3bb02b335b6e" },
+        { "name": "rishot",       "by": "Gakuseei",       "role": I18n.tr("screenshot flow"),      "url": "https://github.com/Gakuseei/rishot" },
+        { "name": "cava-bg",      "by": "leriart",        "role": I18n.tr("audio-reactive walls"), "url": "https://github.com/leriart/cava-bg" },
+        { "name": "Brain_Shell",  "by": "Brainitech",     "role": I18n.tr("shell craft"),          "url": "https://github.com/Brainitech/Brain_Shell" },
+        { "name": "ActivSpot",    "by": "Devvvmn",        "role": I18n.tr("window spotlight"),     "url": "https://github.com/Devvvmn/ActivSpot" },
+        { "name": "hyprmod",      "by": "BlueManCZ",      "role": I18n.tr("Hyprland tooling"),     "url": "https://github.com/BlueManCZ/hyprmod" },
+        { "name": "dotfiles",     "by": "matteogini",     "role": I18n.tr("dotfile craft"),        "url": "https://github.com/matteogini/dotfiles" },
+        { "name": "inir",         "by": "snowarch",       "role": I18n.tr("launcher grid"),        "url": "" },
+        { "name": "noctalia",     "by": "noctalia-dev",   "role": I18n.tr("shell polish"),         "url": "https://github.com/noctalia-dev/noctalia-shell" },
+        { "name": "DankMaterial", "by": "AvengeMedia",    "role": I18n.tr("material shell"),       "url": "https://github.com/AvengeMedia/DankMaterialShell" },
+        { "name": "Omarchy",      "by": "DHH",            "role": I18n.tr("opinionated Arch"),     "url": "" },
+        { "name": "CachyOS",      "by": "CachyOS team",   "role": I18n.tr("performance Arch"),     "url": "" },
+        { "name": "Ricelin",      "by": "Gakuseei",       "role": I18n.tr("washi warping pill"),   "url": "https://github.com/Gakuseei/Ricelin" },
+        { "name": "nixos-configuration", "by": "ilyamiro", "role": I18n.tr("legacy island bar"),   "url": "https://github.com/ilyamiro/nixos-configuration" },
+        { "name": "dotfiles",     "by": "Jules3182",     "role": I18n.tr("dyad dual-edge bar"),   "url": "https://github.com/Jules3182/dotfiles" },
+        { "name": "NibrasShell",  "by": "Ahmed Saadi",    "role": I18n.tr("depth effect engine"),  "url": "https://github.com/AhmedSaadi0/NibrasShell" },
+        { "name": "skwd-wall",    "by": "liixini",        "role": I18n.tr("ryogami wallpaper engine"), "url": "https://github.com/liixini/skwd-wall" }
     ]
 
     // the alpha/beta crew, constantly stress-testing and filing bugs. each name
@@ -58,10 +58,10 @@ Item {
     // the ink ramp, for the colophon specimen. ratios are the measured AA
     // contrast against pure-black paper, from the section 1 palette table.
     readonly property var ramp: [
-        { "label": "INK",   "swatch": Tokens.ink,      "ratio": "12.0:1" },
-        { "label": "DIM",   "swatch": Tokens.inkDim,   "ratio": "9.0:1" },
-        { "label": "MUTED", "swatch": Tokens.inkMuted, "ratio": "6.6:1" },
-        { "label": "FAINT", "swatch": Tokens.inkFaint, "ratio": "4.6:1" }
+        { "label": I18n.tr("INK"),   "swatch": Tokens.ink,      "ratio": "12.0:1" },
+        { "label": I18n.tr("DIM"),   "swatch": Tokens.inkDim,   "ratio": "9.0:1" },
+        { "label": I18n.tr("MUTED"), "swatch": Tokens.inkMuted, "ratio": "6.6:1" },
+        { "label": I18n.tr("FAINT"), "swatch": Tokens.inkFaint, "ratio": "4.6:1" }
     ]
 
     // a token colour rendered as its literal hex, so the colophon prints the

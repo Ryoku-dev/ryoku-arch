@@ -30,12 +30,12 @@ PillSurface {
 
     readonly property string continueText: Keyring.continueLabel !== ""
         ? Keyring.continueLabel
-        : (root.isPasswordNew ? "Continue" : (root.isPassword ? "Unlock" : "Continue"))
-    readonly property string cancelText: Keyring.cancelLabel !== "" ? Keyring.cancelLabel : "Cancel"
+        : (root.isPasswordNew ? I18n.tr("Continue") : (root.isPassword ? I18n.tr("Unlock") : I18n.tr("Continue")))
+    readonly property string cancelText: Keyring.cancelLabel !== "" ? Keyring.cancelLabel : I18n.tr("Cancel")
     readonly property string headerText: Keyring.title !== ""
         ? Keyring.title
-        : (root.isPasswordNew ? "New keyring password" : (root.isPassword ? "Unlock keyring" : "Confirm"))
-    readonly property string warnText: root.mismatch ? "Passwords do not match" : Keyring.warning
+        : (root.isPasswordNew ? I18n.tr("New keyring password") : (root.isPassword ? I18n.tr("Unlock keyring") : I18n.tr("Confirm")))
+    readonly property string warnText: root.mismatch ? I18n.tr("Passwords do not match") : Keyring.warning
 
     implicitHeight: col.implicitHeight
 
@@ -163,7 +163,7 @@ PillSurface {
                 color: Theme.onSurface
                 font.family: Theme.fontPrimary
                 font.pixelSize: 13 * root.s
-                placeholderText: root.isPasswordNew ? "New password" : "Password"
+                placeholderText: root.isPasswordNew ? I18n.tr("New password") : I18n.tr("Password")
                 placeholderTextColor: Theme.onSurfaceVariant
                 selectByMouse: true
                 selectionColor: Theme.primary
@@ -197,7 +197,7 @@ PillSurface {
                 color: Theme.onSurface
                 font.family: Theme.fontPrimary
                 font.pixelSize: 13 * root.s
-                placeholderText: "Confirm password"
+                placeholderText: I18n.tr("Confirm password")
                 placeholderTextColor: Theme.onSurfaceVariant
                 selectByMouse: true
                 selectionColor: Theme.primary

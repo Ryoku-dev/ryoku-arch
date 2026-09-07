@@ -3,6 +3,7 @@ import Quickshell.Io
 import QtQuick
 import ".."
 import "../services"
+import Ryoku.Ui.Singletons
 
 QtObject {
   id: service
@@ -324,7 +325,7 @@ QtObject {
 
   function _handleApplyResult(result, error) {
     if (error) {
-      var message = error.message || ("wallpaper apply failed (code " + (error.code ?? "unknown") + ")")
+      var message = error.message || I18n.tr("wallpaper apply failed (code %1)").arg(error.code ?? I18n.tr("unknown"))
       lastApplyError = message
       console.warn("[WSS] wallpaper apply failed:", message)
       wallpaperApplyFailed(message)

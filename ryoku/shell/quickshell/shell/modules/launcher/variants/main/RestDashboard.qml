@@ -6,6 +6,7 @@ import "metrics.js" as MainMetrics
 import "../../shared/lib/weather.js" as Wx
 import "../../shared" as Shared
 import "." as MainVariant
+import Ryoku.Ui.Singletons
 
 // Zero-query home card. A solar-arc scene: the hero clock and greeting read over
 // a filled wave horizon that traces the real day. The wave behind the marker
@@ -38,7 +39,7 @@ Item {
     readonly property string date: Qt.locale("en_US").toString(now, "dddd, MMM d")
     readonly property string greeting: {
         var h = now.getHours();
-        return h < 5 ? "Good night" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+        return h < 5 ? I18n.tr("Good night") : h < 12 ? I18n.tr("Good morning") : h < 18 ? I18n.tr("Good afternoon") : I18n.tr("Good evening");
     }
     // current second of the local day, the input to the solar arc.
     readonly property int nowSec: now.getHours() * 3600 + now.getMinutes() * 60

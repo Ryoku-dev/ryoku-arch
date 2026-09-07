@@ -170,16 +170,16 @@ Item {
 
     readonly property string emptyText: {
         if (activeMode === "image")
-            return query.length === 0 ? "TYPE TO SEARCH IMAGES" : "NO IMAGES";
+            return query.length === 0 ? Ui.I18n.tr("TYPE TO SEARCH IMAGES") : Ui.I18n.tr("NO IMAGES");
         if (activeMode === "file")
-            return query.length === 0 ? "TYPE TO SEARCH FILES" : "NO FILES";
+            return query.length === 0 ? Ui.I18n.tr("TYPE TO SEARCH FILES") : Ui.I18n.tr("NO FILES");
         if (activeMode === "recent")
-            return "NO RECENT FILES";
+            return Ui.I18n.tr("NO RECENT FILES");
         if (activeMode === "all")
-            return "NO APPLICATIONS";
+            return Ui.I18n.tr("NO APPLICATIONS");
         if (actionBrowse)
-            return "NO ACTIONS";
-        return "NO MATCHES";
+            return Ui.I18n.tr("NO ACTIONS");
+        return Ui.I18n.tr("NO MATCHES");
     }
 
     readonly property var cardGeometry: Results.cardGeometry(
@@ -565,7 +565,7 @@ Item {
     function executeAction(action) {
         if (!action || action.enabled === false
                 || typeof action.execute !== "function") {
-            actionError = "ACTION UNAVAILABLE";
+            actionError = Ui.I18n.tr("ACTION UNAVAILABLE");
             return;
         }
         try {
@@ -574,7 +574,7 @@ Item {
             if (action.closeOnExecute !== false)
                 requestClose();
         } catch (error) {
-            var message = String(error || "ACTION FAILED").split("\n")[0];
+            var message = String(error || Ui.I18n.tr("ACTION FAILED")).split("\n")[0];
             actionError = message.length > 72
                 ? message.slice(0, 69) + "..." : message;
             hero.focusField();

@@ -1,5 +1,6 @@
 import QtQuick
 import "Singletons"
+import Ryoku.Ui.Singletons
 
 // The bar every settings page needs before it needs anything else. A page that
 // previews live and cannot save does not look broken, it looks fine and then
@@ -14,7 +15,7 @@ Item {
     id: bar
 
     property int dirty: 0
-    property string cleanText: "SAVED · LIVE ON YOUR DESKTOP"
+    property string cleanText: I18n.tr("SAVED · LIVE ON YOUR DESKTOP")
     property string savingText: ""
 
     signal saved()
@@ -66,7 +67,7 @@ Item {
         Text {
             visible: bar.dirty > 0
             anchors.verticalCenter: parent.verticalCenter
-            text: sdh.hovered ? "\u25b8 VIEW DIFF" : "\u00b7 VIEW DIFF"
+            text: sdh.hovered ? I18n.tr("\u25b8 VIEW DIFF") : I18n.tr("\u00b7 VIEW DIFF")
             color: sdh.hovered ? Tokens.ink : Tokens.inkFaint
             font.family: Tokens.mono; font.pixelSize: 9
             font.letterSpacing: 1.2

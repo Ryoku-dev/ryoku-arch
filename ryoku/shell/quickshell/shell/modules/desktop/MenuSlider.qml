@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import "Singletons"
+import Ryoku.Ui.Singletons
 
 // A slider row for the desktop context menu, in the quiet-tile idiom of
 // MenuRow: a label on the left, a live value on the right, a hairline track
@@ -33,7 +34,7 @@ Item {
         anchors { left: parent.left; leftMargin: Theme.s3; verticalCenter: parent.verticalCenter }
         width: Theme.s5 * 2
         elide: Text.ElideRight
-        text: sld.label
+        text: I18n.tr(sld.label)
         color: Theme.inkSoft
         font.family: Theme.font
         font.pixelSize: Theme.fBody

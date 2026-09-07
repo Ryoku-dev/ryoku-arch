@@ -1,6 +1,7 @@
 import QtQuick
 import shell.services
 import "../../components"
+import Ryoku.Ui.Singletons
 
 // A clickable icon + label + sub row (install prompts, folder actions).
 Rectangle {
@@ -30,7 +31,7 @@ Rectangle {
             spacing: 1
             Text {
                 width: parent.width
-                text: nav.label
+                text: I18n.tr(nav.label)
                 color: Theme.onSurface
                 font.family: Theme.fontPrimary
                 font.pixelSize: Theme.fontSm

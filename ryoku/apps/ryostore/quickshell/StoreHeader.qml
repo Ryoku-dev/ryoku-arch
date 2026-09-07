@@ -31,8 +31,11 @@ Item {
     readonly property int tier2Height: 48
     implicitHeight: tier1Height + tier2Height
 
-    readonly property string libraryLabel: "LIBRARY " + libraryCount
-            + (updateCount > 0 ? " / " + updateCount + " UPDATE" + (updateCount === 1 ? "" : "S") : "")
+    readonly property string libraryLabel: updateCount > 0
+            ? (updateCount === 1
+                ? I18n.tr("LIBRARY %1 / %2 UPDATE").arg(libraryCount).arg(updateCount)
+                : I18n.tr("LIBRARY %1 / %2 UPDATES").arg(libraryCount).arg(updateCount))
+            : I18n.tr("LIBRARY %1").arg(libraryCount)
 
     function activateDiscover() { routeRequested("discover", ""); }
     function activateCategory(id) { routeRequested("discover", id); }
@@ -210,8 +213,8 @@ Item {
                 clip: true
                 activeFocusOnTab: true
                 Accessible.role: Accessible.EditableText
-                Accessible.name: header.offline ? "Search RyoStore (offline)" : "Search RyoStore"
-                Accessible.description: "Type to filter the store"
+                Accessible.name: header.offline ? I18n.tr("Search RyoStore (offline)") : I18n.tr("Search RyoStore")
+                Accessible.description: I18n.tr("Type to filter the store")
                 onTextEdited: header.queryEdited(text)
                 onActiveFocusChanged: if (activeFocus) header.searchActivated()
                 Keys.onEscapePressed: event => {
@@ -241,7 +244,9 @@ Item {
                 id: countLabel
                 anchors { right: parent.right; rightMargin: Tokens.s3; verticalCenter: parent.verticalCenter }
                 visible: header.searchActive && header.query !== ""
-                text: header.resultCount + (header.resultCount === 1 ? I18n.tr(" RESULT") : I18n.tr(" RESULTS"))
+                text: header.resultCount === 1
+                        ? I18n.tr("%1 RESULT").arg(header.resultCount)
+                        : I18n.tr("%1 RESULTS").arg(header.resultCount)
                 color: Tokens.inkDim
                 font.family: Tokens.mono
                 font.pixelSize: Tokens.fMicro

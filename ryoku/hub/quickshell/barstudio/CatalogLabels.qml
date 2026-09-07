@@ -1,98 +1,99 @@
 import QtQuick
+import Ryoku.Ui.Singletons
 
 QtObject {
     function item(id) {
         switch (id) {
-        case "app-launcher": return qsTr("App Launcher")
-        case "audio-input": return qsTr("Audio Input")
-        case "audio-output": return qsTr("Audio Output")
-        case "battery": return qsTr("Battery")
-        case "bluetooth": return qsTr("Bluetooth")
-        case "clipboard": return qsTr("Clipboard")
-        case "clock": return qsTr("Clock")
-        case "color-picker": return qsTr("Color Picker")
-        case "container": return qsTr("Container")
-        case "divider": return qsTr("Divider")
-        case "dock": return qsTr("Dock")
-        case "launcher": return qsTr("Launcher")
-        case "layout-switcher": return qsTr("Layout Switcher")
-        case "lock": return qsTr("Lock")
-        case "logout": return qsTr("Log Out")
-        case "media": return qsTr("Media")
-        case "music": return qsTr("Music")
-        case "network": return qsTr("Network")
-        case "notifications": return qsTr("Notifications")
-        case "power-profile": return qsTr("Power Profile")
-        case "quick-actions": return qsTr("Quick Actions")
-        case "quick-settings": return qsTr("Quick Settings")
-        case "reboot": return qsTr("Reboot")
-        case "recording": return qsTr("Recording")
-        case "screenshot": return qsTr("Screenshot")
-        case "shutdown": return qsTr("Shut Down")
-        case "spacer": return qsTr("Spacer")
-        case "sysmon": return qsTr("System Monitor")
-        case "theme": return qsTr("Theme")
-        case "tray": return qsTr("Tray")
-        case "vpn": return qsTr("VPN")
-        case "wallpaper": return qsTr("Wallpaper")
-        case "weather": return qsTr("Weather")
-        case "workspaces": return qsTr("Workspaces")
-        default: return qsTr("Unknown")
+        case "app-launcher": return I18n.tr("App Launcher")
+        case "audio-input": return I18n.tr("Audio Input")
+        case "audio-output": return I18n.tr("Audio Output")
+        case "battery": return I18n.tr("Battery")
+        case "bluetooth": return I18n.tr("Bluetooth")
+        case "clipboard": return I18n.tr("Clipboard")
+        case "clock": return I18n.tr("Clock")
+        case "color-picker": return I18n.tr("Color Picker")
+        case "container": return I18n.tr("Container")
+        case "divider": return I18n.tr("Divider")
+        case "dock": return I18n.tr("Dock")
+        case "launcher": return I18n.tr("Launcher")
+        case "layout-switcher": return I18n.tr("Layout Switcher")
+        case "lock": return I18n.tr("Lock")
+        case "logout": return I18n.tr("Log Out")
+        case "media": return I18n.tr("Media")
+        case "music": return I18n.tr("Music")
+        case "network": return I18n.tr("Network")
+        case "notifications": return I18n.tr("Notifications")
+        case "power-profile": return I18n.tr("Power Profile")
+        case "quick-actions": return I18n.tr("Quick Actions")
+        case "quick-settings": return I18n.tr("Quick Settings")
+        case "reboot": return I18n.tr("Reboot")
+        case "recording": return I18n.tr("Recording")
+        case "screenshot": return I18n.tr("Screenshot")
+        case "shutdown": return I18n.tr("Shut Down")
+        case "spacer": return I18n.tr("Spacer")
+        case "sysmon": return I18n.tr("System Monitor")
+        case "theme": return I18n.tr("Theme")
+        case "tray": return I18n.tr("Tray")
+        case "vpn": return I18n.tr("VPN")
+        case "wallpaper": return I18n.tr("Wallpaper")
+        case "weather": return I18n.tr("Weather")
+        case "workspaces": return I18n.tr("Workspaces")
+        default: return I18n.tr("Unknown")
         }
     }
 
     function anchor(id) {
         switch (id) {
-        case "bottom": return qsTr("Bottom")
-        case "bottom-left": return qsTr("Bottom left")
-        case "bottom-right": return qsTr("Bottom right")
-        case "left": return qsTr("Left")
-        case "right": return qsTr("Right")
-        case "top": return qsTr("Top")
-        case "top-left": return qsTr("Top left")
-        case "top-right": return qsTr("Top right")
-        default: return qsTr("Unknown")
+        case "bottom": return I18n.tr("Bottom")
+        case "bottom-left": return I18n.tr("Bottom left")
+        case "bottom-right": return I18n.tr("Bottom right")
+        case "left": return I18n.tr("Left")
+        case "right": return I18n.tr("Right")
+        case "top": return I18n.tr("Top")
+        case "top-left": return I18n.tr("Top left")
+        case "top-right": return I18n.tr("Top right")
+        default: return I18n.tr("Unknown")
         }
     }
 
     function surface(id) {
         switch (id) {
-        case "stash": return qsTr("Stash")
-        case "system": return qsTr("System")
-        default: return qsTr("Unknown")
+        case "stash": return I18n.tr("Stash")
+        case "system": return I18n.tr("System")
+        default: return I18n.tr("Unknown")
         }
     }
 
     function pane(id) {
         switch (id) {
-        case "calendar": return qsTr("Calendar")
-        case "media": return qsTr("Media")
-        case "notifications": return qsTr("Notifications")
-        case "recording": return qsTr("Recording")
-        case "stash": return qsTr("Stash")
-        case "weather": return qsTr("Weather")
-        default: return qsTr("Unknown")
+        case "calendar": return I18n.tr("Calendar")
+        case "media": return I18n.tr("Media")
+        case "notifications": return I18n.tr("Notifications")
+        case "recording": return I18n.tr("Recording")
+        case "stash": return I18n.tr("Stash")
+        case "weather": return I18n.tr("Weather")
+        default: return I18n.tr("Unknown")
         }
     }
 
     function edge(id) {
         switch (id) {
-        case "bottom": return qsTr("Bottom")
-        case "left": return qsTr("Left")
-        case "right": return qsTr("Right")
-        case "top": return qsTr("Top")
-        default: return qsTr("Unknown")
+        case "bottom": return I18n.tr("Bottom")
+        case "left": return I18n.tr("Left")
+        case "right": return I18n.tr("Right")
+        case "top": return I18n.tr("Top")
+        default: return I18n.tr("Unknown")
         }
     }
 
     function zone(id) {
         switch (id) {
-        case "bottom": return qsTr("Bottom")
-        case "center": return qsTr("Center")
-        case "end": return qsTr("End")
-        case "start": return qsTr("Start")
-        case "top": return qsTr("Top")
-        default: return qsTr("Unknown")
+        case "bottom": return I18n.tr("Bottom")
+        case "center": return I18n.tr("Center")
+        case "end": return I18n.tr("End")
+        case "start": return I18n.tr("Start")
+        case "top": return I18n.tr("Top")
+        default: return I18n.tr("Unknown")
         }
     }
 }

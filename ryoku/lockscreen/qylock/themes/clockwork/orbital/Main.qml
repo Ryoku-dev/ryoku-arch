@@ -3,6 +3,7 @@ import QtQuick.Window
 import Qt5Compat.GraphicalEffects
 import Qt.labs.folderlistmodel
 import SddmComponents 2.0
+import Ryoku.Ui.Singletons
 
 Rectangle {
     // Wayland Cursor Fix
@@ -35,10 +36,10 @@ Rectangle {
     readonly property bool fpVisible: (typeof sddm !== "undefined") && sddm.fingerprintHint === true && sddm.fingerprintReady === true
     readonly property var fpState: typeof sddm !== "undefined" ? (sddm.fingerprintState || "idle") : "idle"
     readonly property string fpHintText: {
-        if (root.fpState === "success") return "ACCESS GRANTED ✦"
-        if (root.fpState === "fail")    return "SCAN DENIED ✦ TYPE YOUR KEY"
-        if (root.fpState === "scanning") return "SENSOR ACTIVE ✦ TOUCH OR TYPE"
-        return "TOUCH SENSOR ✦ TO UNLOCK"
+        if (root.fpState === "success") return I18n.tr("ACCESS GRANTED ✦")
+        if (root.fpState === "fail")    return I18n.tr("SCAN DENIED ✦ TYPE YOUR KEY")
+        if (root.fpState === "scanning") return I18n.tr("SENSOR ACTIVE ✦ TOUCH OR TYPE")
+        return I18n.tr("TOUCH SENSOR ✦ TO UNLOCK")
     }
 
     // Theme Config
@@ -67,7 +68,7 @@ Rectangle {
     property string authInfo: ""
     readonly property bool fidoInfo: authInfo.toLowerCase().indexOf("fido") >= 0 || authInfo.toLowerCase().indexOf("authenticator") >= 0 || authInfo.toLowerCase().indexOf("pin") >= 0
     readonly property bool touchInfo: authInfo.toLowerCase().indexOf("touch") >= 0
-    readonly property string inputHint: authInfo !== "" ? authInfo.toUpperCase() : "TYPE PASSWORD OR FIDO PIN"
+    readonly property string inputHint: authInfo !== "" ? authInfo.toUpperCase() : I18n.tr("TYPE PASSWORD OR FIDO PIN")
     readonly property real marginR: 80 * s
 
     // Time Logic
@@ -266,11 +267,11 @@ Rectangle {
         id: hudContainer; anchors.fill: parent; opacity: root.uiOpacity * (root.boomOpacity > 0 ? 0 : 1)
         Row {
             anchors.right: parent.right; anchors.rightMargin: root.marginR; anchors.top: parent.top; anchors.topMargin: 50 * s; spacing: 25 * s
-            CwAction { visible: !root.isQuickshell; label: (sessionHelper.currentItem ? sessionHelper.currentItem.sName : "Session"); onClicked: { if (typeof sessionModel !== "undefined") root.sessionIndex = (root.sessionIndex + 1) % sessionModel.rowCount() } }
+            CwAction { visible: !root.isQuickshell; label: (sessionHelper.currentItem ? sessionHelper.currentItem.sName : I18n.tr("Session")); onClicked: { if (typeof sessionModel !== "undefined") root.sessionIndex = (root.sessionIndex + 1) % sessionModel.rowCount() } }
             Rectangle { visible: !root.isQuickshell; width: 1 * s; height: 10 * s; color: root.pillBorder; anchors.verticalCenter: parent.verticalCenter }
-            CwAction { label: "Reboot"; onClicked: { if (typeof sddm !== "undefined") sddm.reboot() } }
+            CwAction { label: I18n.tr("Reboot"); onClicked: { if (typeof sddm !== "undefined") sddm.reboot() } }
             Rectangle { width: 1 * s; height: 10 * s; color: root.pillBorder; anchors.verticalCenter: parent.verticalCenter }
-            CwAction { label: "Shutdown"; onClicked: { if (typeof sddm !== "undefined") sddm.powerOff() } }
+            CwAction { label: I18n.tr("Shutdown"); onClicked: { if (typeof sddm !== "undefined") sddm.powerOff() } }
         }
         Column {
             id: loginPanel; anchors.right: parent.right; anchors.rightMargin: root.marginR; anchors.bottom: parent.bottom; anchors.bottomMargin: 80 * s; width: 350 * s; spacing: 8 * s
@@ -297,7 +298,7 @@ Rectangle {
                 }
                 Text {
                     id: userNameDisp; anchors.right: parent.right; anchors.rightMargin: (uMa.containsMouse || root.userMenuOpen) ? 25 * s : 0
-                    text: ((userHelper.currentItem && userHelper.currentItem.uName) ? userHelper.currentItem.uName : ((typeof userModel !== "undefined" && userModel.lastUser) ? capitalizeFirst(userModel.lastUser) : "USER")).toUpperCase()
+                    text: ((userHelper.currentItem && userHelper.currentItem.uName) ? userHelper.currentItem.uName : ((typeof userModel !== "undefined" && userModel.lastUser) ? capitalizeFirst(userModel.lastUser) : I18n.tr("USER"))).toUpperCase()
                     font.family: outfitFont.name; font.pixelSize: 18 * s; font.weight: Font.Bold; font.letterSpacing: 8 * s; color: (uMa.containsMouse || root.userMenuOpen) ? root.mainText : root.dimText; Behavior on color { ColorAnimation { duration: 200 } } Behavior on anchors.rightMargin { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
                 }
                 Text { text: "✦"; anchors.left: userNameDisp.right; anchors.leftMargin: 8 * s; anchors.verticalCenter: userNameDisp.verticalCenter; color: root.mainText; opacity: (uMa.containsMouse || root.userMenuOpen) ? 1.0 : 0; font.pixelSize: 12 * s; Behavior on opacity { NumberAnimation { duration: 200 } } }
@@ -351,7 +352,7 @@ Rectangle {
             Item {
                 width: parent.width; height: 40 * s
                 Text {
-                    id: loginBtn; anchors.right: parent.right; anchors.rightMargin: btnMa.containsMouse ? 25 * s : 0; text: passInput.text.length > 0 ? "UNLOCK" : (root.touchInfo ? "TOUCH KEY" : "TRY TOUCH ONLY"); font.family: outfitFont.name; font.pixelSize: 11 * s; font.letterSpacing: 4 * s; font.weight: Font.Bold; color: btnMa.containsMouse ? root.mainText : root.dimText; opacity: 1.0; Behavior on anchors.rightMargin { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+                    id: loginBtn; anchors.right: parent.right; anchors.rightMargin: btnMa.containsMouse ? 25 * s : 0; text: passInput.text.length > 0 ? I18n.tr("UNLOCK") : (root.touchInfo ? I18n.tr("TOUCH KEY") : I18n.tr("TRY TOUCH ONLY")); font.family: outfitFont.name; font.pixelSize: 11 * s; font.letterSpacing: 4 * s; font.weight: Font.Bold; color: btnMa.containsMouse ? root.mainText : root.dimText; opacity: 1.0; Behavior on anchors.rightMargin { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
                 }
                 Text { text: "✦"; anchors.left: loginBtn.right; anchors.leftMargin: 8 * s; anchors.verticalCenter: loginBtn.verticalCenter; color: root.mainText; opacity: btnMa.containsMouse ? 1.0 : 0; font.pixelSize: 10 * s; Behavior on opacity { NumberAnimation { duration: 200 } } }
                 MouseArea { id: btnMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { startLoginSequence() } }
@@ -418,7 +419,7 @@ Rectangle {
             if (root.enableWindup)
                 playUnlockReveal()
         }
-        function onLoginFailed() { authWatchdog.stop(); clearUnlockFlash(); root.authInfo = ""; errText.text = "ACCESS DENIED"; passInput.text = ""; passInput.forceActiveFocus(); shake.start() }
+        function onLoginFailed() { authWatchdog.stop(); clearUnlockFlash(); root.authInfo = ""; errText.text = I18n.tr("ACCESS DENIED"); passInput.text = ""; passInput.forceActiveFocus(); shake.start() }
     }
     SequentialAnimation {
         id: shake

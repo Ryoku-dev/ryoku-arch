@@ -4,6 +4,7 @@ import Quickshell.Widgets
 import shell.services
 import "../Singletons"
 import "../../../components"
+import Ryoku.Ui.Singletons
 
 // The 9:16 "canvas" now-playing sheet: a full-bleed backdrop -- the track's
 // Spotify Canvas, a chosen video/gif, or the cover blown up -- with the line
@@ -137,7 +138,7 @@ Item {
                     anchors.rightMargin: 12 * tall.s
                     anchors.verticalCenter: parent.verticalCenter
                     visible: !tall.seekable
-                    text: Media.radio ? qsTr("Live") : ""
+                    text: Media.radio ? I18n.tr("Live") : ""
                     color: tall.dim
                     elide: Text.ElideRight
                     font.family: Theme.mono

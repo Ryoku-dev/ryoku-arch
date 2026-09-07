@@ -49,8 +49,8 @@ Item {
         ? LauncherConfig.horizonColor : (daylight ? Theme.sunGold : Theme.moonDisc)
     readonly property string greeting: {
         var hour = now.getHours();
-        return hour < 5 ? "GOOD NIGHT" : hour < 12 ? "GOOD MORNING"
-            : hour < 18 ? "GOOD AFTERNOON" : "GOOD EVENING";
+        return hour < 5 ? I18n.tr("GOOD NIGHT") : hour < 12 ? I18n.tr("GOOD MORNING")
+            : hour < 18 ? I18n.tr("GOOD AFTERNOON") : I18n.tr("GOOD EVENING");
     }
     readonly property string dateText: Qt.locale("en_US").toString(now, "ddd, MMM d")
 
@@ -325,8 +325,8 @@ Item {
             selectByMouse: true
             clip: true
             Accessible.role: Accessible.EditableText
-            Accessible.name: "Launcher search"
-            Accessible.description: "Type to search or use the mode controls"
+            Accessible.name: I18n.tr("Launcher search")
+            Accessible.description: I18n.tr("Type to search or use the mode controls")
             Accessible.editable: true
             Accessible.searchEdit: true
             Accessible.focusable: true

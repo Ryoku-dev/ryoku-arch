@@ -4,6 +4,7 @@ import QtQuick.Effects
 import QtMultimedia
 import ".."
 import "../services"
+import Ryoku.Ui.Singletons
 
 Item {
     id: hexItem
@@ -251,7 +252,7 @@ Item {
         Text {
             id: typeBadgeLabel
             anchors.centerIn: parent
-            text: hexItem.itemData ? (hexItem.itemData.type === "static" ? "PIC" : ((hexItem.itemData.type === "video" || hexItem.itemData.videoFile) ? "VID" : "WE")) : ""
+            text: hexItem.itemData ? (hexItem.itemData.type === "static" ? I18n.tr("PIC") : ((hexItem.itemData.type === "video" || hexItem.itemData.videoFile) ? I18n.tr("VID") : I18n.tr("WE"))) : ""
             font.family: Style.fontFamily; font.pixelSize: 9; font.weight: Font.Bold; font.letterSpacing: 0.5
             color: hexItem.colors ? hexItem.colors.tertiary : "#8bceff"
         }

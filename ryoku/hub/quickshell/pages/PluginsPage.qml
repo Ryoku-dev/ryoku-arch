@@ -75,13 +75,13 @@ Item {
         var out = [];
         for (var i = 0; i < pg.extras.length; i++) {
             var p = pg.extras[i], base = "plugins.extra." + p.id;
-            out.push({ tab: p.name, group: "PLUGIN", key: base + ".enabled", label: "Enabled",
-                       desc: "Loads " + p.name + " into the compositor, applies on Save", ctl: "sw", src: "hypr.json" });
+            out.push({ tab: p.name, group: I18n.tr("PLUGIN"), key: base + ".enabled", label: I18n.tr("Enabled"),
+                       desc: I18n.tr("Loads %1 into the compositor, applies on Save").arg(p.name), ctl: "sw", src: "hypr.json" });
             var ss = p.settings || [];
             for (var j = 0; j < ss.length; j++) {
                 var s = ss[j], parts = s.key.split(":");
                 var row = { tab: p.name, key: base + ".config." + s.key, label: pg.humanize(parts[parts.length - 1]),
-                            group: parts.length > 2 ? parts.slice(1, -1).join(" \u00b7 ").toUpperCase() : "SETTINGS",
+                            group: parts.length > 2 ? parts.slice(1, -1).join(" \u00b7 ").toUpperCase() : I18n.tr("SETTINGS"),
                             desc: "plugin:" + s.key + (s.type ? ", " + s.type : "") + (s.default !== undefined && s.default !== null ? ", default " + s.default : ""),
                             src: "hypr.json", when: {} };
                 row.when[base + ".enabled"] = [true];
@@ -203,15 +203,15 @@ Item {
         }
         if (kind.indexOf("remove:") === 0) {
             if (pg.hub) pg.hub.hyprDrop("plugins.extra." + r.removed);
-            pg.notice = I18n.tr("Removed ") + r.removed;
+            pg.notice = I18n.tr("Removed %1").arg(r.removed);
             pg.refresh();
             return;
         }
         // rebuild / add
         var built = r.built || [], failed = Object.keys(r.failed || {});
         var parts = [];
-        if (built.length) parts.push(I18n.tr("Built: ") + built.join(", "));
-        if (r.skipped && r.skipped.length) parts.push(I18n.tr("Up to date: ") + r.skipped.length);
+        if (built.length) parts.push(I18n.tr("Built: %1").arg(built.join(", ")));
+        if (r.skipped && r.skipped.length) parts.push(I18n.tr("Up to date: %1").arg(r.skipped.length));
         for (var f = 0; f < failed.length; f++) parts.push(failed[f] + ": " + r.failed[failed[f]]);
         pg.notice = parts.join("  \u00b7  ");
         if (kind === "add" && pg.hub) {
@@ -274,7 +274,7 @@ Item {
         if (!p || !p.installed) return "";
         switch (p.source) {
         case "package": return p.package ? p.package + " " + p.version : p.version;
-        case "built": return I18n.tr("built here ") + p.version;
+        case "built": return I18n.tr("built here %1").arg(p.version);
         case "hyprpm": return I18n.tr("hyprpm");
         }
         return p.version;
@@ -313,7 +313,7 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         text: I18n.tr("HYPRLAND") + " " + (pg.roster.compositor.version || "?")
                               + (pg.roster.compositor.commit ? "  \u00b7  " + String(pg.roster.compositor.commit).slice(0, 7) : "")
-                              + "  \u00b7  " + pg.runningCount + (pg.runningCount === 1 ? I18n.tr(" PLUGIN RUNNING") : I18n.tr(" PLUGINS RUNNING"))
+                              + "  \u00b7  " + (pg.runningCount === 1 ? I18n.tr("%1 PLUGIN RUNNING").arg(pg.runningCount) : I18n.tr("%1 PLUGINS RUNNING").arg(pg.runningCount))
                         color: Tokens.inkMuted; font.family: Tokens.mono; font.pixelSize: Tokens.fTiny
                         font.letterSpacing: 0.4
                     }
@@ -350,8 +350,8 @@ Item {
                 visible: pg.loaded && !pg.canBuild
                 width: parent.width
                 wrapMode: Text.WordWrap
-                text: I18n.tr("Plugins cannot be built on this machine: missing ") + ((pg.roster.toolchain && pg.roster.toolchain.missing) || []).join(", ")
-                      + I18n.tr(". Install base-devel, cmake, git and the hyprland package to rebuild or add one.")
+                text: I18n.tr("Plugins cannot be built on this machine: missing %1. Install base-devel, cmake, git and the hyprland package to rebuild or add one.")
+                      .arg(((pg.roster.toolchain && pg.roster.toolchain.missing) || []).join(", "))
                 color: Tokens.inkMuted; font.family: Tokens.ui; font.pixelSize: Tokens.fSmall
             }
 
@@ -424,7 +424,7 @@ Item {
 
                     Text {
                         width: parent.width
-                        text: card.p ? card.p.desc : ""
+                        text: card.p ? I18n.tr(card.p.desc) : ""
                         visible: text !== ""
                         wrapMode: Text.WordWrap
                         color: Tokens.inkMuted; font.family: Tokens.ui; font.pixelSize: Tokens.fSmall

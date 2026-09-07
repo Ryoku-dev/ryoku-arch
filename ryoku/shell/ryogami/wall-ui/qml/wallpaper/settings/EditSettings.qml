@@ -3,6 +3,7 @@ import ".."
 import "../.."
 import "../../components"
 import "../../services"
+import Ryoku.Ui.Singletons
 
 // The Edit / Transform tab: everything that reworks the focused wallpaper in
 // one place. A shared preview on top, a Grade · Effects · Upscale sub-nav, then
@@ -171,9 +172,9 @@ Column {
         function onCommitted(p) {
             root._fxPath = ""
             if (root._fxPendingApply) { root._fxPendingApply = false; DaemonClient.applyStatic(p, [], []) }
-            root._fxStatus = "Saved to " + p
+            root._fxStatus = I18n.tr("Saved to %1").arg(p)
         }
-        function onFailed(error) { root._fxPendingApply = false; root._fxStatus = "Failed: " + error }
+        function onFailed(error) { root._fxPendingApply = false; root._fxStatus = I18n.tr("Failed: %1").arg(error) }
     }
 
     // upscale
@@ -213,7 +214,7 @@ Column {
         Text {
             visible: !root.sourcePath
             anchors.centerIn: parent
-            text: "no wallpaper focused"
+            text: I18n.tr("no wallpaper focused")
             font.family: Style.fontFamily; font.pixelSize: 12; color: root._inkDim
         }
         Rectangle {
@@ -225,7 +226,7 @@ Column {
             Text {
                 id: busyLabel
                 anchors.centerIn: parent
-                text: "RENDERING"
+                text: I18n.tr("RENDERING")
                 font.family: Style.fontFamily; font.pixelSize: 9; font.weight: Font.Bold; font.letterSpacing: 1
                 color: "white"
             }
@@ -241,12 +242,12 @@ Column {
                 anchors.centerIn: parent
                 spacing: 6
                 FilterButton {
-                    colors: root.colors; icon: "\u{f02e9}"; tooltip: "Wallpaper"
+                    colors: root.colors; icon: "\u{f02e9}"; tooltip: I18n.tr("Wallpaper")
                     isActive: !root._desktopView
                     onClicked: root._desktopView = false
                 }
                 FilterButton {
-                    colors: root.colors; icon: "\u{f0379}"; tooltip: "Desktop preview"
+                    colors: root.colors; icon: "\u{f0379}"; tooltip: I18n.tr("Desktop preview")
                     isActive: root._desktopView
                     onClicked: root._desktopView = true
                 }
@@ -271,7 +272,7 @@ Column {
             ]
             FilterButton {
                 colors: root.colors
-                label: modelData.label
+                label: I18n.tr(modelData.label)
                 register: false
                 height: 26
                 isActive: root._group === modelData.key
@@ -284,28 +285,28 @@ Column {
     SettingsCard {
         visible: root._group === "grade"
         colors: root.colors
-        title: "Grade"; kana: "色"
+        title: I18n.tr("Grade"); kana: "色"
         width: parent.width
 
         Column {
             width: parent.width
             spacing: Style.spacingMedium
 
-            SettingsSlider { colors: root.colors; label: "Brightness"; value: root._brightness; min: -50; max: 50; resettable: true; onChange: function(v){ root._brightness = v; root._schedulePreview() } }
-            SettingsSlider { colors: root.colors; label: "Contrast";   value: root._contrast;   min: -50; max: 50; resettable: true; onChange: function(v){ root._contrast = v; root._schedulePreview() } }
-            SettingsSlider { colors: root.colors; label: "Saturation"; value: root._saturation; min: -100; max: 100; resettable: true; onChange: function(v){ root._saturation = v; root._schedulePreview() } }
-            SettingsSlider { colors: root.colors; label: "Warmth";     value: root._warmth;     min: -100; max: 100; resettable: true; onChange: function(v){ root._warmth = v; root._schedulePreview() } }
+            SettingsSlider { colors: root.colors; label: I18n.tr("Brightness"); value: root._brightness; min: -50; max: 50; resettable: true; onChange: function(v){ root._brightness = v; root._schedulePreview() } }
+            SettingsSlider { colors: root.colors; label: I18n.tr("Contrast");   value: root._contrast;   min: -50; max: 50; resettable: true; onChange: function(v){ root._contrast = v; root._schedulePreview() } }
+            SettingsSlider { colors: root.colors; label: I18n.tr("Saturation"); value: root._saturation; min: -100; max: 100; resettable: true; onChange: function(v){ root._saturation = v; root._schedulePreview() } }
+            SettingsSlider { colors: root.colors; label: I18n.tr("Warmth");     value: root._warmth;     min: -100; max: 100; resettable: true; onChange: function(v){ root._warmth = v; root._schedulePreview() } }
 
-            RowToggle { colors: root.colors; title: "Vignette"; description: "Darken the frame edges."; checked: root._vignette; onToggle: function(v){ root._vignette = v; root._schedulePreview() } }
-            RowToggle { colors: root.colors; title: "Negate"; description: "Invert the colours. Baked in on Apply."; checked: root._negate; onToggle: function(v){ root._negate = v; root._schedulePreview() } }
+            RowToggle { colors: root.colors; title: I18n.tr("Vignette"); description: I18n.tr("Darken the frame edges."); checked: root._vignette; onToggle: function(v){ root._vignette = v; root._schedulePreview() } }
+            RowToggle { colors: root.colors; title: I18n.tr("Negate"); description: I18n.tr("Invert the colours. Baked in on Apply."); checked: root._negate; onToggle: function(v){ root._negate = v; root._schedulePreview() } }
 
             Item {
                 width: parent.width; height: 32
                 Row {
                     anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                     spacing: 8
-                    FilterButton { colors: root.colors; label: "RESET"; register: false; onClicked: root._reset() }
-                    FilterButton { colors: root.colors; label: root._committing ? "APPLYING\u2026" : "APPLY GRADE"; register: false; hasActiveColor: root._dirty && !root._committing; activeColor: root.colors ? root.colors.primary : Style.fallbackAccent; isActive: root._dirty && !root._committing; onClicked: root._apply() }
+                    FilterButton { colors: root.colors; label: I18n.tr("RESET"); register: false; onClicked: root._reset() }
+                    FilterButton { colors: root.colors; label: root._committing ? I18n.tr("APPLYING\u2026") : I18n.tr("APPLY GRADE"); register: false; hasActiveColor: root._dirty && !root._committing; activeColor: root.colors ? root.colors.primary : Style.fallbackAccent; isActive: root._dirty && !root._committing; onClicked: root._apply() }
                 }
             }
         }
@@ -315,8 +316,8 @@ Column {
     SettingsCard {
         visible: root._group === "effects"
         colors: root.colors
-        title: "Effects"; kana: "彩"
-        subtitle: root._selectedEffect ? root._selectedEffect.description : "gowall recolour and stylise the focused wallpaper."
+        title: I18n.tr("Effects"); kana: "彩"
+        subtitle: root._selectedEffect ? root._selectedEffect.description : I18n.tr("gowall recolour and stylise the focused wallpaper.")
         width: parent.width
 
         Column {
@@ -325,7 +326,7 @@ Column {
 
             RowDropdown {
                 colors: root.colors
-                title: "Effect"
+                title: I18n.tr("Effect")
                 value: root._effectId
                 model: root._effectModel()
                 onSelect: function(v) { root._effectId = v; root._resetParams(); root._scheduleFxPreview() }
@@ -363,9 +364,9 @@ Column {
                     id: fxBtns
                     anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                     spacing: 8
-                    FilterButton { colors: root.colors; label: EffectsService.busy ? "PREVIEWING\u2026" : "PREVIEW"; register: false; onClicked: root._launchFxPreview() }
-                    FilterButton { colors: root.colors; label: "DISCARD"; register: false; enabled: root._fxPath.length > 0; opacity: enabled ? 1 : 0.4; onClicked: root._discardFx() }
-                    FilterButton { colors: root.colors; label: "APPLY"; register: false; hasActiveColor: root._fxPath.length > 0 && !EffectsService.busy; activeColor: root.colors ? root.colors.primary : Style.fallbackAccent; isActive: root._fxPath.length > 0 && !EffectsService.busy; enabled: root._fxPath.length > 0 && !EffectsService.busy; opacity: enabled ? 1 : 0.4; onClicked: root._applyFx() }
+                    FilterButton { colors: root.colors; label: EffectsService.busy ? I18n.tr("PREVIEWING\u2026") : I18n.tr("PREVIEW"); register: false; onClicked: root._launchFxPreview() }
+                    FilterButton { colors: root.colors; label: I18n.tr("DISCARD"); register: false; enabled: root._fxPath.length > 0; opacity: enabled ? 1 : 0.4; onClicked: root._discardFx() }
+                    FilterButton { colors: root.colors; label: I18n.tr("APPLY"); register: false; hasActiveColor: root._fxPath.length > 0 && !EffectsService.busy; activeColor: root.colors ? root.colors.primary : Style.fallbackAccent; isActive: root._fxPath.length > 0 && !EffectsService.busy; enabled: root._fxPath.length > 0 && !EffectsService.busy; opacity: enabled ? 1 : 0.4; onClicked: root._applyFx() }
                 }
             }
 
@@ -373,7 +374,7 @@ Column {
                 width: parent.width
                 textFormat: Text.RichText
                 wrapMode: Text.WordWrap
-                text: "Theme changing is a Rust implementation of <a href=\"https://github.com/Achno/gowall\">gowall</a> by Achno."
+                text: I18n.tr("Theme changing is a Rust implementation of <a href=\"https://github.com/Achno/gowall\">gowall</a> by Achno.")
                 font.family: Style.fontFamily; font.pixelSize: 10
                 color: Qt.rgba(root._inkDim.r, root._inkDim.g, root._inkDim.b, 0.75)
                 linkColor: root.colors ? root.colors.primary : Qt.rgba(0.5, 0.7, 1.0, 1.0)
@@ -387,12 +388,12 @@ Column {
     SettingsCard {
         visible: root._group === "upscale"
         colors: root.colors
-        title: "Upscale"; kana: "拡大"
+        title: I18n.tr("Upscale"); kana: "拡大"
         width: parent.width
 
         Item {
             width: parent.width; height: 40
-            Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: "Scale"; font.family: Style.fontFamily; font.pixelSize: 12; font.weight: Font.Medium; color: root._ink }
+            Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; text: I18n.tr("Scale"); font.family: Style.fontFamily; font.pixelSize: 12; font.weight: Font.Medium; color: root._ink }
             Row {
                 anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                 spacing: 4
@@ -423,7 +424,7 @@ Column {
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter }
                 width: parent.width - upBtn.width - 12
                 elide: Text.ElideRight
-                text: (root._up.verdict && root._up.verdict.why) ? root._up.verdict.why : "waifu2x-ncnn-vulkan. Writes an upscaled copy beside the original."
+                text: (root._up.verdict && root._up.verdict.why) ? root._up.verdict.why : I18n.tr("waifu2x-ncnn-vulkan. Writes an upscaled copy beside the original.")
                 font.family: Style.fontFamily; font.pixelSize: 10; color: root._inkDim
             }
             Text {
@@ -436,7 +437,7 @@ Column {
                 id: upBtn
                 anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                 colors: root.colors
-                label: root._up.running ? "CANCEL" : "UPSCALE"
+                label: root._up.running ? I18n.tr("CANCEL") : I18n.tr("UPSCALE")
                 register: false
                 hasActiveColor: true
                 activeColor: root._up.running ? (root.colors ? root.colors.error : "#e2342a") : (root.colors ? root.colors.primary : Style.fallbackAccent)
@@ -450,13 +451,13 @@ Column {
     SettingsCard {
         visible: root._group === "grade" && root._isVideo
         colors: root.colors
-        title: "Palette frame"; kana: "採色"
+        title: I18n.tr("Palette frame"); kana: "採色"
         width: parent.width
 
         RowInput {
             colors: root.colors
-            title: "Sample second"
-            description: "Which second of a video clip matugen samples for the colour scheme. Re-derives the palette from that frame."
+            title: I18n.tr("Sample second")
+            description: I18n.tr("Which second of a video clip matugen samples for the colour scheme. Re-derives the palette from that frame.")
             value: Math.round(DaemonClient.paletteFrame)
             min: 0; max: 20; suffix: "s"
             onCommit: function(v) { DaemonClient.setPaletteFrame(v) }
@@ -468,7 +469,7 @@ Column {
         RowInput {
             readonly property var pd: parent ? parent.pData : null
             colors: root.colors
-            title: pd ? pd.label : ""
+            title: pd ? I18n.tr(pd.label) : ""
             value: pd && root._paramValues[pd.id] !== undefined ? root._paramValues[pd.id] : (pd ? (pd["default"] || 0) : 0)
             min: pd && pd.min !== undefined ? pd.min : 0
             max: pd && pd.max !== undefined ? pd.max : 9999
@@ -480,7 +481,7 @@ Column {
         RowInput {
             readonly property var pd: parent ? parent.pData : null
             colors: root.colors
-            title: pd ? pd.label : ""
+            title: pd ? I18n.tr(pd.label) : ""
             value: pd && root._paramValues[pd.id] !== undefined ? root._paramValues[pd.id] : (pd ? (pd["default"] || 0) : 0)
             min: pd && pd.min !== undefined ? pd.min : 0
             max: pd && pd.max !== undefined ? pd.max : 9999
@@ -493,7 +494,7 @@ Column {
         RowDropdown {
             readonly property var pd: parent ? parent.pData : null
             colors: root.colors
-            title: pd ? pd.label : ""
+            title: pd ? I18n.tr(pd.label) : ""
             value: pd && root._paramValues[pd.id] !== undefined ? root._paramValues[pd.id] : (pd ? (pd["default"] || "") : "")
             model: pd && pd.options ? pd.options : []
             onSelect: function(v) { if (pd) root._setParam(pd.id, v) }
@@ -504,7 +505,7 @@ Column {
         RowColor {
             readonly property var pd: parent ? parent.pData : null
             colors: root.colors
-            title: pd ? pd.label : ""
+            title: pd ? I18n.tr(pd.label) : ""
             value: {
                 if (!pd) return "#000000"
                 var v = root._paramValues[pd.id]

@@ -13,7 +13,7 @@ Item {
     id: gs
 
     property string label: I18n.tr("DELETE")
-    property string armedLabel: "CONFIRM"
+    property string armedLabel: I18n.tr("CONFIRM")
     property bool enabled: true
     signal fired()
 

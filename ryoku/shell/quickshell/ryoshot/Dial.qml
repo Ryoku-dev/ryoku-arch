@@ -21,7 +21,7 @@ Item {
     Text {
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        text: I18n.tr(dial.label)
+        text: dial.label
         color: dial.idle
         font.family: "Space Grotesk"
         font.pixelSize: 12

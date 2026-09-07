@@ -970,11 +970,11 @@ Rectangle {
                         spacing: 1
                         anchors.verticalCenter: parent.verticalCenter
                         Text {
-                            text: "RYOKU ARCH"; color: Tokens.ink; font.family: Tokens.ui
+                            text: I18n.tr("RYOKU ARCH"); color: Tokens.ink; font.family: Tokens.ui
                             font.pixelSize: 14; font.weight: Font.Medium; font.letterSpacing: 2.4
                         }
                         Text {
-                            text: Tokens.monoHeads ? "//SETTINGS_" : "SETTINGS"; color: Tokens.inkMuted
+                            text: Tokens.monoHeads ? "//SETTINGS_" : I18n.tr("SETTINGS"); color: Tokens.inkMuted
                             font.family: Tokens.mono; font.pixelSize: 10; font.letterSpacing: 1.4
                         }
                     }
@@ -1017,7 +1017,7 @@ Rectangle {
             Barcode {
                 id: plate
                 anchors { left: parent.left; bottom: parent.bottom }
-                text: "RYOKU HUB"
+                text: I18n.tr("RYOKU HUB")
                 unit: 1.1
                 barHeight: 14
             }
@@ -1344,12 +1344,12 @@ Rectangle {
             Text { text: I18n.tr(hub.nameFor(hub.section)); color: Tokens.ink; font.family: Tokens.display; font.pixelSize: Tokens.fTitle }
             Item { width: 1; height: Tokens.s4 }
             Text {
-                text: "PORTING IN PROGRESS"; color: Tokens.inkDim; font.family: Tokens.ui
+                text: I18n.tr("PORTING IN PROGRESS"); color: Tokens.inkDim; font.family: Tokens.ui
                 font.pixelSize: 11; font.weight: Font.Medium; font.letterSpacing: 2
             }
             Text {
                 width: 520
-                text: "This page is being rebuilt into the monochrome instrument. Its settings and surfaces are wired page by page; the Shell page is the proven pattern."
+                text: I18n.tr("This page is being rebuilt into the monochrome instrument. Its settings and surfaces are wired page by page; the Shell page is the proven pattern.")
                 color: Tokens.inkMuted; font.family: Tokens.ui; font.pixelSize: 13; wrapMode: Text.WordWrap
             }
         }
@@ -1470,8 +1470,15 @@ Rectangle {
         Picker {
             id: pick
             anchors.centerIn: parent
-            title: pickState.row ? pickState.row.label : ""
-            options: pickState.row ? (pickState.row.opts || []) : []
+            title: pickState.row ? I18n.tr(pickState.row.label) : ""
+            // a `set` row reads its list from the singleton that owns the
+            // table (languages, locales) instead of the schema's own opts.
+            options: pickState.row
+                ? (pickState.row.set === "languages" ? I18n.pickerOptions
+                    : pickState.row.set === "locales" ? I18n.localeOptions
+                    : (pickState.row.opts || []))
+                : []
+            labels: pickState.row && pickState.row.set === "languages" ? I18n.pickerLabels : ({})
             current: pickState.row ? String(hub.val(pickState.row.key)) : ""
             onChose: (k) => { if (pickState.row) hub.edit(pickState.row.key, k); picker.close(); }
             onDismissed: picker.close()
@@ -1542,7 +1549,7 @@ Rectangle {
             }
             Item { width: Math.max(0, parent.width - 170); height: 1 }
             Text {
-                text: hub.searchResults.length + (hub.searchResults.length === 1 ? " HIT" : " HITS")
+                text: hub.searchResults.length + (hub.searchResults.length === 1 ? I18n.tr(" HIT") : I18n.tr(" HITS"))
                 color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: 9
                 anchors.verticalCenter: parent.verticalCenter
             }
@@ -1631,7 +1638,7 @@ Rectangle {
                 height: 14
                 Text { text: "// PENDING WRITE_"; color: Tokens.inkMuted; font.family: Tokens.mono; font.pixelSize: 9; font.letterSpacing: 1.2; anchors.verticalCenter: parent.verticalCenter }
                 Item { width: Math.max(0, parent.width - 200); height: 1 }
-                Text { text: "DIFF"; color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: I18n.tr("DIFF"); color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
             }
             Flickable {
                 id: dflick
@@ -1705,7 +1712,7 @@ Rectangle {
                 id: fhead
                 anchors { left: parent.left; right: parent.right; top: parent.top; margins: Tokens.s3 }
                 height: 14
-                Text { text: "SETTINGS FILES"; color: Tokens.inkMuted; font.family: Tokens.mono; font.pixelSize: 9; font.letterSpacing: 1.2; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: I18n.tr("SETTINGS FILES"); color: Tokens.inkMuted; font.family: Tokens.mono; font.pixelSize: 9; font.letterSpacing: 1.2; anchors.verticalCenter: parent.verticalCenter }
                 Item { width: Math.max(0, parent.width - 240); height: 1 }
                 Text { text: I18n.tr(hub.nameFor(hub.section)); color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: 9; anchors.verticalCenter: parent.verticalCenter }
             }
@@ -1721,7 +1728,7 @@ Rectangle {
                     spacing: Tokens.s2
                     Text {
                         width: fcol.width
-                        text: "Each page's settings live in one full file below: the complete config you edit in place (the GUI writes the very same file). The shipped base underneath refreshes on update; your file wins. Run `ryoku reset <path>` to drop an override."
+                        text: I18n.tr("Each page's settings live in one full file below: the complete config you edit in place (the GUI writes the very same file). The shipped base underneath refreshes on update; your file wins. Run `ryoku reset <path>` to drop an override.")
                         color: Tokens.inkMuted; font.family: Tokens.ui; font.pixelSize: 11; wrapMode: Text.WordWrap
                     }
                     Repeater {
@@ -1746,10 +1753,10 @@ Rectangle {
                                         width: 6; height: 6; radius: 3; anchors.verticalCenter: parent.verticalCenter
                                         color: modelData.role === "yours" ? Tokens.ink : Tokens.inkFaint
                                     }
-                                    Text { text: modelData.label; color: Tokens.ink; font.family: Tokens.ui; font.pixelSize: 13; font.weight: Font.Medium; anchors.verticalCenter: parent.verticalCenter }
-                                    Text { visible: modelData.role === "yours"; text: "EDIT HERE"; color: Tokens.ink; font.family: Tokens.mono; font.pixelSize: 8; font.letterSpacing: 1; anchors.verticalCenter: parent.verticalCenter }
-                                    Text { visible: modelData.role === "advanced"; text: "ADVANCED"; color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: 8; font.letterSpacing: 1; anchors.verticalCenter: parent.verticalCenter }
-                                    Text { visible: modelData.role === "base"; text: "SHIPPED"; color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: 8; font.letterSpacing: 1; anchors.verticalCenter: parent.verticalCenter }
+                                    Text { text: I18n.tr(modelData.label); color: Tokens.ink; font.family: Tokens.ui; font.pixelSize: 13; font.weight: Font.Medium; anchors.verticalCenter: parent.verticalCenter }
+                                    Text { visible: modelData.role === "yours"; text: I18n.tr("EDIT HERE"); color: Tokens.ink; font.family: Tokens.mono; font.pixelSize: 8; font.letterSpacing: 1; anchors.verticalCenter: parent.verticalCenter }
+                                    Text { visible: modelData.role === "advanced"; text: I18n.tr("ADVANCED"); color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: 8; font.letterSpacing: 1; anchors.verticalCenter: parent.verticalCenter }
+                                    Text { visible: modelData.role === "base"; text: I18n.tr("SHIPPED"); color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: 8; font.letterSpacing: 1; anchors.verticalCenter: parent.verticalCenter }
                                 }
                                 Text { visible: !!modelData.path; text: hub.tildePath(modelData.path || ""); color: Tokens.inkDim; font.family: Tokens.mono; font.pixelSize: 11; width: fentry.width; elide: Text.ElideMiddle }
                                 Text { text: modelData.note; color: Tokens.inkMuted; font.family: Tokens.ui; font.pixelSize: 11; width: fentry.width; wrapMode: Text.WordWrap }

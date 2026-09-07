@@ -173,8 +173,8 @@ Provider {
             type: kind || "File",
             score: 0,
             actions: [
-                { id: "open", name: "Open", icon: "", execute: function () { Spawn.run(["xdg-open", path]); } },
-                { id: "reveal", name: "Reveal", icon: "", execute: function () { Spawn.run(["xdg-open", path.replace(/\/[^/]*$/, "")]); } }
+                { id: "open", name: I18n.tr("Open"), icon: "", execute: function () { Spawn.run(["xdg-open", path]); } },
+                { id: "reveal", name: I18n.tr("Reveal"), icon: "", execute: function () { Spawn.run(["xdg-open", path.replace(/\/[^/]*$/, "")]); } }
             ]
         };
     }

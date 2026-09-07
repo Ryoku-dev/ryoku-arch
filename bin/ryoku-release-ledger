@@ -2,12 +2,21 @@
 # ryoku-release-ledger: rebuild releases/index.json from what the bucket holds.
 #
 # The ledger is derived, never edited: every releases/<tag>/x86_64/release.json
-# in the bucket is one entry (tag, name, version, commit, date, repo), newest
-# first by date, and `latest` is the newest. publish-repo.yml runs this after a
-# release lands and release-ledger.yml runs it on demand, so a ledger that was
-# lost, truncated, or written by an older publish heals on the next run. The
-# Hub's Updates page, `ryoku rollback` (the list it offers) and the site read
-# it.
+# in the bucket is one entry (tag, name, version, commit, date, repo, plus the
+# ISO images published for that release), newest first by date, and `latest` is
+# the newest. publish-repo.yml runs this after a release lands and
+# release-ledger.yml runs it on demand, so a ledger that was lost, truncated, or
+# written by an older publish heals on the next run. The Hub's Updates page,
+# `ryoku rollback` (the list it offers) and the site read it.
+#
+# The `images` map keys each release to the ISOs a reinstall or a rollback would
+# fetch, per variant (plain, cachyos), so both variants are discoverable per
+# release rather than only through the mutable latest.json/latest-cachyos.json
+# pointers. bin/ryoku-iso-manifest writes the per-ISO manifests at the bucket
+# root carrying `installer_ref` (the release tag on a release build, `main`
+# otherwise) and `variant`, which is exactly the (release, variant) key the
+# images map needs; a `main` manifest matches no release directory and is
+# left out.
 #
 # usage: ryoku-release-ledger <rclone remote:bucket>   (writes the ledger, prints it)
 # needs: rclone (configured, see bin/ryoku-r2-config), jq
@@ -16,6 +25,69 @@ remote=${1:?usage: ryoku-release-ledger <rclone remote:bucket>}
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
+
+# collect_iso_images: emit {"<tag>":{"<variant>":{iso,manifest,sha256,signature,url,date}}}
+# from the per-ISO manifests at the bucket root. The manifest list is fetched
+# once (non-recursive, *.json only) so a bucket with many objects is not cat'd
+# blindly; the mutable latest*.json pointers are dropped, and anything that does
+# not parse as an ISO manifest is skipped with a message on stderr rather than
+# aborting the whole rebuild (a stray or truncated object must not lose the
+# ledger). When a variant somehow has two manifests for one release (a
+# re-published ISO), the newest generated_at wins; generated_at is zero-padded
+# ISO 8601 UTC, so a lexical compare is a time compare.
+collect_iso_images() {
+  local names=() name
+  mapfile -t names < <(
+    rclone lsf "$remote/" --files-only --include '*.json' 2>/dev/null \
+      | grep -Ev '^latest.*\.json$' || true
+  )
+
+  : > "$tmp/manifests.ndjson"
+  for name in "${names[@]}"; do
+    [[ -n $name ]] || continue
+    if ! rclone cat "$remote/$name" > "$tmp/manifest.json" 2>/dev/null || [[ ! -s "$tmp/manifest.json" ]]; then
+      echo "ryoku-release-ledger: could not read $name; skipped" >&2
+      continue
+    fi
+    # An ISO manifest names its release (installer_ref) and variant, and points
+    # at the bucket files (files.*). Anything else at the root is not one.
+    if ! jq -e '(.installer_ref | type == "string")
+                and (.variant | type == "string")
+                and (.files | type == "object")' "$tmp/manifest.json" >/dev/null 2>&1; then
+      echo "ryoku-release-ledger: $name is not an ISO manifest; skipped" >&2
+      continue
+    fi
+    # Carry the manifest's own field names through unchanged: the images entry
+    # is the bucket-root object names (files.*) plus the public ISO url, so a
+    # consumer can fetch either the ISO or its checksum/signature/manifest.
+    jq -c '{
+      tag: .installer_ref,
+      variant: .variant,
+      generated_at: (.generated_at // ""),
+      entry: {
+        iso: .files.iso,
+        manifest: .files.manifest,
+        sha256: .files.sha256,
+        signature: .files.signature,
+        url: (.url // ""),
+        date: (.date // "")
+      }
+    }' "$tmp/manifest.json" >> "$tmp/manifests.ndjson"
+  done
+
+  if [[ ! -s "$tmp/manifests.ndjson" ]]; then
+    echo '{}'
+    return
+  fi
+  jq -s '
+    reduce .[] as $m ({};
+      (.[$m.tag][$m.variant]) as $cur
+      | if $cur == null or ($m.generated_at > $cur.generated_at)
+        then .[$m.tag][$m.variant] = {generated_at: $m.generated_at, entry: $m.entry}
+        else . end)
+    | map_values(map_values(.entry))
+  ' "$tmp/manifests.ndjson"
+}
 
 mapfile -t tags < <(rclone lsf "$remote/releases/" --dirs-only 2>/dev/null | sed 's|/$||' | grep -E '^v[0-9]' || true)
 entries=()
@@ -28,11 +100,20 @@ for tag in "${tags[@]}"; do
     '{tag: $tag, name: (.name // ""), version: .version, commit: .commit, date: .date, repo: $repo}' "$tmp/$tag.json")")
 done
 
+collect_iso_images > "$tmp/images.json"
+
 if (( ${#entries[@]} == 0 )); then
   echo '{"schema":1,"latest":"","releases":[]}' > "$tmp/index.json"
 else
-  printf '%s\n' "${entries[@]}" | jq -s '
-    sort_by(.date) | reverse
+  # Attach each release's images map, keyed by its tag. A variant with no ISO
+  # simply has no key, and a release with no images at all keeps no images key,
+  # so a consumer that ignores images reads byte-identical entries. schema stays
+  # 1 (the change is additive; no reader validates it) and the sort/latest
+  # semantics are unchanged.
+  printf '%s\n' "${entries[@]}" | jq -s --slurpfile images "$tmp/images.json" '
+    ($images[0] // {}) as $img
+    | map(. + (($img[.tag] // {}) as $m | if ($m | length) > 0 then {images: $m} else {} end))
+    | sort_by(.date) | reverse
     | {schema: 1, latest: (.[0].tag // ""), releases: .}' > "$tmp/index.json"
 fi
 [[ -s "$tmp/index.json" ]] || { echo "ryoku-release-ledger: produced an empty ledger; refusing to upload" >&2; exit 1; }

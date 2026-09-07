@@ -16,10 +16,10 @@ Grid {
 
     Repeater {
         model: [
-            { "name": "The bar",       "reach": "Screen edges", "desc": qsTr("Frame bars carry the launcher, workspaces, clock, tray and status.") },
-            { "name": "The launcher",  "reach": "Super + Space", "desc": "Search apps, run commands, or ask a quick question." },
-            { "name": "The frame",     "reach": "Screen edge",   "desc": "The rounded border holds the power and service surfaces." },
-            { "name": "Ryoku Settings","reach": "Super + ,",     "desc": "Displays, appearance, keybinds, the shell - every knob in one place." }
+            { "name": I18n.tr("The bar"),       "reach": I18n.tr("Screen edges"), "desc": I18n.tr("Frame bars carry the launcher, workspaces, clock, tray and status.") },
+            { "name": I18n.tr("The launcher"),  "reach": "Super + Space", "desc": I18n.tr("Search apps, run commands, or ask a quick question.") },
+            { "name": I18n.tr("The frame"),     "reach": I18n.tr("Screen edge"),   "desc": I18n.tr("The rounded border holds the power and service surfaces.") },
+            { "name": I18n.tr("Ryoku Settings"),"reach": "Super + ,",     "desc": I18n.tr("Displays, appearance, keybinds, the shell - every knob in one place.") }
         ]
 
         delegate: Rectangle {
@@ -64,7 +64,7 @@ Grid {
                 Text {
                     width: parent.width
                     wrapMode: Text.WordWrap
-                    text: I18n.tr(card.modelData.desc)
+                    text: card.modelData.desc
                     color: Tokens.inkMuted
                     font.family: Tokens.ui
                     font.pixelSize: Tokens.fSmall

@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 // The single door to the daemon `stage` topic and the `ryostage` engine
 // (docs/stage.md). It subscribes once to the coalesced, per-wallpaper-keyed
@@ -234,7 +235,7 @@ Singleton {
         const l = root._raw(path, i);
         const lbl = (typeof l.label === "string" && l.label.length) ? l.label : "";
         if (lbl) return lbl.charAt(0).toUpperCase() + lbl.slice(1);
-        return "Layer " + (i + 1);
+        return I18n.tr("Layer %1").arg(i + 1);
     }
     function layerPathName(path, i) {
         const out = root._raw(path, i).out || "";

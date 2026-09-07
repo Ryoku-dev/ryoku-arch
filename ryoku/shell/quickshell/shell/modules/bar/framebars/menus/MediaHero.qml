@@ -7,6 +7,7 @@ import Quickshell.Services.Mpris
 import "../.." as Pill
 import shell.services
 import "../../../../components"
+import Ryoku.Ui.Singletons
 
 // Media hero card: the showpiece on the Home tab. Full-width card visible only
 // while a player exists. Art wash background, 84x84 thumbnail, marquee title,
@@ -386,13 +387,13 @@ Item {
                             spacing: 2
 
                             TransportBtn {
-                                icon: root.iconShuffle(); tip: qsTr("Shuffle")
+                                icon: root.iconShuffle(); tip: I18n.tr("Shuffle")
                                 lit: root.player ? root.player.shuffle : false
                                 enabled: root.player ? root.player.shuffleSupported : false
                                 onClicked: if (root.player) root.player.shuffle = !root.player.shuffle
                             }
                             TransportBtn {
-                                icon: "skip_previous"; tip: qsTr("Previous")
+                                icon: "skip_previous"; tip: I18n.tr("Previous")
                                 enabled: root.player ? root.player.canGoPrevious : false
                                 onClicked: if (root.player) root.player.previous()
                             }
@@ -426,19 +427,19 @@ Item {
                                         onClicked: if (root.player) root.player.togglePlaying()
                                     }
                                     QsTip {
-                                        text: playDisc.playing ? qsTr("Pause") : qsTr("Play")
+                                        text: playDisc.playing ? I18n.tr("Pause") : I18n.tr("Play")
                                         hovered: playTap.containsMouse && !playTap.pressed
                                     }
                                 }
                             }
 
                             TransportBtn {
-                                icon: "skip_next"; tip: qsTr("Next")
+                                icon: "skip_next"; tip: I18n.tr("Next")
                                 enabled: root.player ? root.player.canGoNext : false
                                 onClicked: if (root.player) root.player.next()
                             }
                             TransportBtn {
-                                icon: root.iconLoop(); tip: qsTr("Repeat")
+                                icon: root.iconLoop(); tip: I18n.tr("Repeat")
                                 lit: root.player ? (root.player.loopState !== MprisLoopState.None) : false
                                 enabled: root.player ? root.player.loopSupported : false
                                 onClicked: root.cycleLoop()

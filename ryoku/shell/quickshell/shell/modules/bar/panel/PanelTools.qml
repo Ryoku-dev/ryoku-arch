@@ -42,9 +42,9 @@ Item {
     }
 
     readonly property var modes: [
-        { id: "auto", label: qsTr("Auto") },
-        { id: "audio", label: qsTr("Audio") },
-        { id: "mute", label: qsTr("Mute") }
+        { id: "auto", label: I18n.tr("Auto") },
+        { id: "audio", label: I18n.tr("Audio") },
+        { id: "mute", label: I18n.tr("Mute") }
     ]
 
     // Sub-label under the engine switch, driven by docker + cobalt state. The
@@ -54,17 +54,17 @@ Item {
     // switch flip is all that is needed.
     readonly property bool engineNeedsSetup: Stash.dockerState === "setup" || Stash.dockerState === "missing"
     readonly property string engineSub: {
-        if (Stash.setupState === "running") return qsTr("Setting up…");
-        if (Stash.dockerState === "missing") return qsTr("Needs Docker. `ryoku update` installs it");
-        if (Stash.dockerState === "setup") return qsTr("One-time setup: flip the switch to run it");
-        if (Stash.dockerState === "denied") return qsTr("Docker is unreachable and the ryoku-docker helper is missing");
+        if (Stash.setupState === "running") return I18n.tr("Setting up…");
+        if (Stash.dockerState === "missing") return I18n.tr("Needs Docker. `ryoku update` installs it");
+        if (Stash.dockerState === "setup") return I18n.tr("One-time setup: flip the switch to run it");
+        if (Stash.dockerState === "denied") return I18n.tr("Docker is unreachable and the ryoku-docker helper is missing");
         switch (Stash.cobaltState) {
         case "starting": return Stash.cobaltMsg === "pulling"
-            ? qsTr("Downloading cobalt image — first launch takes a minute and uses some memory & CPU")
-            : qsTr("Starting cobalt…");
-        case "running": return qsTr("On — downloads run through your local cobalt");
-        case "error": return Stash.cobaltMsg.length > 0 ? Stash.cobaltMsg : qsTr("Failed to start");
-        default: return qsTr("Off — using yt-dlp");
+            ? I18n.tr("Downloading cobalt image — first launch takes a minute and uses some memory & CPU")
+            : I18n.tr("Starting cobalt…");
+        case "running": return I18n.tr("On — downloads run through your local cobalt");
+        case "error": return Stash.cobaltMsg.length > 0 ? Stash.cobaltMsg : I18n.tr("Failed to start");
+        default: return I18n.tr("Off — using yt-dlp");
         }
     }
 
@@ -85,7 +85,7 @@ Item {
             width: parent.width
             spacing: 10 * root.s
 
-            Menus.QsSection { width: parent.width; label: qsTr("Download") }
+            Menus.QsSection { width: parent.width; label: I18n.tr("Download") }
 
             // Engine switch: local cobalt (Docker) vs the yt-dlp fallback.
             Rectangle {
@@ -112,7 +112,7 @@ Item {
                         spacing: 1 * root.s
 
                         Text {
-                            text: qsTr("Cobalt engine")
+                            text: I18n.tr("Cobalt engine")
                             color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurface)
                             font.family: Theme.fontPrimary
                             font.pixelSize: 10 * root.s
@@ -214,7 +214,7 @@ Item {
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             visible: urlInput.text.length === 0
-                            text: qsTr("Paste a link to download")
+                            text: I18n.tr("Paste a link to download")
                             color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
                             font: urlInput.font
                         }
@@ -260,7 +260,7 @@ Item {
 
             ActionButton {
                 width: parent.width
-                label: qsTr("Download")
+                label: I18n.tr("Download")
                 icon: "download"
                 primary: root.urlText.trim().length > 0
                 enabled: root.urlText.trim().length > 0
@@ -296,8 +296,8 @@ Item {
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             text: Stash.cobaltState === "running"
-                                ? qsTr("WORKS WITH %1 SITES").arg(Stash.supportedSites.length)
-                                : qsTr("POWERED BY YT-DLP")
+                                ? I18n.tr("WORKS WITH %1 SITES").arg(Stash.supportedSites.length)
+                                : I18n.tr("POWERED BY YT-DLP")
                             color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
                             font.family: Theme.fontPrimary
                             font.pixelSize: 6.5 * root.s
@@ -310,7 +310,7 @@ Item {
                         width: parent.width
                         text: Stash.cobaltState === "running"
                             ? Stash.supportedSites.map(s => s === "twitter" ? "x" : s).join("  ·  ")
-                            : qsTr("Works with 1000+ sites, including YouTube, Twitter/X, Reddit, TikTok, and more.")
+                            : I18n.tr("Works with 1000+ sites, including YouTube, Twitter/X, Reddit, TikTok, and more.")
                         wrapMode: Text.WordWrap
                         color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurface)
                         font.family: Theme.mono
@@ -368,7 +368,9 @@ Item {
                                     Text {
                                         anchors.verticalCenter: parent.verticalCenter
                                         text: qRow.model.state === "running" ? qRow.model.pct + "%"
-                                            : qRow.model.state === "error" ? (qRow.model.msg && qRow.model.msg.length > 0 ? qRow.model.msg : qsTr("failed"))
+                                            : qRow.model.state === "error" ? (qRow.model.msg && qRow.model.msg.length > 0 ? qRow.model.msg : I18n.tr("failed"))
+                                            : qRow.model.state === "done" ? I18n.tr("done")
+                                            : qRow.model.state === "queued" ? I18n.tr("queued")
                                             : qRow.model.state
                                         color: qRow.model.state === "error" ? Theme.vermLit
                                             : Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
@@ -426,12 +428,12 @@ Item {
                 }
             }
 
-            Menus.QsSection { width: parent.width; label: qsTr("Recently downloaded") }
+            Menus.QsSection { width: parent.width; label: I18n.tr("Recently downloaded") }
 
             Text {
                 width: parent.width
                 visible: Stash.count === 0
-                text: qsTr("Nothing downloaded yet. Links you grab land here.")
+                text: I18n.tr("Nothing downloaded yet. Links you grab land here.")
                 wrapMode: Text.WordWrap
                 color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
                 font.family: Theme.fontPrimary
@@ -509,17 +511,17 @@ Item {
                 }
             }
 
-            Menus.QsSection { width: parent.width; label: qsTr("Convert & install") }
+            Menus.QsSection { width: parent.width; label: I18n.tr("Convert & install") }
 
             ActionButton {
                 width: parent.width
-                label: qsTr("Compress video…")
+                label: I18n.tr("Compress video…")
                 icon: "compress"
                 onTapped: root.pick("compress")
             }
             ActionButton {
                 width: parent.width
-                label: qsTr("Install app…")
+                label: I18n.tr("Install app…")
                 icon: "install_desktop"
                 onTapped: root.pick("install")
             }

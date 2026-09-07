@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import "../.."
 import "../../components"
+import Ryoku.Ui.Singletons
 
 // Lighting: peripheral RGB (OpenRGB), folded from the Hub's Appearance > Lighting
 // tab. Master switch plus per-device controls (managed, mode, colour source,
@@ -76,13 +77,13 @@ Column {
 
     SettingsCard {
         colors: root.colors
-        title: "Lighting"; kana: "灯"
+        title: I18n.tr("Lighting"); kana: "灯"
         width: parent.width
 
         RowToggle {
             colors: root.colors
-            title: "Enable device lighting"
-            description: "Drive keyboard and peripheral RGB through OpenRGB."
+            title: I18n.tr("Enable device lighting")
+            description: I18n.tr("Drive keyboard and peripheral RGB through OpenRGB.")
             checked: root._enabled
             onToggle: function(v) { root._enable(v) }
         }
@@ -94,13 +95,13 @@ Column {
         SettingsCard {
             colors: root.colors
             title: modelData.name || modelData.key
-            subtitle: (modelData.online ? "online" : "offline") + (modelData.managed ? " · managed" : " · free")
+            subtitle: I18n.tr("%1 · %2").arg(modelData.online ? I18n.tr("online") : I18n.tr("offline")).arg(modelData.managed ? I18n.tr("managed") : I18n.tr("free"))
             width: parent.width
 
             RowToggle {
                 colors: root.colors
-                title: "Managed"
-                description: "Let Ryoku drive this device's colour."
+                title: I18n.tr("Managed")
+                description: I18n.tr("Let Ryoku drive this device's colour.")
                 checked: !!modelData.managed
                 onToggle: function(v) { root._set(modelData.key, { managed: v }) }
             }
@@ -122,7 +123,7 @@ Column {
                 SettingsDropdown {
                     width: devGrid.cellW
                     colors: root.colors
-                    label: "Mode"
+                    label: I18n.tr("Mode")
                     value: modelData.mode || ""
                     model: {
                         var out = []
@@ -137,10 +138,10 @@ Column {
                     width: devGrid.cellW
                     visible: devGrid._hasEffect
                     colors: root.colors
-                    label: "Effect"
+                    label: I18n.tr("Effect")
                     value: modelData.effect || ""
                     model: {
-                        var out = [{ mode: "", label: "None" }]
+                        var out = [{ mode: "", label: I18n.tr("None") }]
                         var fx = (devGrid._dcaps.effects) || []
                         for (var i = 0; i < fx.length; i++) out.push({ mode: fx[i].id, label: fx[i].label })
                         return out
@@ -152,7 +153,7 @@ Column {
                     width: devGrid.cellW
                     visible: devGrid._hasDir
                     colors: root.colors
-                    label: "Direction"
+                    label: I18n.tr("Direction")
                     value: modelData.direction || ""
                     model: {
                         var out = []
@@ -166,10 +167,10 @@ Column {
 
             RowDropdown {
                 colors: root.colors
-                title: "Colour source"
-                description: "Follow the wallpaper accent, or hold a fixed colour."
+                title: I18n.tr("Colour source")
+                description: I18n.tr("Follow the wallpaper accent, or hold a fixed colour.")
                 value: modelData.source || "accent"
-                model: [ { mode: "accent", label: "Accent" }, { mode: "fixed", label: "Fixed" } ]
+                model: [ { mode: "accent", label: I18n.tr("Accent") }, { mode: "fixed", label: I18n.tr("Fixed") } ]
                 enabled: root._enabled && !!modelData.managed
                 opacity: enabled ? 1.0 : 0.5
                 onSelect: function(v) { root._set(modelData.key, { source: v }) }
@@ -177,8 +178,8 @@ Column {
 
             RowInput {
                 colors: root.colors
-                title: "Brightness"
-                description: "Device brightness."
+                title: I18n.tr("Brightness")
+                description: I18n.tr("Device brightness.")
                 value: modelData.brightness >= 0 ? modelData.brightness : 90
                 min: 0; max: 100; suffix: "%"
                 enabled: root._enabled && !!modelData.managed
@@ -187,8 +188,8 @@ Column {
 
             RowInput {
                 colors: root.colors
-                title: "Speed"
-                description: "Animation speed for animated modes."
+                title: I18n.tr("Speed")
+                description: I18n.tr("Animation speed for animated modes.")
                 value: modelData.speed >= 0 ? modelData.speed : 60
                 min: 0; max: 100; suffix: "%"
                 enabled: root._enabled && !!modelData.managed
@@ -197,17 +198,17 @@ Column {
 
             RowAction {
                 colors: root.colors
-                title: "Save to device"
-                description: "Persist the current look to the device's own memory."
-                valueLabel: "SAVE"
+                title: I18n.tr("Save to device")
+                description: I18n.tr("Persist the current look to the device's own memory.")
+                valueLabel: I18n.tr("SAVE")
                 onClicked: root._save(modelData.key)
             }
 
             RowAction {
                 colors: root.colors
-                title: "Hand back"
-                description: "Stop managing and leave the device to its own control."
-                valueLabel: "RELEASE"
+                title: I18n.tr("Hand back")
+                description: I18n.tr("Stop managing and leave the device to its own control.")
+                valueLabel: I18n.tr("RELEASE")
                 onClicked: root._release(modelData.key)
             }
         }
@@ -216,10 +217,10 @@ Column {
     SettingsCard {
         visible: root._devices.length === 0
         colors: root.colors
-        title: "No devices"
+        title: I18n.tr("No devices")
         width: parent.width
         subtitle: root._available
-            ? "No RGB devices detected. Connect a device OpenRGB supports, then reopen."
-            : "OpenRGB is not available. Install and start it to control device lighting."
+            ? I18n.tr("No RGB devices detected. Connect a device OpenRGB supports, then reopen.")
+            : I18n.tr("OpenRGB is not available. Install and start it to control device lighting.")
     }
 }

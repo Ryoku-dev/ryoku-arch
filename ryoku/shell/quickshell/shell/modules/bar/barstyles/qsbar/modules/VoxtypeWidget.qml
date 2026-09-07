@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 Item {
     id: rootMod
@@ -22,7 +23,7 @@ Item {
     implicitHeight: 28
 
 
-    readonly property string tooltipText: hint !== "" ? hint : (state === "recording" ? "Voxtype recording" : "Voxtype transcribing")
+    readonly property string tooltipText: hint !== "" ? hint : (state === "recording" ? I18n.tr("Voxtype recording") : I18n.tr("Voxtype transcribing"))
 
     IconText {
         id: ico

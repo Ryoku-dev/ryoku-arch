@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: the flatpak app channel ------------------------------------
@@ -37,27 +39,27 @@ var flatpakPresent = func() bool { return sys.Has("flatpak") }
 
 func reconcileFlatpakRemote(checkOnly bool) recResult {
 	if !flatpakPresent() {
-		return okRes("no flatpak installed; the app channel is not needed")
+		return okRes(i18n.T("no flatpak installed; the app channel is not needed"))
 	}
 	if flathubConfigured() {
-		return okRes("the flathub remote is configured")
+		return okRes(i18n.T("the flathub remote is configured"))
 	}
 	// Offline is the expected state of a fresh offline install, so it is a note
 	// rather than a warning: nothing is broken, the catalogue simply has not had
 	// a network yet.
 	if !flathubReachable() {
-		return noteRes("no flathub remote yet, and flathub is not reachable to add one").
-			withFix("connect to a network and run `ryoku update`; it adds the remote")
+		return noteRes(i18n.T("no flathub remote yet, and flathub is not reachable to add one")).
+			withFix(i18n.T("connect to a network and run `ryoku update`; it adds the remote"))
 	}
 	if checkOnly {
-		return noteRes("the flathub remote is missing").
-			withFix("ryoku doctor (adds the flathub remote)")
+		return noteRes(i18n.T("the flathub remote is missing")).
+			withFix(i18n.T("ryoku doctor (adds the flathub remote)"))
 	}
 	if err := addFlathub(); err != nil {
-		return warnRes("could not add the flathub remote: %v", err).
-			withFix("add it by hand: sudo flatpak remote-add --if-not-exists flathub " + flathubRepo)
+		return warnRes(i18n.T("could not add the flathub remote: %v"), err).
+			withFix(i18n.T("add it by hand: sudo flatpak remote-add --if-not-exists flathub ") + flathubRepo)
 	}
-	return fixedRes("added the flathub remote, so flatpak apps can be installed and updated")
+	return fixedRes(i18n.T("added the flathub remote, so flatpak apps can be installed and updated"))
 }
 
 // flathubConfigured reports whether any flathub remote is already known, in

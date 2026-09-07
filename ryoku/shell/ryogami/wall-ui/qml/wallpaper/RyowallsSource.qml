@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 // A pluggable remote wallpaper source driven by the ryowalls engine's JSON
 // verbs (moewalls, motionbgs, ryostore extras): the same search/download shape
@@ -61,7 +62,7 @@ QtObject {
         if (currentPage > lastPage) currentPage = lastPage
         var start = (currentPage - 1) * per
         results = _fullList.slice(start, start + per)
-        error = total === 0 ? "no results" : ""
+        error = total === 0 ? I18n.tr("no results") : ""
         loading = false
     }
 
@@ -120,7 +121,7 @@ QtObject {
                 else if (extraArgs[k] === "--path") rsub = "" + (extraArgs[k + 1] || "")
                 else if (extraArgs[k] === "--type") rtype = "" + (extraArgs[k + 1] || "all")
             }
-            if (!repo.length) { loading = false; error = "no repo"; return }
+            if (!repo.length) { loading = false; error = I18n.tr("no repo"); return }
             _repoRepo = repo; _repoSub = rsub; _repoType = rtype
             var fetch =
                 "ua=" + JSON.stringify(_ua) + "; repo=" + JSON.stringify(repo) + "; br=" + JSON.stringify(rbranch) + "; "
@@ -136,7 +137,7 @@ QtObject {
             return
         }
         loading = false
-        error = "unknown source"
+        error = I18n.tr("unknown source")
     }
 
     function nextPage() {
@@ -154,7 +155,7 @@ QtObject {
         stdout: SplitParser { splitMarker: ""; onRead: function(data) { src._buf += data } }
         onExited: function(code) {
             src.loading = false
-            if (code !== 0) { src.error = "search failed"; src.results = []; return }
+            if (code !== 0) { src.error = I18n.tr("search failed"); src.results = []; return }
             var out = []
             try {
                 if (src._nativeProvider === "ryostore") {
@@ -281,13 +282,13 @@ QtObject {
                         }
                     }
                 }
-            } catch (e) { src.error = "search failed"; src.results = []; return }
+            } catch (e) { src.error = I18n.tr("search failed"); src.results = []; return }
             if (src._nativeProvider === "ryostore" || src._nativeProvider === "repos") {
                 src._fullList = out
                 src._applyClientPage()
             } else {
                 src.lastPage = out.length > 0 ? src.currentPage + 1 : src.currentPage
-                src.error = out.length === 0 ? "no results" : ""
+                src.error = out.length === 0 ? I18n.tr("no results") : ""
                 src.results = out
             }
         }
@@ -299,7 +300,7 @@ QtObject {
             var p = src._nativeDlBuf.trim()
             src.downloadingId = ""
             if (code === 0 && p.length > 0) src.applied(p)
-            else src.failed("download failed")
+            else src.failed(I18n.tr("download failed"))
         }
     }
 
@@ -361,6 +362,6 @@ QtObject {
             return
         }
         downloadingId = ""
-        failed("unknown source")
+        failed(I18n.tr("unknown source"))
     }
 }

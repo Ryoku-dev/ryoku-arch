@@ -1,5 +1,6 @@
 import QtQuick
 import "../.."
+import Ryoku.Ui.Singletons
 
 // Slim keybind cheat-sheet for the settings panel's persistent left column:
 // stacked sections, each a compact list of mono key chips beside a short label.
@@ -17,22 +18,22 @@ Column {
     Repeater {
         model: [
             {
-                title: "NAVIGATION",
+                title: I18n.tr("NAVIGATION"),
                 binds: [
-                    { key: "← →",  action: "Navigate items" },
-                    { key: "↑ ↓",  action: "Navigate rows" },
-                    { key: "Enter", action: "Apply wallpaper" },
-                    { key: "Esc",   action: "Close panel" },
-                    { key: "RMB",   action: "Flip card" },
-                    { key: "Scroll", action: "Browse" }
+                    { key: "← →",  action: I18n.tr("Navigate items") },
+                    { key: "↑ ↓",  action: I18n.tr("Navigate rows") },
+                    { key: "Enter", action: I18n.tr("Apply wallpaper") },
+                    { key: "Esc",   action: I18n.tr("Close panel") },
+                    { key: "RMB",   action: I18n.tr("Flip card") },
+                    { key: "Scroll", action: I18n.tr("Browse") }
                 ]
             },
             {
-                title: "FILTERS",
+                title: I18n.tr("FILTERS"),
                 binds: [
-                    { key: "⇧ ← →", action: "Colour filters" },
-                    { key: "⇧ ↑",   action: "Toggle bar" },
-                    { key: "Esc",    action: "Close" }
+                    { key: "⇧ ← →", action: I18n.tr("Colour filters") },
+                    { key: "⇧ ↑",   action: I18n.tr("Toggle bar") },
+                    { key: "Esc",    action: I18n.tr("Close") }
                 ]
             }
         ]

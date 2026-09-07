@@ -259,7 +259,7 @@ Rectangle {
                     Text {
                         id: txt
                         anchors.centerIn: parent
-                        text: pb.label
+                        text: I18n.tr(pb.label)
                         color: pb.primary ? Tokens.inkOnBone : Tokens.ink
                         font.family: Tokens.ui
                         font.pixelSize: Tokens.fSmall
@@ -269,11 +269,11 @@ Rectangle {
                     TapHandler { onTapped: pb.act() }
                 }
                 PickBtn {
-                    label: "Cancel"
+                    label: I18n.tr("Cancel")
                     onAct: dlg.close()
                 }
                 PickBtn {
-                    label: "OK"
+                    label: I18n.tr("OK")
                     primary: true
                     onAct: {
                         root.chosen(dlg.curHex);

@@ -3,6 +3,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 ShellRoot {
     id: root
@@ -94,8 +95,8 @@ ShellRoot {
         onTriggered: {
             if (root.framePainted) return;
             console.error("ryopin: no frame rendered 15s after launch, graphics init failed, giving up");
-            Quickshell.execDetached(["notify-send", "-a", "ryoku", "ryopin could not draw a pin",
-                "graphics init failed, likely GPU memory pressure"]);
+            Quickshell.execDetached(["notify-send", "-a", "ryoku", I18n.tr("ryopin could not draw a pin"),
+                I18n.tr("graphics init failed, likely GPU memory pressure")]);
             quitFallback.start();
             Qt.quit();
         }

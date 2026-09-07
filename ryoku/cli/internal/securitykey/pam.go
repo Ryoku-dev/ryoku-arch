@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	i18n "ryoku-i18n"
 )
 
 func pamRoot() string {
@@ -25,7 +27,7 @@ func targetName(target string) (string, error) {
 	case TargetLogin, "sddm":
 		return "sddm", nil
 	default:
-		return "", fmt.Errorf("unknown target %q", target)
+		return "", fmt.Errorf(i18n.T("unknown target %q"), target)
 	}
 }
 
@@ -110,7 +112,7 @@ func applyPAMText(content string, on bool) string {
 func applyPAMFile(path string, on bool) error {
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return fmt.Errorf("read %s: %w", path, err)
+		return fmt.Errorf(i18n.T("read %s: %w"), path, err)
 	}
 	out := applyPAMText(string(raw), on)
 	if out == string(raw) {
@@ -217,7 +219,7 @@ func selfExe() string {
 
 func runApplyPAM(args []string) error {
 	if len(args) != 2 {
-		return fmt.Errorf("usage: ryoku security-key apply-pam <sudo|polkit|login> <on|off>")
+		return fmt.Errorf(i18n.T("usage: ryoku security-key apply-pam <sudo|polkit|login> <on|off>"))
 	}
 	on, err := parseOnOff(args[1])
 	if err != nil {
@@ -228,7 +230,7 @@ func runApplyPAM(args []string) error {
 		return err
 	}
 	if !pamWritable(path) {
-		return fmt.Errorf("%s is not writable (run via pkexec/root)", path)
+		return fmt.Errorf(i18n.T("%s is not writable (run via pkexec/root)"), path)
 	}
 	return applyPAMFile(path, on)
 }

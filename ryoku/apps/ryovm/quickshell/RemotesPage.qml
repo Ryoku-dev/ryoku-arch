@@ -188,7 +188,7 @@ Item {
                     sub: "えんかく"
                     tate: "糸 を 手 繰 る"
                     caption: I18n.tr("Every distant machine on one line you can pull.")
-                    code: "RYOPORT-LINK"
+                    code: I18n.tr("RYOPORT-LINK")
                     seal: "力"
                     images: ["earth.gif", "moon.png", "compass.gif", "render.gif"]
                 }
@@ -231,7 +231,7 @@ Item {
                                 required property var modelData
                                 width: rightCol.width - Tokens.s5
                                 elide: Text.ElideRight
-                                text: (modelData.type || "KEY") + "  " + (modelData.comment || modelData.path || "")
+                                text: (modelData.type || I18n.tr("KEY")) + "  " + (modelData.comment || modelData.path || "")
                                 color: Tokens.inkFaint
                                 font.family: Tokens.mono; font.pixelSize: 10
                             }

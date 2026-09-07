@@ -14,8 +14,8 @@ Rectangle {
 
     property real s: 1
     readonly property bool tuningMode: Radio.tuning
-    readonly property string label: tuningMode ? (Radio.label || "radio")
-        : (Radio.aside && Radio.aside.label ? I18n.tr(Radio.aside.label) : "radio")
+    readonly property string label: tuningMode ? (Radio.label || I18n.tr("radio"))
+        : (Radio.aside && Radio.aside.label ? I18n.tr(Radio.aside.label) : I18n.tr("radio"))
 
     implicitHeight: 34 * s
     radius: MainMetrics.radiusRow * s
@@ -50,8 +50,8 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         textFormat: Text.StyledText
         text: chip.tuningMode
-            ? I18n.tr(chip.label) + I18n.tr("  <font color=\"") + Theme.faint + I18n.tr("\">·  tuning in - a few quiet seconds is normal</font>")
-            : I18n.tr(chip.label) + I18n.tr("  <font color=\"") + Theme.faint + I18n.tr("\">·  set aside for your music</font>")
+            ? I18n.tr("%1  <font color=\"%2\">·  tuning in - a few quiet seconds is normal</font>").arg(chip.label).arg(Theme.faint)
+            : I18n.tr("%1  <font color=\"%2\">·  set aside for your music</font>").arg(chip.label).arg(Theme.faint)
         color: Theme.cream
         font.family: Theme.font
         font.pixelSize: Metrics.fontSubtitle * chip.s

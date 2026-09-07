@@ -31,9 +31,9 @@ Item {
 
     // Adding a feature is one row here plus one branch in the Loader below.
     readonly property var tabs: [
-        { id: "chat", icon: "forum", label: qsTr("Chat") },
-        { id: "usage", icon: "insights", label: qsTr("Usage") },
-        { id: "tools", icon: "download", label: qsTr("Tools") }
+        { id: "chat", icon: "forum", label: I18n.tr("Chat") },
+        { id: "usage", icon: "insights", label: I18n.tr("Usage") },
+        { id: "tools", icon: "download", label: I18n.tr("Tools") }
     ]
     property string activeTab: "chat"
 

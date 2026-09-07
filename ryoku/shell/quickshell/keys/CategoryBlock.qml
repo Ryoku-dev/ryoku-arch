@@ -32,7 +32,7 @@ Column {
             }
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: block.name
+                text: I18n.tr(block.name)
                 color: Tokens.ink
                 font.family: Tokens.ui
                 font.pixelSize: Tokens.fMicro

@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"ryoku-cli/internal/sys"
 	"strings"
+
+	i18n "ryoku-i18n"
 )
 
 // The user overlay (~/.config/ryoku/user_edits) is where a user's config edits
@@ -30,40 +32,40 @@ func reconcileUserEdits(checkOnly bool) recResult {
 		}
 	}
 	if !needGuide && len(stale) == 0 {
-		return okRes("overlay is set up")
+		return okRes(i18n.T("overlay is set up"))
 	}
 	if checkOnly {
 		if len(stale) > 0 {
-			return wouldRes("a stale overlay copy of %s overrides your live edits on every update", strings.Join(stale, ", ")).
-				withFix("ryoku doctor moves it back out so the live file is the only copy")
+			return wouldRes(i18n.T("a stale overlay copy of %s overrides your live edits on every update"), strings.Join(stale, ", ")).
+				withFix(i18n.T("ryoku doctor moves it back out so the live file is the only copy"))
 		}
-		return wouldRes("the overlay is missing its how-to guide").
-			withFix("ryoku doctor writes %s", guide)
+		return wouldRes(i18n.T("the overlay is missing its how-to guide")).
+			withFix(i18n.T("ryoku doctor writes %s"), guide)
 	}
 	if err := os.MkdirAll(edits, 0o755); err != nil {
-		return failRes("could not create the overlay dir %s: %v", edits, err)
+		return failRes(i18n.T("could not create the overlay dir %s: %v"), edits, err)
 	}
 
 	var did []string
 	if needGuide {
 		if err := os.WriteFile(guide, []byte(userEditsGuide), 0o644); err != nil {
-			return failRes("could not write the overlay guide: %v", err).withFix("ryoku doctor")
+			return failRes(i18n.T("could not write the overlay guide: %v"), err).withFix("ryoku doctor")
 		}
-		did = append(did, "wrote the guide")
+		did = append(did, i18n.T("wrote the guide"))
 	}
 	var freed []string
 	for _, rel := range stale {
 		if err := retireOverlayCopy(rel, cfg, edits); err != nil {
-			return failRes("could not move %s out of the overlay: %v", rel, err).
-				withFix("move ~/.config/ryoku/user_edits/%s to ~/.config/%s by hand", rel, rel)
+			return failRes(i18n.T("could not move %s out of the overlay: %v"), rel, err).
+				withFix(i18n.T("move ~/.config/ryoku/user_edits/%s to ~/.config/%s by hand"), rel, rel)
 		}
 		freed = append(freed, rel)
 	}
 	if len(freed) > 0 {
-		did = append(did, "stopped the overlay from overriding your live "+strings.Join(freed, ", "))
+		did = append(did, i18n.Tf("stopped the overlay from overriding your live %s", strings.Join(freed, ", ")))
 	}
 	if len(did) == 0 {
-		return okRes("overlay is set up")
+		return okRes(i18n.T("overlay is set up"))
 	}
 	return fixedRes("%s", strings.Join(did, "; "))
 }

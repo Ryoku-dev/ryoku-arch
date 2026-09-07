@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 const qtCoreLib = "/usr/lib/libQt6Core.so.6"
@@ -21,7 +23,7 @@ func reconcileQuickshell(checkOnly bool) recResult {
 	bin, err := exec.LookPath("qs")
 	if err != nil {
 		if _, err := exec.LookPath("quickshell"); err != nil {
-			return warnRes("quickshell is not installed, so no Ryoku surface can render").
+			return warnRes(i18n.T("quickshell is not installed, so no Ryoku surface can render")).
 				withFix("sudo pacman -S quickshell")
 		}
 		bin = "quickshell"
@@ -34,51 +36,51 @@ func reconcileQuickshell(checkOnly bool) recResult {
 	if runErr == nil {
 		switch {
 		case foreign && qtNewerThan(bin):
-			return noteRes("quickshell comes from %s, built before the installed Qt; a Qt update can stop it loading", owner).
-				withFix("sudo pacman -S quickshell takes the repository build, which is rebuilt with Qt")
+			return noteRes(i18n.T("quickshell comes from %s, built before the installed Qt; a Qt update can stop it loading"), owner).
+				withFix(i18n.T("sudo pacman -S quickshell takes the repository build, which is rebuilt with Qt"))
 		case foreign:
-			return noteRes("quickshell comes from %s; an AUR build has to be rebuilt on every Qt update", owner)
+			return noteRes(i18n.T("quickshell comes from %s; an AUR build has to be rebuilt on every Qt update"), owner)
 		}
-		return okRes("quickshell runs")
+		return okRes(i18n.T("quickshell runs"))
 	}
 
 	reason := loaderFailure(out)
 	if reason == "" {
-		return warnRes("quickshell will not start: %s", firstLine(out)).
-			withFix("run `qs --version` to see the error in full")
+		return warnRes(i18n.T("quickshell will not start: %s"), firstLine(out)).
+			withFix(i18n.T("run `qs --version` to see the error in full"))
 	}
 
 	// A QML module built locally (a plugin under development, Ryoku.Blobs on a
 	// dev box) breaks the same way, and that one is ours to move.
 	if mod := staleQmlModule(out); mod != "" {
 		if checkOnly {
-			return wouldRes("the QML module %s was built against another Qt and stops the desktop loading", filepath.Base(mod)).
-				withFix("ryoku doctor moves it aside; `ryoku deploy` rebuilds it against this Qt")
+			return wouldRes(i18n.T("the QML module %s was built against another Qt and stops the desktop loading"), filepath.Base(mod)).
+				withFix(i18n.T("ryoku doctor moves it aside; `ryoku deploy` rebuilds it against this Qt"))
 		}
 		if err := os.Rename(mod, mod+".stale"); err != nil {
-			return failRes("could not move the stale QML module %s aside: %v", mod, err).
-				withFix("delete it by hand, then run `ryoku deploy`")
+			return failRes(i18n.T("could not move the stale QML module %s aside: %v"), mod, err).
+				withFix(i18n.T("delete it by hand, then run `ryoku deploy`"))
 		}
-		return fixedRes("moved the stale QML module %s aside; `ryoku deploy` rebuilds it", filepath.Base(mod))
+		return fixedRes(i18n.T("moved the stale QML module %s aside; `ryoku deploy` rebuilds it"), filepath.Base(mod))
 	}
 
 	if !foreign {
-		return warnRes("quickshell will not start: %s", reason).
-			withFix("sudo pacman -Syu (the renderer and Qt are from different updates)")
+		return warnRes(i18n.T("quickshell will not start: %s"), reason).
+			withFix(i18n.T("sudo pacman -Syu (the renderer and Qt are from different updates)"))
 	}
 	if checkOnly {
-		return wouldRes("quickshell (%s) was built against another Qt and will not start: %s", owner, reason).
-			withFix("ryoku doctor installs the repository build, which is rebuilt with Qt")
+		return wouldRes(i18n.T("quickshell (%s) was built against another Qt and will not start: %s"), owner, reason).
+			withFix(i18n.T("ryoku doctor installs the repository build, which is rebuilt with Qt"))
 	}
 	if err := sys.Sudo("pacman", "-S", "--needed", "--noconfirm", "quickshell"); err != nil {
-		return failRes("could not replace %s with the repository quickshell: %v", owner, err).
-			withFix("sudo pacman -S quickshell, then restart the shell")
+		return failRes(i18n.T("could not replace %s with the repository quickshell: %v"), owner, err).
+			withFix(i18n.T("sudo pacman -S quickshell, then restart the shell"))
 	}
 	if _, err := quickshellVersion(bin); err != nil {
-		return failRes("quickshell still will not start after taking the repository build").
-			withFix("sudo pacman -Syu, then log out and back in")
+		return failRes(i18n.T("quickshell still will not start after taking the repository build")).
+			withFix(i18n.T("sudo pacman -Syu, then log out and back in"))
 	}
-	return fixedRes("replaced %s with the repository quickshell; restart the shell to get the desktop back", owner)
+	return fixedRes(i18n.T("replaced %s with the repository quickshell; restart the shell to get the desktop back"), owner)
 }
 
 // Running it is the only honest test: the break is a link failure, invisible to

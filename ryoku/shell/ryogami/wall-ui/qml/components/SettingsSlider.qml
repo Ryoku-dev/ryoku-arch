@@ -1,5 +1,6 @@
 import QtQuick
 import ".."
+import Ryoku.Ui.Singletons
 
 // Ryoku slider: orthogonal, a neutral ink-tint track with an accent fill and an
 // ink thumb; the label sits left, the signed value right. onChange fires while
@@ -32,7 +33,7 @@ Column {
         height: 15 * Config.uiScale
         Text {
             anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
-            text: root.label
+            text: I18n.tr(root.label)
             font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale; font.weight: Font.Medium
             color: root._inkDim
         }

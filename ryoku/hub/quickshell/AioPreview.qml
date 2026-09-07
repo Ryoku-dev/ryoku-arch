@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Shapes
+import Ryoku.Ui.Singletons
 
 /**
  * A plain-QML preview of the all-in-one desktop face for the Desktop Widgets
@@ -86,7 +87,7 @@ Item {
             }
             Text {
                 x: 150; y: 128
-                text: "Clear"; color: w.dim
+                text: I18n.tr("Clear"); color: w.dim
                 font.family: "Inter Display"; font.pixelSize: 24; font.weight: Font.Medium
             }
 

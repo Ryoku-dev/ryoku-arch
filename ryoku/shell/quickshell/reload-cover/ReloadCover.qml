@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
+import Ryoku.Ui.Singletons
 
 PanelWindow {
     id: cover
@@ -123,7 +124,7 @@ PanelWindow {
         anchors.top: parent.verticalCenter
         anchors.topMargin: media.defaultLogoHeight / 2 + 18
         visible: cover.phase !== "failed" && media.showingDefault && cover.mediaOpacity > 0
-        text: "SHELL RELOADING"
+        text: I18n.tr("SHELL RELOADING")
         color: "#d8e8f5"
         opacity: cover.mediaOpacity * 0.72
         font.family: "JetBrainsMono Nerd Font"
@@ -135,7 +136,7 @@ PanelWindow {
         anchors.top: parent.verticalCenter
         anchors.topMargin: media.defaultLogoHeight / 2 + 28
         visible: cover.phase === "failed"
-        text: "RELOAD FAILED"
+        text: I18n.tr("RELOAD FAILED")
         color: "#ff735d"
         font.family: "JetBrainsMono Nerd Font"
         font.pixelSize: 14

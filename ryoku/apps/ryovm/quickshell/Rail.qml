@@ -19,8 +19,8 @@ Item {
     width: Tokens.railW
 
     readonly property var groups: [
-        { name: "OVERVIEW", items: [ { key: "dashboard", name: "Dashboard" } ] },
-        { name: "FLEET", items: [ { key: "machines", name: "Machines" }, { key: "remotes", name: "Remotes" }, { key: "passthrough", name: "Looking Glass" } ] }
+        { name: I18n.tr("OVERVIEW"), items: [ { key: "dashboard", name: I18n.tr("Dashboard") } ] },
+        { name: I18n.tr("FLEET"), items: [ { key: "machines", name: I18n.tr("Machines") }, { key: "remotes", name: I18n.tr("Remotes") }, { key: "passthrough", name: I18n.tr("Looking Glass") } ] }
     ]
     readonly property var jpName: ({ "dashboard": "一覧", "machines": "仮想", "remotes": "遠隔", "passthrough": "透過" })
 
@@ -52,7 +52,7 @@ Item {
                         font.pixelSize: 14; font.weight: Font.Medium; font.letterSpacing: 2.4
                     }
                     Text {
-                        text: "//HARBOUR_"; color: Tokens.inkMuted
+                        text: I18n.tr("//HARBOUR_"); color: Tokens.inkMuted
                         font.family: Tokens.mono; font.pixelSize: 10; font.letterSpacing: 1.4
                     }
                 }

@@ -1,6 +1,7 @@
 import QtQuick
 import "../.."
 import "../../components"
+import Ryoku.Ui.Singletons
 
 Flow {
     id: root
@@ -13,13 +14,13 @@ Flow {
 
     SettingsCard {
         colors: root.colors
-        title: "Grid"
+        title: I18n.tr("Grid")
         width: (parent.width - parent.spacing) / 2
 
         RowInput {
             colors: root.colors
-            title: "Columns"
-            description: "Number of thumbnails per row."
+            title: I18n.tr("Columns")
+            description: I18n.tr("Number of thumbnails per row.")
             value: Config.wallhavenColumns
             min: 2; max: 12
             onCommit: function(v) { if (root.saveField) root.saveField("wallhavenColumns", v) }
@@ -27,8 +28,8 @@ Flow {
 
         RowInput {
             colors: root.colors
-            title: "Rows"
-            description: "Number of rows visible at once."
+            title: I18n.tr("Rows")
+            description: I18n.tr("Number of rows visible at once.")
             value: Config.wallhavenRows
             min: 1; max: 10
             onCommit: function(v) { if (root.saveField) root.saveField("wallhavenRows", v) }
@@ -37,13 +38,13 @@ Flow {
 
     SettingsCard {
         colors: root.colors
-        title: "Thumbnail"
+        title: I18n.tr("Thumbnail")
         width: (parent.width - parent.spacing) / 2
 
         RowInput {
             colors: root.colors
-            title: "Width"
-            description: "Thumbnail width in pixels."
+            title: I18n.tr("Width")
+            description: I18n.tr("Thumbnail width in pixels.")
             value: Config.wallhavenThumbWidth
             min: 100; max: 600
             onCommit: function(v) { if (root.saveField) root.saveField("wallhavenThumbWidth", v) }
@@ -51,8 +52,8 @@ Flow {
 
         RowInput {
             colors: root.colors
-            title: "Height"
-            description: "Thumbnail height in pixels."
+            title: I18n.tr("Height")
+            description: I18n.tr("Thumbnail height in pixels.")
             value: Config.wallhavenThumbHeight
             min: 60; max: 600
             onCommit: function(v) { if (root.saveField) root.saveField("wallhavenThumbHeight", v) }
@@ -61,15 +62,15 @@ Flow {
 
     SettingsCard {
         colors: root.colors
-        title: "API"
+        title: I18n.tr("API")
         width: parent.width
 
         RowTextInput {
             colors: root.colors
-            title: "API key"
-            description: "Wallhaven API key (required for NSFW content)."
+            title: I18n.tr("API key")
+            description: I18n.tr("Wallhaven API key (required for NSFW content).")
             value: Config.wallhavenApiKey
-            placeholder: "Wallhaven API key (for NSFW)"
+            placeholder: I18n.tr("Wallhaven API key (for NSFW)")
             onCommit: function(v) { if (root.saveConfigKey) root.saveConfigKey("wallhaven.apiKey", v) }
         }
     }

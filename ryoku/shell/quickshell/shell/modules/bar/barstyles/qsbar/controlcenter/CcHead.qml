@@ -29,7 +29,7 @@ Item {
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.topMargin: head.tk ? head.tk.gap / 2 : 6
-        text: "QS BAR // SETTINGS"
+        text: I18n.tr("QS BAR // SETTINGS")
         color: Tokens.inkFaint
         font.family: Tokens.mono
         font.pixelSize: Tokens.fMicro

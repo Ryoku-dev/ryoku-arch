@@ -126,7 +126,7 @@ PanelWindow {
                 UiText {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    text: I18n.tr("CPU")
+                    text: "CPU"
                     color: root.ink
                     font.family: root.mono
                     font.pixelSize: 13
@@ -137,7 +137,7 @@ PanelWindow {
                     anchors.right: closeText.left
                     anchors.rightMargin: 16
                     anchors.verticalCenter: parent.verticalCenter
-                    text: I18n.tr("KERNEL ") + root.kernelRelease
+                    text: I18n.tr("KERNEL %1").arg(root.kernelRelease)
                     color: root.sumiHi
                     font.family: root.mono
                     font.pixelSize: 9
@@ -246,7 +246,7 @@ PanelWindow {
             InfoRow { label: I18n.tr("Power mode"); value: cpuPanel.powerMode }
             InfoRow {
                 label: I18n.tr("Throttling")
-                value: root.cpuThrottleCount > 0 ? root.cpuThrottleCount + " events" : ""
+                value: root.cpuThrottleCount > 0 ? I18n.tr("%1 events").arg(root.cpuThrottleCount) : ""
                 valueColor: root.sealRaw
             }
 
@@ -267,7 +267,7 @@ PanelWindow {
                 UiText {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    text: I18n.tr("CPU")
+                    text: "CPU"
                     color: root.sumi
                     font.family: root.mono
                     font.pixelSize: 9

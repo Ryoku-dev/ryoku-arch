@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"strconv"
 	"time"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: a wedged PipeWire stack ------------------------------------
@@ -37,24 +39,24 @@ func pipewireRunning() bool {
 
 func reconcileAudioService(checkOnly bool) recResult {
 	if _, err := exec.LookPath("wpctl"); err != nil {
-		return okRes("wpctl absent, nothing to check")
+		return okRes(i18n.T("wpctl absent, nothing to check"))
 	}
 	if wpctlResponds() {
-		return okRes("PipeWire is responding")
+		return okRes(i18n.T("PipeWire is responding"))
 	}
 	if !pipewireRunning() {
-		return okRes("no PipeWire session to recover")
+		return okRes(i18n.T("no PipeWire session to recover"))
 	}
 	// pipewire is up but unreachable -> wedged.
 	if checkOnly {
-		return wouldRes("PipeWire is running but not responding").withFix("ryoku-restart-audio")
+		return wouldRes(i18n.T("PipeWire is running but not responding")).withFix("ryoku-restart-audio")
 	}
 	if _, err := exec.LookPath("ryoku-restart-audio"); err != nil {
-		return warnRes("PipeWire is wedged and ryoku-restart-audio is not installed").withFix("ryoku-restart-audio")
+		return warnRes(i18n.T("PipeWire is wedged and ryoku-restart-audio is not installed")).withFix("ryoku-restart-audio")
 	}
 	_ = exec.Command("ryoku-restart-audio").Run()
 	if wpctlResponds() {
-		return fixedRes("restarted the audio stack; PipeWire is responding again")
+		return fixedRes(i18n.T("restarted the audio stack; PipeWire is responding again"))
 	}
-	return warnRes("restarted the audio services but PipeWire still is not responding").withFix("ryoku-restart-audio")
+	return warnRes(i18n.T("restarted the audio services but PipeWire still is not responding")).withFix("ryoku-restart-audio")
 }

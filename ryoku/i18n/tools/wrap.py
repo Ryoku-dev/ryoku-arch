@@ -13,8 +13,8 @@ the QML AST, not regex:
     skipped, so display/value coupling (tabs, chips) is never broken;
   - already-wrapped strings are inside a call, so a rerun is idempotent.
 
-  python3 i18n-wrap.py --dry-run <files...>
-  python3 i18n-wrap.py <files...>
+  python3 wrap.py --dry-run <files...>
+  python3 wrap.py <files...>
 """
 import json
 import re
@@ -27,16 +27,46 @@ from tree_sitter import Language, Parser
 LANG = Language(tsqml.language())
 PARSER = Parser(LANG)
 
+# A property whose value is displayed. Named ones first, then a suffix rule: a
+# codebase this size invents one-off display properties per component
+# (armedLabel, stateLabel, cellDesc, pickTitle), and enumerating them all is a
+# list that goes stale. The suffixes below only ever name copy; anything whose
+# value is not copy (objectName, fontFamily, fragmentShader, versionQuery) is
+# excluded by name, and looks_non_ui() still filters the value itself.
 UI_PROPS = {
     "text", "label", "desc", "caption", "placeholder", "blurb", "eyebrow",
     "title", "sub", "subtitle", "heading", "quote", "motto", "hint", "tooltip",
     "message", "note", "cleanText", "savingText", "header", "subhead", "summary",
     "detail", "prompt", "emptyText", "pTitle", "pEyebrow", "pBlurb",
+    "description", "cap", "unit", "action", "toast", "banner", "legend",
 }
+UI_SUFFIXES = ("Label", "Text", "Title", "Desc", "Caption", "Hint", "Tooltip",
+               "Placeholder", "Message", "Summary", "Note", "Prompt", "Heading",
+               "Blurb", "Eyebrow", "Subtitle", "Header")
+# properties that end in a display suffix but hold a resource, an id or a font.
+NOT_UI_PROPS = {
+    "objectName", "fontFamily", "fragmentShader", "vertexShader", "versionQuery",
+    "iconText", "glyphText", "shaderText",
+}
+
+
+def is_ui_prop(name):
+    if not name or name in NOT_UI_PROPS:
+        return False
+    return name in UI_PROPS or name.endswith(UI_SUFFIXES)
+
+
 KEYBIND = re.compile(r"^[A-Za-z0-9]+(\s*\+\s*[A-Za-z0-9]+)+$")  # SUPER + J
 
 
+# QML accepts ES6 \u{1F600} escapes, which json.loads does not; left unhandled a
+# Nerd Font glyph literal decodes to the raw source text and its "u" and hex
+# letters read as English.
+ES6_ESCAPE = re.compile(r"\\u\{([0-9a-fA-F]+)\}")
+
+
 def _unescape(lit):
+    lit = ES6_ESCAPE.sub(lambda m: chr(int(m.group(1), 16)), lit)
     try:
         return json.loads('"' + lit.replace('"', '\\"') + '"')
     except Exception:
@@ -47,16 +77,36 @@ def is_brand(s):
     return any(ord(c) >= 0x3000 for c in s)           # CJK / kana / kanji
 
 
+# Words that read as English but must never change language: the product's own
+# name, a key's engraving, and a unit or column head whose "translation" would
+# be wrong in every locale. Kept in step with sync.py's VERBATIM, which stops
+# the same strings reaching the catalog from Go and shell.
+VERBATIM = {"RYOKU", "Ryoku", "ryoku", "Super", "SUPER", "Shift", "Ctrl", "Alt",
+            "Meta", "Hyper", "Enter", "Esc", "Tab", "Fn", "AM", "PM",
+            "GB", "MB", "KB", "TB", "KiB", "MiB", "GiB", "Hz", "kHz", "MHz",
+            "GHz", "ms", "px", "dpi", "fps", "W", "mW", "V", "mV",
+            "RX", "TX", "IP", "OS", "WM", "FG", "WE", "CPU", "GPU", "RAM",
+            "\u00b0C", "\u00b0F", "CR", "CW", "P1", "P2"}
+# a Material Symbols / Nerd Font icon name sits in a Text.text like copy does.
+ICON_NAME = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)+$")
+
+
 def looks_non_ui(s):
     t = s.strip()
     if not t or not any(c.isalpha() and ord(c) < 0x80 for c in t):
         return True                                   # no ascii letter (glyphs, symbols)
+    if len(t) < 2:
+        return True                                   # an axis mark or a keycap
+    if t in VERBATIM:
+        return True
     if t.startswith("#") or t.startswith("/") or "://" in t:
         return True
     if t.startswith("qrc") or t.endswith(".qml") or t.endswith(".js"):
         return True
     if KEYBIND.match(t):
         return True                                   # a keybind syntax example
+    if ICON_NAME.match(t):
+        return True                                   # snake_case icon glyph name
     if " " not in t and t == t.lower() and len(t) <= 14 and t.isascii() and t.replace("_", "").replace("-", "").isalnum():
         return True                                   # lowercase single token = enum/id
     return False
@@ -159,7 +209,7 @@ def collect(src, text):
         if n.type in ("ui_binding", "ui_property"):
             name = prop_name(n)
             val = value_node(n)
-            if name in UI_PROPS and val is not None:
+            if is_ui_prop(name) and val is not None:
                 for sn in strings_in(val):
                     if sn.start_byte in seen:
                         continue
@@ -211,7 +261,7 @@ def process(path, dry):
     txt = out.decode()
     if not has_import(txt):
         txt = add_import(txt)
-    open(path, "w").write(txt)
+    open(path, "w", encoding="utf-8").write(txt)
     return len(hits)
 
 

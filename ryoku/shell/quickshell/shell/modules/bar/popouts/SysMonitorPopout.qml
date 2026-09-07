@@ -4,6 +4,7 @@ import QtQuick
 import ".."
 import shell.services
 import "../../../components"
+import Ryoku.Ui.Singletons
 
 // System monitor popout: a frame-edge card (shared PopoutCard, so it opens and
 // melts like the bluetooth/battery/network cards) with CPU / memory / (when a
@@ -33,7 +34,7 @@ Item {
         spacing: 12 * root.s
 
         Text {
-            text: qsTr("SYSTEM")
+            text: I18n.tr("SYSTEM")
             color: root.inkDim
             font.family: Theme.mono
             font.pixelSize: 9 * root.s

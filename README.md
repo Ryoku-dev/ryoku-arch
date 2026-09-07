@@ -230,16 +230,23 @@ place as a fallback, so you keep the choice of what to boot. Full details in
 
 ## Updating
 
-Everything updates through one command:
+Ryoku updates its own layer, and leaves the rest of the system to you:
 
 ```bash
-ryoku update
+ryoku update          # the Ryoku packages, the configs, the doctor
+sudo pacman -Syu      # your distribution: the base system and its kernel
 ```
 
-It takes a snapshot, runs the package transactions (`pacman -Syu` against the
-official repos and the signed `[ryoku]` repo, then `yay` for the AUR), re-lays
-the desktop configs into your home, reloads the shell, and takes a paired
-post-snapshot. A failed package step aborts before anything else changes.
+`ryoku update` takes a snapshot, moves the packages the signed `[ryoku]` repo
+serves (by name, never a full sysupgrade), re-lays the desktop configs into your
+home, reloads the shell, and takes a paired post-snapshot. A failed package step
+aborts before anything else changes.
+
+The kernel is deliberately not part of that. Ryoku runs on Arch or on the
+CachyOS kernel, publishes neither, and never picks the moment your boot image is
+rebuilt: `sudo pacman -Syu` does that, when you say so. Every `ryoku update`
+tells you how many system packages are waiting, and `ryoku update --system`
+runs both in one go if you prefer that.
 
 The desktop ships from the `[ryoku]` pacman repository, signed by the release key
 and trusted through the `ryoku-keyring` package, so updates are verified the same

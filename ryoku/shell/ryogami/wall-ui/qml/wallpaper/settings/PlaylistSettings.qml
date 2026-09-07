@@ -4,6 +4,7 @@ import ".."
 import "../.."
 import "../../components"
 import "../../services"
+import Ryoku.Ui.Singletons
 
 // Playlists settings tab: reimplements skwd-wall V2's playlists panel
 // (src/frontend/playlists). Index of playlists + a detail editor (name, dwell,
@@ -94,7 +95,7 @@ Flow {
   // ---- index card ----
   SettingsCard {
     colors: root.colors
-    title: "Playlists"
+    title: I18n.tr("Playlists")
     width: (parent.width - parent.spacing) * 0.42
 
     // Stacked creator: label above a full-width field. The stock RowTextInput
@@ -114,7 +115,7 @@ Flow {
         spacing: 4 * Config.uiScale
 
         Text {
-          text: "New playlist"
+          text: I18n.tr("New playlist")
           font.family: Style.fontFamily
           font.pixelSize: 12 * Config.uiScale
           font.weight: Font.Medium
@@ -172,7 +173,7 @@ Flow {
             Text {
               anchors.fill: parent
               verticalAlignment: Text.AlignVCenter
-              text: "Name, then Enter"
+              text: I18n.tr("Name, then Enter")
               font: parent.font
               color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.3) : Qt.rgba(1, 1, 1, 0.2)
               visible: !parent.text && !parent.activeFocus
@@ -187,7 +188,7 @@ Flow {
       RowAction {
         colors: root.colors
         title: (root._selected === modelData.id ? "\u25B8  " : "") + modelData.name
-        description: (modelData.kind === "smart" ? "Smart" : "Curated") + " \u00B7 " + modelData.count + " items"
+        description: I18n.tr("%1 · %2 items").arg(modelData.kind === "smart" ? I18n.tr("Smart") : I18n.tr("Curated")).arg(modelData.count)
         valueLabel: root._outputsFor(modelData.id)
         onClicked: root.select(modelData.id)
       }
@@ -195,7 +196,7 @@ Flow {
 
     Text {
       visible: root._lists.length === 0
-      text: "No playlists yet. Create one above."
+      text: I18n.tr("No playlists yet. Create one above.")
       font.family: Style.fontFamily
       font.pixelSize: 11 * Config.uiScale
       color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.5) : Qt.rgba(1, 1, 1, 0.4)
@@ -206,7 +207,7 @@ Flow {
     var n = 0
     for (var i = 0; i < root._assignments.length; i++)
       if (root._assignments[i].id === id) n++
-    return n > 0 ? (n + (n === 1 ? " screen" : " screens")) : ""
+    return n > 0 ? (n === 1 ? I18n.tr("%1 screen").arg(n) : I18n.tr("%1 screens").arg(n)) : ""
   }
 
   // ---- detail card ----
@@ -215,19 +216,19 @@ Flow {
     colors: root.colors
     visible: root._selected >= 0
     property var pl: root._byId(root._selected)
-    title: pl ? pl.name : "Details"
+    title: pl ? pl.name : I18n.tr("Details")
     width: (parent.width - parent.spacing) * 0.55
 
     RowTextInput {
       colors: root.colors
-      title: "Name"
+      title: I18n.tr("Name")
       value: detail.pl ? detail.pl.name : ""
       onCommit: function(v) { if (v && v.trim() !== "") root._call("playlist.update", { id: root._selected, field: "name", value: v.trim() }) }
     }
 
     RowInput {
       colors: root.colors
-      title: "Dwell"
+      title: I18n.tr("Dwell")
       suffix: " s"
       min: 5; max: 86400
       value: detail.pl ? detail.pl.dwell : 300
@@ -236,8 +237,8 @@ Flow {
 
     RowDropdown {
       colors: root.colors
-      title: "Kind"
-      model: [ { mode: "curated", label: "Curated" }, { mode: "smart", label: "Smart" } ]
+      title: I18n.tr("Kind")
+      model: [ { mode: "curated", label: I18n.tr("Curated") }, { mode: "smart", label: I18n.tr("Smart") } ]
       value: detail.pl ? (detail.pl.kind || "curated") : "curated"
       onSelect: function(v) { root._call("playlist.update", { id: root._selected, field: "kind", value: v }) }
     }
@@ -245,20 +246,20 @@ Flow {
     RowTextInput {
       visible: detail.pl && detail.pl.kind === "smart"
       colors: root.colors
-      title: "Query"
-      placeholder: "Match by name"
+      title: I18n.tr("Query")
+      placeholder: I18n.tr("Match by name")
       value: detail.pl && detail.pl.source ? detail.pl.source : ""
       onCommit: function(v) { root._call("playlist.update", { id: root._selected, field: "source", value: v || "" }) }
     }
 
-    SectionTitle { colors: root.colors; text: "OUTPUTS" }
+    SectionTitle { colors: root.colors; text: I18n.tr("OUTPUTS") }
 
     Repeater {
       model: root._outputs
       RowToggle {
         colors: root.colors
         title: modelData
-        description: "Rotate this playlist on " + modelData
+        description: I18n.tr("Rotate this playlist on %1").arg(modelData)
         checked: root._assignedTo(modelData) === root._selected
         onToggle: function(v) { root._call("playlist.toggle", { output: modelData, id: root._selected }) }
       }
@@ -266,7 +267,7 @@ Flow {
 
     Text {
       visible: root._outputs.length === 0
-      text: "No outputs detected."
+      text: I18n.tr("No outputs detected.")
       font.family: Style.fontFamily
       font.pixelSize: 11 * Config.uiScale
       color: root.colors ? Qt.rgba(root.colors.surfaceText.r, root.colors.surfaceText.g, root.colors.surfaceText.b, 0.5) : Qt.rgba(1, 1, 1, 0.4)
@@ -274,7 +275,7 @@ Flow {
 
     SectionTitle {
       colors: root.colors
-      text: "MEMBERS"
+      text: I18n.tr("MEMBERS")
       visible: detail.pl && detail.pl.kind !== "smart"
     }
 
@@ -323,7 +324,7 @@ Flow {
     FilterButton {
       visible: detail.pl && detail.pl.kind !== "smart"
       colors: root.colors
-      label: root._adding ? "DONE ADDING" : "+ ADD WALLPAPERS"
+      label: root._adding ? I18n.tr("DONE ADDING") : I18n.tr("+ ADD WALLPAPERS")
       skew: 8
       onClicked: {
         root._adding = !root._adding
@@ -381,19 +382,19 @@ Flow {
       }
     }
 
-    SectionTitle { colors: root.colors; text: "ACTIONS" }
+    SectionTitle { colors: root.colors; text: I18n.tr("ACTIONS") }
 
     RowAction {
       colors: root.colors
-      title: "Play now"
-      description: "Apply the current wallpaper immediately."
+      title: I18n.tr("Play now")
+      description: I18n.tr("Apply the current wallpaper immediately.")
       valueLabel: "\u25B6"
       onClicked: DaemonClient.call("playlist.play_now", { id: root._selected }, function() {})
     }
 
     FilterButton {
       colors: root.colors
-      label: "DELETE PLAYLIST"
+      label: I18n.tr("DELETE PLAYLIST")
       skew: 8
       hasActiveColor: true
       activeColor: "#c62828"

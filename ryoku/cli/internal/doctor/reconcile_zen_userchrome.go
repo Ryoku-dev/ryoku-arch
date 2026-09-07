@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 //go:embed ryoku_animations.css
@@ -21,15 +23,15 @@ const zenAnimSheetName = "ryoku-animations.css"
 func reconcileZenUserChrome(checkOnly bool) recResult {
 	home := homeDir()
 	if home == "" {
-		return okRes("no HOME")
+		return okRes(i18n.T("no HOME"))
 	}
 	zenRoot := filepath.Join(home, ".config", "zen")
 	if !sys.Exists(zenRoot) {
-		return okRes("no Zen present")
+		return okRes(i18n.T("no Zen present"))
 	}
 	profiles := zenProfileDirs(zenRoot)
 	if len(profiles) == 0 {
-		return okRes("no Zen profile")
+		return okRes(i18n.T("no Zen profile"))
 	}
 
 	var pending, did []string
@@ -47,24 +49,24 @@ func reconcileZenUserChrome(checkOnly bool) recResult {
 			continue
 		}
 		if err := os.MkdirAll(chromeDir, 0o755); err != nil {
-			return failRes("could not create %s: %v", chromeDir, err)
+			return failRes(i18n.T("could not create %s: %v"), chromeDir, err)
 		}
 		if err := os.WriteFile(sheet, zenAnimationsCSS, 0o644); err != nil {
-			return failRes("could not write the Ryoku animation sheet: %v", err)
+			return failRes(i18n.T("could not write the Ryoku animation sheet: %v"), err)
 		}
 		if err := ensureUserChromeImport(userCSS); err != nil {
-			return failRes("could not update userChrome.css for %s: %v", name, err)
+			return failRes(i18n.T("could not update userChrome.css for %s: %v"), name, err)
 		}
 		did = append(did, name)
 	}
 
 	switch {
 	case checkOnly && len(pending) > 0:
-		return wouldRes("install browser animations for Zen profile: %s", strings.Join(pending, ", "))
+		return wouldRes(i18n.T("install browser animations for Zen profile: %s"), strings.Join(pending, ", "))
 	case len(did) > 0:
-		return fixedRes("installed browser animations for Zen profile: %s", strings.Join(did, ", "))
+		return fixedRes(i18n.T("installed browser animations for Zen profile: %s"), strings.Join(did, ", "))
 	default:
-		return okRes("browser animations installed")
+		return okRes(i18n.T("browser animations installed"))
 	}
 }
 

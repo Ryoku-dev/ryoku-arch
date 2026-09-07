@@ -47,7 +47,7 @@ Item {
         Text {
             id: rL
             anchors.centerIn: parent
-            text: I18n.tr("Radius ") + Math.round(handles.rad)
+            text: I18n.tr("Radius %1").arg(Math.round(handles.rad))
             color: Theme.onSurface
             font.family: Theme.mono
             font.pixelSize: 11 * handles.us

@@ -121,7 +121,7 @@ PanelWindow {
                         UiText {
                             anchors.left: parent.left; anchors.leftMargin: 10
                             anchors.verticalCenter: parent.verticalCenter
-                            text: I18n.tr("Workspace ") + modelData.id
+                            text: I18n.tr("Workspace %1").arg(modelData.id)
                             color: (ma.containsMouse || isActive) ? root.seal : root.ink
                             font.family: root.mono; font.pixelSize: 12
                             font.weight: isActive ? Font.Medium : Font.Normal

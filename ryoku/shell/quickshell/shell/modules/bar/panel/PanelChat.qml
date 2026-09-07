@@ -486,7 +486,7 @@ Item {
                         anchors.leftMargin: 10 * root.s
                         anchors.rightMargin: 8 * root.s
                         anchors.verticalCenter: parent.verticalCenter
-                        text: (sRow.modelData.title && sRow.modelData.title.length) ? sRow.modelData.title : "untitled"
+                        text: (sRow.modelData.title && sRow.modelData.title.length) ? sRow.modelData.title : I18n.tr("untitled")
                         elide: Text.ElideRight
                         color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurface)
                         font.family: Theme.fontPrimary
@@ -666,7 +666,7 @@ Item {
                                         if (!req) return [];
                                         var opts = req.options.slice();
                                         var hasReject = opts.some((o) => String(o.kind || "").indexOf("reject") >= 0);
-                                        return hasReject ? opts : opts.concat([{ id: "", name: "Decline", kind: "reject" }]);
+                                        return hasReject ? opts : opts.concat([{ id: "", name: I18n.tr("Decline"), kind: "reject" }]);
                                     }
                                     delegate: Rectangle {
                                         id: permBtn
@@ -744,10 +744,10 @@ Item {
                             var parts = [];
                             for (var k in byKind)
                                 parts.push(byKind[k] + " " + k + (byKind[k] > 1 ? "s" : ""));
-                            var s = tools + " " + (tools === 1 ? "step" : "steps");
+                            var s = tools === 1 ? I18n.tr("%1 step").arg(tools) : I18n.tr("%1 steps").arg(tools);
                             if (parts.length) s += " · " + parts.join(", ");
-                            if (running) s += " · " + running + " running";
-                            if (failed) s += " · " + failed + " failed";
+                            if (running) s += " · " + I18n.tr("%1 running").arg(running);
+                            if (failed) s += " · " + I18n.tr("%1 failed").arg(failed);
                             return s;
                         }
 
@@ -835,7 +835,7 @@ Item {
                                     anchors.rightMargin: 6 * root.s
                                     anchors.top: parent.top
                                     text: actRow.isTool
-                                        ? ((actRow.modelData.title && actRow.modelData.title.length) ? actRow.modelData.title : (actRow.modelData.kind || "tool"))
+                                        ? ((actRow.modelData.title && actRow.modelData.title.length) ? actRow.modelData.title : (actRow.modelData.kind || I18n.tr("tool")))
                                         : (actRow.modelData.text || "")
                                     wrapMode: actRow.isTool ? Text.NoWrap : Text.Wrap
                                     maximumLineCount: actRow.isTool ? 1 : 3
@@ -959,7 +959,7 @@ Item {
                                                 anchors.left: parent.left
                                                 anchors.leftMargin: 10 * root.s
                                                 anchors.verticalCenter: parent.verticalCenter
-                                                text: (blk.modelData.lang && blk.modelData.lang.length) ? blk.modelData.lang : "code"
+                                                text: (blk.modelData.lang && blk.modelData.lang.length) ? blk.modelData.lang : I18n.tr("code")
                                                 color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
                                                 font.family: Theme.mono
                                                 font.pixelSize: 8 * root.s
@@ -1288,7 +1288,7 @@ Item {
                     Behavior on color { ColorAnimation { duration: Motion.fast } }
                     MaterialIcon {
                         anchors.centerIn: parent
-                        text: I18n.tr("add_photo_alternate")
+                        text: "add_photo_alternate"
                         font.pixelSize: 15 * root.s
                         color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
                     }
@@ -1316,7 +1316,7 @@ Item {
                         background: null
                         padding: 0
                         wrapMode: TextArea.Wrap
-                        placeholderText: "Message the needle"
+                        placeholderText: I18n.tr("Message the needle")
                         placeholderTextColor: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
                         color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurface)
                         selectionColor: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.35)

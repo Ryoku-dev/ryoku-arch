@@ -1,5 +1,6 @@
 import QtQuick
 import shell.services
+import Ryoku.Ui.Singletons
 
 // The Stage compose toolbar (docs/stage.md). Compose mode frees the widgets for
 // dragging; the knobs live in the sidebar, so this bar only names the gesture
@@ -30,7 +31,7 @@ Item {
             spacing: 16
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Drag widgets in front of or behind the subject. Right-click a widget for more."
+                text: I18n.tr("Drag widgets in front of or behind the subject. Right-click a widget for more.")
                 color: Theme.onSurfaceVariant
                 font.family: Theme.fontPrimary
                 font.pixelSize: Theme.fontSm - 1
@@ -41,7 +42,7 @@ Item {
                 height: 34
                 kind: "filled"
                 icon: "check"
-                label: "Done"
+                label: I18n.tr("Done")
                 onAct: bar.done()
             }
         }

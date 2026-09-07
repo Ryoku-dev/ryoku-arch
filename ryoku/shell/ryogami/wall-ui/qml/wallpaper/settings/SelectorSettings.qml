@@ -2,6 +2,7 @@ import QtQuick
 import ".."
 import "../.."
 import "../../components"
+import Ryoku.Ui.Singletons
 
 Flow {
     id: root
@@ -18,30 +19,30 @@ Flow {
 
     SettingsCard {
         colors: root.colors
-        title: "Layout"
+        title: I18n.tr("Layout")
         width: parent.width
 
         SettingsRow {
             colors: root.colors
-            title: "Display mode"
-            description: "Slices, Hex grid, Wall grid, or Mosaic."
+            title: I18n.tr("Display mode")
+            description: I18n.tr("Slices, Hex grid, Wall grid, or Mosaic.")
             Row {
                 spacing: 4
                 Repeater {
                     model: [
-                        { key: "slices",  label: "Slices" },
-                        { key: "hex",     label: "Hex" },
-                        { key: "wall",    label: "Wall" },
-                        { key: "mosaic",  label: "Mosaic" }
+                        { key: "slices",  label: I18n.tr("Slices") },
+                        { key: "hex",     label: I18n.tr("Hex") },
+                        { key: "wall",    label: I18n.tr("Wall") },
+                        { key: "mosaic",  label: I18n.tr("Mosaic") }
                     ]
                     FilterButton {
                         colors: root.colors
-                        label: modelData.label
+                        label: I18n.tr(modelData.label)
                         skew: 8 * Config.uiScale; height: 26 * Config.uiScale
                         isActive: Config.displayMode === modelData.key
                         onClicked: {
                             if (modelData.key === "mosaic" && Config.displayMode !== "mosaic" && root.showWarning)
-                                root.showWarning("MOSAIC IS EXPERIMENTAL", "Not all features work yet. Please do not expect everything to function correctly.")
+                                root.showWarning(I18n.tr("MOSAIC IS EXPERIMENTAL"), I18n.tr("Not all features work yet. Please do not expect everything to function correctly."))
                             if (root.saveField) root.saveField("displayMode", modelData.key)
                         }
                     }
@@ -52,8 +53,8 @@ Flow {
         SettingsRow {
             visible: Config.displayMode === "slices"
             colors: root.colors
-            title: "Size preset"
-            description: "Pick a quick slice size."
+            title: I18n.tr("Size preset")
+            description: I18n.tr("Pick a quick slice size.")
             Row {
                 spacing: 4
                 Repeater {
@@ -66,7 +67,7 @@ Flow {
                     ]
                     FilterButton {
                         colors: root.colors
-                        label: modelData.label
+                        label: I18n.tr(modelData.label)
                         skew: 8 * Config.uiScale; height: 26 * Config.uiScale
                         isActive: Config.wallpaperExpandedWidth === modelData.expanded && Config.wallpaperSliceHeight === modelData.sliceH
                         onClicked: if (root.applyPreset) root.applyPreset(modelData.expanded, modelData.sliceH, modelData.sliceW, modelData.visible, modelData.gap, modelData.skew)
@@ -78,8 +79,8 @@ Flow {
 
         SettingsRow {
             colors: root.colors
-            title: "Custom presets"
-            description: "Click to apply, right-click an empty slot to save the current geometry."
+            title: I18n.tr("Custom presets")
+            description: I18n.tr("Click to apply, right-click an empty slot to save the current geometry.")
             Row {
                 spacing: 4
                 Repeater {
@@ -100,10 +101,10 @@ Flow {
                         }
                         activeOpacity: isEmpty ? 0.35 : 1.0
                         tooltip: {
-                            if (isEmpty) return "Click to save current"
-                            if (Config.displayMode === "slices") return presetData.expandedWidth + "×" + presetData.sliceHeight + " - Right-click to overwrite"
-                            if (Config.displayMode === "hex")    return "r" + presetData.hexRadius + " " + presetData.hexRows + "×" + presetData.hexCols + " - Right-click to overwrite"
-                            if (Config.displayMode === "wall")   return presetData.gridColumns + "×" + presetData.gridRows + " " + presetData.gridThumbWidth + "×" + presetData.gridThumbHeight + " - Right-click to overwrite"
+                            if (isEmpty) return I18n.tr("Click to save current")
+                            if (Config.displayMode === "slices") return I18n.tr("%1×%2 - Right-click to overwrite").arg(presetData.expandedWidth).arg(presetData.sliceHeight)
+                            if (Config.displayMode === "hex")    return I18n.tr("r%1 %2×%3 - Right-click to overwrite").arg(presetData.hexRadius).arg(presetData.hexRows).arg(presetData.hexCols)
+                            if (Config.displayMode === "wall")   return I18n.tr("%1×%2 %3×%4 - Right-click to overwrite").arg(presetData.gridColumns).arg(presetData.gridRows).arg(presetData.gridThumbWidth).arg(presetData.gridThumbHeight)
                             return ""
                         }
                         onClicked: {
@@ -123,45 +124,45 @@ Flow {
 
     SettingsCard {
         colors: root.colors
-        title: Config.displayMode === "hex" ? "Hex grid" : (Config.displayMode === "wall" ? "Wall" : (Config.displayMode === "mosaic" ? "Mosaic" : "Slice size"))
+        title: Config.displayMode === "hex" ? I18n.tr("Hex grid") : (Config.displayMode === "wall" ? I18n.tr("Wall") : (Config.displayMode === "mosaic" ? I18n.tr("Mosaic") : I18n.tr("Slice size")))
         width: (parent.width - parent.spacing) / 2
 
-        RowInput { visible: Config.displayMode === "slices"; colors: root.colors; title: "Slice height"; value: Config.wallpaperSliceHeight; min: 200; max: 1200; onCommit: function(v) { if (root.saveField) root.saveField("sliceHeight", v) } }
-        RowInput { visible: Config.displayMode === "slices"; colors: root.colors; title: "Visible items"; value: Config.wallpaperVisibleCount; min: 3; max: 30; onCommit: function(v) { if (root.saveField) root.saveField("visibleCount", v) } }
-        RowInput { visible: Config.displayMode === "slices"; colors: root.colors; title: "Selected width"; value: Config.wallpaperExpandedWidth; min: 50; max: 1800; onCommit: function(v) { if (root.saveField) root.saveField("expandedWidth", v) } }
-        RowInput { visible: Config.displayMode === "slices"; colors: root.colors; title: "Slice width"; value: Config.wallpaperSliceWidth; min: 50; max: 500; onCommit: function(v) { if (root.saveField) root.saveField("sliceWidth", v) } }
-        RowInput { visible: Config.displayMode === "slices"; colors: root.colors; title: "Gap"; value: Config.wallpaperSliceSpacing; min: -500; max: 500; onCommit: function(v) { if (root.saveField) root.saveField("sliceSpacing", v) } }
-        RowInput { visible: Config.displayMode === "slices"; colors: root.colors; title: "Skew"; value: Config.wallpaperSkewOffset; min: -500; max: 500; onCommit: function(v) { if (root.saveField) root.saveField("skewOffset", v) } }
+        RowInput { visible: Config.displayMode === "slices"; colors: root.colors; title: I18n.tr("Slice height"); value: Config.wallpaperSliceHeight; min: 200; max: 1200; onCommit: function(v) { if (root.saveField) root.saveField("sliceHeight", v) } }
+        RowInput { visible: Config.displayMode === "slices"; colors: root.colors; title: I18n.tr("Visible items"); value: Config.wallpaperVisibleCount; min: 3; max: 30; onCommit: function(v) { if (root.saveField) root.saveField("visibleCount", v) } }
+        RowInput { visible: Config.displayMode === "slices"; colors: root.colors; title: I18n.tr("Selected width"); value: Config.wallpaperExpandedWidth; min: 50; max: 1800; onCommit: function(v) { if (root.saveField) root.saveField("expandedWidth", v) } }
+        RowInput { visible: Config.displayMode === "slices"; colors: root.colors; title: I18n.tr("Slice width"); value: Config.wallpaperSliceWidth; min: 50; max: 500; onCommit: function(v) { if (root.saveField) root.saveField("sliceWidth", v) } }
+        RowInput { visible: Config.displayMode === "slices"; colors: root.colors; title: I18n.tr("Gap"); value: Config.wallpaperSliceSpacing; min: -500; max: 500; onCommit: function(v) { if (root.saveField) root.saveField("sliceSpacing", v) } }
+        RowInput { visible: Config.displayMode === "slices"; colors: root.colors; title: I18n.tr("Skew"); value: Config.wallpaperSkewOffset; min: -500; max: 500; onCommit: function(v) { if (root.saveField) root.saveField("skewOffset", v) } }
 
-        RowInput { visible: Config.displayMode === "hex"; colors: root.colors; title: "Radius"; value: Config.hexRadius; min: 60; max: 300; onCommit: function(v) { if (root.saveField) root.saveField("hexRadius", v) } }
-        RowInput { visible: Config.displayMode === "hex"; colors: root.colors; title: "Rows"; value: Config.hexRows; min: 1; max: 8; onCommit: function(v) { if (root.saveField) root.saveField("hexRows", v) } }
-        RowInput { visible: Config.displayMode === "hex"; colors: root.colors; title: "Columns"; value: Config.hexCols; min: 3; max: 20; onCommit: function(v) { if (root.saveField) root.saveField("hexCols", v) } }
-        RowInput { visible: Config.displayMode === "hex"; colors: root.colors; title: "Scroll step"; value: Config.hexScrollStep; min: 1; max: 10; onCommit: function(v) { if (root.saveField) root.saveField("hexScrollStep", v) } }
-        RowToggle { visible: Config.displayMode === "hex"; colors: root.colors; title: "Arc layout"; checked: Config.hexArc; onToggle: function(v) { if (root.saveField) root.saveField("hexArc", v) } }
-        RowInput { visible: Config.displayMode === "hex" && Config.hexArc; colors: root.colors; title: "Arc intensity (×10)"; value: Math.round(Config.hexArcIntensity * 10); min: 1; max: 30; onCommit: function(v) { if (root.saveField) root.saveField("hexArcIntensity", v / 10) } }
+        RowInput { visible: Config.displayMode === "hex"; colors: root.colors; title: I18n.tr("Radius"); value: Config.hexRadius; min: 60; max: 300; onCommit: function(v) { if (root.saveField) root.saveField("hexRadius", v) } }
+        RowInput { visible: Config.displayMode === "hex"; colors: root.colors; title: I18n.tr("Rows"); value: Config.hexRows; min: 1; max: 8; onCommit: function(v) { if (root.saveField) root.saveField("hexRows", v) } }
+        RowInput { visible: Config.displayMode === "hex"; colors: root.colors; title: I18n.tr("Columns"); value: Config.hexCols; min: 3; max: 20; onCommit: function(v) { if (root.saveField) root.saveField("hexCols", v) } }
+        RowInput { visible: Config.displayMode === "hex"; colors: root.colors; title: I18n.tr("Scroll step"); value: Config.hexScrollStep; min: 1; max: 10; onCommit: function(v) { if (root.saveField) root.saveField("hexScrollStep", v) } }
+        RowToggle { visible: Config.displayMode === "hex"; colors: root.colors; title: I18n.tr("Arc layout"); checked: Config.hexArc; onToggle: function(v) { if (root.saveField) root.saveField("hexArc", v) } }
+        RowInput { visible: Config.displayMode === "hex" && Config.hexArc; colors: root.colors; title: I18n.tr("Arc intensity (×10)"); value: Math.round(Config.hexArcIntensity * 10); min: 1; max: 30; onCommit: function(v) { if (root.saveField) root.saveField("hexArcIntensity", v / 10) } }
 
-        RowInput { visible: Config.displayMode === "wall"; colors: root.colors; title: "Columns"; value: Config.gridColumns; min: 2; max: 12; onCommit: function(v) { if (root.saveField) root.saveField("gridColumns", v) } }
-        RowInput { visible: Config.displayMode === "wall"; colors: root.colors; title: "Rows"; value: Config.gridRows; min: 1; max: 8; onCommit: function(v) { if (root.saveField) root.saveField("gridRows", v) } }
-        RowInput { visible: Config.displayMode === "wall"; colors: root.colors; title: "Thumb width"; value: Config.gridThumbWidth; min: 100; max: 600; onCommit: function(v) { if (root.saveField) root.saveField("gridThumbWidth", v) } }
-        RowInput { visible: Config.displayMode === "wall"; colors: root.colors; title: "Thumb height"; value: Config.gridThumbHeight; min: 50; max: 400; onCommit: function(v) { if (root.saveField) root.saveField("gridThumbHeight", v) } }
+        RowInput { visible: Config.displayMode === "wall"; colors: root.colors; title: I18n.tr("Columns"); value: Config.gridColumns; min: 2; max: 12; onCommit: function(v) { if (root.saveField) root.saveField("gridColumns", v) } }
+        RowInput { visible: Config.displayMode === "wall"; colors: root.colors; title: I18n.tr("Rows"); value: Config.gridRows; min: 1; max: 8; onCommit: function(v) { if (root.saveField) root.saveField("gridRows", v) } }
+        RowInput { visible: Config.displayMode === "wall"; colors: root.colors; title: I18n.tr("Thumb width"); value: Config.gridThumbWidth; min: 100; max: 600; onCommit: function(v) { if (root.saveField) root.saveField("gridThumbWidth", v) } }
+        RowInput { visible: Config.displayMode === "wall"; colors: root.colors; title: I18n.tr("Thumb height"); value: Config.gridThumbHeight; min: 50; max: 400; onCommit: function(v) { if (root.saveField) root.saveField("gridThumbHeight", v) } }
 
-        RowInput { visible: Config.displayMode === "mosaic"; colors: root.colors; title: "Cells"; value: Config.mosaicCells; min: 4; max: 200; onCommit: function(v) { if (root.saveField) root.saveField("mosaicCells", v) } }
-        RowInput { visible: Config.displayMode === "mosaic"; colors: root.colors; title: "Seed"; value: Config.mosaicSeed; min: 1; max: 99999; onCommit: function(v) { if (root.saveField) root.saveField("mosaicSeed", v) } }
-        RowInput { visible: Config.displayMode === "mosaic"; colors: root.colors; title: "Relax iterations"; value: Config.mosaicRelaxation; min: 0; max: 8; onCommit: function(v) { if (root.saveField) root.saveField("mosaicRelaxation", v) } }
-        RowInput { visible: Config.displayMode === "mosaic"; colors: root.colors; title: "Width"; value: Config.mosaicWidth; min: 400; max: 3000; onCommit: function(v) { if (root.saveField) root.saveField("mosaicWidth", v) } }
-        RowInput { visible: Config.displayMode === "mosaic"; colors: root.colors; title: "Height"; value: Config.mosaicHeight; min: 200; max: 2000; onCommit: function(v) { if (root.saveField) root.saveField("mosaicHeight", v) } }
+        RowInput { visible: Config.displayMode === "mosaic"; colors: root.colors; title: I18n.tr("Cells"); value: Config.mosaicCells; min: 4; max: 200; onCommit: function(v) { if (root.saveField) root.saveField("mosaicCells", v) } }
+        RowInput { visible: Config.displayMode === "mosaic"; colors: root.colors; title: I18n.tr("Seed"); value: Config.mosaicSeed; min: 1; max: 99999; onCommit: function(v) { if (root.saveField) root.saveField("mosaicSeed", v) } }
+        RowInput { visible: Config.displayMode === "mosaic"; colors: root.colors; title: I18n.tr("Relax iterations"); value: Config.mosaicRelaxation; min: 0; max: 8; onCommit: function(v) { if (root.saveField) root.saveField("mosaicRelaxation", v) } }
+        RowInput { visible: Config.displayMode === "mosaic"; colors: root.colors; title: I18n.tr("Width"); value: Config.mosaicWidth; min: 400; max: 3000; onCommit: function(v) { if (root.saveField) root.saveField("mosaicWidth", v) } }
+        RowInput { visible: Config.displayMode === "mosaic"; colors: root.colors; title: I18n.tr("Height"); value: Config.mosaicHeight; min: 200; max: 2000; onCommit: function(v) { if (root.saveField) root.saveField("mosaicHeight", v) } }
     }
 
     SettingsCard {
         visible: Config.displayMode === "slices"
         colors: root.colors
-        title: "Corners"
+        title: I18n.tr("Corners")
         width: (parent.width - parent.spacing) / 2
 
         RowToggle {
             colors: root.colors
-            title: "Round corners"
-            description: "Apply a corner radius to slice edges."
+            title: I18n.tr("Round corners")
+            description: I18n.tr("Apply a corner radius to slice edges.")
             checked: Config.wallpaperSliceRoundCorners
             onToggle: function(v) { if (root.saveField) root.saveField("roundCorners", v) }
         }
@@ -169,8 +170,8 @@ Flow {
         RowInput {
             visible: Config.wallpaperSliceRoundCorners
             colors: root.colors
-            title: "Top-left"
-            description: "Top-left corner radius (px). 0 = square."
+            title: I18n.tr("Top-left")
+            description: I18n.tr("Top-left corner radius (px). 0 = square.")
             value: Config.wallpaperSliceCornerTL
             min: 0; max: 80; suffix: "px"
             onCommit: function(v) { if (root.saveField) root.saveField("cornerTL", v) }
@@ -179,8 +180,8 @@ Flow {
         RowInput {
             visible: Config.wallpaperSliceRoundCorners
             colors: root.colors
-            title: "Top-right"
-            description: "Top-right corner radius (px). 0 = square."
+            title: I18n.tr("Top-right")
+            description: I18n.tr("Top-right corner radius (px). 0 = square.")
             value: Config.wallpaperSliceCornerTR
             min: 0; max: 80; suffix: "px"
             onCommit: function(v) { if (root.saveField) root.saveField("cornerTR", v) }
@@ -189,8 +190,8 @@ Flow {
         RowInput {
             visible: Config.wallpaperSliceRoundCorners
             colors: root.colors
-            title: "Bottom-right"
-            description: "Bottom-right corner radius (px). 0 = square."
+            title: I18n.tr("Bottom-right")
+            description: I18n.tr("Bottom-right corner radius (px). 0 = square.")
             value: Config.wallpaperSliceCornerBR
             min: 0; max: 80; suffix: "px"
             onCommit: function(v) { if (root.saveField) root.saveField("cornerBR", v) }
@@ -199,8 +200,8 @@ Flow {
         RowInput {
             visible: Config.wallpaperSliceRoundCorners
             colors: root.colors
-            title: "Bottom-left"
-            description: "Bottom-left corner radius (px). 0 = square."
+            title: I18n.tr("Bottom-left")
+            description: I18n.tr("Bottom-left corner radius (px). 0 = square.")
             value: Config.wallpaperSliceCornerBL
             min: 0; max: 80; suffix: "px"
             onCommit: function(v) { if (root.saveField) root.saveField("cornerBL", v) }

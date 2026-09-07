@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell.Io
 import ".."
 import "../components"
+import Ryoku.Ui.Singletons
 
 // The rice workshop: a wide info-and-manage drawer opened by clicking a rice in
 // the carousel, instead of applying it on the spot. The left half previews the
@@ -118,7 +119,7 @@ FocusScope {
     Text {
       id: _chipText
       anchors.centerIn: parent
-      text: chip.label
+      text: I18n.tr(chip.label)
       font.family: Style.fontFamily; font.pixelSize: 9 * Config.uiScale
       font.weight: Font.Medium; font.letterSpacing: 0.8
       color: chip.strong ? chip.tint : root._inkDim
@@ -212,8 +213,8 @@ FocusScope {
             width: parent.width; spacing: 6 * Config.uiScale
             Chip { visible: root._compat !== ""; label: root._compat.toUpperCase(); strong: true }
             Chip { visible: root._createdWith !== ""; label: "v" + root._createdWith }
-            Chip { visible: root._live; label: "LIVE"; tint: root._accent; strong: true }
-            Chip { visible: root._active; label: "ACTIVE"; tint: root._accent; strong: true }
+            Chip { visible: root._live; label: I18n.tr("LIVE"); tint: root._accent; strong: true }
+            Chip { visible: root._active; label: I18n.tr("ACTIVE"); tint: root._accent; strong: true }
             Repeater {
               model: root._tags
               Chip {
@@ -230,7 +231,7 @@ FocusScope {
             font.family: Style.fontFamily; font.pixelSize: 11 * Config.uiScale
             color: root._inkDim
           }
-          SectionTitle { colors: root.colors; text: "TOUCHES" }
+          SectionTitle { colors: root.colors; text: I18n.tr("TOUCHES") }
           Flow {
             width: parent.width; spacing: 6 * Config.uiScale
             Repeater {
@@ -256,45 +257,45 @@ FocusScope {
           Row {
             spacing: 8 * Config.uiScale
             FilterButton {
-              colors: root.colors; label: "APPLY"; register: false
+              colors: root.colors; label: I18n.tr("APPLY"); register: false
               height: 30 * Config.uiScale
               hasActiveColor: true; activeColor: root._accent; isActive: true
               onClicked: if (root._slug !== "") root.applyRequested(root._slug)
             }
             FilterButton {
-              colors: root.colors; label: "FORK"; register: false; height: 30 * Config.uiScale
-              tooltip: "Duplicate this rice to tweak"
+              colors: root.colors; label: I18n.tr("FORK"); register: false; height: 30 * Config.uiScale
+              tooltip: I18n.tr("Duplicate this rice to tweak")
               onClicked: if (root._slug !== "") root.forkRequested(root._slug)
             }
             FilterButton {
-              colors: root.colors; label: "RESTORE"; register: false; height: 30 * Config.uiScale
-              tooltip: "Revert the desktop to your original setup"
+              colors: root.colors; label: I18n.tr("RESTORE"); register: false; height: 30 * Config.uiScale
+              tooltip: I18n.tr("Revert the desktop to your original setup")
               onClicked: root.restoreRequested()
             }
             FilterButton {
-              colors: root.colors; label: "DELETE"; register: false; height: 30 * Config.uiScale
+              colors: root.colors; label: I18n.tr("DELETE"); register: false; height: 30 * Config.uiScale
               hasActiveColor: true; activeColor: root.colors ? root.colors.error : "#e2342a"; isActive: true
               onClicked: if (root._slug !== "") root.deleteRequested(root._slug, root._name)
             }
           }
 
-          SectionTitle { colors: root.colors; text: "SHARE" }
+          SectionTitle { colors: root.colors; text: I18n.tr("SHARE") }
 
           Row {
             spacing: 8 * Config.uiScale
             FilterButton {
-              colors: root.colors; label: "SAVE LOOK"; register: false; height: 30 * Config.uiScale
-              tooltip: "Capture the current desktop as a new rice"
+              colors: root.colors; label: I18n.tr("SAVE LOOK"); register: false; height: 30 * Config.uiScale
+              tooltip: I18n.tr("Capture the current desktop as a new rice")
               onClicked: root.saveLookRequested()
             }
             FilterButton {
-              colors: root.colors; label: "EXPORT"; register: false; height: 30 * Config.uiScale
-              tooltip: "Export this rice to a folder"
+              colors: root.colors; label: I18n.tr("EXPORT"); register: false; height: 30 * Config.uiScale
+              tooltip: I18n.tr("Export this rice to a folder")
               onClicked: if (root._slug !== "") root._pick("export")
             }
             FilterButton {
-              colors: root.colors; label: "IMPORT"; register: false; height: 30 * Config.uiScale
-              tooltip: "Import a rice folder"
+              colors: root.colors; label: I18n.tr("IMPORT"); register: false; height: 30 * Config.uiScale
+              tooltip: I18n.tr("Import a rice folder")
               onClicked: root._pick("import")
             }
           }

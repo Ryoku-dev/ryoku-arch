@@ -119,7 +119,7 @@ Item {
                 font.weight: Font.Medium
             }
             Text {
-                text: qsTr("WEEK %1 · %2 WEEKS").arg(root.currentWeek.week).arg(root.visibleWeeks)
+                text: I18n.tr("WEEK %1 · %2 WEEKS").arg(root.currentWeek.week).arg(root.visibleWeeks)
                 color: root.faint
                 font.family: Theme.mono
                 font.pixelSize: 9 * root.s
@@ -133,9 +133,9 @@ Item {
             spacing: 5 * root.s
             Repeater {
                 model: [
-                    { label: "‹", name: qsTr("Previous month"), delta: -1 },
-                    { label: qsTr("Today"), name: qsTr("Return to today"), delta: 0 },
-                    { label: "›", name: qsTr("Next month"), delta: 1 }
+                    { label: "‹", name: I18n.tr("Previous month"), delta: -1 },
+                    { label: I18n.tr("Today"), name: I18n.tr("Return to today"), delta: 0 },
+                    { label: "›", name: I18n.tr("Next month"), delta: 1 }
                 ]
                 delegate: Rectangle {
                     required property var modelData
@@ -150,7 +150,7 @@ Item {
                     Accessible.name: modelData.name
                     Text {
                         anchors.centerIn: parent
-                        text: I18n.tr(modelData.label)
+                        text: modelData.label
                         color: root.paper && (navHover.hovered || parent.activeFocus) ? Theme.surface : root.ink
                         font.family: Theme.font
                         font.pixelSize: modelData.delta === 0 ? 10 * root.s : 18 * root.s

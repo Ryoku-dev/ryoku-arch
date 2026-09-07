@@ -1,5 +1,6 @@
 import QtQuick
 import "Singletons"
+import Ryoku.Ui.Singletons
 
 // One setting, drawn. A cell never places itself: Section flows it, and its
 // span comes from Spans.of(kind, optionCount), so adding a setting cannot
@@ -78,7 +79,7 @@ Item {
 
         Text {
             width: parent.width
-            text: Tokens.monoHeads ? cell.label.toUpperCase() : cell.label
+            text: Tokens.monoHeads ? cell.label.toUpperCase() : I18n.tr(cell.label)
             color: Tokens.inkMuted
             font.family: Tokens.ui
             font.pixelSize: 10
@@ -127,7 +128,7 @@ Item {
         Item { width: 1; height: 2 }
         Text {
             width: parent.width
-            text: cell.desc
+            text: I18n.tr(cell.desc)
             color: Tokens.inkMuted
             font.family: Tokens.ui
             font.pixelSize: 12

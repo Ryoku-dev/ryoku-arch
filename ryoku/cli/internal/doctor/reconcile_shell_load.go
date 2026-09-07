@@ -22,6 +22,8 @@ import (
 	"time"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 var (
@@ -36,7 +38,7 @@ var liveShells = liveShellInstances
 
 func reconcileShellLoad(checkOnly bool) recResult {
 	if len(liveShells()) > 0 {
-		return okRes("the desktop is loaded")
+		return okRes(i18n.T("the desktop is loaded"))
 	}
 	// The updater runs this right after restarting the shell, so give the surface
 	// time to come up before calling it dead: a slow start is not a failure.
@@ -44,7 +46,7 @@ func reconcileShellLoad(checkOnly bool) recResult {
 	deadline := time.Now().Add(8 * time.Second)
 	for {
 		if len(liveShells()) > 0 {
-			return okRes("the desktop is loaded")
+			return okRes(i18n.T("the desktop is loaded"))
 		}
 		if r := loggedFailure(); r != "" {
 			report = r
@@ -59,7 +61,7 @@ func reconcileShellLoad(checkOnly bool) recResult {
 		report = probeConfig()
 	}
 	if report == "" {
-		return okRes("no desktop is running and no load error was reported")
+		return okRes(i18n.T("no desktop is running and no load error was reported"))
 	}
 
 	// "quickshell/shell/services" when the loader named the module, the whole
@@ -70,26 +72,26 @@ func reconcileShellLoad(checkOnly bool) recResult {
 	overrides := brokenOverrides(scope)
 	stale := staleManaged(scope)
 	if len(overrides) == 0 && len(stale) == 0 {
-		return warnRes("the desktop cannot load%s, and every file under %s matches the shipped one", blamed, scope).
-			withFix("ryoku update takes a release with the fix; ryoku rollback returns to the last working snapshot")
+		return warnRes(i18n.T("the desktop cannot load%s, and every file under %s matches the shipped one"), blamed, scope).
+			withFix(i18n.T("ryoku update takes a release with the fix; ryoku rollback returns to the last working snapshot"))
 	}
 
 	if checkOnly {
-		return wouldRes("the desktop cannot load%s: %s", blamed, changeSummary(overrides, stale)).
-			withFix("ryoku doctor puts the shipped files back and restarts the shell")
+		return wouldRes(i18n.T("the desktop cannot load%s: %s"), blamed, changeSummary(overrides, stale)).
+			withFix(i18n.T("ryoku doctor puts the shipped files back and restarts the shell"))
 	}
 	for _, o := range overrides {
 		if err := os.Rename(o, o+".broken"); err != nil {
-			return failRes("could not move the override %s aside: %v", o, err)
+			return failRes(i18n.T("could not move the override %s aside: %v"), o, err)
 		}
 	}
 	restored, err := restoreShipped(stale)
 	if err != nil {
-		return failRes("could not restore %s: %v", scope, err).
-			withFix("ryoku materialize, then restart the shell")
+		return failRes(i18n.T("could not restore %s: %v"), scope, err).
+			withFix(i18n.T("ryoku materialize, then restart the shell"))
 	}
 	restartShell()
-	return fixedRes("the desktop could not load; %s and restarted the shell",
+	return fixedRes(i18n.T("the desktop could not load; %s and restarted the shell"),
 		repairSummary(overrides, restored))
 }
 
@@ -140,12 +142,12 @@ func blamedFile(report string) string {
 	file, line, reason := parseQmlError(report)
 	if file == "" {
 		if m := qmlModuleErrRe.FindStringSubmatch(report); m != nil {
-			return fmt.Sprintf(" (%s did not load)", m[1])
+			return fmt.Sprintf(i18n.T(" (%s did not load)"), m[1])
 		}
 		return ""
 	}
 	if line != "" {
-		return fmt.Sprintf(" (%s line %s: %s)", file, line, reason)
+		return fmt.Sprintf(i18n.T(" (%s line %s: %s)"), file, line, reason)
 	}
 	return fmt.Sprintf(" (%s: %s)", file, reason)
 }
@@ -233,10 +235,10 @@ func shellConfigRel(path string) string {
 func changeSummary(overrides, stale []string) string {
 	var parts []string
 	if n := len(overrides); n > 0 {
-		parts = append(parts, fmt.Sprintf("%s of yours %s the shipped desktop", plural(n, "file"), pick(n, "overrides", "override")))
+		parts = append(parts, fmt.Sprintf(i18n.T("%s of yours %s the shipped desktop"), plural(n, i18n.T("file")), pick(n, i18n.T("overrides"), i18n.T("override"))))
 	}
 	if n := len(stale); n > 0 {
-		parts = append(parts, fmt.Sprintf("%s %s the shipped desktop", plural(n, "file"), pick(n, "does not match", "do not match")))
+		parts = append(parts, fmt.Sprintf(i18n.T("%s %s the shipped desktop"), plural(n, i18n.T("file")), pick(n, i18n.T("does not match"), i18n.T("do not match"))))
 	}
 	return strings.Join(parts, " and ")
 }
@@ -244,13 +246,13 @@ func changeSummary(overrides, stale []string) string {
 func repairSummary(overrides, restored []string) string {
 	var parts []string
 	if n := len(overrides); n > 0 {
-		parts = append(parts, fmt.Sprintf("moved %s of yours aside (kept as .broken)", plural(n, "override")))
+		parts = append(parts, fmt.Sprintf(i18n.T("moved %s of yours aside (kept as .broken)"), plural(n, i18n.T("override"))))
 	}
 	if n := len(restored); n > 0 {
-		parts = append(parts, fmt.Sprintf("put %s back", plural(n, "shipped file")))
+		parts = append(parts, fmt.Sprintf(i18n.T("put %s back"), plural(n, i18n.T("shipped file"))))
 	}
 	if len(parts) == 0 {
-		return "found nothing to put back"
+		return i18n.T("found nothing to put back")
 	}
 	return strings.Join(parts, ", ")
 }

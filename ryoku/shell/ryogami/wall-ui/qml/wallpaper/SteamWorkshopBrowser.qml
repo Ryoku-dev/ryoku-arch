@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import ".."
 import "../services"
+import Ryoku.Ui.Singletons
 
 Item {
   id: browser
@@ -51,14 +52,14 @@ Item {
 
         Repeater {
           model: [
-            { key: "trend",      label: "Trending" },
-            { key: "new",        label: "New" },
-            { key: "toprated",   label: "Top Rated" },
-            { key: "popular",    label: "Popular" },
-            { key: "favorited",  label: "Favorites" }
+            { key: "trend",      label: I18n.tr("Trending") },
+            { key: "new",        label: I18n.tr("New") },
+            { key: "toprated",   label: I18n.tr("Top Rated") },
+            { key: "popular",    label: I18n.tr("Popular") },
+            { key: "favorited",  label: I18n.tr("Favorites") }
           ]
           FilterButton {
-            colors: browser.colors; label: modelData.label; skew: 8
+            colors: browser.colors; label: I18n.tr(modelData.label); skew: 8
             isActive: browser.swService ? browser.swService.sorting === modelData.key : false
             onClicked: { browser.swService.sorting = modelData.key; browser.swService.search(1) }
           }
@@ -69,20 +70,20 @@ Item {
         FilterDropdown {
           visible: browser.swService && browser.swService.sorting === "trend"
           colors: browser.colors; skew: 8
-          label: "PERIOD"
+          label: I18n.tr("PERIOD")
           value: browser.swService ? browser.swService.trendDays : 7
           displayValue: {
-            if (!browser.swService) return "Week"
-            var map = { 1: "Day", 7: "Week", 30: "Month", 90: "3M", 180: "6M", 365: "Year" }
-            return map[browser.swService.trendDays] || "Week"
+            if (!browser.swService) return I18n.tr("Week")
+            var map = { 1: I18n.tr("Day"), 7: I18n.tr("Week"), 30: I18n.tr("Month"), 90: "3M", 180: "6M", 365: I18n.tr("Year") }
+            return map[browser.swService.trendDays] || I18n.tr("Week")
           }
           model: [
-            { key: "1",   label: "Day" },
-            { key: "7",   label: "Week" },
-            { key: "30",  label: "Month" },
+            { key: "1",   label: I18n.tr("Day") },
+            { key: "7",   label: I18n.tr("Week") },
+            { key: "30",  label: I18n.tr("Month") },
             { key: "90",  label: "3M" },
             { key: "180", label: "6M" },
-            { key: "365", label: "Year" }
+            { key: "365", label: I18n.tr("Year") }
           ]
           onSelected: function(key) { browser.swService.trendDays = parseInt(key); browser.swService.search(1) }
         }
@@ -93,19 +94,19 @@ Item {
 
         FilterDropdown {
           colors: browser.colors; skew: 8
-          label: "TYPE"
+          label: I18n.tr("TYPE")
           value: browser.swService ? browser.swService.requiredType : ""
           displayValue: {
-            if (!browser.swService || browser.swService.requiredType === "") return "All Types"
-            var map = { "Video": "Video", "Web": "Web", "Scene": "Scene", "Application": "App" }
+            if (!browser.swService || browser.swService.requiredType === "") return I18n.tr("All Types")
+            var map = { "Video": I18n.tr("Video"), "Web": I18n.tr("Web"), "Scene": I18n.tr("Scene"), "Application": I18n.tr("App") }
             return map[browser.swService.requiredType] || browser.swService.requiredType
           }
           model: [
-            { key: "",            label: "All Types" },
-            { key: "Video",       label: "Video" },
-            { key: "Web",         label: "Web" },
-            { key: "Scene",       label: "Scene" },
-            { key: "Application", label: "App" }
+            { key: "",            label: I18n.tr("All Types") },
+            { key: "Video",       label: I18n.tr("Video") },
+            { key: "Web",         label: I18n.tr("Web") },
+            { key: "Scene",       label: I18n.tr("Scene") },
+            { key: "Application", label: I18n.tr("App") }
           ]
           onSelected: function(key) { browser.swService.requiredType = key; browser.swService.search(1) }
         }
@@ -113,7 +114,7 @@ Item {
         Item { width: 14; height: 1 }
 
         Text {
-          text: "CONTENT"
+          text: I18n.tr("CONTENT")
           font.family: Style.fontFamily; font.pixelSize: 9; font.weight: Font.Bold; font.letterSpacing: 1.2
           color: browser.colors ? Qt.rgba(browser.colors.surfaceText.r, browser.colors.surfaceText.g, browser.colors.surfaceText.b, 0.35) : Qt.rgba(1,1,1,0.25)
           anchors.verticalCenter: parent.verticalCenter
@@ -122,12 +123,12 @@ Item {
         Item { width: 10; height: 1 }
 
         FilterButton {
-          colors: browser.colors; label: "SFW"; skew: 8
+          colors: browser.colors; label: I18n.tr("SFW"); skew: 8
           isActive: browser.swService ? !browser.swService.nsfwEnabled : true
           onClicked: { browser.swService.nsfwEnabled = false; browser.swService.search(1) }
         }
         FilterButton {
-          colors: browser.colors; label: "NSFW"; skew: 8
+          colors: browser.colors; label: I18n.tr("NSFW"); skew: 8
           isActive: browser.swService ? browser.swService.nsfwEnabled : false
           activeColor: "#e53935"; hasActiveColor: true
           onClicked: { browser.swService.nsfwEnabled = true; browser.swService.search(1) }
@@ -137,15 +138,15 @@ Item {
 
         FilterDropdown {
           colors: browser.colors; skew: 8
-          label: "RESOLUTION"
+          label: I18n.tr("RESOLUTION")
           value: browser.swService ? browser.swService.requiredResolution : ""
           displayValue: {
-            if (!browser.swService || browser.swService.requiredResolution === "") return "Any"
+            if (!browser.swService || browser.swService.requiredResolution === "") return I18n.tr("Any")
             var map = { "1920 x 1080": "1080p", "2560 x 1440": "2K", "3840 x 2160": "4K", "2560 x 1080": "UW", "3440 x 1440": "UWQHD", "3840 x 1080": "Dual", "5120 x 1440": "Dual QHD" }
             return map[browser.swService.requiredResolution] || browser.swService.requiredResolution
           }
           model: [
-            { key: "",                label: "Any" },
+            { key: "",                label: I18n.tr("Any") },
             { key: "1920 x 1080",    label: "1080p" },
             { key: "2560 x 1440",    label: "2K" },
             { key: "3840 x 2160",    label: "4K" },
@@ -161,33 +162,33 @@ Item {
 
         FilterDropdown {
           colors: browser.colors; skew: 8
-          label: "CATEGORY"
+          label: I18n.tr("CATEGORY")
           value: browser.swService ? browser.swService.requiredTag : ""
           displayValue: {
-            if (!browser.swService || browser.swService.requiredTag === "") return "All"
+            if (!browser.swService || browser.swService.requiredTag === "") return I18n.tr("All")
             return browser.swService.requiredTag
           }
           model: [
-            { key: "",           label: "All" },
-            { key: "Abstract",   label: "Abstract" },
-            { key: "Animal",     label: "Animal" },
-            { key: "Anime",      label: "Anime" },
-            { key: "CGI",        label: "CGI" },
-            { key: "Cyberpunk",  label: "Cyberpunk" },
-            { key: "Fantasy",    label: "Fantasy" },
-            { key: "Game",       label: "Game" },
-            { key: "Girls",      label: "Girls" },
-            { key: "Guys",       label: "Guys" },
-            { key: "Landscape",  label: "Landscape" },
-            { key: "Medieval",   label: "Medieval" },
-            { key: "Music",      label: "Music" },
-            { key: "Nature",     label: "Nature" },
-            { key: "Pixel art",  label: "Pixel Art" },
-            { key: "Relaxing",   label: "Relaxing" },
-            { key: "Retro",      label: "Retro" },
-            { key: "Sci-Fi",     label: "Sci-Fi" },
-            { key: "Technology", label: "Technology" },
-            { key: "Vehicle",    label: "Vehicle" }
+            { key: "",           label: I18n.tr("All") },
+            { key: "Abstract",   label: I18n.tr("Abstract") },
+            { key: "Animal",     label: I18n.tr("Animal") },
+            { key: "Anime",      label: I18n.tr("Anime") },
+            { key: "CGI",        label: I18n.tr("CGI") },
+            { key: "Cyberpunk",  label: I18n.tr("Cyberpunk") },
+            { key: "Fantasy",    label: I18n.tr("Fantasy") },
+            { key: "Game",       label: I18n.tr("Game") },
+            { key: "Girls",      label: I18n.tr("Girls") },
+            { key: "Guys",       label: I18n.tr("Guys") },
+            { key: "Landscape",  label: I18n.tr("Landscape") },
+            { key: "Medieval",   label: I18n.tr("Medieval") },
+            { key: "Music",      label: I18n.tr("Music") },
+            { key: "Nature",     label: I18n.tr("Nature") },
+            { key: "Pixel art",  label: I18n.tr("Pixel Art") },
+            { key: "Relaxing",   label: I18n.tr("Relaxing") },
+            { key: "Retro",      label: I18n.tr("Retro") },
+            { key: "Sci-Fi",     label: I18n.tr("Sci-Fi") },
+            { key: "Technology", label: I18n.tr("Technology") },
+            { key: "Vehicle",    label: I18n.tr("Vehicle") }
           ]
           onSelected: function(key) { browser.swService.requiredTag = key; browser.swService.search(1) }
         }
@@ -288,11 +289,11 @@ Item {
             if (!browser.swService) return ""
             if (browser.swService.authPaused) {
               var n = browser.swService.authFailedCount
-              return "Steam login expired - " + n + " download" + (n !== 1 ? "s" : "") + " paused. Run: steamcmd +login " + (Config.steamUsername || "your_username") + " +quit"
+              return I18n.tr("Steam login expired - %1 downloads paused. Run: steamcmd +login %2 +quit").arg(n).arg(Config.steamUsername || "your_username")
             }
-            var msg = browser.swService.activeDownloadMessage || "Preparing..."
+            var msg = browser.swService.activeDownloadMessage || I18n.tr("Preparing...")
             var q = browser.swService.downloadQueueLength
-            return msg + (q > 1 ? "  \u{f0142}  " + (q - 1) + " queued" : "")
+            return msg + (q > 1 ? "  \u{f0142}  " + I18n.tr("%1 queued").arg(q - 1) : "")
           }
           font.family: Style.fontFamily; font.pixelSize: 11; font.weight: Font.Medium
           color: browser.swService && browser.swService.authPaused
@@ -308,7 +309,7 @@ Item {
           border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.15)
           Text {
             id: retryText; anchors.centerIn: parent
-            text: "Retry"; font.family: Style.fontFamily; font.pixelSize: 10; font.weight: Font.Medium
+            text: I18n.tr("Retry"); font.family: Style.fontFamily; font.pixelSize: 10; font.weight: Font.Medium
             color: browser.colors ? browser.colors.surfaceText : "#e0e0e0"
           }
           MouseArea {
@@ -571,8 +572,8 @@ Item {
                 ActionButton {
                   colors: browser.colors
                   icon: (thumbDelegate.dlStatus === "done" || thumbDelegate.isLocal) ? "\u{f012c}" : (thumbDelegate.dlStatus === "error" ? "\u{f0159}" : "\u{f01da}")
-                  label: (thumbDelegate.dlStatus === "done" || thumbDelegate.isLocal) ? "Installed" : (thumbDelegate.dlStatus === "error" ? "Error" : "Install")
-                  tooltip: "Download via steamcmd"
+                  label: (thumbDelegate.dlStatus === "done" || thumbDelegate.isLocal) ? I18n.tr("Installed") : (thumbDelegate.dlStatus === "error" ? I18n.tr("Error") : I18n.tr("Install"))
+                  tooltip: I18n.tr("Download via steamcmd")
                   onClicked: {
                     if (thumbDelegate.dlStatus === "done" || thumbDelegate.isLocal || !thumbDelegate.wp) return
                     browser.swService.downloadWorkshop(thumbDelegate.wp.id, thumbDelegate.wp.fileSize)
@@ -583,7 +584,7 @@ Item {
               Text {
                 visible: thumbDelegate.dlStatus === "downloading" || thumbDelegate.dlStatus === "queued"
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: thumbDelegate.dlStatus === "queued" ? "Queued..." : (browser.swService.activeDownloadMessage || "Downloading...")
+                text: thumbDelegate.dlStatus === "queued" ? I18n.tr("Queued...") : (browser.swService.activeDownloadMessage || I18n.tr("Downloading..."))
                 font.family: Style.fontFamily; font.pixelSize: 11
                 color: browser.colors ? browser.colors.primary : Style.fallbackAccent
               }
@@ -637,7 +638,7 @@ Item {
                 color: browser.colors ? browser.colors.primaryText : "#000"
               }
               Text {
-                text: "Installed"; font.family: Style.fontFamily; font.pixelSize: 8; font.weight: Font.Medium
+                text: I18n.tr("Installed"); font.family: Style.fontFamily; font.pixelSize: 8; font.weight: Font.Medium
                 color: browser.colors ? browser.colors.primaryText : "#000"
               }
             }
@@ -677,7 +678,7 @@ Item {
 
   Text {
     visible: browser.swService && !browser.swService.loading && resultsModel.count === 0 && browser.swService.errorText === ""
-    text: "Search the Steam Workshop for Wallpaper Engine wallpapers"
+    text: I18n.tr("Search the Steam Workshop for Wallpaper Engine wallpapers")
     font.family: Style.fontFamily; font.pixelSize: 12
     color: browser.colors ? Qt.rgba(browser.colors.surfaceText.r, browser.colors.surfaceText.g, browser.colors.surfaceText.b, 0.4)
                           : Qt.rgba(1, 1, 1, 0.3)
@@ -798,7 +799,7 @@ Item {
         id: previewCloseMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
         onClicked: browser._previewWp = null
       }
-      StyledToolTip { visible: previewCloseMouse.containsMouse; text: "Close preview"; delay: 400 }
+      StyledToolTip { visible: previewCloseMouse.containsMouse; text: I18n.tr("Close preview"); delay: 400 }
     }
 
     Rectangle {
@@ -891,11 +892,11 @@ Item {
           ActionButton {
             colors: browser.colors
             icon: (parent._dlSt === "done" || parent._isLocal) ? "\u{f012c}" : (parent._dlSt === "error" ? "\u{f0159}" : "\u{f01da}")
-            label: (parent._dlSt === "done" || parent._isLocal) ? "Installed"
-              : (parent._dlSt === "downloading" ? (browser.swService.activeDownloadMessage || "Downloading...")
-              : (parent._dlSt === "queued" ? "Queued..."
-              : (parent._dlSt === "error" ? "Error" : "Install")))
-            tooltip: "Download via steamcmd"
+            label: (parent._dlSt === "done" || parent._isLocal) ? I18n.tr("Installed")
+              : (parent._dlSt === "downloading" ? (browser.swService.activeDownloadMessage || I18n.tr("Downloading..."))
+              : (parent._dlSt === "queued" ? I18n.tr("Queued...")
+              : (parent._dlSt === "error" ? I18n.tr("Error") : I18n.tr("Install"))))
+            tooltip: I18n.tr("Download via steamcmd")
             onClicked: {
               if (parent._dlSt === "done" || parent._isLocal || parent._dlSt === "downloading" || parent._dlSt === "queued" || !browser._previewWp) return
               browser.swService.downloadWorkshop(browser._previewWp.id, browser._previewWp.fileSize)

@@ -38,7 +38,7 @@ Item {
         id: lbl
         anchors.left: parent.left
         anchors.top: parent.top
-        text: I18n.tr(root.label)
+        text: root.label
         color: Tokens.inkDim
         font.family: Tokens.ui
         font.pixelSize: Tokens.fSmall

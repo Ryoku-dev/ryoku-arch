@@ -66,7 +66,7 @@ Column {
         Text {
             id: tlab
             anchors.centerIn: parent
-            text: tp.glyph !== "" ? tp.glyph : tp.label
+            text: tp.glyph !== "" ? tp.glyph : I18n.tr(tp.label)
             color: tp.active ? Tokens.inkOnBone : Tokens.inkDim
             font.family: Tokens.ui
             font.pixelSize: tp.glyph !== "" ? 14 : 10
@@ -115,7 +115,7 @@ Column {
                     id: addBtn
                     objectName: "zone-add-" + zone.modelData
                     anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                    label: zone.open ? qsTr("CLOSE") : qsTr("+ ADD")
+                    label: zone.open ? I18n.tr("CLOSE") : I18n.tr("+ ADD")
                     active: zone.open
                     armed: zone.open || root.available().length > 0
                     onAct: root.openZone = zone.open ? "" : zone.modelData
@@ -188,7 +188,7 @@ Column {
                 border.color: Tokens.lineSoft
                 Text {
                     anchors { left: parent.left; leftMargin: Tokens.s3; verticalCenter: parent.verticalCenter }
-                    text: qsTr("// EMPTY")
+                    text: I18n.tr("// EMPTY")
                     color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: Tokens.fTiny; font.letterSpacing: Tokens.trackLabel
                 }
             }
@@ -210,8 +210,8 @@ Column {
                     Text {
                         width: parent.width
                         text: root.available().length > 0
-                            ? qsTr("ADD TO %1").arg(labels.zone(zone.modelData).toUpperCase())
-                            : qsTr("EVERY WIDGET THAT FITS IS ALREADY ON THIS RAIL")
+                            ? I18n.tr("ADD TO %1").arg(labels.zone(zone.modelData).toUpperCase())
+                            : I18n.tr("EVERY WIDGET THAT FITS IS ALREADY ON THIS RAIL")
                         color: Tokens.inkMuted; font.family: Tokens.ui; font.pixelSize: Tokens.fMicro
                         font.weight: Font.Medium; font.letterSpacing: Tokens.trackLabel
                         wrapMode: Text.WordWrap

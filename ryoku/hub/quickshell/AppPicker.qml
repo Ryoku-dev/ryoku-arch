@@ -10,7 +10,7 @@ import Ryoku.Ui.Singletons
 Item {
     id: root
 
-    property string title: "Music app"
+    property string title: I18n.tr("Music app")
     signal chosen(string cmd)
     signal chosenApp(string appId, string appName)
     signal dismissed()

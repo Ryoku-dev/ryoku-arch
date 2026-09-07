@@ -24,3 +24,9 @@ require (
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
 )
+
+// the shared translation runtime + the catalogs compiled in: this binary is
+// downloaded onto a foreign distro with no Ryoku catalog on disk.
+require ryoku-i18n v0.0.0
+
+replace ryoku-i18n => ../ryoku/i18n

@@ -57,6 +57,32 @@ done < <(find ryoku/apps -type f \
 
 (( fail )) || say "delivery: every ryoku/apps config is shipped by a package, installer, or deploy path"
 
+# 1b. the translation catalog. Every language in the one table must have a
+# catalog file, and the catalog directory must be shipped: a language listed in
+# the Hub's picker with no file behind it silently serves English, and a catalog
+# no package installs leaves every surface English on an installed box while
+# looking translated in a checkout.
+langs=ryoku/i18n/langs.json
+if [[ -f $langs ]]; then
+	missing=()
+	while IFS= read -r code; do
+		[[ $code == en ]] && continue          # English keys are the strings
+		[[ -f ryoku/i18n/catalog/$code.json ]] || missing+=("$code")
+	done < <(python3 ryoku/i18n/tools/sync.py langs)
+	if ((${#missing[@]})); then
+		echo "delivery: langs.json lists ${missing[*]} with no ryoku/i18n/catalog/<code>.json (the Hub offers a language that serves English)" >&2
+		fail=1
+	else
+		say "delivery: every language in langs.json has a catalog"
+	fi
+	if grep -Fq 'usr/share/ryoku/i18n' "${sources[@]}"; then
+		say "delivery: the translation catalog is installed to /usr/share/ryoku/i18n"
+	else
+		echo "delivery: no package installs ryoku/i18n/catalog to /usr/share/ryoku/i18n (every surface would read English on an installed box)" >&2
+		fail=1
+	fi
+fi
+
 # 2. publish lag. the [ryoku] repo publishes on push to main; unstable-dev work
 # only reaches users once main fast-forwards. report the gap so it is never
 # silent. best-effort: no network / no refs = skip, never a hard failure.

@@ -22,7 +22,7 @@ Rectangle {
 
     Accessible.role: Accessible.Button
     Accessible.name: label
-    Accessible.description: active ? "Active launcher mode" : "Launcher mode"
+    Accessible.description: active ? I18n.tr("Active launcher mode") : I18n.tr("Launcher mode")
     Accessible.focusable: false
     Accessible.checkable: true
     Accessible.checked: active
@@ -37,7 +37,7 @@ Rectangle {
     Text {
         id: caption
         anchors.centerIn: parent
-        text: I18n.tr(root.label)
+        text: root.label
         color: root.active ? Theme.onModeActive : Theme.bright
         font.family: Theme.mono
         font.pixelSize: 9 * root.s

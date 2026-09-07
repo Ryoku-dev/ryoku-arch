@@ -256,7 +256,7 @@ Item {
         return parseInt(c.substr(0, 2), 16) + ";" + parseInt(c.substr(2, 2), 16) + ";" + parseInt(c.substr(4, 2), 16);
     }
     function rowEditable(kind) { return kind === "tagline" || kind === "header" || kind === "module"; }
-    function rowPlaceholder(kind) { return kind === "module" ? "LABEL" : "text"; }
+    function rowPlaceholder(kind) { return kind === "module" ? I18n.tr("LABEL") : I18n.tr("text"); }
 
     // an image logo source may carry a leading ~; expand it so the real emblem
     // renders as its own specimen instead of a broken tile.
@@ -733,7 +733,7 @@ Item {
                 visible: pg.installedStoreStyles.length > 0
                 height: Tokens.ctlH
                 verticalAlignment: Text.AlignVCenter
-                text: I18n.tr("STORE LIBRARY") + " · " + pg.installedStoreStyles.length
+                text: I18n.tr("STORE LIBRARY \u00b7 %1").arg(pg.installedStoreStyles.length)
                 color: Tokens.inkMuted
                 font.family: Tokens.ui
                 font.pixelSize: Tokens.fTiny
@@ -1275,7 +1275,7 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: 108
                                 elide: Text.ElideRight
-                                text: rowItem.modelData.label || rowItem.modelData.kind
+                                text: I18n.tr(rowItem.modelData.label || rowItem.modelData.kind)
                                 color: Tokens.inkDim; font.family: Tokens.ui; font.pixelSize: Tokens.fSmall
                             }
 

@@ -25,17 +25,17 @@ Item {
         spacing: 8
 
         Text {
-            text: "Groceries: oat milk, chili oil"
+            text: I18n.tr("Groceries: oat milk, chili oil")
             color: Tokens.ink
             font.family: Tokens.ui; font.pixelSize: 13
         }
         Text {
-            text: "Call the framer back"
+            text: I18n.tr("Call the framer back")
             color: Tokens.ink
             font.family: Tokens.ui; font.pixelSize: 13
         }
         Text {
-            text: "Ryoku wallpaper ideas \u2014 dusk"
+            text: I18n.tr("Ryoku wallpaper ideas \u2014 dusk")
             color: Tokens.inkMuted
             font.family: Tokens.ui; font.pixelSize: 13
         }

@@ -91,10 +91,10 @@ PanelWindow {
     }
 
     function edgeText() {
-        if (speedTest.phase === "idle" || speedTest.phase === "cancelled") return "Not tested"
-        if (speedTest.phase === "offline") return "Offline"
-        if (speedTest.phase === "error" || speedTest.phase === "timeout") return "Unavailable"
-        if (speedTest.phase === "latency") return "Locating…"
+        if (speedTest.phase === "idle" || speedTest.phase === "cancelled") return I18n.tr("Not tested")
+        if (speedTest.phase === "offline") return I18n.tr("Offline")
+        if (speedTest.phase === "error" || speedTest.phase === "timeout") return I18n.tr("Unavailable")
+        if (speedTest.phase === "latency") return I18n.tr("Locating…")
         var edge = speedTest.edgeCode !== "" ? "Cloudflare · " + speedTest.edgeCode : "Cloudflare Edge"
         var flag = flagForCountry(speedTest.countryCode)
         return edge + (flag !== "" ? " " + flag : "")
@@ -237,16 +237,16 @@ PanelWindow {
 
     function protectionLabel(entry) {
         if (!entry)
-            return "Unknown"
+            return I18n.tr("Unknown")
         if (entry.securityLabel)
             return entry.securityLabel
         switch (entry.sec || "") {
-        case "open": return "Open"
+        case "open": return I18n.tr("Open")
         case "psk": return "PSK"
         case "8021x": return "802.1X"
         case "wep": return "WEP"
-        case "saved": return "Saved Wi-Fi profile"
-        default: return "Unknown"
+        case "saved": return I18n.tr("Saved Wi-Fi profile")
+        default: return I18n.tr("Unknown")
         }
     }
 
@@ -355,7 +355,7 @@ PanelWindow {
 
         nmConnecting = false
         nmConnectTimeout.stop()
-        nmConnectionError = "Connection failed"
+        nmConnectionError = I18n.tr("Connection failed")
         Qt.callLater(function() {
             if (nmPasswordInput.visible)
                 nmPasswordInput.forceActiveFocus()
@@ -477,8 +477,8 @@ PanelWindow {
                     anchors.top: parent.top
                     text: {
                         if (netPanel.mode === "wifi")     return netPanel.signal + "%"
-                        if (netPanel.mode === "ethernet") return "Connected"
-                        return "Offline"
+                        if (netPanel.mode === "ethernet") return I18n.tr("Connected")
+                        return I18n.tr("Offline")
                     }
                     color: netPanel.mode === "none" ? root.sumi : root.seal
                     font.family: root.mono; font.pixelSize: 11; font.weight: Font.Medium
@@ -522,7 +522,7 @@ PanelWindow {
                 Row {
                     width: parent.width
                     visible: netPanel.ipAddr !== ""
-                    UiText { text: I18n.tr("IP"); color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
+                    UiText { text: "IP"; color: root.sumiHi; font.family: root.mono; font.pixelSize: 11; width: parent.width * 0.4 }
                     UiText { text: netPanel.ipAddr; color: root.ink; font.family: root.mono; font.pixelSize: 11 }
                 }
                 Row {
@@ -573,7 +573,7 @@ PanelWindow {
 
                         UiText {
                             anchors.centerIn: parent
-                            text: speedTest.running ? "stop" : "start"
+                            text: speedTest.running ? I18n.tr("stop") : I18n.tr("start")
                             color: speedTestMa.enabled ? root.seal : root.sumi
                             font.family: root.mono
                             font.pixelSize: 11
@@ -684,7 +684,7 @@ PanelWindow {
                         id: speedFooter
                         width: parent.width
                         visible: speedTest.phase === "success" && netPanel.lastTestStamp !== ""
-                        text: I18n.tr("done · ") + netPanel.lastTestStamp
+                        text: I18n.tr("done · %1").arg(netPanel.lastTestStamp)
                         color: root.green
                         font.family: root.mono
                         font.pixelSize: 10
@@ -748,8 +748,8 @@ PanelWindow {
 
                 Repeater {
                     model: [
-                        { label: "Available", saved: false },
-                        { label: "Saved" + (netPanel.savedCount > 0 ? " (" + netPanel.savedCount + ")" : ""), saved: true }
+                        { label: I18n.tr("Available"), saved: false },
+                        { label: I18n.tr("Saved") + (netPanel.savedCount > 0 ? " (" + netPanel.savedCount + ")" : ""), saved: true }
                     ]
                     delegate: Rectangle {
                         required property var modelData
@@ -764,7 +764,7 @@ PanelWindow {
 
                         UiText {
                             anchors.centerIn: parent
-                            text: I18n.tr(modelData.label)
+                            text: modelData.label
                             color: parent.active ? root.seal : root.ink
                             font.family: root.mono
                             font.pixelSize: 10
@@ -795,7 +795,7 @@ PanelWindow {
                 UiText {
                     anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
                     visible: !netPanel.savedOnly
-                    text: netPanel.scanning ? I18n.tr("scanning…") : "rescan"
+                    text: netPanel.scanning ? I18n.tr("scanning…") : I18n.tr("rescan")
                     color: rescanMa.containsMouse ? root.fillPrimaryHover : root.seal
                     font.family: root.mono; font.pixelSize: 10
                     Behavior on color { ColorAnimation { duration: 120 } }
@@ -890,7 +890,7 @@ PanelWindow {
                                     spacing: 8
                                     UiText {
                                         visible: modelData.known && !modelData.conn
-                                        text: netPanel.isNeverConnected(modelData) ? "profile" : "saved"
+                                        text: netPanel.isNeverConnected(modelData) ? I18n.tr("profile") : I18n.tr("saved")
                                         color: root.sumiHi
                                         font.family: root.mono
                                         font.pixelSize: 9
@@ -965,12 +965,12 @@ PanelWindow {
                                             var details = [
                                                 netPanel.protectionLabel(modelData),
                                                 modelData.visible === false
-                                                    ? "Not currently visible"
-                                                    : "Signal " + (modelData.sig * 25) + "%"
+                                                    ? I18n.tr("Not currently visible")
+                                                    : I18n.tr("Signal %1%").arg(modelData.sig * 25)
                                             ]
                                             if (modelData.known)
                                                 details.push(netPanel.isNeverConnected(modelData)
-                                                    ? "Never connected" : "Saved")
+                                                    ? I18n.tr("Never connected") : I18n.tr("Saved"))
                                             return details.join(" · ")
                                         }
                                         color: root.sumiHi
@@ -1077,7 +1077,7 @@ PanelWindow {
                         width: parent.width
                         text: netPanel.nmConnectionError !== ""
                             ? netPanel.nmConnectionError
-                            : I18n.tr("Password for ") + netPanel.nmPasswordSsid
+                            : I18n.tr("Password for %1").arg(netPanel.nmPasswordSsid)
                         color: netPanel.nmConnectionError !== "" ? root.sealRaw : root.ink
                         font.family: root.mono
                         font.pixelSize: 10
@@ -1137,7 +1137,7 @@ PanelWindow {
                             Behavior on color { ColorAnimation { duration: 120 } }
                             UiText {
                                 anchors.centerIn: parent
-                                text: netPanel.nmConnecting ? I18n.tr("connecting…") : "connect"
+                                text: netPanel.nmConnecting ? I18n.tr("connecting…") : I18n.tr("connect")
                                 color: passwordSubmitMa.enabled ? root.paper : root.sumi
                                 font.family: root.mono
                                 font.pixelSize: 10
@@ -1162,7 +1162,7 @@ PanelWindow {
                             Behavior on color { ColorAnimation { duration: 120 } }
                             UiText {
                                 anchors.centerIn: parent
-                                text: "cancel"
+                                text: I18n.tr("cancel")
                                 color: passwordCancelMa.containsMouse ? root.seal : root.sumi
                                 font.family: root.mono
                                 font.pixelSize: 10
@@ -1369,7 +1369,7 @@ PanelWindow {
                 return
 
             netPanel.nmConnecting = false
-            netPanel.nmConnectionError = "Connection timed out"
+            netPanel.nmConnectionError = I18n.tr("Connection timed out")
             Qt.callLater(function() {
                 if (nmPasswordInput.visible)
                     nmPasswordInput.forceActiveFocus()

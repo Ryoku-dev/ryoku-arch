@@ -22,7 +22,7 @@ ryoku_rank_mirrors() {
   RYOKU_MIRROR_TIERS_TRIED=""
 
   if [[ -n ${RYOKU_DRYRUN:-} ]]; then
-    log "mirrors: would set ParallelDownloads + DisableDownloadTimeout + ILoveCandy, then rank $list (tier 1 reflector, else tier 2 status API, else tier 3 the shipped list) and always append the emergency mirrors"
+    log 'mirrors: would set ParallelDownloads + DisableDownloadTimeout + ILoveCandy, then rank %s (tier 1 reflector, else tier 2 status API, else tier 3 the shipped list) and always append the emergency mirrors' "$list"
     return 0
   fi
 
@@ -108,7 +108,7 @@ ryoku_mirror_replace() {
   local list=$1 ranked=$2 n
   n=$(grep -c '^Server' "$ranked" 2>/dev/null) || n=0
   if cp -- "$ranked" "$list" 2>/dev/null; then
-    log "mirrors: using $n ranked mirror(s)"
+    log 'mirrors: using %s ranked mirror(s)' "$n"
   else
     log "mirrors: could not replace the mirrorlist, keeping what was there"
   fi
@@ -173,7 +173,7 @@ ryoku_mirrors_fallback() {
 # target, so the first updates benefit too.
 ryoku_pacman_tuning() {
   local conf=${RYOKU_PACMAN_CONF:-/etc/pacman.conf}
-  [[ -f $conf ]] || { log "mirrors: no $conf to tune"; return 0; }
+  [[ -f $conf ]] || { log 'mirrors: no %s to tune' "$conf"; return 0; }
   if grep -qE '^[[:space:]]*#?[[:space:]]*ParallelDownloads' "$conf" 2>/dev/null; then
     sed -i 's/^[[:space:]]*#\?[[:space:]]*ParallelDownloads.*/ParallelDownloads = 5/' "$conf"
   else

@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	i18n "ryoku-i18n"
 )
 
 // KeyringFile is the state of one on-disk keyring, as the Hub renders it.
@@ -131,17 +133,17 @@ func statusNotes(st Status) []string {
 	if st.Mode == ModeUnlockOnLogin {
 		for _, k := range st.Keyrings {
 			if k.Role == "default" && k.Format == fmtEncrypted {
-				notes = append(notes, fmt.Sprintf("the %q keyring is password-protected; it will unlock silently at next login only if its password is your login password", k.Name))
+				notes = append(notes, fmt.Sprintf(i18n.T("the %q keyring is password-protected; it will unlock silently at next login only if its password is your login password"), k.Name))
 			}
 		}
 		if st.Autologin {
-			notes = append(notes, "autologin is configured; unlock-on-login has no login password to reuse, so it cannot unlock silently -- use never-ask under autologin")
+			notes = append(notes, i18n.T("autologin is configured; unlock-on-login has no login password to reuse, so it cannot unlock silently -- use never-ask under autologin"))
 		}
 	}
 	if st.Mode == ModeNeverAsk {
 		for _, k := range st.Keyrings {
 			if k.Role == "default" && k.Format == fmtEncrypted {
-				notes = append(notes, fmt.Sprintf("the %q keyring is still password-protected; never-ask needs it blank -- convert it (with your current password) or start fresh", k.Name))
+				notes = append(notes, fmt.Sprintf(i18n.T("the %q keyring is still password-protected; never-ask needs it blank -- convert it (with your current password) or start fresh"), k.Name))
 			}
 		}
 	}
@@ -154,7 +156,7 @@ func runStatus(args []string) error {
 		if a == "--json" {
 			jsonOut = true
 		} else {
-			return fmt.Errorf("usage: ryoku keyring status [--json]")
+			return fmt.Errorf(i18n.T("usage: ryoku keyring status [--json]"))
 		}
 	}
 	st := gatherStatus()
@@ -168,25 +170,25 @@ func runStatus(args []string) error {
 }
 
 func printStatus(st Status) {
-	fmt.Printf("mode:      %s (%s)\n", st.Mode, st.ModeSource)
-	fmt.Printf("pam lines: %s\n", yesno(st.PamPresent))
-	fmt.Printf("autologin: %s\n", yesno(st.Autologin))
-	fmt.Printf("daemon:    %s\n", map[bool]string{true: "running", false: "not running"}[st.DaemonAlive])
+	fmt.Printf(i18n.T("mode:      %s (%s)\n"), st.Mode, st.ModeSource)
+	fmt.Printf(i18n.T("pam lines: %s\n"), yesno(st.PamPresent))
+	fmt.Printf(i18n.T("autologin: %s\n"), yesno(st.Autologin))
+	fmt.Printf(i18n.T("daemon:    %s\n"), map[bool]string{true: i18n.T("running"), false: i18n.T("not running")}[st.DaemonAlive])
 	for _, k := range st.Keyrings {
 		state := k.Format
 		if !k.Exists {
 			state = "absent"
 		}
-		fmt.Printf("keyring %-8s (%s): %s\n", k.Name, k.Role, state)
+		fmt.Printf(i18n.T("keyring %-8s (%s): %s\n"), k.Name, k.Role, state)
 	}
 	for _, n := range st.Notes {
-		fmt.Printf("note: %s\n", n)
+		fmt.Printf(i18n.T("note: %s\n"), n)
 	}
 }
 
 func yesno(b bool) string {
 	if b {
-		return "yes"
+		return i18n.T("yes")
 	}
-	return "no"
+	return i18n.T("no")
 }

@@ -1,5 +1,6 @@
 import QtQuick
 import ".."
+import Ryoku.Ui.Singletons
 
 Item {
     id: btn
@@ -68,7 +69,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
         }
         Text {
-            text: btn.label
+            text: I18n.tr(btn.label)
             font.family: Style.fontFamily; font.pixelSize: 11
             font.weight: Font.Bold; font.letterSpacing: 0.5
             color: btn.danger && btn.isHovered

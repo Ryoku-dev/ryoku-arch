@@ -20,8 +20,8 @@ Item {
     height: 64
 
     function specLine(it) {
-        var c = it.cores === "auto" ? "auto" : it.cores + "c";
-        var m = ({ "gtk": "window", "spice": "spice", "none": "headless" })[it.display] || it.display;
+        var c = it.cores === "auto" ? I18n.tr("auto") : it.cores + "c";
+        var m = ({ "gtk": I18n.tr("window"), "spice": I18n.tr("spice"), "none": I18n.tr("headless") })[it.display] || it.display;
         var d = it.diskUsed > 0 ? Vm.human(it.diskUsed) : "-";
         return c + " · " + it.ram + " · " + m + " · " + d;
     }

@@ -201,11 +201,11 @@ Item {
     }
     function appPickTitle() {
         if (pg.appPickCustomRow >= 0)
-            return "Command";
+            return I18n.tr("Command");
         for (var i = 0; i < pg.roles.length; i++)
             if (pg.roles[i].role === pg.appPickRole)
-                return pg.roles[i].label;
-        return "App";
+                return I18n.tr(pg.roles[i].label);
+        return I18n.tr("App");
     }
     function applyAppPick(cmd) {
         if (pg.appPickRole.length > 0)
@@ -243,10 +243,10 @@ Item {
     // the four bind actions, key -> visible label. keys are the exact strings the
     // Go backend switches on, so a rename here silently breaks settings.lua.
     readonly property var actionOpts: [
-        { "key": "exec", "label": "Run command" },
-        { "key": "close", "label": "Close window" },
-        { "key": "fullscreen", "label": "Fullscreen" },
-        { "key": "togglefloating", "label": "Toggle floating" }
+        { "key": "exec", "label": I18n.tr("Run command") },
+        { "key": "close", "label": I18n.tr("Close window") },
+        { "key": "fullscreen", "label": I18n.tr("Fullscreen") },
+        { "key": "togglefloating", "label": I18n.tr("Toggle floating") }
     ]
     function labelIn(opts, key) {
         for (var i = 0; i < opts.length; i++)
@@ -390,7 +390,7 @@ Item {
             var binds = pg.categories[c].binds || [];
             for (var b = 0; b < binds.length; b++) {
                 if (pg.normKeys((binds[b].keys || []).join(" + ")) === norm)
-                    return binds[b].desc || "a shipped shortcut";
+                    return binds[b].desc || I18n.tr("a shipped shortcut");
             }
         }
         return "";
@@ -465,13 +465,13 @@ Item {
                 if ((binds[b].combo || "") === defCombo)
                     continue;
                 if (pg.normKeys(pg.effectiveCombo(binds[b].combo || "")) === n)
-                    return binds[b].desc || "another shortcut";
+                    return binds[b].desc || I18n.tr("another shortcut");
             }
         }
         for (var i = 0; i < pg.customRows.length; i++)
             if (pg.normKeys(pg.customRows[i].keys) === n)
-                return "a custom bind";
-        return "another shortcut";
+                return I18n.tr("a custom bind");
+        return I18n.tr("another shortcut");
     }
 
     // display tokens for a raw combo, matching the legend keycaps. mirrors the
@@ -544,9 +544,9 @@ Item {
         anchors.leftMargin: Tokens.s6
         anchors.top: head.bottom
         anchors.topMargin: Tokens.s5
-        options: ["Apps", "System", "Custom"]
-        current: pg.tab === "apps" ? "Apps" : (pg.tab === "system" ? "System" : "Custom")
-        onChose: (label) => pg.tab = (label === "Apps" ? "apps" : (label === "System" ? "system" : "custom"))
+        options: [I18n.tr("Apps"), I18n.tr("System"), I18n.tr("Custom")]
+        current: pg.tab === "apps" ? I18n.tr("Apps") : (pg.tab === "system" ? I18n.tr("System") : I18n.tr("Custom"))
+        onChose: (label) => pg.tab = (label === I18n.tr("Apps") ? "apps" : (label === I18n.tr("System") ? "system" : "custom"))
     }
 
     // ── the tab body: a Loader swaps the whole subtree, fading the new one in ──
@@ -829,8 +829,8 @@ Item {
                                 spacing: Tokens.s2
                                 Repeater {
                                     model: [
-                                        { "mode": "starship", "label": "Starship" },
-                                        { "mode": "oh-my-zsh", "label": "Oh My Zsh" }
+                                        { "mode": "starship", "label": I18n.tr("Starship") },
+                                        { "mode": "oh-my-zsh", "label": I18n.tr("Oh My Zsh") }
                                     ]
                                     delegate: Rectangle {
                                         id: promptChip
@@ -1049,7 +1049,7 @@ Item {
                                     width: parent.width
                                     leftPadding: Tokens.s2
                                     bottomPadding: Tokens.s2
-                                    text: I18n.tr("Clashes with ") + pg.conflictNameFor(bindWrap.combo)
+                                    text: I18n.tr("Clashes with %1").arg(pg.conflictNameFor(bindWrap.combo))
                                     color: Tokens.ink; font.family: Tokens.ui; font.pixelSize: Tokens.fSmall
                                     elide: Text.ElideRight
                                 }
@@ -1123,7 +1123,7 @@ Item {
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         // an entry count is file-truth chrome, so mono.
-                        text: pg.customRows.length + (pg.customRows.length === 1 ? I18n.tr(" BIND") : I18n.tr(" BINDS"))
+                        text: pg.customRows.length === 1 ? I18n.tr("%1 BIND").arg(pg.customRows.length) : I18n.tr("%1 BINDS").arg(pg.customRows.length)
                         color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: Tokens.fTiny
                     }
                     IconBtn {
@@ -1232,7 +1232,7 @@ Item {
                                     Text {
                                         id: relText
                                         anchors.centerIn: parent
-                                        text: rowRect.isRelease ? "RELEASE" : "PRESS"
+                                        text: rowRect.isRelease ? I18n.tr("RELEASE") : I18n.tr("PRESS")
                                         color: rowRect.isRelease ? Tokens.paper : Tokens.inkFaint
                                         font.family: Tokens.mono
                                         font.pixelSize: Tokens.fMicro
@@ -1334,9 +1334,9 @@ Item {
                                 anchors.bottom: parent.bottom; anchors.bottomMargin: Tokens.s2
                                 text: {
                                     if (rowRect.conflict === "duplicate")
-                                        return "Duplicate of another custom bind";
+                                        return I18n.tr("Duplicate of another custom bind");
                                     var d = pg.shippedDescFor(pg.normKeys(rowRect.modelData.keys || ""));
-                                    return d ? ("Shadows shipped: " + d) : "Shadows a shipped bind";
+                                    return d ? I18n.tr("Shadows shipped: %1").arg(d) : I18n.tr("Shadows a shipped bind");
                                 }
                                 color: Tokens.ink; font.family: Tokens.ui; font.pixelSize: Tokens.fSmall
                             }
@@ -1430,7 +1430,7 @@ Item {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: pg.conflictCount > 0
-                    ? (pg.conflictCount + (pg.conflictCount === 1 ? I18n.tr(" conflicting shortcut") : I18n.tr(" conflicting shortcuts")))
+                    ? (pg.conflictCount === 1 ? I18n.tr("%1 conflicting shortcut").arg(pg.conflictCount) : I18n.tr("%1 conflicting shortcuts").arg(pg.conflictCount))
                     : (pg.dirtyCount > 0 ? I18n.tr("Unsaved changes") : I18n.tr("Saved"))
                 color: (pg.conflictCount > 0 || pg.dirtyCount > 0) ? Tokens.ink : Tokens.inkMuted
                 font.family: Tokens.ui; font.pixelSize: Tokens.fSmall

@@ -148,23 +148,42 @@ func TestPackagedStatusUpToDateOfflineEmptyRecent(t *testing.T) {
 	}
 }
 
-// systemUpgradeArgs must run an unattended -Syu and --overwrite the Ryoku system
-// paths the ISO installer and deploy.sh seed unowned (ryoku-dns /
-// ryoku-wifi-powersave + their polkit rules, and the Plymouth splash theme).
-// Once ryoku-desktop packages those paths a file conflict otherwise aborts the
-// whole -Syu and blocks every user update; dropping any of them from the glob
-// silently reintroduces that outage, so pin them here.
-func TestSystemUpgradeAdoptsSeededRyokuFiles(t *testing.T) {
-	args := systemUpgradeArgs(false)
+// The Ryoku lane must never be a sysupgrade: the kernel and the base come from
+// the distribution the box was installed from, on the user's schedule. It must
+// also --overwrite the Ryoku system paths the ISO installer and deploy.sh seed
+// unowned (ryoku-dns / ryoku-wifi-powersave + their polkit rules, the Plymouth
+// splash theme, the initcpio hook). Once a package owns one of those paths a
+// file conflict otherwise aborts the whole transaction and blocks every user
+// update, so pin them here.
+func TestRyokuInstallArgsStayInTheRyokuLane(t *testing.T) {
+	set := []string{"ryoku/ryoku-desktop", "ryoku/ryogami"}
+	args := ryokuInstallArgs(set)
 	joined := strings.Join(args, " ")
-	for _, want := range []string{"pacman -Syu", "--noconfirm", "--overwrite"} {
+	for _, want := range []string{"pacman -S", "--needed", "--noconfirm", "--overwrite",
+		"ryoku/ryoku-desktop", "ryoku/ryogami"} {
 		if !strings.Contains(joined, want) {
-			t.Errorf("systemUpgradeArgs missing %q: %v", want, args)
+			t.Errorf("ryokuInstallArgs missing %q: %v", want, args)
 		}
 	}
-	if !strings.Contains(strings.Join(systemUpgradeArgs(true), " "), "pacman -Syyu") {
-		t.Error("a channel move must force the db refresh (-Syyu); a frozen release is older than the cached db")
+	// -Su/-Syu here would upgrade the whole system, kernel included, which is
+	// exactly what this lane exists not to do.
+	for _, banned := range []string{"-Su", "-Syu", "-Syyu", "-u"} {
+		for _, a := range args {
+			if a == banned {
+				t.Errorf("ryokuInstallArgs runs %q: that is a system upgrade, not the Ryoku set", banned)
+			}
+		}
 	}
+	// The database refresh is its own step, and a channel move forces it: pacman
+	// skips a db that is not newer than its cache, and a frozen release is older
+	// than the channel the box just left.
+	if got := strings.Join(refreshDBArgs(false), " "); !strings.Contains(got, "pacman -Sy") {
+		t.Errorf("refreshDBArgs = %q, want a -Sy refresh", got)
+	}
+	if got := strings.Join(refreshDBArgs(true), " "); !strings.Contains(got, "pacman -Syy") {
+		t.Errorf("refreshDBArgs(force) = %q, want -Syy so a frozen release's db is refetched", got)
+	}
+
 	var glob string
 	for i, a := range args {
 		if a == "--overwrite" && i+1 < len(args) {
@@ -182,6 +201,7 @@ func TestSystemUpgradeAdoptsSeededRyokuFiles(t *testing.T) {
 		"/usr/share/plymouth/themes/ryoku/bullet.png",
 		"/usr/share/plymouth/themes/ryoku/logo.png",
 		"/usr/lib/systemd/system/ryoku-network-kill-guard.service",
+		"/usr/lib/initcpio/install/ryoku-gpu-trim",
 		"/usr/share/ryoku/boot/default.conf",
 	} {
 		covered := false
@@ -194,6 +214,11 @@ func TestSystemUpgradeAdoptsSeededRyokuFiles(t *testing.T) {
 		if !covered {
 			t.Errorf("--overwrite %q does not cover deploy.sh-seeded path %q", glob, p)
 		}
+	}
+
+	// The opt-in lane is the only place a sysupgrade may appear.
+	if got := strings.Join(systemUpgradeArgs(), " "); !strings.Contains(got, "pacman -Syu") {
+		t.Errorf("systemUpgradeArgs = %q, want the full -Syu it exists for", got)
 	}
 }
 

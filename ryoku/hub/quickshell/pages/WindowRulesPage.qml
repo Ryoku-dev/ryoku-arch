@@ -28,46 +28,46 @@ Item {
     // page: the keys are the exact strings the Go backend's genWindowRule
     // switches on, so a rename here silently breaks settings.lua.
     readonly property var actionOptions: [
-        { "key": "float", "label": "Float" },
-        { "key": "tile", "label": "Tile" },
-        { "key": "pin", "label": "Pin" },
-        { "key": "fullscreen", "label": "Fullscreen" },
-        { "key": "maximize", "label": "Maximize" },
-        { "key": "center", "label": "Centre" },
-        { "key": "size", "label": "Size (WxH)" },
-        { "key": "move", "label": "Move (X,Y)" },
-        { "key": "workspace", "label": "Workspace" },
-        { "key": "opacity", "label": "Opacity" },
-        { "key": "noblur", "label": "No blur" },
-        { "key": "noborder", "label": "No border" },
-        { "key": "noshadow", "label": "No shadow" },
-        { "key": "norounding", "label": "Square corners" },
-        { "key": "nodim", "label": "Never dim" },
-        { "key": "noanim", "label": "No animations" },
-        { "key": "opaque", "label": "Force opaque" },
-        { "key": "xray", "label": "Blur X-ray" },
-        { "key": "nofocus", "label": "Never take focus" },
-        { "key": "stayfocused", "label": "Hold focus (dialogs)" },
-        { "key": "keepaspectratio", "label": "Keep aspect ratio" },
-        { "key": "pseudo", "label": "Pseudo-tile" },
-        { "key": "immediate", "label": "Immediate (tearing)" },
-        { "key": "idleinhibit", "label": "Block idle/sleep" },
-        { "key": "suppressevent", "label": "Ignore app request" }
+        { "key": "float", "label": I18n.tr("Float") },
+        { "key": "tile", "label": I18n.tr("Tile") },
+        { "key": "pin", "label": I18n.tr("Pin") },
+        { "key": "fullscreen", "label": I18n.tr("Fullscreen") },
+        { "key": "maximize", "label": I18n.tr("Maximize") },
+        { "key": "center", "label": I18n.tr("Centre") },
+        { "key": "size", "label": I18n.tr("Size (WxH)") },
+        { "key": "move", "label": I18n.tr("Move (X,Y)") },
+        { "key": "workspace", "label": I18n.tr("Workspace") },
+        { "key": "opacity", "label": I18n.tr("Opacity") },
+        { "key": "noblur", "label": I18n.tr("No blur") },
+        { "key": "noborder", "label": I18n.tr("No border") },
+        { "key": "noshadow", "label": I18n.tr("No shadow") },
+        { "key": "norounding", "label": I18n.tr("Square corners") },
+        { "key": "nodim", "label": I18n.tr("Never dim") },
+        { "key": "noanim", "label": I18n.tr("No animations") },
+        { "key": "opaque", "label": I18n.tr("Force opaque") },
+        { "key": "xray", "label": I18n.tr("Blur X-ray") },
+        { "key": "nofocus", "label": I18n.tr("Never take focus") },
+        { "key": "stayfocused", "label": I18n.tr("Hold focus (dialogs)") },
+        { "key": "keepaspectratio", "label": I18n.tr("Keep aspect ratio") },
+        { "key": "pseudo", "label": I18n.tr("Pseudo-tile") },
+        { "key": "immediate", "label": I18n.tr("Immediate (tearing)") },
+        { "key": "idleinhibit", "label": I18n.tr("Block idle/sleep") },
+        { "key": "suppressevent", "label": I18n.tr("Ignore app request") }
     ]
     // actions carrying a value: the text ones are free-form, idleinhibit and
     // suppressevent pick from a fixed enumerated set (rendered as a Seg below).
     readonly property var valueActions: ["opacity", "size", "move", "workspace", "idleinhibit", "suppressevent"]
     readonly property var textValueActions: ["opacity", "size", "move", "workspace"]
     readonly property var idleInhibitOptions: [
-        { "key": "always", "label": "Always" },
-        { "key": "focus", "label": "Focus" },
-        { "key": "fullscreen", "label": "Fullscreen" }
+        { "key": "always", "label": I18n.tr("Always") },
+        { "key": "focus", "label": I18n.tr("Focus") },
+        { "key": "fullscreen", "label": I18n.tr("Fullscreen") }
     ]
     readonly property var suppressEventOptions: [
-        { "key": "maximize", "label": "Maximize" },
-        { "key": "fullscreen", "label": "Fullscreen" },
-        { "key": "activate", "label": "Activate" },
-        { "key": "activatefocus", "label": "Activate focus" }
+        { "key": "maximize", "label": I18n.tr("Maximize") },
+        { "key": "fullscreen", "label": I18n.tr("Fullscreen") },
+        { "key": "activate", "label": I18n.tr("Activate") },
+        { "key": "activatefocus", "label": I18n.tr("Activate focus") }
     ]
     function actionValueDefault(k) {
         return k === "idleinhibit" ? "always"
@@ -207,7 +207,7 @@ Item {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 // an entry count is file-truth chrome, so mono (DESIGN.md section 2).
-                text: pg.ruleRows.length + (pg.ruleRows.length === 1 ? I18n.tr(" RULE") : I18n.tr(" RULES"))
+                text: pg.ruleRows.length === 1 ? I18n.tr("%1 RULE").arg(pg.ruleRows.length) : I18n.tr("%1 RULES").arg(pg.ruleRows.length)
                 color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: Tokens.fTiny
             }
             Btn {

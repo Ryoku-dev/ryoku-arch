@@ -7,6 +7,7 @@ import "../../.." as Pill
 import shell.services
 import "../../../../../components"
 import ".." as Menus
+import Ryoku.Ui.Singletons
 
 Item {
     id: root
@@ -24,10 +25,10 @@ Item {
         if (mins < 1)
             return "";
         if (mins < 60)
-            return " " + qsTr("for %1m").arg(mins);
+            return " " + I18n.tr("for %1m").arg(mins);
         if (mins < 1440)
-            return " " + qsTr("for %1h").arg(Math.floor(mins / 60));
-        return " " + qsTr("for %1d").arg(Math.floor(mins / 1440));
+            return " " + I18n.tr("for %1h").arg(Math.floor(mins / 60));
+        return " " + I18n.tr("for %1d").arg(Math.floor(mins / 1440));
     }
 
     SystemClock {
@@ -81,13 +82,13 @@ Item {
 
                     Menus.QsIconButton {
                         icon: "logout"
-                        tip: qsTr("Log out")
+                        tip: I18n.tr("Log out")
                         tipBelow: true
                         onClicked: Hyprland.dispatch("hl.dsp.exit()")
                     }
                     Menus.QsIconButton {
                         icon: "lock"
-                        tip: qsTr("Lock")
+                        tip: I18n.tr("Lock")
                         tipBelow: true
                         onClicked: {
                             Quickshell.execDetached(["ryoku-shell", "lock"]);
@@ -97,14 +98,14 @@ Item {
                     }
                     Menus.QsHoldButton {
                         icon: "restart_alt"
-                        tip: qsTr("Click to reboot")
+                        tip: I18n.tr("Click to reboot")
                         tipBelow: true
                         tipAlign: "right"
                         onActivated: Quickshell.execDetached(["systemctl", "reboot"])
                     }
                     Menus.QsHoldButton {
                         icon: "power_settings_new"
-                        tip: qsTr("Click to shut down")
+                        tip: I18n.tr("Click to shut down")
                         tipBelow: true
                         tipAlign: "right"
                         onActivated: Quickshell.execDetached(["systemctl", "poweroff"])
@@ -168,7 +169,7 @@ Item {
             // segment is the current target; picking the other retargets the logo.
             Menus.QsSeg {
                 width: parent.width
-                options: [{ id: "studio", label: "QS BAR SETTINGS" }, { id: "quick", label: "QUICK SETTINGS" }]
+                options: [{ id: "studio", label: I18n.tr("QS BAR SETTINGS") }, { id: "quick", label: I18n.tr("QUICK SETTINGS") }]
                 current: Config.launcherTarget === "quick" ? "quick" : "studio"
                 onChose: (id) => Config.setLauncherTarget(id)
             }
@@ -196,7 +197,7 @@ Item {
             width: parent.width
             spacing: 12
 
-            Menus.QsSection { width: parent.width; label: qsTr("Connect") }
+            Menus.QsSection { width: parent.width; label: I18n.tr("Connect") }
             Grid {
                 id: tileGrid
                 width: parent.width
@@ -208,54 +209,54 @@ Item {
                 Menus.QsTile {
                     width: tileGrid.tileWidth
                     icon: Network.kind === "ethernet" ? "lan" : "wifi"
-                    label: qsTr("Wi-Fi")
-                    sub: !Toggles.wifiOn ? qsTr("Off") : Network.activeSsid !== "" ? Network.activeSsid : qsTr("On")
+                    label: I18n.tr("Wi-Fi")
+                    sub: !Toggles.wifiOn ? I18n.tr("Off") : Network.activeSsid !== "" ? Network.activeSsid : I18n.tr("On")
                     on: Toggles.wifiOn
                     hasPage: true
-                    pageTip: qsTr("Wi-Fi networks")
+                    pageTip: I18n.tr("Wi-Fi networks")
                     onToggled: Toggles.toggleWifi()
                     onPageRequested: if (root.navigate) root.navigate("network")
                 }
                 Menus.QsTile {
                     width: tileGrid.tileWidth
                     icon: "bluetooth"
-                    label: qsTr("Bluetooth")
-                    sub: Toggles.btOn ? qsTr("On") : qsTr("Off")
+                    label: I18n.tr("Bluetooth")
+                    sub: Toggles.btOn ? I18n.tr("On") : I18n.tr("Off")
                     on: Toggles.btOn
                     hasPage: true
-                    pageTip: qsTr("Bluetooth devices")
+                    pageTip: I18n.tr("Bluetooth devices")
                     onToggled: Toggles.toggleBt()
                     onPageRequested: if (root.navigate) root.navigate("bluetooth")
                 }
                 Menus.QsTile {
                     width: tileGrid.tileWidth
                     icon: "flight"
-                    label: qsTr("Airplane")
-                    sub: Toggles.wifiOn ? qsTr("Off") : qsTr("On")
+                    label: I18n.tr("Airplane")
+                    sub: Toggles.wifiOn ? I18n.tr("Off") : I18n.tr("On")
                     on: !Toggles.wifiOn
                     onToggled: Toggles.toggleWifi()
                 }
                 Menus.QsTile {
                     width: tileGrid.tileWidth
                     icon: "bedtime"
-                    label: qsTr("Night light")
-                    sub: Toggles.nightOn ? qsTr("On") : qsTr("Off")
+                    label: I18n.tr("Night light")
+                    sub: Toggles.nightOn ? I18n.tr("On") : I18n.tr("Off")
                     on: Toggles.nightOn
                     onToggled: Toggles.toggleNight()
                 }
                 Menus.QsTile {
                     width: tileGrid.tileWidth
                     icon: "coffee"
-                    label: qsTr("Keep awake")
-                    sub: Toggles.keepAwake ? qsTr("On") + root.awakeFor() : qsTr("Off")
+                    label: I18n.tr("Keep awake")
+                    sub: Toggles.keepAwake ? I18n.tr("On") + root.awakeFor() : I18n.tr("Off")
                     on: Toggles.keepAwake
                     onToggled: Toggles.toggleCaffeine()
                 }
                 Menus.QsTile {
                     width: tileGrid.tileWidth
                     icon: "do_not_disturb_on"
-                    label: qsTr("Do not disturb")
-                    sub: Toggles.dnd ? qsTr("On") : qsTr("Off")
+                    label: I18n.tr("Do not disturb")
+                    sub: Toggles.dnd ? I18n.tr("On") : I18n.tr("Off")
                     on: Toggles.dnd
                     onToggled: Toggles.toggleDnd()
                 }
@@ -267,16 +268,16 @@ Item {
                 Menus.QsTile {
                     width: tileGrid.tileWidth
                     icon: "sports_esports"
-                    label: qsTr("Gaming")
+                    label: I18n.tr("Gaming")
                     available: Toggles.gameMode || Battery.onAc
-                    sub: !available ? qsTr("Needs AC")
-                       : Toggles.gameMode ? qsTr("On") : qsTr("Off")
+                    sub: !available ? I18n.tr("Needs AC")
+                       : Toggles.gameMode ? I18n.tr("On") : I18n.tr("Off")
                     on: Toggles.gameMode
                     onToggled: Toggles.toggleGame()
                 }
             }
 
-            Menus.QsSection { width: parent.width; label: qsTr("Sound & display") }
+            Menus.QsSection { width: parent.width; label: I18n.tr("Sound & display") }
             Column {
                 width: parent.width
                 spacing: 4
@@ -287,7 +288,7 @@ Item {
                     lit: root.open
                     value: Audio.sink ? Audio.sink.audio.volume : 0
                     muted: Audio.sink ? Audio.sink.audio.muted : false
-                    valueLabel: !Audio.sink ? "" : (Audio.sink.audio.muted ? qsTr("off") : Math.round(Audio.sink.audio.volume * 100) + "%")
+                    valueLabel: !Audio.sink ? "" : (Audio.sink.audio.muted ? I18n.tr("off") : Math.round(Audio.sink.audio.volume * 100) + "%")
                     peakNode: Audio.sink
                     peakEnabled: root.open && !!Audio.sink
                     hasPage: true
@@ -301,7 +302,7 @@ Item {
                     lit: root.open
                     value: Audio.source && Audio.source.audio ? Audio.source.audio.volume : 0
                     muted: Audio.source && Audio.source.audio ? Audio.source.audio.muted : false
-                    valueLabel: !Audio.source || !Audio.source.audio ? "" : (Audio.source.audio.muted ? qsTr("off") : Math.round(Audio.source.audio.volume * 100) + "%")
+                    valueLabel: !Audio.source || !Audio.source.audio ? "" : (Audio.source.audio.muted ? I18n.tr("off") : Math.round(Audio.source.audio.volume * 100) + "%")
                     peakNode: Audio.source
                     peakEnabled: root.open && !!Audio.source
                     hasPage: true
@@ -321,14 +322,14 @@ Item {
                 active: root.open
             }
 
-            Menus.QsSection { width: parent.width; label: qsTr("Calendar") }
+            Menus.QsSection { width: parent.width; label: I18n.tr("Calendar") }
             Menus.QsCalendarEmbed {
                 width: parent.width
                 s: 1
                 open: root.open
             }
 
-            Menus.QsSection { width: parent.width; label: qsTr("System") }
+            Menus.QsSection { width: parent.width; label: I18n.tr("System") }
             SysMonitor {
                 width: parent.width
                 s: 1
@@ -355,7 +356,7 @@ Item {
         Menus.QsSection {
             visible: PowerProfiles.available
             width: parent.width
-            label: qsTr("Power")
+            label: I18n.tr("Power")
         }
         Menus.QsSeg {
             visible: PowerProfiles.available
@@ -363,7 +364,7 @@ Item {
             current: PowerProfiles.profile
             options: PowerProfiles.profiles.map(profile => ({
                 id: profile,
-                label: profile === "power-saver" ? qsTr("Saver") : profile.charAt(0).toUpperCase() + profile.slice(1)
+                label: profile === "power-saver" ? I18n.tr("Saver") : profile.charAt(0).toUpperCase() + profile.slice(1)
             }))
             onChose: profile => PowerProfiles.setProfile(profile)
         }

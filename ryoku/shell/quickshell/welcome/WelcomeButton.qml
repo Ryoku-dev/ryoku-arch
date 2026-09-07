@@ -41,7 +41,7 @@ Item {
     Text {
         id: label_
         anchors.centerIn: parent
-        text: I18n.tr(btn.label)
+        text: btn.label
         color: btn.solid ? Tokens.inkOnBone
              : btn.ghost ? (hover.hovered ? Tokens.ink : Tokens.inkMuted)
              : (hover.hovered ? Tokens.ink : Tokens.inkDim)

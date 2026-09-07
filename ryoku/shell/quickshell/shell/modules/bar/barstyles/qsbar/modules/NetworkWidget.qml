@@ -146,7 +146,7 @@ Item {
             UiText {
                 x: 0; y: 0
                 width: 8; height: 8
-                text: I18n.tr("RX")
+                text: "RX"
                 color: Qt.rgba(rootMod.contentColor.r, rootMod.contentColor.g, rootMod.contentColor.b, 0.72)
                 font.family: root.mono
                 font.pixelSize: 7
@@ -187,7 +187,7 @@ Item {
             UiText {
                 x: 8; y: 13
                 width: 8; height: 8
-                text: I18n.tr("TX")
+                text: "TX"
                 color: Qt.rgba(rootMod.contentColor.r, rootMod.contentColor.g, rootMod.contentColor.b, 0.72)
                 font.family: root.mono
                 font.pixelSize: 7

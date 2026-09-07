@@ -40,6 +40,16 @@ func IsBtrfs(path string) bool {
 	return int64(st.Type) == 0x9123683E // BTRFS_SUPER_MAGIC
 }
 
+// FreeBytes is the space available to a non-root writer under path, and whether
+// the filesystem could be read at all.
+func FreeBytes(path string) (uint64, bool) {
+	var st syscall.Statfs_t
+	if err := syscall.Statfs(path, &st); err != nil {
+		return 0, false
+	}
+	return st.Bavail * uint64(st.Bsize), true
+}
+
 // IsBtrfsSubvolumeRoot reports whether path is the root of a btrfs subvolume:
 // those always carry inode 256.
 func IsBtrfsSubvolumeRoot(path string) bool {

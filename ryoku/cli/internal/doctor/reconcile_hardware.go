@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: display backlight -------------------------------------------
@@ -25,34 +27,34 @@ func reconcileBacklight(_ bool) recResult {
 	devs := backlightDevices()
 	if len(devs) == 0 {
 		if !isLaptop() {
-			return okRes("no internal backlight (desktop or external display)")
+			return okRes(i18n.T("no internal backlight (desktop or external display)"))
 		}
-		return warnRes("no backlight interface found; display brightness cannot be set").
-			withFix("try a kernel parameter such as acpi_backlight=native or acpi_backlight=vendor")
+		return warnRes(i18n.T("no backlight interface found; display brightness cannot be set")).
+			withFix(i18n.T("try a kernel parameter such as acpi_backlight=native or acpi_backlight=vendor"))
 	}
 	if !sys.Has("brightnessctl") {
-		return warnRes("backlight present but brightnessctl is missing; brightness keys and idle-dim will not work").
+		return warnRes(i18n.T("backlight present but brightnessctl is missing; brightness keys and idle-dim will not work")).
 			withFix("sudo pacman -S brightnessctl")
 	}
 	if gpus := gpuDriversLoaded(); len(gpus) >= 2 && onlyFirmwareBacklight(devs) {
-		detail := fmt.Sprintf("hybrid GPU (%s) with only a firmware backlight (%s); the panel may not dim",
+		detail := fmt.Sprintf(i18n.T("hybrid GPU (%s) with only a firmware backlight (%s); the panel may not dim"),
 			strings.Join(gpus, "+"), strings.Join(devs, ","))
 		if nvidiaBacklightDead() {
-			detail = fmt.Sprintf("hybrid GPU (%s): the kernel reports the dGPU has no working backlight, and the firmware fallback (%s) does not dim the panel",
+			detail = fmt.Sprintf(i18n.T("hybrid GPU (%s): the kernel reports the dGPU has no working backlight, and the firmware fallback (%s) does not dim the panel"),
 				strings.Join(gpus, "+"), strings.Join(devs, ","))
 		}
-		fix := "route the panel to the iGPU: set the BIOS GPU/MUX mode to Hybrid and reboot"
+		fix := i18n.T("route the panel to the iGPU: set the BIOS GPU/MUX mode to Hybrid and reboot")
 		if name := igpuBacklightName(gpus); name != "" {
-			fix += ", then " + name + " appears"
+			fix += i18n.Tf(", then %s appears", name)
 		} else {
-			fix += " so the panel's native backlight appears"
+			fix += i18n.T(" so the panel's native backlight appears")
 		}
 		if sys.Has("supergfxctl") {
-			fix += "; on a supported ASUS laptop `supergfxctl -m Hybrid` switches it without a BIOS trip"
+			fix += i18n.T("; on a supported ASUS laptop `supergfxctl -m Hybrid` switches it without a BIOS trip")
 		}
 		return noteRes("%s", detail).withFix(fix)
 	}
-	return okRes("backlight: %s", strings.Join(devs, ", "))
+	return okRes(i18n.T("backlight: %s"), strings.Join(devs, ", "))
 }
 
 // nvidiaBacklightDead: the kernel's own tell that the dGPU has no usable
@@ -185,25 +187,25 @@ func keplerGpuPresent() bool {
 
 func reconcileKeplerNvidia(checkOnly bool) recResult {
 	if !keplerGpuPresent() || !nvidia580Installed() {
-		return okRes("no incompatible 580xx driver on Kepler hardware")
+		return okRes(i18n.T("no incompatible 580xx driver on Kepler hardware"))
 	}
 	if checkOnly {
-		return wouldRes("Kepler hardware has nvidia-580xx-dkms, which cannot bind this GPU and leaves Nouveau blacklisted").
-			withFix("ryoku doctor  (removes 580xx and restores Nouveau)")
+		return wouldRes(i18n.T("Kepler hardware has nvidia-580xx-dkms, which cannot bind this GPU and leaves Nouveau blacklisted")).
+			withFix(i18n.T("ryoku doctor  (removes 580xx and restores Nouveau)"))
 	}
 	if err := removeKepler580(); err != nil {
-		return failRes("could not remove incompatible nvidia-580xx-dkms: %v", err).
+		return failRes(i18n.T("could not remove incompatible nvidia-580xx-dkms: %v"), err).
 			withFix("sudo pacman -R --noconfirm nvidia-580xx-dkms")
 	}
 	if err := restoreKeplerNouveau(); err != nil {
-		return failRes("removed 580xx but could not restore Nouveau: %v", err).
+		return failRes(i18n.T("removed 580xx but could not restore Nouveau: %v"), err).
 			withFix("sudo rm /etc/modprobe.d/nvidia.conf /etc/mkinitcpio.conf.d/nvidia.conf")
 	}
 	if err := rebuildKeplerNouveau(); err != nil {
-		return warnRes("restored Nouveau, but the initramfs rebuild failed: %v", err).
-			withFix("sudo limine-mkinitcpio  (or: sudo mkinitcpio -P)")
+		return warnRes(i18n.T("restored Nouveau, but the initramfs rebuild failed: %v"), err).
+			withFix(i18n.T("sudo limine-mkinitcpio  (or: sudo mkinitcpio -P)"))
 	}
-	return fixedRes("removed unsupported 580xx from Kepler hardware and restored Nouveau for the next boot")
+	return fixedRes(i18n.T("removed unsupported 580xx from Kepler hardware and restored Nouveau for the next boot"))
 }
 
 // nvidiaDriverActive: does this box use the proprietary/open nvidia driver?
@@ -264,7 +266,7 @@ func removeRootFiles(paths ...string) error {
 
 func reconcileNvidiaModeset(checkOnly bool) recResult {
 	if !nvidiaDriverActive() {
-		return okRes("no proprietary NVIDIA driver in use")
+		return okRes(i18n.T("no proprietary NVIDIA driver in use"))
 	}
 	// nouveau blacklisted with no loadable nvidia module = no driver can bind
 	// the card (the SDDM login loop). Restore nouveau so the next boot has a
@@ -272,42 +274,42 @@ func reconcileNvidiaModeset(checkOnly bool) recResult {
 	blacklist := strings.Contains(readFileSafe("/etc/modprobe.d/nvidia.conf"), "blacklist nouveau")
 	if blacklist && !nvidiaModuleOnDisk() {
 		if checkOnly {
-			return wouldRes("nouveau is blacklisted but no nvidia module exists for any installed kernel; the session cannot start (the SDDM login loop)").
-				withFix("ryoku doctor  (restores nouveau, rebuilds the initramfs)")
+			return wouldRes(i18n.T("nouveau is blacklisted but no nvidia module exists for any installed kernel; the session cannot start (the SDDM login loop)")).
+				withFix(i18n.T("ryoku doctor  (restores nouveau, rebuilds the initramfs)"))
 		}
 		if err := removeRootFiles("/etc/modprobe.d/nvidia.conf", "/etc/mkinitcpio.conf.d/nvidia.conf"); err != nil {
-			return failRes("could not remove the stale NVIDIA config: %v", err).
+			return failRes(i18n.T("could not remove the stale NVIDIA config: %v"), err).
 				withFix("sudo rm /etc/modprobe.d/nvidia.conf /etc/mkinitcpio.conf.d/nvidia.conf && sudo mkinitcpio -P")
 		}
 		if err := rebuildInitramfs(); err != nil {
-			return warnRes("restored nouveau, but the initramfs rebuild failed: %v", err).
-				withFix("sudo limine-mkinitcpio  (or: sudo mkinitcpio -P)")
+			return warnRes(i18n.T("restored nouveau, but the initramfs rebuild failed: %v"), err).
+				withFix(i18n.T("sudo limine-mkinitcpio  (or: sudo mkinitcpio -P)"))
 		}
-		return fixedRes("no nvidia module exists for the installed kernel(s); restored nouveau and rebuilt the initramfs so the next boot has a display. Install a matching driver (pacman -Syu nvidia-open) and run ryoku doctor again to switch back")
+		return fixedRes(i18n.T("no nvidia module exists for the installed kernel(s); restored nouveau and rebuilt the initramfs so the next boot has a display. Install a matching driver (pacman -Syu nvidia-open) and run ryoku doctor again to switch back"))
 	}
 	modprobe := readFileSafe("/etc/modprobe.d/nvidia.conf")
 	mkinit := readFileSafe("/etc/mkinitcpio.conf.d/nvidia.conf")
 	ok := nvidiaConfigOK(modprobe, mkinit)
 	if ok {
-		return okRes("NVIDIA modeset + fbdev + nouveau blacklist in place")
+		return okRes(i18n.T("NVIDIA modeset + fbdev + nouveau blacklist in place"))
 	}
 	if checkOnly {
-		return wouldRes("NVIDIA driver in use but nouveau is not blacklisted / DRM modeset + fbdev not set; the GPU or an external display can fail to come up on some boots").
-			withFix("ryoku doctor  (writes /etc/modprobe.d/nvidia.conf and rebuilds the initramfs)")
+		return wouldRes(i18n.T("NVIDIA driver in use but nouveau is not blacklisted / DRM modeset + fbdev not set; the GPU or an external display can fail to come up on some boots")).
+			withFix(i18n.T("ryoku doctor  (writes /etc/modprobe.d/nvidia.conf and rebuilds the initramfs)"))
 	}
 	if err := writeRootFile("/etc/modprobe.d/nvidia.conf", nvidiaModprobeConf, "0644"); err != nil {
-		return failRes("could not write /etc/modprobe.d/nvidia.conf: %v", err).
-			withFix("re-run with sudo access")
+		return failRes(i18n.T("could not write /etc/modprobe.d/nvidia.conf: %v"), err).
+			withFix(i18n.T("re-run with sudo access"))
 	}
 	if err := writeRootFile("/etc/mkinitcpio.conf.d/nvidia.conf", nvidiaMkinitcpioConf, "0644"); err != nil {
-		return failRes("could not write /etc/mkinitcpio.conf.d/nvidia.conf: %v", err).
-			withFix("re-run with sudo access")
+		return failRes(i18n.T("could not write /etc/mkinitcpio.conf.d/nvidia.conf: %v"), err).
+			withFix(i18n.T("re-run with sudo access"))
 	}
 	if err := rebuildInitramfs(); err != nil {
-		return warnRes("wrote the NVIDIA reliability config, but the initramfs rebuild failed: %v", err).
-			withFix("sudo limine-mkinitcpio  (or: sudo mkinitcpio -P)")
+		return warnRes(i18n.T("wrote the NVIDIA reliability config, but the initramfs rebuild failed: %v"), err).
+			withFix(i18n.T("sudo limine-mkinitcpio  (or: sudo mkinitcpio -P)"))
 	}
-	return fixedRes("blacklisted nouveau, enabled NVIDIA DRM modeset, and rebuilt the initramfs")
+	return fixedRes(i18n.T("blacklisted nouveau, enabled NVIDIA DRM modeset, and rebuilt the initramfs"))
 }
 
 // rebuildInitramfs regenerates the boot image after a module/blacklist
@@ -366,18 +368,18 @@ func nvidiaGuardHookOK(got string) bool {
 
 func reconcileNvidiaGuardHook(checkOnly bool) recResult {
 	if !nvidiaDriverActive() {
-		return okRes("no proprietary NVIDIA driver in use")
+		return okRes(i18n.T("no proprietary NVIDIA driver in use"))
 	}
 	if nvidiaGuardHookOK(readFileSafe(nvidiaGuardHookPath)) {
-		return okRes("NVIDIA update guard hook in place")
+		return okRes(i18n.T("NVIDIA update guard hook in place"))
 	}
 	if checkOnly {
-		return wouldRes("the NVIDIA update guard pacman hook is missing or stale; a failed DKMS rebuild on a kernel update could strand the box at the SDDM login (the login loop)").
-			withFix("ryoku doctor  (installs /etc/pacman.d/hooks/ryoku-nvidia.hook)")
+		return wouldRes(i18n.T("the NVIDIA update guard pacman hook is missing or stale; a failed DKMS rebuild on a kernel update could strand the box at the SDDM login (the login loop)")).
+			withFix(i18n.T("ryoku doctor  (installs /etc/pacman.d/hooks/ryoku-nvidia.hook)"))
 	}
 	if err := writeRootFile(nvidiaGuardHookPath, nvidiaGuardHook, "0644"); err != nil {
-		return failRes("could not write %s: %v", nvidiaGuardHookPath, err).
-			withFix("re-run with sudo access")
+		return failRes(i18n.T("could not write %s: %v"), nvidiaGuardHookPath, err).
+			withFix(i18n.T("re-run with sudo access"))
 	}
-	return fixedRes("installed the NVIDIA update guard hook so a failed DKMS rebuild can't strand the login")
+	return fixedRes(i18n.T("installed the NVIDIA update guard hook so a failed DKMS rebuild can't strand the login"))
 }

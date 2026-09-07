@@ -12,6 +12,9 @@ import (
 	"strings"
 	"time"
 
+	"ryoku-i18n"
+	"ryoku-i18n/catalog"
+
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 )
@@ -80,68 +83,71 @@ func (m model) waitEv() tea.Cmd {
 }
 
 func buildItems(f *facts, p *plan) []planItem {
+	// labels stay English here: groupPlanItems matches them against planGroups
+	// to insert section headers, so they are compared, not just shown. viewPlan
+	// translates them at the render site. Details are display-only -> wrapped.
 	var it []planItem
 	if f.prevRun != nil {
 		it = append(it, planItem{"Resume the previous run",
-			fmt.Sprintf("%d step(s) already finished last time; keeps that run's backup dir and skips them (toggle off to redo everything)", len(f.prevRun.Completed)),
+			i18n.Tf("%d step(s) already finished last time; keeps that run's backup dir and skips them (toggle off to redo everything)", len(f.prevRun.Completed)),
 			&p.resume, false})
 	}
 	if f.hasNvidia {
-		d := "installs the proprietary driver, blacklists nouveau, rebuilds the initramfs"
+		d := i18n.T("installs the proprietary driver, blacklists nouveau, rebuilds the initramfs")
 		if f.nouveauLive {
-			d = "you are on nouveau right now; switching needs a reboot to take effect"
+			d = i18n.T("you are on nouveau right now; switching needs a reboot to take effect")
 		}
 		locked := false
 		switch {
 		case f.secureBoot && !f.sbctlSigned:
-			d = "held off: Secure Boot rejects unsigned DKMS modules (black screen at boot); sign with sbctl or disable Secure Boot, then re-run"
+			d = i18n.T("held off: Secure Boot rejects unsigned DKMS modules (black screen at boot); sign with sbctl or disable Secure Boot, then re-run")
 			locked = true
 		case f.secureBoot && f.sbctlSigned:
-			d += "; Secure Boot is on, sbctl found: make sure its hook signs DKMS modules"
+			d += "; " + i18n.T("Secure Boot is on, sbctl found: make sure its hook signs DKMS modules")
 		}
 		it = append(it, planItem{"NVIDIA proprietary drivers", d, &p.nvidia, locked})
 	}
 	if dm := f.otherDM(); dm != "" {
-		d := "disables " + dm + " and enables SDDM (at reboot)"
+		d := i18n.Tf("disables %s and enables SDDM (at reboot)", dm)
 		if len(f.desktops) > 0 {
-			d += "; " + strings.Join(f.desktops, ", ") + " stays installed and selectable at login"
+			d += "; " + i18n.Tf("%s stays installed and selectable at login", strings.Join(f.desktops, ", "))
 		}
 		it = append(it, planItem{"Switch login to SDDM", d, &p.switchDM, false})
 	} else if f.currentDM == "" {
-		it = append(it, planItem{"Enable SDDM login", "no display manager found; toggle off to keep starting Hyprland by hand", &p.switchDM, false})
+		it = append(it, planItem{"Enable SDDM login", i18n.T("no display manager found; toggle off to keep starting Hyprland by hand"), &p.switchDM, false})
 	}
-	gd := "points the SDDM login screen at the Ryoku qylock greeter"
+	gd := i18n.T("points the SDDM login screen at the Ryoku qylock greeter")
 	if f.kdeSddmConf {
-		gd = "KDE's login screen settings own SDDM here; toggle on to let the Ryoku theme outrank kde_settings.conf"
+		gd = i18n.T("KDE's login screen settings own SDDM here; toggle on to let the Ryoku theme outrank kde_settings.conf")
 	}
 	it = append(it, planItem{"Ryoku greeter theme", gd, &p.greeter, false})
 	// only offered when nothing better was salvaged: an existing fr/be/de/...
 	// setup already carries its own layout into keyboard.lua.
 	if f.kbLayout == "" || f.kbLayout == "us" {
 		it = append(it, planItem{"AZERTY keyboard (French)",
-			"sets layout fr for Hyprland, the console (KEYMAP=fr), and the SDDM login screen; turns the Belgian toggle off", &p.azertyFR, false})
+			i18n.T("sets layout fr for Hyprland, the console (KEYMAP=fr), and the SDDM login screen; turns the Belgian toggle off"), &p.azertyFR, false})
 		it = append(it, planItem{"AZERTY keyboard (Belgian)",
-			"sets layout be for Hyprland, the console (KEYMAP=be-latin1), and the SDDM login screen; turns the French toggle off", &p.azertyBE, false})
+			i18n.T("sets layout be for Hyprland, the console (KEYMAP=be-latin1), and the SDDM login screen; turns the French toggle off"), &p.azertyBE, false})
 	}
 	if len(f.otherNet) > 0 {
-		it = append(it, planItem{"Switch to NetworkManager", "disables " + strings.Join(f.otherNet, ", ") + " (at reboot)", &p.switchNet, false})
+		it = append(it, planItem{"Switch to NetworkManager", i18n.Tf("disables %s (at reboot)", strings.Join(f.otherNet, ", ")), &p.switchNet, false})
 	}
 	if len(f.rivalPkgs) > 0 {
-		it = append(it, planItem{"Remove rival shells", "uninstalls " + strings.Join(f.rivalPkgs, ", "), &p.rivals, false})
+		it = append(it, planItem{"Remove rival shells", i18n.Tf("uninstalls %s", strings.Join(f.rivalPkgs, ", ")), &p.rivals, false})
 	}
 	if len(f.softUnits) > 0 {
-		it = append(it, planItem{"Disable conflicting daemons", "disables " + strings.Join(f.softUnits, ", "), &p.softOff, false})
+		it = append(it, planItem{"Disable conflicting daemons", i18n.Tf("disables %s", strings.Join(f.softUnits, ", ")), &p.softOff, false})
 	}
 	if f.omarchyRepo || f.omarchyMirror || len(f.omarchyGuards) > 0 {
-		it = append(it, planItem{"Retire the Omarchy repo", "drops [omarchy] from pacman.conf, restores a standard Arch mirrorlist, removes omarchy-keyring, retires the pacman guard hook that blocks -Syu", &p.omarchy, false})
+		it = append(it, planItem{"Retire the Omarchy repo", i18n.T("drops [omarchy] from pacman.conf, restores a standard Arch mirrorlist, removes omarchy-keyring, retires the pacman guard hook that blocks -Syu"), &p.omarchy, false})
 	}
 	if len(f.monOutputs) > 0 {
-		it = append(it, planItem{"Carry over monitor layout", fmt.Sprintf("pins %d output(s) from your %s setup (rotation, scale, position) into monitors_user.lua", len(f.monOutputs), f.monSource), &p.monPins, false})
+		it = append(it, planItem{"Carry over monitor layout", i18n.Tf("pins %d output(s) from your %s setup (rotation, scale, position) into monitors_user.lua", len(f.monOutputs), f.monSource), &p.monPins, false})
 	}
-	it = append(it, planItem{"AUR extras", "awww (wallpaper engine), Bibata cursor, LocalSend, Voxtype", &p.aur, false})
-	it = append(it, planItem{"Developer toolchain", "go, rust, node, python (ISO parity); ryoku recovery rebuilds from source and needs go", &p.devtools, false})
+	it = append(it, planItem{"AUR extras", i18n.T("awww (wallpaper engine), Bibata cursor, LocalSend, Voxtype"), &p.aur, false})
+	it = append(it, planItem{"Developer toolchain", i18n.T("go, rust, node, python (ISO parity); ryoku recovery rebuilds from source and needs go"), &p.devtools, false})
 	if !strings.HasSuffix(f.userShell, "/fish") {
-		it = append(it, planItem{"fish as login shell", "Ryoku's default shell; your current one stays installed", &p.fish, false})
+		it = append(it, planItem{"fish as login shell", i18n.T("Ryoku's default shell; your current one stays installed"), &p.fish, false})
 	}
 	return it
 }
@@ -347,9 +353,9 @@ func (m model) View() tea.View {
 	}
 	if m.w < minTermW || m.h < minTermH {
 		msg := lipgloss.JoinVertical(lipgloss.Center,
-			bold(cYell, "↔  Please enlarge your terminal"), "",
-			fg(cText, fmt.Sprintf("The Ryoku shell installer needs at least %d × %d.", minTermW, minTermH)),
-			fg(cSub, fmt.Sprintf("Current size: %d × %d.", m.w, m.h)))
+			bold(cYell, "↔  "+i18n.T("Please enlarge your terminal")), "",
+			fg(cText, i18n.Tf("The Ryoku shell installer needs at least %d × %d.", minTermW, minTermH)),
+			fg(cSub, i18n.Tf("Current size: %d × %d.", m.w, m.h)))
 		v := tea.NewView(lipgloss.Place(m.w, m.h, lipgloss.Center, lipgloss.Center, msg))
 		v.AltScreen, v.BackgroundColor, v.ForegroundColor = true, cBg, cText
 		return v
@@ -382,29 +388,29 @@ func (m model) View() tea.View {
 	v.AltScreen = true
 	v.BackgroundColor = cBg
 	v.ForegroundColor = cText
-	v.WindowTitle = "Ryoku shell installer"
+	v.WindowTitle = i18n.T("Ryoku shell installer")
 	return v
 }
 
 func (m model) footer() string {
 	switch m.state {
 	case "ack":
-		return keyHint("type manjaro + enter", "accept the risk") + hintSep() + keyHint("esc", "quit")
+		return keyHint(i18n.T("type manjaro + enter"), i18n.T("accept the risk")) + hintSep() + keyHint("esc", i18n.T("quit"))
 	case "plan":
 		if m.confirm {
-			return keyHint("y", "install") + hintSep() + keyHint("n", "back")
+			return keyHint("y", i18n.T("install")) + hintSep() + keyHint("n", i18n.T("back"))
 		}
-		return keyHint("↑↓", "move") + hintSep() + keyHint("space", "toggle") + hintSep() +
-			keyHint("enter", "install") + hintSep() + keyHint("q", "quit")
+		return keyHint("↑↓", i18n.T("move")) + hintSep() + keyHint("space", i18n.T("toggle")) + hintSep() +
+			keyHint("enter", i18n.T("install")) + hintSep() + keyHint("q", i18n.T("quit"))
 	case "install":
 		if m.intAsk {
-			return bold(cRed, "a package transaction may be running; press ctrl+c again to abandon")
+			return bold(cRed, i18n.T("a package transaction may be running; press ctrl+c again to abandon"))
 		}
-		return fg(cDim, "installing, do not interrupt") + hintSep() + fg(cDim, "log: "+m.logPath())
+		return fg(cDim, i18n.T("installing, do not interrupt")) + hintSep() + fg(cDim, i18n.Tf("log: %s", m.logPath()))
 	case "done":
-		return keyHint("r", "reboot now") + hintSep() + keyHint("q", "quit")
+		return keyHint("r", i18n.T("reboot now")) + hintSep() + keyHint("q", i18n.T("quit"))
 	case "failed":
-		return keyHint("r", "retry failed step") + hintSep() + keyHint("q", "quit")
+		return keyHint("r", i18n.T("retry failed step")) + hintSep() + keyHint("q", i18n.T("quit"))
 	}
 	return ""
 }
@@ -417,16 +423,16 @@ func (m model) logPath() string {
 }
 
 func (m model) header(sub string) string {
-	tag := fg(cSub, "shell installer")
+	tag := fg(cSub, i18n.T("shell installer"))
 	if m.dry {
-		tag += fg(cYell, "  [dry run]")
+		tag += fg(cYell, "  "+i18n.T("[dry run]"))
 	}
 	return banner(m.frame/2) + "\n" + tag + "\n\n" + sub
 }
 
 func (m model) viewScan() string {
 	sp := spinFrames[m.frame%len(spinFrames)]
-	return m.header(fg(cBrand, sp) + " " + fg(cText, "inspecting this machine…"))
+	return m.header(fg(cBrand, sp) + " " + fg(cText, i18n.T("inspecting this machine…")))
 }
 
 // viewAck is the Manjaro gate: a hard warning that must be typed through.
@@ -436,12 +442,10 @@ func (m model) viewScan() string {
 func (m model) viewAck() string {
 	iw := clamp(m.w-14, 56, 90)
 	var b strings.Builder
-	b.WriteString(bold(cYell, gWarn+" Manjaro detected: "+m.f.distroName) + "\n\n")
-	b.WriteString(fg(cText, "The [ryoku] repository is built against Arch current. Manjaro stable ships") + "\n")
-	b.WriteString(fg(cText, "Arch packages 1 to 4 weeks late, so installing can leave the Qt stack") + "\n")
-	b.WriteString(fg(cText, "half-upgraded: the shell then fails to start, or unrelated apps break.") + "\n")
-	b.WriteString(fg(cText, "This setup is unsupported; breakage lands on you.") + "\n\n")
-	b.WriteString(fg(cSub, "Type ") + bold(cYell, "manjaro") + fg(cSub, " and press enter to accept the risk, esc to quit.") + "\n\n")
+	b.WriteString(bold(cYell, gWarn+" "+i18n.Tf("Manjaro detected: %s", m.f.distroName)) + "\n\n")
+	b.WriteString(sty().Foreground(cText).Width(iw).Render(i18n.T("The [ryoku] repository is built against Arch current. Manjaro stable ships Arch packages 1 to 4 weeks late, so installing can leave the Qt stack half-upgraded: the shell then fails to start, or unrelated apps break.")) + "\n\n")
+	b.WriteString(fg(cText, i18n.T("This setup is unsupported; breakage lands on you.")) + "\n\n")
+	b.WriteString(fg(cSub, i18n.T("Type manjaro and press enter to accept the risk, esc to quit.")) + "\n\n")
 	b.WriteString(fg(cSub, "> ") + fg(cText, m.ackInput) + fg(cBrand, "_") + "\n")
 	box := sty().Border(borderDouble()).BorderForeground(cYell).Padding(1, 2).
 		Render(padLines(strings.TrimRight(b.String(), "\n"), iw))
@@ -452,60 +456,93 @@ func (m model) viewPlan() string {
 	f := m.f
 	iw := clamp(m.w-14, 62, 96)
 
-	var s strings.Builder
-	row := func(k, v string) {
-		s.WriteString(fg(cSub, padTo(k, 14)) + fg(cText, truncW(v, iw-16)) + "\n")
+	// info rows are collected first so the key column can be sized from the
+	// measured widest translated key (a translation may be wider than the
+	// English "secure boot"); the value truncation then follows that width.
+	type infoRow struct {
+		k, v string
+		span string // non-empty => a full-width line with no key column
 	}
-	row("system", f.distroName)
+	var rows []infoRow
+	row := func(k, v string) { rows = append(rows, infoRow{k: k, v: v}) }
+	span := func(s string) { rows = append(rows, infoRow{span: s}) }
+
+	row(i18n.T("system"), f.distroName)
 	row("gpu", f.gpuSummary())
 	if f.secureBoot {
-		sb := "on and enforcing; unsigned NVIDIA DKMS modules cannot load"
+		sb := i18n.T("on and enforcing; unsigned NVIDIA DKMS modules cannot load")
 		if f.sbctlSigned {
-			sb = "on, sbctl key store found; its hook must cover DKMS modules"
+			sb = i18n.T("on, sbctl key store found; its hook must cover DKMS modules")
 		}
-		row("secure boot", sb)
+		row(i18n.T("secure boot"), sb)
 	}
 	dm := f.currentDM
 	if dm == "" {
-		dm = "none"
+		dm = i18n.T("none")
 	}
-	row("login", dm)
+	row(i18n.T("login"), dm)
 	if f.niriFound {
-		row("compositor", "niri setup detected; its config is backed up, niri stays installed")
+		row(i18n.T("compositor"), i18n.T("niri setup detected; its config is backed up, niri stays installed"))
 	}
 	if f.swayFound {
-		row("compositor", "sway setup detected; its config is backed up, sway stays installed")
+		row(i18n.T("compositor"), i18n.T("sway setup detected; its config is backed up, sway stays installed"))
 	}
 	if len(f.desktops) > 0 {
-		row("desktops", strings.Join(f.desktops, ", ")+" (kept; still selectable at the login screen)")
+		row(i18n.T("desktops"), i18n.Tf("%s (kept; still selectable at the login screen)", strings.Join(f.desktops, ", ")))
 	}
 	if len(f.riceFound) > 0 {
-		row("rice", "found: "+strings.Join(f.riceFound, ", ")+" rice; its daemons are replaced, configs ride the backup")
+		row(i18n.T("rice"), i18n.Tf("found: %s rice; its daemons are replaced, configs ride the backup", strings.Join(f.riceFound, ", ")))
 	}
 	if len(f.rivalPkgs) > 0 {
-		row("shells", strings.Join(f.rivalPkgs, ", "))
+		row(i18n.T("shells"), strings.Join(f.rivalPkgs, ", "))
 	}
 	if f.ryokuOnBox {
-		row("ryoku", "already installed; this run repairs and reconciles it")
+		row("ryoku", i18n.T("already installed; this run repairs and reconciles it"))
 	}
 	if f.omarchyRepo || f.omarchyMirror || len(f.omarchyGuards) > 0 {
-		row("previous", "Omarchy install detected; its repo, mirror pin and pacman guard get retired")
+		row(i18n.T("previous"), i18n.T("Omarchy install detected; its repo, mirror pin and pacman guard get retired"))
 	}
 	if !f.online {
-		s.WriteString(fg(cRed, gWarn+" repo.ryoku.dev unreachable, the install will fail without network") + "\n")
+		span(fg(cRed, gWarn+" "+i18n.T("repo.ryoku.dev unreachable, the install will fail without network")))
 	}
 	if f.btrfsRoot {
-		row("snapshots", "btrfs root: snapper snapshots will be configured by ryoku doctor")
+		row(i18n.T("snapshots"), i18n.T("btrfs root: snapper snapshots will be configured by ryoku doctor"))
 	} else {
-		row("snapshots", "root is not btrfs: updates work, snapshot rollback is unavailable")
+		row(i18n.T("snapshots"), i18n.T("root is not btrfs: updates work, snapshot rollback is unavailable"))
 	}
-	row("backup", "your touched configs are saved with a restore.sh before anything changes")
+	row(i18n.T("backup"), i18n.T("your touched configs are saved with a restore.sh before anything changes"))
+
+	keyW := 14
+	for _, r := range rows {
+		if r.span == "" {
+			if w := lipgloss.Width(r.k); w > keyW {
+				keyW = w
+			}
+		}
+	}
+	var s strings.Builder
+	for _, r := range rows {
+		if r.span != "" {
+			s.WriteString(r.span + "\n")
+			continue
+		}
+		s.WriteString(fg(cSub, padTo(r.k, keyW)) + fg(cText, truncW(r.v, iw-(keyW+2))) + "\n")
+	}
 	info := sty().Border(border()).BorderForeground(cBlue).Padding(0, 2).Render(padLines(strings.TrimRight(s.String(), "\n"), iw))
 
+	// the toggle label column follows the widest translated label the same way.
+	labelW := 30
+	for _, it := range m.items {
+		if it.on != nil {
+			if w := lipgloss.Width(i18n.T(it.label)); w > labelW {
+				labelW = w
+			}
+		}
+	}
 	var t strings.Builder
 	for i, it := range m.items {
 		if it.on == nil {
-			t.WriteString("  " + fg(cSub, "· "+it.label) + "\n")
+			t.WriteString("  " + fg(cSub, "· "+i18n.T(it.label)) + "\n")
 			continue
 		}
 		cur := "  "
@@ -519,9 +556,9 @@ func (m model) viewPlan() string {
 		if it.locked {
 			state = fg(cYell, gOff)
 		}
-		lbl := fg(cText, padTo(it.label, 30))
+		lbl := fg(cText, padTo(i18n.T(it.label), labelW))
 		if i == m.sel {
-			lbl = bold(cText, padTo(it.label, 30))
+			lbl = bold(cText, padTo(i18n.T(it.label), labelW))
 		}
 		t.WriteString(cur + state + "  " + lbl + "\n")
 		if i == m.sel {
@@ -530,9 +567,9 @@ func (m model) viewPlan() string {
 	}
 	toggles := sty().Border(border()).BorderForeground(cDim).Padding(0, 2).Render(padLines(strings.TrimRight(t.String(), "\n"), iw))
 
-	body := m.header(bold(cText, "Here is the plan for "+f.hostname) + "\n\n" + info + "\n" + toggles)
+	body := m.header(bold(cText, i18n.Tf("Here is the plan for %s", f.hostname)) + "\n\n" + info + "\n" + toggles)
 	if m.confirm {
-		q := bold(cBrand, "Install the Ryoku desktop with these choices?")
+		q := bold(cBrand, i18n.T("Install the Ryoku desktop with these choices?"))
 		body += "\n\n" + sty().Border(borderDouble()).BorderForeground(cBrand).Padding(0, 2).Render(q)
 	}
 	return body
@@ -550,7 +587,7 @@ func (m model) viewInstall() string {
 		fg(cSub, fmt.Sprintf(" %2d/%d", m.stepIdx, total))
 
 	var b strings.Builder
-	b.WriteString(bold(cBrand, "Installing the Ryoku desktop") + "\n\n")
+	b.WriteString(bold(cBrand, i18n.T("Installing the Ryoku desktop")) + "\n\n")
 	b.WriteString(bar + "\n\n")
 	for i, s := range m.eng.steps {
 		switch {
@@ -580,23 +617,25 @@ func (m model) viewInstall() string {
 func (m model) viewDone() string {
 	iw := clamp(m.w-14, 56, 90)
 	var b strings.Builder
-	b.WriteString(bold(cGreen, gCheck+" The Ryoku desktop is installed") + "\n\n")
-	b.WriteString(fg(cText, "Reboot to land in the Ryoku greeter and your new session.") + "\n\n")
-	b.WriteString(fg(cSub, gBullet+" updates forever:   ") + fg(cText, "ryoku update") + "\n")
-	b.WriteString(fg(cSub, gBullet+" health checks:     ") + fg(cText, "ryoku doctor") + "\n")
+	b.WriteString(bold(cGreen, gCheck+" "+i18n.T("The Ryoku desktop is installed")) + "\n\n")
+	b.WriteString(fg(cText, i18n.T("Reboot to land in the Ryoku greeter and your new session.")) + "\n\n")
+	// labels re-padded to 19 so the command column stays aligned after
+	// translation (padTo never truncates, so a longer label just shifts right).
+	b.WriteString(fg(cSub, gBullet+" "+padTo(i18n.T("updates forever:"), 19)) + fg(cText, "ryoku update") + "\n")
+	b.WriteString(fg(cSub, gBullet+" "+padTo(i18n.T("health checks:"), 19)) + fg(cText, "ryoku doctor") + "\n")
 	if m.eng != nil && m.eng.backupDir != "" {
-		label := " your old configs:  "
+		label := i18n.T("your old configs:")
 		if m.eng.prevBackups > 0 {
-			label = " this run's backup: "
+			label = i18n.T("this run's backup:")
 		}
-		b.WriteString(fg(cSub, gBullet+label) + fg(cText, m.eng.backupDir) + "\n")
-		b.WriteString(fg(cSub, "                    (restore.sh inside undoes this run's changes)") + "\n")
+		b.WriteString(fg(cSub, gBullet+" "+padTo(label, 19)) + fg(cText, m.eng.backupDir) + "\n")
+		b.WriteString(fg(cSub, "                    "+i18n.T("(restore.sh inside undoes this run's changes)")) + "\n")
 		if m.eng.prevBackups > 0 {
-			b.WriteString(fg(cYell, "                    earlier backups sit alongside; the oldest holds your pre-Ryoku configs") + "\n")
+			b.WriteString(fg(cYell, "                    "+i18n.T("earlier backups sit alongside; the oldest holds your pre-Ryoku configs")) + "\n")
 		}
 	}
-	b.WriteString(fg(cSub, gBullet+" install log:       ") + fg(cText, m.logPath()) + "\n\n")
-	b.WriteString(fg(cSub, "First steps: ") + fg(cText, "Super+Space launcher · Super+, settings · Super+K keybinds") + "\n")
+	b.WriteString(fg(cSub, gBullet+" "+padTo(i18n.T("install log:"), 19)) + fg(cText, m.logPath()) + "\n\n")
+	b.WriteString(fg(cSub, i18n.T("First steps: ")) + fg(cText, i18n.T("Super+Space launcher · Super+, settings · Super+K keybinds")) + "\n")
 	return sty().Border(borderDouble()).BorderForeground(cGreen).Padding(1, 2).
 		Render(padLines(strings.TrimRight(b.String(), "\n"), iw))
 }
@@ -608,9 +647,9 @@ func (m model) viewFailed() string {
 	if m.eng != nil && m.failIdx < len(m.eng.steps) {
 		step = m.eng.steps[m.failIdx].title
 	}
-	b.WriteString(bold(cRed, gBad+" Install failed") + "\n\n")
-	b.WriteString(fg(cText, "Step: ") + fg(cYell, step) + "\n")
-	b.WriteString(fg(cText, "Error: ") + fg(cRed, truncW(m.failMsg, iw-8)) + "\n\n")
+	b.WriteString(bold(cRed, gBad+" "+i18n.T("Install failed")) + "\n\n")
+	b.WriteString(fg(cText, i18n.T("Step: ")) + fg(cYell, step) + "\n")
+	b.WriteString(fg(cText, i18n.T("Error: ")) + fg(cRed, truncW(m.failMsg, iw-8)) + "\n\n")
 	tail := m.logTail
 	if len(tail) > 8 {
 		tail = tail[len(tail)-8:]
@@ -618,10 +657,10 @@ func (m model) viewFailed() string {
 	for _, ln := range tail {
 		b.WriteString(fg(cDim, truncW(ln, iw)) + "\n")
 	}
-	b.WriteString("\n" + fg(cSub, "Full log: ") + fg(cText, m.logPath()) + "\n")
-	b.WriteString(fg(cSub, "Completed steps keep their changes; retry resumes at the failed one.") + "\n")
+	b.WriteString("\n" + fg(cSub, i18n.T("Full log: ")) + fg(cText, m.logPath()) + "\n")
+	b.WriteString(fg(cSub, i18n.T("Completed steps keep their changes; retry resumes at the failed one.")) + "\n")
 	if m.eng != nil && m.eng.backupDir != "" {
-		b.WriteString(fg(cSub, "To roll back instead: bash "+m.eng.backupDir+"/restore.sh") + "\n")
+		b.WriteString(fg(cSub, i18n.Tf("To roll back instead: bash %s/restore.sh", m.eng.backupDir)) + "\n")
 	}
 	return sty().Border(border()).BorderForeground(cRed).Padding(1, 2).
 		Render(padLines(strings.TrimRight(b.String(), "\n"), iw))
@@ -630,23 +669,23 @@ func (m model) viewFailed() string {
 // ---- headless (--yes) ----
 
 func runHeadless(dry bool, ref, payload string) int {
-	fmt.Println(bold(cBrand, "ryoku-shell-install") + fg(cSub, " (headless)"))
+	fmt.Println(bold(cBrand, "ryoku-shell-install") + fg(cSub, " "+i18n.T("(headless)")))
 	f := detect()
 	if needsManjaroAck(f) {
-		fmt.Println(bold(cYell, "refusing to install on Manjaro non-interactively."))
-		fmt.Println("the [ryoku] repo is built against Arch current; Manjaro stable trails it by")
-		fmt.Println("weeks and partial upgrades can break the Qt stack. run without --yes to read")
-		fmt.Println("the warning, or set RYOKU_ALLOW_MANJARO=1 to accept the risk here.")
+		fmt.Println(bold(cYell, i18n.T("refusing to install on Manjaro non-interactively.")))
+		fmt.Println(i18n.T("the [ryoku] repo is built against Arch current; Manjaro stable trails it by weeks and partial upgrades can break the Qt stack."))
+		fmt.Println(i18n.T("run without --yes to read the warning, or set RYOKU_ALLOW_MANJARO=1 to accept the risk here."))
 		return 1
 	}
 	p := defaultPlan(f)
-	fmt.Printf("system: %s | gpu: %s | dm: %s\n", f.distroName, f.gpuSummary(), f.currentDM)
+	fmt.Println(i18n.Tf("system: %s | gpu: %s | dm: %s", f.distroName, f.gpuSummary(), f.currentDM))
 	if len(f.riceFound) > 0 {
-		fmt.Println("rice found: " + strings.Join(f.riceFound, ", ") + " (daemons replaced, configs ride the backup)")
+		fmt.Println(i18n.Tf("rice found: %s (daemons replaced, configs ride the backup)", strings.Join(f.riceFound, ", ")))
 	}
 	if f.prevRun != nil {
-		fmt.Printf("resuming the interrupted previous run: %d step(s) already done\n", len(f.prevRun.Completed))
+		fmt.Println(i18n.Tf("resuming the interrupted previous run: %d step(s) already done", len(f.prevRun.Completed)))
 	}
+	// a machine-readable toggle dump: the keys are plan field names, not prose.
 	fmt.Printf("plan: nvidia=%v sddm=%v greeter-theme=%v networkmanager=%v remove-shells=%v aur=%v fish=%v devtools=%v omarchy-cleanup=%v monitor-pins=%v azerty-fr=%v azerty-be=%v\n",
 		p.nvidia, p.switchDM, p.greeter, p.switchNet, p.rivals, p.aur, p.fish, p.devtools, p.omarchy, p.monPins, p.azertyFR, p.azertyBE)
 	e := newEngine(f, p, dry, ref, payload)
@@ -662,13 +701,13 @@ func runHeadless(dry bool, ref, payload string) int {
 			fmt.Println("    " + msg.line)
 		case evDone:
 			if msg.err != nil {
-				fmt.Println(bold(cRed, "install failed: "+msg.err.Error()))
-				fmt.Println("log: " + e.logPath)
+				fmt.Println(bold(cRed, i18n.Tf("install failed: %s", msg.err.Error())))
+				fmt.Println(i18n.Tf("log: %s", e.logPath))
 				return 1
 			}
-			fmt.Println(bold(cGreen, "the Ryoku desktop is installed; reboot to use it"))
+			fmt.Println(bold(cGreen, i18n.T("the Ryoku desktop is installed; reboot to use it")))
 			if e.backupDir != "" {
-				fmt.Println("old configs: " + e.backupDir + " (restore.sh inside)")
+				fmt.Println(i18n.Tf("old configs: %s (restore.sh inside)", e.backupDir))
 			}
 			return 0
 		}
@@ -688,7 +727,7 @@ func primeSudo() {
 		go sudoKeepalive()
 		return
 	}
-	fmt.Println("ryoku-shell-install needs sudo for system changes; asking once up front.")
+	fmt.Println(i18n.T("ryoku-shell-install needs sudo for system changes; asking once up front."))
 	c := exec.Command("sudo", "-v")
 	if tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0); err == nil {
 		c.Stdin, c.Stdout, c.Stderr = tty, tty, tty
@@ -696,7 +735,7 @@ func primeSudo() {
 		c.Stdin, c.Stdout, c.Stderr = os.Stdin, os.Stdout, os.Stderr
 	}
 	if err := c.Run(); err != nil {
-		die("sudo authentication failed")
+		die(i18n.T("sudo authentication failed"))
 	}
 	go sudoKeepalive()
 }
@@ -716,28 +755,33 @@ func stdoutIsTTY() bool {
 }
 
 func main() {
-	yes := flag.Bool("yes", false, "run non-interactively with the default plan")
-	dry := flag.Bool("dry-run", false, "print every command instead of running it")
-	uninstall := flag.Bool("uninstall", false, "remove the ryoku packages and restore the backup chain")
-	ref := flag.String("ref", envOr("RYOKU_SHELL_REF", "main"), "ryoku-arch git ref for the payload")
-	payload := flag.String("payload", os.Getenv("RYOKU_SHELL_PAYLOAD"), "use a local ryoku-arch checkout as the payload")
+	// this binary lands on a stranger's distro with no Ryoku catalog on disk,
+	// so the catalogs are compiled in; point the loader at them before Use.
+	i18n.SetFS(catalog.FS)
+	i18n.Use("")
+
+	yes := flag.Bool("yes", false, i18n.T("run non-interactively with the default plan"))
+	dry := flag.Bool("dry-run", false, i18n.T("print every command instead of running it"))
+	uninstall := flag.Bool("uninstall", false, i18n.T("remove the ryoku packages and restore the backup chain"))
+	ref := flag.String("ref", envOr("RYOKU_SHELL_REF", "main"), i18n.T("ryoku-arch git ref for the payload"))
+	payload := flag.String("payload", os.Getenv("RYOKU_SHELL_PAYLOAD"), i18n.T("use a local ryoku-arch checkout as the payload"))
 	flag.Parse()
 
 	initGlyphs()
 
 	if os.Geteuid() == 0 {
-		die("run as your normal user, not root; sudo is used where needed")
+		die(i18n.T("run as your normal user, not root; sudo is used where needed"))
 	}
 	if detectHostDistro() == nil {
-		die("unsupported distribution: Ryoku installs on Arch-based and Debian-based systems")
+		die(i18n.T("unsupported distribution: Ryoku installs on Arch-based and Debian-based systems"))
 	}
 	if out("uname", "-m") != "x86_64" {
-		die("Ryoku ships x86_64 builds only")
+		die(i18n.T("Ryoku ships x86_64 builds only"))
 	}
 	// the whole engine leans on systemctl; Artix and other non-systemd spins
 	// pass the pacman check but every session/service step would fail.
 	if !systemdBooted() {
-		die("this system does not boot with systemd (Artix or another init detected); Ryoku needs systemd and cannot install here")
+		die(i18n.T("this system does not boot with systemd (Artix or another init detected); Ryoku needs systemd and cannot install here"))
 	}
 
 	if !*dry {
@@ -751,7 +795,7 @@ func main() {
 		os.Exit(runHeadless(*dry, *ref, *payload))
 	}
 	if !stdoutIsTTY() {
-		die("unable to run interactively; re-run with --yes for the default plan")
+		die(i18n.T("unable to run interactively; re-run with --yes for the default plan"))
 	}
 
 	fm, err := tea.NewProgram(newTUIModel(*dry, *ref, *payload)).Run()

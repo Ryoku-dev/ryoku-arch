@@ -160,7 +160,7 @@ Flickable {
                         Accessible.role: Accessible.Button
                         Accessible.name: currentAction
                             ? String(currentAction.name || "") : ""
-                        Accessible.description: "Secondary result action"
+                        Accessible.description: Ui.I18n.tr("Secondary result action")
                         Accessible.ignored: !root.open || currentAction === null
                         Accessible.focusable: false
                         Accessible.selectable: true

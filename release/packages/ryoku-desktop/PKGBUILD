@@ -91,7 +91,7 @@ depends=(
   # cursor picker defaults to it). ships from [ryoku], not the AUR, so a fresh
   # install and `ryoku update` always carry it: the old AUR theme was skipped
   # offline and never revisited by `ryoku update`, leaving the pointer on a lone
-  # fallback bitmap. fixed upstream version, so unpinned like awww; see
+  # fallback bitmap. fixed upstream version, not the monorepo RYOKU_PKGVER; see
   # release/packages/ryoku-cursors/PKGBUILD.
   'ryoku-cursors'
   # the optional "Material Bibata" pointer in the Ryoku accent, offered as a
@@ -352,10 +352,10 @@ EOF
   # way a surface was launched.
   install -d "$pkgdir/usr/lib/qt6/qml/Ryoku/Ui"
   cp -a "$_repo/ryoku/ui/." "$pkgdir/usr/lib/qt6/qml/Ryoku/Ui/"
-  # install.sh and the i18n sync/wrap tools are authoring-time helpers; the
-  # runtime reads only I18n.qml + translations/, so the tools stay out of the
-  # Qt import path (as does any stray python bytecode cache).
-  rm -f "$pkgdir/usr/lib/qt6/qml/Ryoku/Ui/install.sh" "$pkgdir"/usr/lib/qt6/qml/Ryoku/Ui/i18n-*.py
+  # install.sh is an authoring-time helper, not runtime QML, so it stays off
+  # the Qt import path. The catalog it used to carry now lives once at
+  # /usr/share/ryoku/i18n, which every runtime reads.
+  rm -f "$pkgdir/usr/lib/qt6/qml/Ryoku/Ui/install.sh"
   rm -rf "$pkgdir/usr/lib/qt6/qml/Ryoku/Ui/__pycache__"
   chmod -R u=rwX,go=rX "$pkgdir/usr/lib/qt6/qml/Ryoku/PluginKit"
 
@@ -541,11 +541,20 @@ EOF
   install -Dm755 "$_repo/ryoku/shell/quickshell/plugins/ryoku-plugins-place" \
     "$pkgdir/usr/bin/ryoku-plugins-place"
 
-  # AI UI translation (Ryoku Settings > Shell > Language > Generate with AI):
+  # The translation catalog, at the one path every runtime reads: the QML
+  # singleton (ryoku/ui/Singletons/I18n.qml), the Go runtime the ryoku CLI and
+  # the installers link (ryoku/i18n/i18n.go) and the installer's shell
+  # (installation/backend/lib/i18n.sh). langs.json rides along because it is
+  # the list the Hub's language picker draws from.
+  install -d "$pkgdir/usr/share/ryoku/i18n"
+  install -m0644 "$_repo"/ryoku/i18n/catalog/*.json "$pkgdir/usr/share/ryoku/i18n/"
+  install -m0644 "$_repo/ryoku/i18n/langs.json" "$pkgdir/usr/share/ryoku/i18n/langs.json"
+
+  # AI UI translation (Ryoku Settings > Global > Language > Generate with AI):
   # the Hub button runs `ryoku-i18n llm <lang>` and Hyprland autostart runs
   # `ryoku-i18n ensure`, which seeds ~/.config/ryoku/i18n-llm.json for the
   # user's API key and machine-translates the UI to their language.
-  install -Dm755 "$_repo/ryoku/ui/i18n-sync.py" "$pkgdir/usr/bin/ryoku-i18n"
+  install -Dm755 "$_repo/ryoku/i18n/tools/sync.py" "$pkgdir/usr/bin/ryoku-i18n"
 
   # Nautilus stash actions: a nautilus-python extension that adds the deck's
   # install/compress/LocalSend actions to the file-manager right-click menu.
@@ -707,6 +716,13 @@ EOF
     "$pkgdir/usr/bin/ryoku-windows-entry"
   install -Dm755 "$_repo/system/boot/limine/45-ryoku-windows" \
     "$pkgdir/etc/boot/hooks/post.d/45-ryoku-windows"
+
+  # The initramfs GPU trim: a mkinitcpio install hook named by the HOOKS
+  # drop-in, so it has to exist for any image to build. Keeps the denylisted
+  # nouveau and its GSP firmware out, which is ~100 MiB per kernel image on a
+  # 2 GiB boot partition (issue #140's stale image).
+  install -Dm644 "$_repo/system/boot/mkinitcpio/install/ryoku-gpu-trim" \
+    "$pkgdir/usr/lib/initcpio/install/ryoku-gpu-trim"
 
   # The boot look, shipped so `ryoku update` refreshes it on every box, not just
   # fresh installs; the ryoku-desktop scriptlet then runs ryoku-boot-apply.

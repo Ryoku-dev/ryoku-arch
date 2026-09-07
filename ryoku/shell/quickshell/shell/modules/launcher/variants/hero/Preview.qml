@@ -22,8 +22,8 @@ Item {
         root.now, "dddd, MMM d")
     readonly property string greeting: {
         var hour = root.now.getHours();
-        return hour < 5 ? "GOOD NIGHT" : hour < 12 ? "GOOD MORNING"
-            : hour < 18 ? "GOOD AFTERNOON" : "GOOD EVENING";
+        return hour < 5 ? I18n.tr("GOOD NIGHT") : hour < 12 ? I18n.tr("GOOD MORNING")
+            : hour < 18 ? I18n.tr("GOOD AFTERNOON") : I18n.tr("GOOD EVENING");
     }
     readonly property string effectiveWeatherUnit: {
         var unit = String(root.setting("weatherUnit", "auto") || "auto");
@@ -189,7 +189,7 @@ Item {
         spacing: 7
 
         Repeater {
-            model: ["ALL", "IMG", "FILE", "REC"]
+            model: [I18n.tr("ALL"), I18n.tr("IMG"), I18n.tr("FILE"), I18n.tr("REC")]
 
             delegate: Rectangle {
                 required property string modelData

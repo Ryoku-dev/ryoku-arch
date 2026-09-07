@@ -18,7 +18,7 @@ Flow {
         if (key === busyKey && installStage !== "")
             result.push(installStage);
         if (offline)
-            result.push("OFFLINE");
+            result.push(I18n.tr("OFFLINE"));
         if (key === installErrorKey && installError !== "")
             result.push(installError);
         return result;
@@ -43,7 +43,7 @@ Flow {
 
             Text {
                 objectName: "ryostore-status-" + labelRow.modelData
-                text: labelRow.modelData
+                text: I18n.tr(labelRow.modelData)
                 textFormat: Text.PlainText
                 color: Tokens.inkDim
                 font.family: Tokens.mono

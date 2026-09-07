@@ -392,7 +392,7 @@ PanelWindow {
                                     anchors.verticalCenter: parent.verticalCenter
                                     spacing: 0
                                     UiText { text: modelData.value; color: root.ink; font.family: root.mono; font.pixelSize: 17; font.weight: Font.Medium }
-                                    UiText { text: modelData.label; color: root.sumiHi; font.family: root.mono; font.pixelSize: 9; font.letterSpacing: 1 }
+                                    UiText { text: I18n.tr(modelData.label); color: root.sumiHi; font.family: root.mono; font.pixelSize: 9; font.letterSpacing: 1 }
                                 }
                             }
                         }

@@ -1,6 +1,7 @@
 import QtQuick
 import shell.services
 import "../../components"
+import Ryoku.Ui.Singletons
 
 // An action button: filled / outlined / ghost (docs/stage.md).
 Rectangle {
@@ -35,7 +36,7 @@ Rectangle {
         }
         Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: btn.label
+            text: I18n.tr(btn.label)
             color: Theme.onSurface
             font.family: Theme.fontPrimary
             font.pixelSize: Theme.fontSm

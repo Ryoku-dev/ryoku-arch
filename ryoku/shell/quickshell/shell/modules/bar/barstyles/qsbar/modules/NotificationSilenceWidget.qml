@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 Item {
     id: rootMod
@@ -14,7 +15,7 @@ Item {
     implicitHeight: 28
 
 
-    readonly property string tooltipText: "Notifications silenced"
+    readonly property string tooltipText: I18n.tr("Notifications silenced")
 
     IconText {
         anchors.centerIn: parent

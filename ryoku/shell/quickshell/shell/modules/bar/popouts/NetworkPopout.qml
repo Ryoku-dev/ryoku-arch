@@ -4,6 +4,7 @@ import QtQuick
 import ".."
 import shell.services
 import "../../../components"
+import Ryoku.Ui.Singletons
 
 // Network popout: a frame-edge card (shared PopoutCard, so it opens and melts
 // like the music card) leading with the current link (wired or the joined
@@ -215,7 +216,7 @@ Item {
                 }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: apr.connecting ? qsTr("…") : Math.round(apr.ap.strength || 0) + "%"
+                    text: apr.connecting ? "…" : Math.round(apr.ap.strength || 0) + "%"
                     color: root.inkDim
                     font.family: Theme.mono
                     font.pixelSize: 9.5 * root.s
@@ -266,7 +267,7 @@ Item {
                     Text {
                         anchors.fill: parent
                         verticalAlignment: Text.AlignVCenter
-                        text: qsTr("Password")
+                        text: I18n.tr("Password")
                         color: root.inkDim
                         font: pwField.font
                         visible: pwField.text.length === 0 && !pwField.activeFocus
@@ -289,7 +290,7 @@ Item {
             Text {
                 width: parent.width
                 visible: apr.errorShown
-                text: qsTr("Wrong password or connection failed")
+                text: I18n.tr("Wrong password or connection failed")
                 color: Theme.error
                 wrapMode: Text.WordWrap
                 font.family: Theme.fontPrimary
@@ -299,7 +300,7 @@ Item {
                 width: parent.width
                 s: root.s
                 enabled: !apr.connecting
-                label: apr.connecting ? qsTr("Connecting…") : qsTr("Connect")
+                label: apr.connecting ? I18n.tr("Connecting…") : I18n.tr("Connect")
                 onClicked: apr.doConnect()
             }
         }
@@ -320,7 +321,7 @@ Item {
             Text {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("NETWORK")
+                text: I18n.tr("NETWORK")
                 color: root.inkDim
                 font.family: Theme.mono
                 font.pixelSize: 9 * root.s
@@ -367,7 +368,7 @@ Item {
             Text {
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
-                text: qsTr("Wi-Fi is off")
+                text: I18n.tr("Wi-Fi is off")
                 color: root.ink
                 font.family: Theme.fontPrimary
                 font.pixelSize: 12 * root.s
@@ -376,7 +377,7 @@ Item {
             PopoutAction {
                 anchors.horizontalCenter: parent.horizontalCenter
                 s: root.s
-                label: qsTr("Turn on")
+                label: I18n.tr("Turn on")
                 onClicked: root.toggleWifi()
             }
         }
@@ -412,7 +413,7 @@ Item {
                 visible: root.wifiUp
                 s: root.s
                 destructive: true
-                label: qsTr("Disconnect")
+                label: I18n.tr("Disconnect")
                 onClicked: Network.disconnectWifi()
             }
             Column {
@@ -424,9 +425,9 @@ Item {
                 spacing: 1 * root.s
                 Text {
                     width: parent.width
-                    text: root.wiredUp ? qsTr("Wired")
+                    text: root.wiredUp ? I18n.tr("Wired")
                         : root.wifiUp ? root.activeSsid
-                        : qsTr("Not connected")
+                        : I18n.tr("Not connected")
                     color: root.ink
                     font.family: Theme.fontPrimary
                     font.pixelSize: 12.5 * root.s
@@ -436,13 +437,13 @@ Item {
                 Text {
                     width: parent.width
                     text: {
-                        if (root.wiredUp) return qsTr("Connected");
+                        if (root.wiredUp) return I18n.tr("Connected");
                         if (root.wifiUp) {
                             const s = Math.round(Network.wifi.strength || 0);
-                            const base = qsTr("Connected · %1%").arg(s);
+                            const base = I18n.tr("Connected · %1%").arg(s);
                             return Network.vpnActive ? base + " · " + Network.vpnName : base;
                         }
-                        return Network.wifiConnectivity === "Connecting" ? qsTr("Connecting…") : qsTr("Choose a network");
+                        return Network.wifiConnectivity === "Connecting" ? I18n.tr("Connecting…") : I18n.tr("Choose a network");
                     }
                     color: root.inkDim
                     font.family: Theme.mono
@@ -456,7 +457,7 @@ Item {
         Text {
             width: parent.width
             visible: root.wifiOn
-            text: root.scanning ? qsTr("NETWORKS · SCANNING") : qsTr("NETWORKS")
+            text: root.scanning ? I18n.tr("NETWORKS · SCANNING") : I18n.tr("NETWORKS")
             color: root.inkDim
             font.family: Theme.mono
             font.pixelSize: 8.5 * root.s
@@ -478,7 +479,7 @@ Item {
             width: parent.width
             visible: root.wifiOn && root.availableNets.length === 0
             horizontalAlignment: Text.AlignHCenter
-            text: root.scanning ? qsTr("Scanning…") : qsTr("No networks found")
+            text: root.scanning ? I18n.tr("Scanning…") : I18n.tr("No networks found")
             color: root.inkDim
             font.family: Theme.fontPrimary
             font.pixelSize: 10 * root.s

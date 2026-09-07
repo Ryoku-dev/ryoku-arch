@@ -14,18 +14,13 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	i18n "ryoku-i18n"
 )
 
-const usage = `Usage: ryoku import <path> [flags]
-
-  <path>              a config folder, a dropped ~/.config, or a dotfiles tree
-  --url <git-url>     clone a dotfiles repo instead of reading a local path
-  --keep mine|ryoku   how to settle every keybind clash (default: mine)
-  --undo [<ts>]       roll back the last import, or the one stamped <ts>
-
-Headless: scan, resolve all conflicts to one side, apply, print the change set.
-The Hub's Import page is the interactive path for reviewing clash by clash.
-`
+func usageText() string {
+	return i18n.T("Usage: ryoku import <path> [flags]\n\n  <path>              a config folder, a dropped ~/.config, or a dotfiles tree\n  --url <git-url>     clone a dotfiles repo instead of reading a local path\n  --keep mine|ryoku   how to settle every keybind clash (default: mine)\n  --undo [<ts>]       roll back the last import, or the one stamped <ts>\n\nHeadless: scan, resolve all conflicts to one side, apply, print the change set.\nThe Hub's Import page is the interactive path for reviewing clash by clash.\n")
+}
 
 // hubBin is the engine binary. It ships beside ryoku, so a bare name resolves
 // on PATH; exec.Command does the lookup.
@@ -134,13 +129,13 @@ func parseArgs(args []string) (options, error) {
 		case "--url":
 			i++
 			if i >= len(args) {
-				return opts, errors.New("--url needs a git URL")
+				return opts, errors.New(i18n.T("--url needs a git URL"))
 			}
 			opts.source = args[i]
 		case "--keep":
 			i++
 			if i >= len(args) {
-				return opts, errors.New("--keep needs mine or ryoku")
+				return opts, errors.New(i18n.T("--keep needs mine or ryoku"))
 			}
 			opts.keep = args[i]
 		case "--undo":
@@ -149,13 +144,13 @@ func parseArgs(args []string) (options, error) {
 			opts.help = true
 		default:
 			if strings.HasPrefix(args[i], "-") {
-				return opts, fmt.Errorf("unknown flag: %s", args[i])
+				return opts, fmt.Errorf(i18n.T("unknown flag: %s"), args[i])
 			}
 			positional = append(positional, args[i])
 		}
 	}
 	if opts.keep != "mine" && opts.keep != "ryoku" {
-		return opts, fmt.Errorf("--keep must be mine or ryoku, got %q", opts.keep)
+		return opts, fmt.Errorf(i18n.T("--keep must be mine or ryoku, got %q"), opts.keep)
 	}
 	if opts.undo {
 		if len(positional) > 0 {
@@ -174,15 +169,15 @@ func Run(args []string) error {
 		return err
 	}
 	if opts.help {
-		fmt.Print(usage)
+		fmt.Print(usageText())
 		return nil
 	}
 	if opts.undo {
 		return runUndo(opts.ts)
 	}
 	if opts.source == "" {
-		fmt.Print(usage)
-		return errors.New("import needs a path or --url <git-url>")
+		fmt.Print(usageText())
+		return errors.New(i18n.T("import needs a path or --url <git-url>"))
 	}
 	return runImport(opts.source, opts.keep)
 }
@@ -194,7 +189,7 @@ func runImport(source, keep string) error {
 	}
 	var scan scanResult
 	if err := json.Unmarshal(out, &scan); err != nil {
-		return fmt.Errorf("parsing scan result: %w", err)
+		return fmt.Errorf(i18n.T("parsing scan result: %w"), err)
 	}
 
 	payload, err := json.Marshal(buildDecisions(scan, keep))
@@ -207,7 +202,7 @@ func runImport(source, keep string) error {
 	}
 	var res applyResult
 	if err := json.Unmarshal(out, &res); err != nil {
-		return fmt.Errorf("parsing apply result: %w", err)
+		return fmt.Errorf(i18n.T("parsing apply result: %w"), err)
 	}
 	printApply(res, len(scan.Apps))
 	return nil
@@ -224,13 +219,13 @@ func runUndo(ts string) error {
 	}
 	var res undoResult
 	if err := json.Unmarshal(out, &res); err != nil {
-		return fmt.Errorf("parsing undo result: %w", err)
+		return fmt.Errorf(i18n.T("parsing undo result: %w"), err)
 	}
 	if len(res.Restored) == 0 {
-		fmt.Println("Nothing to undo.")
+		fmt.Println(i18n.T("Nothing to undo."))
 		return nil
 	}
-	fmt.Printf("Undid import %s, restored:\n", res.TS)
+	fmt.Printf(i18n.T("Undid import %s, restored:\n"), res.TS)
 	for _, f := range res.Restored {
 		fmt.Printf("  %s\n", f)
 	}
@@ -238,13 +233,13 @@ func runUndo(ts string) error {
 }
 
 func printApply(res applyResult, apps int) {
-	fmt.Printf("Imported %s.\n", count(apps, "app"))
-	fmt.Printf("  binds ingested: %d\n", res.BindsIngested)
-	fmt.Printf("  window rules ingested: %d\n", res.RulesIngested)
-	fmt.Printf("  unbinds added: %d\n", res.Unbinds)
-	fmt.Printf("  files written: %s\n", strings.Join(res.FilesWritten, ", "))
-	fmt.Printf("  backup: %s\n", res.BackupDir)
-	fmt.Printf("\nUndo with: ryoku import --undo %s\n", res.TS)
+	fmt.Printf(i18n.T("Imported %s.\n"), count(apps, i18n.T("app")))
+	fmt.Printf(i18n.T("  binds ingested: %d\n"), res.BindsIngested)
+	fmt.Printf(i18n.T("  window rules ingested: %d\n"), res.RulesIngested)
+	fmt.Printf(i18n.T("  unbinds added: %d\n"), res.Unbinds)
+	fmt.Printf(i18n.T("  files written: %s\n"), strings.Join(res.FilesWritten, ", "))
+	fmt.Printf(i18n.T("  backup: %s\n"), res.BackupDir)
+	fmt.Printf(i18n.T("\nUndo with: ryoku import --undo %s\n"), res.TS)
 }
 
 func count(n int, noun string) string {

@@ -48,7 +48,7 @@ Rectangle {
 
     function requestQuit() {
         if (Vm.downloading && !quitArm.running) {
-            Vm.info("A download is running. Cancel it, or quit again to abandon it");
+            Vm.info(I18n.tr("A download is running. Cancel it, or quit again to abandon it"));
             quitArm.restart();
             return;
         }

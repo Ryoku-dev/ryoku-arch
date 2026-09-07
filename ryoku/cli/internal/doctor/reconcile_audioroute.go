@@ -3,6 +3,8 @@ package doctor
 import (
 	"os/exec"
 	"strings"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: playback stranded off the default sink -----------------------
@@ -55,35 +57,35 @@ func pactlSinkIndex(name string) string {
 
 func reconcileAudioRouting(checkOnly bool) recResult {
 	if _, err := exec.LookPath("pactl"); err != nil {
-		return okRes("pactl absent, nothing to check")
+		return okRes(i18n.T("pactl absent, nothing to check"))
 	}
 	out, err := exec.Command("pactl", "get-default-sink").Output()
 	if err != nil {
-		return okRes("no PipeWire session to inspect")
+		return okRes(i18n.T("no PipeWire session to inspect"))
 	}
 	def := strings.TrimSpace(string(out))
 	if def == "" {
-		return okRes("no default sink set")
+		return okRes(i18n.T("no default sink set"))
 	}
 	idx := pactlSinkIndex(def)
 	if idx == "" {
-		return okRes("default sink %s not listed", def)
+		return okRes(i18n.T("default sink %s not listed"), def)
 	}
 
 	inputs := pactlSinkInputs()
 	if len(inputs) == 0 {
-		return okRes("nothing playing")
+		return okRes(i18n.T("nothing playing"))
 	}
 	var stranded []string
 	for _, in := range inputs {
 		if in.sink == idx {
-			return okRes("playback is on the default sink")
+			return okRes(i18n.T("playback is on the default sink"))
 		}
 		stranded = append(stranded, in.id)
 	}
 
 	if checkOnly {
-		return wouldRes("%d stream(s) playing off the default sink %s", len(stranded), def).
+		return wouldRes(i18n.T("%d stream(s) playing off the default sink %s"), len(stranded), def).
 			withFix("ryoku doctor")
 	}
 	moved := 0
@@ -93,8 +95,8 @@ func reconcileAudioRouting(checkOnly bool) recResult {
 		}
 	}
 	if moved == 0 {
-		return warnRes("%d stream(s) playing off the default sink %s", len(stranded), def).
+		return warnRes(i18n.T("%d stream(s) playing off the default sink %s"), len(stranded), def).
 			withFix("pactl move-sink-input %s %s", stranded[0], def)
 	}
-	return fixedRes("moved %d stream(s) onto the default sink %s", moved, def)
+	return fixedRes(i18n.T("moved %d stream(s) onto the default sink %s"), moved, def)
 }

@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 const launcherLocalFrostMigration = "launcher-local-frost-default"
@@ -24,53 +26,53 @@ func launcherLocalFrostMarker() string {
 func reconcileLauncherLocalFrostDefault(checkOnly bool) recResult {
 	marker := launcherLocalFrostMarker()
 	if sys.Exists(marker) {
-		return okRes("launcher local-frost default already reconciled")
+		return okRes(i18n.T("launcher local-frost default already reconciled"))
 	}
 
 	path := filepath.Join(sys.ConfigHome(), "ryoku", "launcher.json")
 	raw, err := os.ReadFile(path)
 	if errors.Is(err, os.ErrNotExist) {
 		if checkOnly {
-			return okRes("no saved launcher config; local frost uses the current default")
+			return okRes(i18n.T("no saved launcher config; local frost uses the current default"))
 		}
 		if err := markMigration(marker); err != nil {
-			return failRes("could not record the launcher local-frost migration: %v", err)
+			return failRes(i18n.T("could not record the launcher local-frost migration: %v"), err)
 		}
-		return okRes("no saved launcher config; local frost uses the current default")
+		return okRes(i18n.T("no saved launcher config; local frost uses the current default"))
 	}
 	if err != nil {
-		return warnRes("could not read %s for the local-frost migration: %v", path, err).
-			withFix("fix the file permissions, then run `ryoku doctor`")
+		return warnRes(i18n.T("could not read %s for the local-frost migration: %v"), path, err).
+			withFix(i18n.T("fix the file permissions, then run `ryoku doctor`"))
 	}
 
 	migrated, changed, err := migrateLauncherLocalFrost(raw)
 	if err != nil {
-		return warnRes("launcher.json cannot be safely migrated (%v); it was left untouched", err).
-			withFix("repair the bgBlur value, then run `ryoku doctor`")
+		return warnRes(i18n.T("launcher.json cannot be safely migrated (%v); it was left untouched"), err).
+			withFix(i18n.T("repair the bgBlur value, then run `ryoku doctor`"))
 	}
 	if changed && checkOnly {
-		return wouldRes("launcher.json still uses the retired 12 px global-blur default").
-			withFix("ryoku doctor changes it to the 2 px card-local frost default")
+		return wouldRes(i18n.T("launcher.json still uses the retired 12 px global-blur default")).
+			withFix(i18n.T("ryoku doctor changes it to the 2 px card-local frost default"))
 	}
 	if !changed {
 		if checkOnly {
-			return okRes("launcher blur is user-selected or already uses the local-frost default")
+			return okRes(i18n.T("launcher blur is user-selected or already uses the local-frost default"))
 		}
 		if err := markMigration(marker); err != nil {
-			return failRes("could not record the launcher local-frost migration: %v", err)
+			return failRes(i18n.T("could not record the launcher local-frost migration: %v"), err)
 		}
-		return okRes("launcher blur is user-selected or already uses the local-frost default")
+		return okRes(i18n.T("launcher blur is user-selected or already uses the local-frost default"))
 	}
 
 	if err := replaceLauncherConfig(path, migrated); err != nil {
-		return failRes("could not migrate %s: %v", path, err).
-			withFix("fix the file permissions, then run `ryoku doctor`")
+		return failRes(i18n.T("could not migrate %s: %v"), path, err).
+			withFix(i18n.T("fix the file permissions, then run `ryoku doctor`"))
 	}
 	if err := markMigration(marker); err != nil {
-		return failRes("launcher frost was updated, but its migration marker could not be written: %v", err).
-			withFix("run `ryoku doctor` again")
+		return failRes(i18n.T("launcher frost was updated, but its migration marker could not be written: %v"), err).
+			withFix(i18n.T("run `ryoku doctor` again"))
 	}
-	return fixedRes("moved launcher blur from the retired 12 px global default to 2 px local frost")
+	return fixedRes(i18n.T("moved launcher blur from the retired 12 px global default to 2 px local frost"))
 }
 
 // migrateLauncherLocalFrost is deliberately narrow: exact numeric 12 becomes
@@ -81,7 +83,7 @@ func migrateLauncherLocalFrost(raw []byte) ([]byte, bool, error) {
 		return nil, false, err
 	}
 	if cfg == nil {
-		return nil, false, errors.New("top level must be a JSON object")
+		return nil, false, errors.New(i18n.T("top level must be a JSON object"))
 	}
 	blurRaw, ok := cfg["bgBlur"]
 	if !ok {
@@ -92,18 +94,18 @@ func migrateLauncherLocalFrost(raw []byte) ([]byte, bool, error) {
 	decoder.UseNumber()
 	var blurValue any
 	if err := decoder.Decode(&blurValue); err != nil {
-		return nil, false, fmt.Errorf("bgBlur does not parse: %w", err)
+		return nil, false, fmt.Errorf(i18n.T("bgBlur does not parse: %w"), err)
 	}
 	if err := ensureJSONEnd(decoder); err != nil {
-		return nil, false, fmt.Errorf("bgBlur does not parse: %w", err)
+		return nil, false, fmt.Errorf(i18n.T("bgBlur does not parse: %w"), err)
 	}
 	blur, ok := blurValue.(json.Number)
 	if !ok {
-		return nil, false, fmt.Errorf("bgBlur must be numeric, got %s", string(blurRaw))
+		return nil, false, fmt.Errorf(i18n.T("bgBlur must be numeric, got %s"), string(blurRaw))
 	}
 	value, ok := new(big.Rat).SetString(string(blur))
 	if !ok {
-		return nil, false, fmt.Errorf("bgBlur must be a finite number, got %s", blur)
+		return nil, false, fmt.Errorf(i18n.T("bgBlur must be a finite number, got %s"), blur)
 	}
 	if value.Cmp(big.NewRat(12, 1)) != 0 {
 		return nil, false, nil
@@ -121,7 +123,7 @@ func ensureJSONEnd(decoder *json.Decoder) error {
 	var extra any
 	if err := decoder.Decode(&extra); !errors.Is(err, io.EOF) {
 		if err == nil {
-			return errors.New("contains more than one value")
+			return errors.New(i18n.T("contains more than one value"))
 		}
 		return err
 	}

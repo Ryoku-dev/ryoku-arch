@@ -1,5 +1,6 @@
 import QtQuick
 import ".."
+import Ryoku.Ui.Singletons
 
 Column {
   id: root
@@ -15,7 +16,7 @@ Column {
 
   Text {
     visible: root.label !== ""
-    text: root.label
+    text: I18n.tr(root.label)
     font.family: Style.fontFamily
     font.pixelSize: 11 * Config.uiScale
     font.weight: Font.Medium
@@ -99,7 +100,7 @@ Column {
             anchors.left: parent.left
             anchors.leftMargin: 12 * Config.uiScale
             anchors.verticalCenter: parent.verticalCenter
-            text: modelData.label
+            text: I18n.tr(modelData.label)
             font.family: Style.fontFamily
             font.pixelSize: 12 * Config.uiScale
             font.weight: parent._isActive ? Font.Bold : Font.Normal

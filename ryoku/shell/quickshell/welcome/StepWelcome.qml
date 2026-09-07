@@ -14,9 +14,7 @@ Column {
     Text {
         width: parent.width
         wrapMode: Text.WordWrap
-        text: I18n.tr("You've arrived. ") + Theme.brandName + I18n.tr(" is a single, hand-built desktop - one bar, one ")
-            + I18n.tr("launcher, one control plane - carved on Arch and Hyprland. This is a ")
-            + I18n.tr("two-minute tour of where things live and how to make it yours.")
+        text: I18n.tr("You've arrived. %1 is a single, hand-built desktop - one bar, one launcher, one control plane - carved on Arch and Hyprland. This is a two-minute tour of where things live and how to make it yours.").arg(Theme.brandName)
         color: Tokens.inkDim
         font.family: Tokens.ui
         font.pixelSize: Tokens.fRow
@@ -29,9 +27,9 @@ Column {
 
         Repeater {
             model: [
-                "One shell, one look - the bar, panels, and launcher all speak the same language.",
-                "Your colours follow your wallpaper, automatically.",
-                "Every choice lives in Ryoku Settings, a keystroke away."
+                I18n.tr("One shell, one look - the bar, panels, and launcher all speak the same language."),
+                I18n.tr("Your colours follow your wallpaper, automatically."),
+                I18n.tr("Every choice lives in Ryoku Settings, a keystroke away.")
             ]
 
             delegate: Row {

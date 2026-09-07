@@ -201,11 +201,11 @@ Item {
     // literals, labels are the human reading.
     function styleOptionsFor(leaf) {
         if (leaf.indexOf("windows") === 0)
-            return [{ "key": "", "label": "Default" }, { "key": "slide", "label": "Slide" }, { "key": "popin 80%", "label": "Pop in" }, { "key": "gnomed", "label": "Gnomed" }];
+            return [{ "key": "", "label": I18n.tr("Default") }, { "key": "slide", "label": I18n.tr("Slide") }, { "key": "popin 80%", "label": I18n.tr("Pop in") }, { "key": "gnomed", "label": I18n.tr("Gnomed") }];
         if (leaf.indexOf("workspaces") === 0 || leaf.indexOf("specialWorkspace") === 0)
-            return [{ "key": "", "label": "Default" }, { "key": "slide", "label": "Slide" }, { "key": "slidevert", "label": "Slide vertical" }, { "key": "fade", "label": "Fade" }, { "key": "slidefade", "label": "Slide + fade" }, { "key": "slidefadevert", "label": "Slide + fade vertical" }];
+            return [{ "key": "", "label": I18n.tr("Default") }, { "key": "slide", "label": I18n.tr("Slide") }, { "key": "slidevert", "label": I18n.tr("Slide vertical") }, { "key": "fade", "label": I18n.tr("Fade") }, { "key": "slidefade", "label": I18n.tr("Slide + fade") }, { "key": "slidefadevert", "label": I18n.tr("Slide + fade vertical") }];
         if (leaf.indexOf("layers") === 0)
-            return [{ "key": "", "label": "Default" }, { "key": "slide", "label": "Slide" }, { "key": "popin 90%", "label": "Pop in" }, { "key": "fade", "label": "Fade" }];
+            return [{ "key": "", "label": I18n.tr("Default") }, { "key": "slide", "label": I18n.tr("Slide") }, { "key": "popin 90%", "label": I18n.tr("Pop in") }, { "key": "fade", "label": I18n.tr("Fade") }];
         return [];
     }
 
@@ -288,7 +288,7 @@ Item {
         id: mp
         property var opts: []
         property string current: ""
-        property string ph: "select"
+        property string ph: I18n.tr("select")
         property string heading: I18n.tr("Select")
         signal picked(string key)
         signal activated()
@@ -473,7 +473,7 @@ Item {
             Text { text: I18n.tr("CURVE"); color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: Tokens.fMicro; font.letterSpacing: Tokens.trackMark }
             Text {
                 width: parent.width
-                text: mv.label.length ? I18n.tr(mv.label) : "curve"
+                text: mv.label.length ? I18n.tr(mv.label) : I18n.tr("curve")
                 color: Tokens.ink; font.family: Tokens.ui; font.pixelSize: Tokens.fBody; font.weight: Font.Medium; elide: Text.ElideRight
             }
             Text { text: mv.dur + " ms"; color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: Tokens.fTiny }
@@ -657,7 +657,7 @@ Item {
                     visible: pg.hit("animations master switch desktop motion")
                     label: I18n.tr("Animations")
                     desc: I18n.tr("Master switch for desktop motion; off, everything snaps into place")
-                    def: pg.cv("appearance.animations") ? "ON" : "OFF"
+                    def: pg.cv("appearance.animations") ? I18n.tr("ON") : I18n.tr("OFF")
                     changed: pg.chg("appearance.animations")
                     source: "settings.lua"
                     controlWidth: 54
@@ -699,10 +699,10 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 width: Math.max(180, parent.width - newBtn.width - delBtn.width - 2 * Tokens.s2)
                                 heading: I18n.tr("Curve")
-                                ph: "no curves"
+                                ph: I18n.tr("no curves")
                                 opts: pg.curveNames()
                                 current: pg.selectedCurve
-                                onActivated: pg.openPicker("Curve", curveSel.opts, curveSel.current, function (k) { curveSel.picked(k); })
+                                onActivated: pg.openPicker(I18n.tr("Curve"), curveSel.opts, curveSel.current, function (k) { curveSel.picked(k); })
                                 onPicked: (k) => pg.selectedCurve = k
                             }
                             Btn {
@@ -851,7 +851,7 @@ Item {
                     visible: pg.hit("animate the focused window enabled")
                     label: I18n.tr("Animate the focused window")
                     desc: I18n.tr("Short effect on the window that takes focus; applies on Save only")
-                    def: pg.cv("plugins.hyprfocus.enabled") ? "ON" : "OFF"
+                    def: pg.cv("plugins.hyprfocus.enabled") ? I18n.tr("ON") : I18n.tr("OFF")
                     changed: pg.chg("plugins.hyprfocus.enabled")
                     source: "settings.lua"
                     controlWidth: 54
@@ -1020,19 +1020,19 @@ Item {
                                 id: styleP
                                 anchors.verticalCenter: parent.verticalCenter
                                 visible: ar.styleOpts.length > 0
-                                heading: I18n.tr("Style"); ph: "style"
+                                heading: I18n.tr("Style"); ph: I18n.tr("style")
                                 opts: ar.styleOpts
                                 current: String(ar.it.style || "")
-                                onActivated: pg.openPicker("Style", styleP.opts, styleP.current, function (k) { styleP.picked(k); })
+                                onActivated: pg.openPicker(I18n.tr("Style"), styleP.opts, styleP.current, function (k) { styleP.picked(k); })
                                 onPicked: (k) => pg.upsertItem(ar.leaf, "style", k)
                             }
                             MiniPick {
                                 id: bezP
                                 anchors.verticalCenter: parent.verticalCenter
-                                heading: I18n.tr("Curve"); ph: "curve"
+                                heading: I18n.tr("Curve"); ph: I18n.tr("curve")
                                 opts: pg.curveNames()
                                 current: String(ar.it.bezier || "")
-                                onActivated: pg.openPicker("Curve", bezP.opts, bezP.current, function (k) { bezP.picked(k); })
+                                onActivated: pg.openPicker(I18n.tr("Curve"), bezP.opts, bezP.current, function (k) { bezP.picked(k); })
                                 onPicked: (k) => pg.upsertItem(ar.leaf, "bezier", k)
                             }
                         }
@@ -1054,7 +1054,7 @@ Item {
         }
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: I18n.tr("nothing here matches “") + pg.query + "”"
+            text: I18n.tr("nothing here matches “%1”").arg(pg.query)
             color: Tokens.inkMuted; font.family: Tokens.ui; font.pixelSize: Tokens.fSmall
         }
     }
@@ -1102,7 +1102,7 @@ Item {
                     Item { width: parent.width - pkTitle.width - pkCount.width; height: 1 }
                     Text {
                         id: pkCount
-                        text: (pk.opts ? pk.opts.length : 0) + I18n.tr(" ENTRIES")
+                        text: I18n.tr("%1 ENTRIES").arg(pk.opts ? pk.opts.length : 0)
                         color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: Tokens.fTiny
                     }
                 }

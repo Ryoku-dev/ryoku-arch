@@ -1,4 +1,5 @@
 import QtQuick
+import Ryoku.Ui.Singletons
 
 Item {
     id: rootMod
@@ -6,8 +7,8 @@ Item {
     readonly property color contentColor: root.widgetContentColor("G18", root.widgetIconColor)
 
     readonly property int percent: root.storagePercent
-    readonly property string tooltipText: "Root filesystem · " + percent + "% · "
-        + root.storageUsedGiB.toFixed(1) + "/" + root.storageTotalGiB.toFixed(1) + " GiB"
+    readonly property string tooltipText: I18n.tr("Root filesystem · %1% · %2/%3 GiB")
+        .arg(percent).arg(root.storageUsedGiB.toFixed(1)).arg(root.storageTotalGiB.toFixed(1))
 
     visible: implicitWidth > 0.5
     implicitWidth: root.modStorage && root.storageAvailable ? row.implicitWidth + 18 : 0

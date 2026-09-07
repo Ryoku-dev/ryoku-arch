@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 import "../../Singletons"
 import "../../lib/fuzzy.js" as Fuzzy
 import "../../lib/providerids.js" as ProviderIds
@@ -59,14 +60,14 @@ Provider {
     function snippetRow(entry) {
         return {
             id: ProviderIds.snippetRowId(entry),
-            title: entry.name || entry.keyword || "Snippet",
-            subtitle: "Snippet",
+            title: entry.name || entry.keyword || I18n.tr("Snippet"),
+            subtitle: I18n.tr("Snippet"),
             icon: "",
             type: "Snippet",
             score: 40,
             actions: [{
                 id: "copy",
-                name: "Copy",
+                name: I18n.tr("Copy"),
                 icon: "",
                 execute: function () {
                     Quickshell.clipboardText = Placeholders.expand(entry.body || "", snippets.context()).text;
@@ -79,13 +80,13 @@ Provider {
         return {
             id: ProviderIds.quicklinkRowId(entry),
             title: entry.name || entry.url,
-            subtitle: "Quicklink",
+            subtitle: I18n.tr("Quicklink"),
             icon: "",
             type: "Quicklink",
             score: 40,
             actions: [{
                 id: "open",
-                name: "Open",
+                name: I18n.tr("Open"),
                 icon: "",
                 execute: function () {
                     var url = String(entry.url || "").replace(/\{query\}/g, encodeURIComponent(text));

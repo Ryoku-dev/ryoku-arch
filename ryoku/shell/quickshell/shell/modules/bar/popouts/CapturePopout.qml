@@ -40,8 +40,8 @@ Item {
     function cycle(arr, cur) { const i = arr.indexOf(cur); return arr[(i + 1) % arr.length]; }
 
     readonly property string saveGlyph: Capture.save === "clipboard" ? "clipboard" : Capture.save === "file" ? "folder" : "image"
-    readonly property string saveLabel: Capture.save === "clipboard" ? qsTr("Clip")
-        : Capture.save === "file" ? qsTr("Folder") : qsTr("Both")
+    readonly property string saveLabel: Capture.save === "clipboard" ? I18n.tr("Clip")
+        : Capture.save === "file" ? I18n.tr("Folder") : I18n.tr("Both")
 
     function shoot(mode) { root.requestClose(); Capture.shoot(mode); }
     function record(mode) {
@@ -487,7 +487,7 @@ Item {
             Eyebrow {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("SCREENSHOT")
+                text: I18n.tr("SCREENSHOT")
             }
             Row {
                 anchors.right: parent.right
@@ -497,7 +497,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     glyph: root.saveGlyph
                     label: root.saveLabel
-                    tip: Capture.save === "clipboard" ? qsTr("Clipboard only") : Capture.save === "file" ? qsTr("Screenshots folder") : qsTr("Folder + clipboard")
+                    tip: Capture.save === "clipboard" ? I18n.tr("Clipboard only") : Capture.save === "file" ? I18n.tr("Screenshots folder") : I18n.tr("Folder + clipboard")
                     tipAlign: "right"
                     onTapped: Capture.save = root.cycle(root.saveSteps, Capture.save)
                 }
@@ -505,7 +505,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     glyph: "watch"
                     label: Capture.delay + "s"
-                    tip: Capture.delay === 0 ? qsTr("No delay before the shot") : qsTr("%1s delay before the shot").arg(Capture.delay)
+                    tip: Capture.delay === 0 ? I18n.tr("No delay before the shot") : I18n.tr("%1s delay before the shot").arg(Capture.delay)
                     tipAlign: "right"
                     onTapped: Capture.delay = root.cycle(root.delaySteps, Capture.delay)
                 }
@@ -516,17 +516,17 @@ Item {
         Row {
             width: parent.width
             spacing: root.gap
-            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "screens"; label: qsTr("All"); onTapped: root.shoot("all") }
-            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "monitor"; label: qsTr("Screen"); onTapped: root.shoot("monitor") }
-            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "window"; label: qsTr("Window"); onTapped: root.shoot("window") }
-            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "region"; label: qsTr("Region"); onTapped: root.shoot("region") }
+            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "screens"; label: I18n.tr("All"); onTapped: root.shoot("all") }
+            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "monitor"; label: I18n.tr("Screen"); onTapped: root.shoot("monitor") }
+            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "window"; label: I18n.tr("Window"); onTapped: root.shoot("window") }
+            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "region"; label: I18n.tr("Region"); onTapped: root.shoot("region") }
         }
 
         // beautify-after switch.
         InlineToggle {
             width: parent.width
             glyph: "sparkle"
-            label: qsTr("Beautify after")
+            label: I18n.tr("Beautify after")
             on: Capture.beautify
             onToggled: Capture.beautify = !Capture.beautify
         }
@@ -542,7 +542,7 @@ Item {
             Eyebrow {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("RECORD")
+                text: I18n.tr("RECORD")
             }
             Row {
                 anchors.right: parent.right
@@ -555,25 +555,25 @@ Item {
                     // a sentence overflows the card and clips at its edge.
                     tip: Keypresses.backendStatus === "error"
                         ? Keypresses.backendError
-                        : qsTr("Show key presses")
+                        : I18n.tr("Show key presses")
                     on: Keypresses.active
                     onToggled: Keypresses.toggle()
                 }
                 IconToggle {
                     glyph: "webcam"
-                    tip: qsTr("Webcam mirror")
+                    tip: I18n.tr("Webcam mirror")
                     on: Camera.active
                     onToggled: Camera.toggle()
                 }
                 IconToggle {
                     glyph: Recorder.optDesktopAudio ? "speaker" : "speaker-off"
-                    tip: qsTr("Record desktop audio")
+                    tip: I18n.tr("Record desktop audio")
                     on: Recorder.optDesktopAudio
                     onToggled: Recorder.optDesktopAudio = !Recorder.optDesktopAudio
                 }
                 IconToggle {
                     glyph: Recorder.optMic ? "mic" : "mic-off"
-                    tip: qsTr("Record microphone")
+                    tip: I18n.tr("Record microphone")
                     on: Recorder.optMic
                     onToggled: Recorder.optMic = !Recorder.optMic
                 }
@@ -587,12 +587,12 @@ Item {
             width: parent.width
             visible: !Recorder.anyActive
             spacing: root.gap
-            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "monitor"; label: qsTr("Screen"); accent: true; onTapped: root.record("screen") }
-            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "screens"; label: qsTr("Monitor"); accent: true; onTapped: root.record("monitor") }
+            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "monitor"; label: I18n.tr("Screen"); accent: true; onTapped: root.record("screen") }
+            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "screens"; label: I18n.tr("Monitor"); accent: true; onTapped: root.record("monitor") }
             // The tip is a one-line pill sized to its text, so it has to read as a
             // label, not a sentence: a longer string overflows the card and clips.
-            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "window"; label: qsTr("Window"); accent: true; tip: qsTr("Records the area, not the window"); onTapped: root.record("window") }
-            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "region"; label: qsTr("Region"); accent: true; onTapped: root.record("region") }
+            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "window"; label: I18n.tr("Window"); accent: true; tip: I18n.tr("Records the area, not the window"); onTapped: root.record("window") }
+            ModeTile { w: (root.innerW - root.gap * 3) / 4; glyph: "region"; label: I18n.tr("Region"); accent: true; onTapped: root.record("region") }
         }
 
         // live indicator: pulsing REC tag, elapsed clock, pause + stop.
@@ -619,7 +619,7 @@ Item {
                 }
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: Recorder.paused ? qsTr("Paused") : qsTr("Recording")
+                    text: Recorder.paused ? I18n.tr("Paused") : I18n.tr("Recording")
                     color: root.ink
                     font.family: Theme.fontPrimary
                     font.pixelSize: 11.5 * root.s
@@ -657,7 +657,7 @@ Item {
         InlineToggle {
             width: parent.width
             glyph: "film"
-            label: qsTr("Edit in Ryomotion")
+            label: I18n.tr("Edit in Ryomotion")
             on: Recorder.editMode
             onToggled: Recorder.editMode = !Recorder.editMode
         }
@@ -665,7 +665,7 @@ Item {
             width: parent.width
             visible: !Recorder.anyActive
             glyph: "discord"
-            label: qsTr("Compact for Discord")
+            label: I18n.tr("Compact for Discord")
             on: Recorder.discordMode
             onToggled: Recorder.discordMode = !Recorder.discordMode
         }
@@ -681,7 +681,7 @@ Item {
             Eyebrow {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("SCREENSHOTS")
+                text: I18n.tr("SCREENSHOTS")
             }
         }
         Grid {
@@ -711,7 +711,7 @@ Item {
             Eyebrow {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("RECORDINGS")
+                text: I18n.tr("RECORDINGS")
             }
         }
         Grid {
@@ -739,7 +739,7 @@ Item {
         // hint: the companion beautify/annotate app.
         Text {
             width: parent.width
-            text: qsTr("Super+Shift+S opens Ryoshot to beautify & annotate.")
+            text: I18n.tr("Super+Shift+S opens Ryoshot to beautify & annotate.")
             color: root.inkDim
             font.family: Theme.fontPrimary
             font.pixelSize: (root.roomy ? 10 : 9) * root.s

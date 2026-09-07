@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import "Singletons"
+import Ryoku.Ui.Singletons
 
 // A live keyboard diagram: it draws a keyboard and reflects the caller's input
 // settings -- the layout's letter legends (AZERTY, QWERTZ, Dvorak, Colemak, else
@@ -12,7 +13,7 @@ Item {
     id: kmap
 
     property string layoutCode: "us"
-    property string layoutName: "English (US)"
+    property string layoutName: I18n.tr("English (US)")
     property string styleName: ""
     property string capsFn: ""          // caps:escape | ctrl:nocaps | caps:swapescape | caps:none | ""
     property bool swapAltSuper: false
@@ -61,7 +62,7 @@ Item {
             : kmap.capsFn === "ctrl:nocaps" ? "Ctrl"
             : kmap.capsFn === "caps:swapescape" ? "\u21c4Esc"
             : kmap.capsFn === "caps:none" ? "-"
-            : "Caps";
+            : I18n.tr("Caps");
     }
 
     readonly property real gap: kmap.compact ? 3 : 4
@@ -100,7 +101,7 @@ Item {
         Column {
             spacing: 1
             Text {
-                text: "LAYOUT"; color: Tokens.inkMuted; font.family: Tokens.ui
+                text: I18n.tr("LAYOUT"); color: Tokens.inkMuted; font.family: Tokens.ui
                 font.pixelSize: 10; font.weight: Font.Medium; font.letterSpacing: Tokens.trackLabel
             }
             Text {
@@ -112,7 +113,7 @@ Item {
         Text {
             visible: !kmap.compact
             anchors.verticalCenter: parent.verticalCenter
-            text: "\u003c\u003c  lit keys are your remaps"
+            text: I18n.tr("\u003c\u003c  lit keys are your remaps")
             color: Tokens.inkFaint; font.family: Tokens.mono; font.pixelSize: 10; font.letterSpacing: 1.2
         }
     }
@@ -129,7 +130,7 @@ Item {
             Key { cap: "`" }
             Repeater { model: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "="]
                 Key { required property var modelData; cap: modelData } }
-            Key { cap: "Bksp"; units: 2 }
+            Key { cap: I18n.tr("Bksp"); units: 2 }
         }
         // top letter row
         Row {
@@ -166,11 +167,11 @@ Item {
                   lit: kmap.swapAltSuper || kmap.switchChord === "grp:win_space_toggle"; units: 1.25 }
             Key { cap: kmap.swapAltSuper ? "Super" : "Alt"
                   lit: kmap.swapAltSuper || kmap.switchChord === "grp:alt_shift_toggle"; units: 1.25 }
-            Key { cap: "Space"; lit: kmap.switchChord === "grp:win_space_toggle"; units: 6 }
-            Key { cap: kmap.composeKey === "compose:ralt" ? "Compose" : (kmap.swapAltSuper ? "Super" : "Alt")
+            Key { cap: I18n.tr("Space"); lit: kmap.switchChord === "grp:win_space_toggle"; units: 6 }
+            Key { cap: kmap.composeKey === "compose:ralt" ? I18n.tr("Compose") : (kmap.swapAltSuper ? "Super" : "Alt")
                   lit: kmap.composeKey === "compose:ralt"; units: 1.25 }
             Key { cap: kmap.swapAltSuper ? "Alt" : "Super"; lit: kmap.swapAltSuper; units: 1.25 }
-            Key { cap: kmap.composeKey === "compose:menu" ? "Compose" : "Menu"
+            Key { cap: kmap.composeKey === "compose:menu" ? I18n.tr("Compose") : I18n.tr("Menu")
                   lit: kmap.composeKey === "compose:menu"; units: 1.25 }
             Key { cap: "Ctrl"; units: 1.25 }
         }

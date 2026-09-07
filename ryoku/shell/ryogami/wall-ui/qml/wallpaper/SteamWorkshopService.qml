@@ -3,6 +3,7 @@ import Quickshell.Io
 import QtQuick
 import ".."
 import "../services"
+import Ryoku.Ui.Singletons
 QtObject {
   id: swService
 
@@ -184,14 +185,14 @@ QtObject {
       DaemonClient.call("steam.search", params, function(result, err) {
         swService.loading = false
         if (err || !result || !result.items) {
-          swService.errorText = (err && err.message) ? ("Workshop browse failed: " + err.message) : "Workshop browse failed"
+          swService.errorText = (err && err.message) ? I18n.tr("Workshop browse failed: %1").arg(err.message) : I18n.tr("Workshop browse failed")
           swService.resultsUpdated()
           return
         }
         var mapped = result.items.map(function(it) {
           return {
             id: it.id || "",
-            title: it.title || "Untitled",
+            title: it.title || I18n.tr("Untitled"),
             description: (it.description || "").substring(0, 120),
             previewUrl: it.preview_url || "",
             subscriptions: it.subscriptions || 0,
@@ -210,7 +211,7 @@ QtObject {
 
     if (!apiKey) {
       loading = false
-      errorText = "Workshop browsing needs Steam to be running, OR a Steam API key. Open Steam, OR set a key in Settings → Steam → API key. (Downloads work without either if you already have a Workshop ID.)"
+      errorText = I18n.tr("Workshop browsing needs Steam to be running, OR a Steam API key. Open Steam, OR set a key in Settings → Steam → API key. (Downloads work without either if you already have a Workshop ID.)")
       resultsUpdated()
       return
     }
@@ -290,7 +291,7 @@ QtObject {
     onExited: function(exitCode, exitStatus) {
       swService.loading = false
       if (exitCode !== 0) {
-        swService.errorText = "Network error (curl exit " + exitCode + ")"
+        swService.errorText = I18n.tr("Network error (curl exit %1)").arg(exitCode)
         swService.results = []
         swService.resultsUpdated()
         return
@@ -322,7 +323,7 @@ QtObject {
 
           return {
             id: item.publishedfileid || "",
-            title: item.title || "Untitled",
+            title: item.title || I18n.tr("Untitled"),
             description: (item.short_description || item.file_description || "").substring(0, 120),
             previewUrl: previewUrl,
             subscriptions: item.subscriptions || 0,
@@ -337,7 +338,7 @@ QtObject {
         swService.lastPage = Math.max(1, Math.ceil(total / swService.numPerPage))
         swService.errorText = ""
       } catch (e) {
-        swService.errorText = "Parse error: " + e.message
+        swService.errorText = I18n.tr("Parse error: %1").arg(e.message)
         swService.results = []
       }
       swService.resultsUpdated()

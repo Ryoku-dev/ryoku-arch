@@ -33,7 +33,7 @@ ryoku_aur() {
   local aur_file="$RYOKU_REPO/system/packages/aur.packages"
 
   if [[ -n ${RYOKU_DRYRUN:-} ]]; then
-    log "DRYRUN: bootstrap yay, install boot-critical (${CRITICAL[*]}) first under per-package timeouts, then the rest of $aur_file best-effort under a global timeout, as $u"
+    log 'DRYRUN: bootstrap yay, install boot-critical (%s) first under per-package timeouts, then the rest of %s best-effort under a global timeout, as %s' "${CRITICAL[*]}" "$aur_file" "$u"
     return 0
   fi
   if [[ -n ${RYOKU_SKIP_AUR:-} ]]; then
@@ -44,13 +44,13 @@ ryoku_aur() {
     log "AUR: offline install, the AUR set is installed from the baked [offline] repo by ryoku_offline_aur (lib/offline.sh); nothing to build here"
     return 0
   fi
-  [[ -f $aur_file ]] || { log "AUR: no $aur_file, skipping"; return 0; }
+  [[ -f $aur_file ]] || { log 'AUR: no %s, skipping' "$aur_file"; return 0; }
 
   local -a pkgs=()
   mapfile -t pkgs < <(grep -vE '^[[:space:]]*(#|$)' "$aur_file")
   (( ${#pkgs[@]} )) || { log "AUR: package set is empty, skipping"; return 0; }
 
-  log "AUR: bootstrapping yay and building ${#pkgs[@]} package(s); this can take several minutes"
+  log 'AUR: bootstrapping yay and building %d package(s); this can take several minutes' "${#pkgs[@]}"
 
   # one-shot NOPASSWD sudo so makepkg/yay can call pacman without a prompt.
   printf '%s ALL=(ALL) NOPASSWD: ALL\n' "$u" >/mnt/etc/sudoers.d/99-ryoku-aur-build
@@ -105,10 +105,10 @@ BOOTSTRAP
     # starve the others.
     local crit rest=()
     for crit in "${CRITICAL[@]}"; do
-      log "AUR: installing boot-critical $crit (<= 25 min)"
+      log 'AUR: installing boot-critical %s (<= 25 min)' "$crit"
       if ! arch-chroot /mnt runuser -u "$u" -- env "HOME=/home/$u" "USER=$u" "LOGNAME=$u" \
         timeout 1500 yay -S --noconfirm --needed "$crit"; then
-        log "AUR: WARNING, boot-critical $crit timed out or failed to build and was skipped; the boot menu integration may be incomplete ('ryoku doctor' converges it once online). Continuing."
+        log 'AUR: WARNING, boot-critical %s timed out or failed to build and was skipped; the boot menu integration may be incomplete ('\''ryoku doctor'\'' converges it once online). Continuing.' "$crit"
       fi
     done
     # everything else in one best-effort, globally time-bounded batch. the
@@ -118,10 +118,10 @@ BOOTSTRAP
       ryoku_aur_is_critical "$crit" || rest+=("$crit")
     done
     if (( ${#rest[@]} )); then
-      log "AUR: installing the remaining ${#rest[@]} package(s): ${rest[*]} (<= 40 min)"
+      log 'AUR: installing the remaining %d package(s): %s (<= 40 min)' "${#rest[@]}" "${rest[*]}"
       arch-chroot /mnt runuser -u "$u" -- env "HOME=/home/$u" "USER=$u" "LOGNAME=$u" \
         timeout 2400 yay -S --noconfirm --needed "${rest[@]}" \
-        || log "AUR: WARNING, some of these timed out or did not build and were skipped: ${rest[*]} (continuing; install them later with yay)"
+        || log 'AUR: WARNING, some of these timed out or did not build and were skipped: %s (continuing; install them later with yay)' "${rest[*]}"
     fi
   else
     log "AUR: warning, yay bootstrap failed; the AUR set was not installed"
@@ -143,7 +143,7 @@ BOOTSTRAP
 ryoku_default_browser() {
   local u="$RYOKU_USERNAME" desk="" d
   if [[ -n ${RYOKU_DRYRUN:-} ]]; then
-    log "DRYRUN: set Zen as the default web browser for $u if installed"
+    log 'DRYRUN: set Zen as the default web browser for %s if installed' "$u"
     return 0
   fi
   for d in zen.desktop zen-browser.desktop app.zen_browser.zen.desktop; do
@@ -155,9 +155,9 @@ ryoku_default_browser() {
   fi
   if arch-chroot /mnt runuser -u "$u" -- env "HOME=/home/$u" "USER=$u" "LOGNAME=$u" \
     xdg-mime default "$desk" x-scheme-handler/http x-scheme-handler/https 2>/dev/null; then
-    log "default browser: set Zen ($desk) for $u"
+    log 'default browser: set Zen (%s) for %s' "$desk" "$u"
   else
-    log "default browser: warning, could not set Zen for $u (continuing)"
+    log 'default browser: warning, could not set Zen for %s (continuing)' "$u"
   fi
   return 0
 }

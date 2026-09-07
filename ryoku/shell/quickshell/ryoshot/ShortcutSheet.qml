@@ -11,22 +11,22 @@ Item {
     signal closeRequested()
 
     readonly property var actions: [
-        { key: "Ctrl+C", label: "Copy" },
-        { key: "Ctrl+S", label: "Save" },
-        { key: "Ctrl+P", label: "Pin" },
-        { key: "Ctrl+U", label: "Upload" },
-        { key: "Ctrl+B", label: "Beautify" },
-        { key: "Enter", label: "Copy and save" },
-        { key: "Ctrl+Z", label: "Undo" },
-        { key: "Ctrl+Shift+Z", label: "Redo" },
-        { key: "Ctrl+A", label: "Whole monitor" },
-        { key: "Space", label: "Cycle target" },
-        { key: "f", label: "Fill" },
-        { key: "k", label: "Sketch" },
-        { key: "[ ]", label: "Width" },
-        { key: "1..8", label: "Colour" },
-        { key: "Del", label: "Delete" },
-        { key: "Esc", label: "Back" }
+        { key: "Ctrl+C", label: I18n.tr("Copy") },
+        { key: "Ctrl+S", label: I18n.tr("Save") },
+        { key: "Ctrl+P", label: I18n.tr("Pin") },
+        { key: "Ctrl+U", label: I18n.tr("Upload") },
+        { key: "Ctrl+B", label: I18n.tr("Beautify") },
+        { key: "Enter", label: I18n.tr("Copy and save") },
+        { key: "Ctrl+Z", label: I18n.tr("Undo") },
+        { key: "Ctrl+Shift+Z", label: I18n.tr("Redo") },
+        { key: "Ctrl+A", label: I18n.tr("Whole monitor") },
+        { key: "Space", label: I18n.tr("Cycle target") },
+        { key: "f", label: I18n.tr("Fill") },
+        { key: "k", label: I18n.tr("Sketch") },
+        { key: "[ ]", label: I18n.tr("Width") },
+        { key: "1..8", label: I18n.tr("Colour") },
+        { key: "Del", label: I18n.tr("Delete") },
+        { key: "Esc", label: I18n.tr("Back") }
     ]
 
     focus: visible
@@ -38,7 +38,7 @@ Item {
         spacing: 16
         Text {
             Layout.fillWidth: true
-            text: I18n.tr(row.label)
+            text: row.label
             color: Theme.ink
             font.family: Theme.ui
             font.pixelSize: 13

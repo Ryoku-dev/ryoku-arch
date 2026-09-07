@@ -5,6 +5,7 @@ import shell.services
 import "../../../components"
 import ".."
 import "../framebars/menus" as Menus
+import Ryoku.Ui.Singletons
 
 // Audio popout: the mixer card grown off the speaker/mic rail widget (shared
 // PopoutCard, so it opens and melts like the music card). Output and input each
@@ -49,7 +50,7 @@ Item {
 
         // head.
         Text {
-            text: qsTr("AUDIO")
+            text: I18n.tr("AUDIO")
             color: root.inkDim
             font.family: Theme.mono
             font.pixelSize: 9 * root.s
@@ -64,7 +65,7 @@ Item {
 
             Text {
                 width: parent.width
-                text: qsTr("OUTPUT")
+                text: I18n.tr("OUTPUT")
                 color: root.inkDim
                 font.family: Theme.mono
                 font.pixelSize: 8.5 * root.s
@@ -77,7 +78,7 @@ Item {
                 lit: root.open
                 value: root.haveSink ? root.sink.audio.volume : 0
                 muted: root.haveSink ? root.sink.audio.muted : false
-                valueLabel: !root.haveSink ? "" : (root.sink.audio.muted ? qsTr("off") : Math.round(root.sink.audio.volume * 100) + "%")
+                valueLabel: !root.haveSink ? "" : (root.sink.audio.muted ? I18n.tr("off") : Math.round(root.sink.audio.volume * 100) + "%")
                 peakNode: root.sink
                 peakEnabled: root.open && !!root.sink
                 onMoved: v => { if (root.haveSink) root.sink.audio.volume = v; }
@@ -90,7 +91,7 @@ Item {
                 devices: Audio.outputs
                 listOpen: root.outDevicesOpen
                 fallbackIcon: "speaker"
-                emptyLabel: qsTr("No output device")
+                emptyLabel: I18n.tr("No output device")
                 onToggled: root.outDevicesOpen = !root.outDevicesOpen
                 onPicked: node => Audio.setOutput(node)
             }
@@ -102,11 +103,11 @@ Item {
                 PopoutChip {
                     s: root.s
                     glyph: "bluetooth"
-                    label: Audio.btCodec.length ? Audio.btCodec : qsTr("Codec")
+                    label: Audio.btCodec.length ? Audio.btCodec : I18n.tr("Codec")
                 }
                 PopoutChip {
                     s: root.s
-                    label: Audio.profileLabel().length ? Audio.profileLabel() : qsTr("Profile")
+                    label: Audio.profileLabel().length ? Audio.profileLabel() : I18n.tr("Profile")
                     act: true
                     onClicked: Audio.toggleProfile()
                 }
@@ -120,7 +121,7 @@ Item {
 
             Text {
                 width: parent.width
-                text: qsTr("INPUT")
+                text: I18n.tr("INPUT")
                 color: root.inkDim
                 font.family: Theme.mono
                 font.pixelSize: 8.5 * root.s
@@ -133,7 +134,7 @@ Item {
                 lit: root.open
                 value: root.haveSource ? root.source.audio.volume : 0
                 muted: root.haveSource ? root.source.audio.muted : false
-                valueLabel: !root.haveSource ? "" : (root.source.audio.muted ? qsTr("off") : Math.round(root.source.audio.volume * 100) + "%")
+                valueLabel: !root.haveSource ? "" : (root.source.audio.muted ? I18n.tr("off") : Math.round(root.source.audio.volume * 100) + "%")
                 peakNode: root.source
                 peakEnabled: root.open && !!root.source
                 onMoved: v => { if (root.haveSource) root.source.audio.volume = v; }
@@ -146,7 +147,7 @@ Item {
                 devices: Audio.inputs
                 listOpen: root.inDevicesOpen
                 fallbackIcon: "mic"
-                emptyLabel: qsTr("No input device")
+                emptyLabel: I18n.tr("No input device")
                 onToggled: root.inDevicesOpen = !root.inDevicesOpen
                 onPicked: node => Audio.setInput(node)
             }
@@ -160,7 +161,7 @@ Item {
 
             Text {
                 width: parent.width
-                text: qsTr("APPS")
+                text: I18n.tr("APPS")
                 color: root.inkDim
                 font.family: Theme.mono
                 font.pixelSize: 8.5 * root.s
@@ -180,7 +181,7 @@ Item {
                 visible: Audio.streams.length === 0
                 width: parent.width
                 topPadding: 2 * root.s
-                text: qsTr("Nothing playing")
+                text: I18n.tr("Nothing playing")
                 horizontalAlignment: Text.AlignHCenter
                 color: root.inkDim
                 font.family: Theme.fontPrimary
@@ -197,7 +198,7 @@ Item {
 
             Text {
                 width: parent.width
-                text: qsTr("RECORDING")
+                text: I18n.tr("RECORDING")
                 color: root.inkDim
                 font.family: Theme.mono
                 font.pixelSize: 8.5 * root.s

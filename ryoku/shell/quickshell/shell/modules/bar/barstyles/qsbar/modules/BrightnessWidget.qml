@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "../RyokuPower.js" as RyokuPower
+import Ryoku.Ui.Singletons
 
 Item {
     id: rootMod
@@ -13,7 +14,7 @@ Item {
     property string blDevice:     ""
     property bool   brightnessErrorNotified: false
 
-    readonly property string tooltipText: "Brightness · " + percent + "%"
+    readonly property string tooltipText: I18n.tr("Brightness · %1%").arg(percent)
 
     readonly property bool shown: hasBacklight && root.modBrightness
     implicitWidth:  shown ? (row.implicitWidth + 18) : 0

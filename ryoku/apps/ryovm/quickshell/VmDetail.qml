@@ -172,9 +172,9 @@ Item {
                         : pane.disposableRun
                         ? I18n.tr("Disposable session: every disk write burns up at power-off. The machine boots identical next time")
                         : ({
-                            "window": "Plain window · host↔guest clipboard is OFF in this mode",
-                            "spice": "SPICE viewer · shared clipboard, USB redirect, best desktop fidelity",
-                            "headless": "No display · reach it over SSH or attach a console anytime"
+                            "window": I18n.tr("Plain window · host↔guest clipboard is OFF in this mode"),
+                            "spice": I18n.tr("SPICE viewer · shared clipboard, USB redirect, best desktop fidelity"),
+                            "headless": I18n.tr("No display · reach it over SSH or attach a console anytime")
                         })[pane.launchMode] || ""
                     color: Tokens.inkMuted
                     font.family: Tokens.ui
@@ -346,12 +346,12 @@ Item {
                             KeyHint {
                                 keys: pane.vm && pane.vm.display === "spice" ? "Shift  F12"
                                     : pane.vm && pane.vm.display === "gtk" ? "Ctrl  Alt  G" : ""
-                                action: "Release the mouse and keyboard"
+                                action: I18n.tr("Release the mouse and keyboard")
                                 visible: pane.vm && pane.vm.display !== "none"
                             }
                             KeyHint {
                                 keys: pane.vm && pane.vm.display === "spice" ? "F11" : "Ctrl  Alt  F"
-                                action: "Toggle fullscreen"
+                                action: I18n.tr("Toggle fullscreen")
                                 visible: pane.vm && pane.vm.display !== "none"
                             }
                             Text {
@@ -408,10 +408,10 @@ Item {
                                 width: parent.width
                                 Repeater {
                                     model: [
-                                        { k: "HOST CPU", v: powerBody.parent.live ? Math.round(powerBody.parent.mon.hostCpuPct) + "%" : "-" },
-                                        { k: "HOST RAM", v: powerBody.parent.live && powerBody.parent.mon.hostRssMB > 0 ? Vm.human(powerBody.parent.mon.hostRssMB * 1024 * 1024) : "-" },
-                                        { k: "GUEST IP", v: powerBody.parent.live && powerBody.parent.mon.guestIp ? powerBody.parent.mon.guestIp : "-" },
-                                        { k: "VCPUS", v: powerBody.parent.live && powerBody.parent.mon.vcpus > 0 ? String(powerBody.parent.mon.vcpus) : "-" }
+                                        { k: I18n.tr("HOST CPU"), v: powerBody.parent.live ? Math.round(powerBody.parent.mon.hostCpuPct) + "%" : "-" },
+                                        { k: I18n.tr("HOST RAM"), v: powerBody.parent.live && powerBody.parent.mon.hostRssMB > 0 ? Vm.human(powerBody.parent.mon.hostRssMB * 1024 * 1024) : "-" },
+                                        { k: I18n.tr("GUEST IP"), v: powerBody.parent.live && powerBody.parent.mon.guestIp ? powerBody.parent.mon.guestIp : "-", mono: true },
+                                        { k: I18n.tr("VCPUS"), v: powerBody.parent.live && powerBody.parent.mon.vcpus > 0 ? String(powerBody.parent.mon.vcpus) : "-" }
                                     ]
                                     Column {
                                         required property var modelData
@@ -425,8 +425,8 @@ Item {
                                             width: parent.width - Tokens.s3
                                             elide: Text.ElideRight
                                             text: modelData.v; color: Tokens.ink
-                                            font.family: modelData.k === "GUEST IP" ? Tokens.mono : Tokens.ui
-                                            font.pixelSize: modelData.k === "GUEST IP" ? 14 : 20
+                                            font.family: modelData.mono === true ? Tokens.mono : Tokens.ui
+                                            font.pixelSize: modelData.mono === true ? 14 : 20
                                             font.weight: Font.Light
                                         }
                                     }
@@ -442,8 +442,8 @@ Item {
                                     onAct: Vm.power(pane.name, parent.paused ? "resume" : "pause")
                                 }
                                 ConfirmBtn {
-                                    idleText: "RESET"
-                                    confirmText: "HARD RESET?"
+                                    idleText: I18n.tr("RESET")
+                                    confirmText: I18n.tr("HARD RESET?")
                                     onConfirmed: Vm.power(pane.name, "reset")
                                 }
                             }
@@ -573,8 +573,8 @@ Item {
                                 width: pane.span(6)
                                 controlWidth: Spans.inlineWidth("step", 0, width)
                                 label: I18n.tr("CPU cores")
-                                value: pane.vm && pane.vm.cores !== "auto" ? String(pane.coresNum) : "AUTO"
-                                def: "AUTO"
+                                value: pane.vm && pane.vm.cores !== "auto" ? String(pane.coresNum) : I18n.tr("AUTO")
+                                def: I18n.tr("AUTO")
                                 desc: I18n.tr("How many host cores the guest gets.")
                                 Column {
                                     anchors.right: parent.right
@@ -601,8 +601,8 @@ Item {
                                 controlWidth: Spans.inlineWidth("step", 0, width)
                                 label: I18n.tr("Memory")
                                 unit: "GB"
-                                value: pane.vm && pane.vm.ram !== "auto" ? String(pane.ramNum) : "AUTO"
-                                def: "AUTO"
+                                value: pane.vm && pane.vm.ram !== "auto" ? String(pane.ramNum) : I18n.tr("AUTO")
+                                def: I18n.tr("AUTO")
                                 desc: I18n.tr("RAM handed to the guest.")
                                 Column {
                                     anchors.right: parent.right
@@ -637,8 +637,8 @@ Item {
                             FieldLabel { anchors.verticalCenter: parent.verticalCenter; text: I18n.tr("Disk") }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: (pane.vm ? Vm.human(pane.vm.diskUsed || 0) : "0") + " used"
-                                    + (pane.vm && pane.vm.disk ? "  \u00b7  " + pane.vm.disk + " cap" : "")
+                                text: I18n.tr("%1 used").arg(pane.vm ? Vm.human(pane.vm.diskUsed || 0) : "0")
+                                    + (pane.vm && pane.vm.disk ? "  \u00b7  " + I18n.tr("%1 cap").arg(pane.vm.disk) : "")
                                 color: Tokens.ink
                                 font.family: Tokens.mono
                                 font.pixelSize: 12
@@ -714,8 +714,8 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 visible: pane.sealSnap !== null
                                 armed: !Vm.busy
-                                idleText: "RE-SEAL NOW"
-                                confirmText: "OVERWRITE SEAL?"
+                                idleText: I18n.tr("RE-SEAL NOW")
+                                confirmText: I18n.tr("OVERWRITE SEAL?")
                                 onConfirmed: Vm.seal(pane.name)
                             }
                             GuardSwitch {
@@ -723,7 +723,7 @@ Item {
                                 visible: pane.sealSnap !== null
                                 enabled: !Vm.busy
                                 label: I18n.tr("RESTORE SEAL")
-                                armedLabel: "ROLL BACK"
+                                armedLabel: I18n.tr("ROLL BACK")
                                 onFired: Vm.restoreSeal(pane.name)
                             }
                         }
@@ -995,14 +995,14 @@ Item {
                                         anchors.verticalCenter: parent.verticalCenter
                                         enabled: !pane.running && !Vm.busy
                                         label: I18n.tr("RESTORE")
-                                        armedLabel: "ROLL BACK"
+                                        armedLabel: I18n.tr("ROLL BACK")
                                         onFired: Vm.snapshot(pane.name, "restore", snapRow.modelData.name)
                                     }
                                     ConfirmBtn {
                                         anchors.verticalCenter: parent.verticalCenter
                                         armed: !pane.running
-                                        idleText: "DELETE"
-                                        confirmText: "DELETE?"
+                                        idleText: I18n.tr("DELETE")
+                                        confirmText: I18n.tr("DELETE?")
                                         onConfirmed: Vm.snapshot(pane.name, "delete", snapRow.modelData.name)
                                     }
                                 }
@@ -1050,14 +1050,14 @@ Item {
                             visible: pane.det && pane.det.installed === true
                             enabled: !pane.running && !Vm.busy
                             label: I18n.tr("RECLAIM DISK")
-                            armedLabel: "WIPE DISK"
+                            armedLabel: I18n.tr("WIPE DISK")
                             onFired: Vm.reclaimDisk(pane.name)
                         }
                         GuardSwitch {
                             anchors.verticalCenter: parent.verticalCenter
                             enabled: !pane.running && !Vm.busy
                             label: I18n.tr("DELETE MACHINE")
-                            armedLabel: "DESTROY"
+                            armedLabel: I18n.tr("DESTROY")
                             onFired: Vm.deleteVm(pane.name)
                         }
                     }

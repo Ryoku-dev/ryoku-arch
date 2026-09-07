@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import "../.."
 import "../../components"
+import Ryoku.Ui.Singletons
 
 // Comfort: screen backlight + warm-light (night light), folded from the Hub's
 // Appearance > Comfort tab. Brightness rides brightnessctl; the warm screen
@@ -58,13 +59,13 @@ Column {
 
     SettingsCard {
         colors: root.colors
-        title: "Screen"; kana: "画面"
+        title: I18n.tr("Screen"); kana: "画面"
         width: parent.width
 
         RowInput {
             colors: root.colors
-            title: "Brightness"
-            description: "Display backlight level."
+            title: I18n.tr("Brightness")
+            description: I18n.tr("Display backlight level.")
             value: root._brightness
             min: 5; max: 100; suffix: "%"
             onCommit: function(v) { root._brightness = v; root._setBrightness(v) }
@@ -73,21 +74,21 @@ Column {
 
     SettingsCard {
         colors: root.colors
-        title: "Warm light"; kana: "暖色"
+        title: I18n.tr("Warm light"); kana: "暖色"
         width: parent.width
 
         RowToggle {
             colors: root.colors
-            title: "Warm screen"
-            description: "Cut blue light with a night-light tint (hyprsunset)."
+            title: I18n.tr("Warm screen")
+            description: I18n.tr("Cut blue light with a night-light tint (hyprsunset).")
             checked: root._warm
             onToggle: function(v) { root._warm = v; root._nightlight(v) }
         }
 
         RowInput {
             colors: root.colors
-            title: "Temperature"
-            description: "Colour temperature in Kelvin. Lower is warmer."
+            title: I18n.tr("Temperature")
+            description: I18n.tr("Colour temperature in Kelvin. Lower is warmer.")
             value: root._temp
             min: 2500; max: 6500; suffix: "K"
             enabled: root._warm

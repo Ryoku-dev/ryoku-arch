@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import "Singletons"
+import Ryoku.Ui.Singletons
 
 // A vertical specimen poster for a section's dead right column: a framed noir
 // image, stacked editorial type -- a // code line, a big JP title, a chapter
@@ -87,14 +88,14 @@ Item {
                     spacing: 2
 
                     Text {
-                        text: "CHAPTER"
+                        text: I18n.tr("CHAPTER")
                         color: Tokens.inkFaint
                         font.family: Tokens.ui; font.pixelSize: Tokens.fTiny
                         font.weight: Font.Medium; font.letterSpacing: Tokens.trackMark
                     }
                     Text {
                         visible: pl.label !== ""
-                        text: pl.label
+                        text: I18n.tr(pl.label)
                         color: Tokens.ink
                         font.family: Tokens.ui; font.pixelSize: Tokens.fMicro
                         font.weight: Font.Medium; font.letterSpacing: Tokens.trackLabel

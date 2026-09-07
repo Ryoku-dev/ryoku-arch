@@ -472,7 +472,7 @@ Item {
                 font.weight: Font.DemiBold
             }
             Text {
-                text: I18n.tr("DESKTOP ") + ("0" + (root.viewedDesktop + 1)).slice(-2)
+                text: I18n.tr("DESKTOP %1").arg(("0" + (root.viewedDesktop + 1)).slice(-2))
                 color: Theme.faint
                 font.family: Theme.mono
                 font.pixelSize: 9 * root.s

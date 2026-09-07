@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import "../.."
 import "../../components"
+import Ryoku.Ui.Singletons
 
 Column {
     id: root
@@ -30,13 +31,13 @@ Column {
 
     SettingsCard {
         colors: root.colors
-        title: "External Matugen"
-        subtitle: "Run Matugen alongside Ryogami-wall's internal configuration."
+        title: I18n.tr("External Matugen")
+        subtitle: I18n.tr("Run Matugen alongside Ryogami-wall's internal configuration.")
 
         RowTextInput {
             colors: root.colors
-            title: "Config path"
-            description: "Path to an external matugen config file (e.g. from your existing setup)."
+            title: I18n.tr("Config path")
+            description: I18n.tr("Path to an external matugen config file (e.g. from your existing setup).")
             value: Config.defaultMatugenConfig
             placeholder: "/path/to/matugen.config.toml"
             onCommit: function(v) { if (root.saveConfigKey) root.saveConfigKey("defaultMatugenConfig", v) }
@@ -44,18 +45,18 @@ Column {
 
         RowTextInput {
             colors: root.colors
-            title: "Command"
-            description: "Shell command to invoke. %config% = config path, %path% = wallpaper, %scheme% = scheme, %mode% = light/dark, %index% = source color index."
+            title: I18n.tr("Command")
+            description: I18n.tr("Shell command to invoke. %config% = config path, %path% = wallpaper, %scheme% = scheme, %mode% = light/dark, %index% = source color index.")
             value: Config.externalMatugenCommand
-            placeholder: "matugen -c %config% image %path% -t %scheme% -m %mode% --source-color-index %index%"
+            placeholder: I18n.tr("matugen -c %config% image %path% -t %scheme% -m %mode% --source-color-index %index%")
             onCommit: function(v) { if (root.saveConfigKey) root.saveConfigKey("externalMatugenCommand", v) }
         }
     }
 
     SettingsCard {
         colors: root.colors
-        title: "Integrations"
-        subtitle: "Each entry generates themed output from a template and optionally runs a reload command."
+        title: I18n.tr("Integrations")
+        subtitle: I18n.tr("Each entry generates themed output from a template and optionally runs a reload command.")
 
         Repeater {
             id: integRepeater
@@ -92,8 +93,8 @@ Column {
 
         RowAction {
             colors: root.colors
-            title: "Add integration"
-            description: "Append a new empty integration row."
+            title: I18n.tr("Add integration")
+            description: I18n.tr("Append a new empty integration row.")
             onClicked: {
                 if (!root.cloneIntegrations || !root.saveConfigKey) return
                 var a = root.cloneIntegrations(); a.push({ name: "", template: "", output: "" })
@@ -104,8 +105,8 @@ Column {
 
     SettingsCard {
         colors: root.colors
-        title: "App templates"
-        subtitle: "Recolour each app's config from the generated palette."
+        title: I18n.tr("App templates")
+        subtitle: I18n.tr("Recolour each app's config from the generated palette.")
 
         Grid {
             id: tplGrid

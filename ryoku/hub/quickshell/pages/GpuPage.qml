@@ -69,8 +69,8 @@ Item {
             return h;
         return h || p || null;
     }
-    readonly property string renderName: pg.renderGpu ? pg.renderGpu.model : "your GPU"
-    readonly property string dgpuName: pg.caps.passthrough ? pg.caps.passthrough.model : "the discrete GPU"
+    readonly property string renderName: pg.renderGpu ? pg.renderGpu.model : I18n.tr("your GPU")
+    readonly property string dgpuName: pg.caps.passthrough ? pg.caps.passthrough.model : I18n.tr("the discrete GPU")
 
     readonly property bool capsLoaded: pg.caps.verdict !== undefined
     readonly property bool ptPending: pg.capsError === "" && !pg.capsLoaded
@@ -111,9 +111,9 @@ Item {
         if (gpu === "cpu")
             return "CPU";
         if (gpu === "battery")
-            return "Battery";
+            return I18n.tr("Battery");
         if (gpu === "platform")
-            return "Chassis";
+            return I18n.tr("Chassis");
         if (pg.caps.passthrough && gpu === pg.caps.passthrough.slot)
             return "dGPU";
         if (pg.caps.host && gpu === pg.caps.host.slot)

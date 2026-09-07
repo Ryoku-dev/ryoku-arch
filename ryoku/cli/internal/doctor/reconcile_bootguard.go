@@ -7,6 +7,8 @@ import (
 
 	"ryoku-cli/internal/sys"
 	"ryoku-cli/internal/updater"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: boot guard ----------------------------------------------------
@@ -19,17 +21,17 @@ import (
 // once shown, so it never nags.
 func reconcileBootGuard(checkOnly bool) recResult {
 	if sys.ResolveRepo() != "" || !sys.PkgInstalled("ryoku-desktop") {
-		return okRes("not a packaged install; the boot guard watches package updates only")
+		return okRes(i18n.T("not a packaged install; the boot guard watches package updates only"))
 	}
 	if n := updater.BootNotice(); n != nil {
-		msg := fmt.Sprintf("the boot guard acted on %s: %s", n.At, n.Detail)
+		msg := fmt.Sprintf(i18n.T("the boot guard acted on %s: %s"), n.At, n.Detail)
 		if !checkOnly {
 			_ = sys.Sudo("rm", "-f", "/var/lib/ryoku/boot/notice.json")
 		}
-		return warnRes("%s", msg).withFix("see `ryoku rollback` and `ryoku status`")
+		return warnRes("%s", msg).withFix(i18n.T("see `ryoku rollback` and `ryoku status`"))
 	}
 	if !sys.Exists("/usr/lib/systemd/system/ryoku-boot-guard.service") {
-		return okRes("boot guard not shipped by this release yet")
+		return okRes(i18n.T("boot guard not shipped by this release yet"))
 	}
 	// the session records a good boot under /var/lib/ryoku/boot, so that
 	// directory must exist and take an unprivileged write (the tmpfiles entry
@@ -37,25 +39,25 @@ func reconcileBootGuard(checkOnly bool) recResult {
 	// the parent 0700 first, which the same entry corrects).
 	var problems []string
 	if !sys.UnitEnabled("ryoku-boot-guard.service") {
-		problems = append(problems, "ryoku-boot-guard.service is not enabled")
+		problems = append(problems, i18n.T("ryoku-boot-guard.service is not enabled"))
 	}
 	if !bootOKWritable() {
-		problems = append(problems, "/var/lib/ryoku/boot does not take a session's boot record")
+		problems = append(problems, i18n.T("/var/lib/ryoku/boot does not take a session's boot record"))
 	}
 	if len(problems) == 0 {
-		return okRes("boot guard enabled")
+		return okRes(i18n.T("boot guard enabled"))
 	}
 	fix := "sudo systemctl enable ryoku-boot-guard.service && sudo systemd-tmpfiles --create /usr/lib/tmpfiles.d/ryoku.conf"
 	if checkOnly {
-		return wouldRes("%s, so a failed update is not reverted automatically", strings.Join(problems, "; ")).withFix(fix)
+		return wouldRes(i18n.T("%s, so a failed update is not reverted automatically"), strings.Join(problems, "; ")).withFix(fix)
 	}
 	if err := sys.Sudo("systemctl", "enable", "ryoku-boot-guard.service"); err != nil {
-		return failRes("could not enable ryoku-boot-guard.service: %v", err).withFix(fix)
+		return failRes(i18n.T("could not enable ryoku-boot-guard.service: %v"), err).withFix(fix)
 	}
 	if err := sys.Sudo("systemd-tmpfiles", "--create", "/usr/lib/tmpfiles.d/ryoku.conf"); err != nil || !bootOKWritable() {
-		return failRes("could not prepare /var/lib/ryoku/boot: %v", err).withFix(fix)
+		return failRes(i18n.T("could not prepare /var/lib/ryoku/boot: %v"), err).withFix(fix)
 	}
-	return fixedRes("enabled the boot guard; a packaged update that cannot boot twice is reverted")
+	return fixedRes(i18n.T("enabled the boot guard; a packaged update that cannot boot twice is reverted"))
 }
 
 // bootOKWritable reports whether this user can drop a boot record where the

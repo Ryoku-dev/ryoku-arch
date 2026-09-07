@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import Ryoku.Ui.Singletons
 
 // The twelve visualiser looks, drawn. This is the ONE catalogue of looks: the Hub
 // gallery, the preview and anything else read it instead of re-listing the
@@ -15,18 +16,18 @@ Singleton {
     // the whole-screen frame, then the three polar looks. keys/edgeKeys/polarKeys
     // derive from this so nothing else ever re-lists the set.
     readonly property var styles: [
-        { key: "bars",     kind: "edge",  what: "Rounded columns with a gradient along their length, glow and optional peak caps" },
-        { key: "split",    kind: "edge",  what: "Bars mirrored above and below the axis, the classic centre-out look" },
-        { key: "dots",     kind: "edge",  what: "Discs sized by level, each with a faint trail down to the baseline" },
-        { key: "segments", kind: "edge",  what: "Quantised cells stacked per band, brightening toward the top" },
-        { key: "wave",     kind: "edge",  what: "A smooth filled area with a lit top edge" },
-        { key: "ribbon",   kind: "edge",  what: "Three phase-offset translucent waves, an aurora" },
-        { key: "curtain",  kind: "edge",  what: "A short wave hanging from the bar's edge, lit where it meets it" },
-        { key: "line",     kind: "edge",  what: "An oscilloscope trace with a bright core and windowed edges" },
-        { key: "frame",    kind: "frame", what: "Bars around the whole screen's edge, growing inward as one body" },
-        { key: "radial",   kind: "polar", what: "Rounded bars around a placeable ring with a bass-pulsed centre" },
-        { key: "orb",      kind: "polar", what: "A filled orb with a crisp lit rim and a pulsing pupil ring" },
-        { key: "spiral",   kind: "polar", what: "Bands laid along an Archimedean spiral over one and a half turns" }
+        { key: "bars",     kind: "edge",  what: I18n.tr("Rounded columns with a gradient along their length, glow and optional peak caps") },
+        { key: "split",    kind: "edge",  what: I18n.tr("Bars mirrored above and below the axis, the classic centre-out look") },
+        { key: "dots",     kind: "edge",  what: I18n.tr("Discs sized by level, each with a faint trail down to the baseline") },
+        { key: "segments", kind: "edge",  what: I18n.tr("Quantised cells stacked per band, brightening toward the top") },
+        { key: "wave",     kind: "edge",  what: I18n.tr("A smooth filled area with a lit top edge") },
+        { key: "ribbon",   kind: "edge",  what: I18n.tr("Three phase-offset translucent waves, an aurora") },
+        { key: "curtain",  kind: "edge",  what: I18n.tr("A short wave hanging from the bar's edge, lit where it meets it") },
+        { key: "line",     kind: "edge",  what: I18n.tr("An oscilloscope trace with a bright core and windowed edges") },
+        { key: "frame",    kind: "frame", what: I18n.tr("Bars around the whole screen's edge, growing inward as one body") },
+        { key: "radial",   kind: "polar", what: I18n.tr("Rounded bars around a placeable ring with a bass-pulsed centre") },
+        { key: "orb",      kind: "polar", what: I18n.tr("A filled orb with a crisp lit rim and a pulsing pupil ring") },
+        { key: "spiral",   kind: "polar", what: I18n.tr("Bands laid along an Archimedean spiral over one and a half turns") }
     ]
 
     readonly property var keys: styles.map(function (s) { return s.key; })

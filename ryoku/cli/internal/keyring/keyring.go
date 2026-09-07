@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 )
 
 const (
@@ -92,23 +93,15 @@ func Run(args []string) error {
 	case "apply-pam":
 		return runApplyPAM(args[1:])
 	case "-h", "--help", "help":
-		fmt.Print(usage)
+		fmt.Print(usageText())
 		return nil
 	default:
-		return fmt.Errorf("unknown keyring command %q\n\n%s", args[0], usage)
+		return fmt.Errorf(i18n.T("unknown keyring command %q\n\n%s"), args[0], usageText())
 	}
 }
 
-const usage = `Usage: ryoku keyring <command>
+func usageText() string {
+	return i18n.T("Usage: ryoku keyring <command>\n\n  status [--json]              show the configured mode and keyring state\n  init                         first-login default: record the mode and seed the\n                               blank keyring never-ask needs (no-op once set)\n  set <mode> [flags]           switch mode (unlock-on-login | never-ask | ask)\n      --convert                convert an encrypted keyring (reads passwords on stdin)\n      --reset                  back up the keyring files and start fresh\n      --password-stdin         read password(s) from stdin, one per line\n  apply-pam <mode>             privileged: wire /etc/pam.d/sddm for the mode\n")
+}
 
-  status [--json]              show the configured mode and keyring state
-  init                         first-login default: record the mode and seed the
-                               blank keyring never-ask needs (no-op once set)
-  set <mode> [flags]           switch mode (unlock-on-login | never-ask | ask)
-      --convert                convert an encrypted keyring (reads passwords on stdin)
-      --reset                  back up the keyring files and start fresh
-      --password-stdin         read password(s) from stdin, one per line
-  apply-pam <mode>             privileged: wire /etc/pam.d/sddm for the mode
-`
-
-func usageErr() error { return fmt.Errorf("%s", usage) }
+func usageErr() error { return fmt.Errorf("%s", usageText()) }

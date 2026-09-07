@@ -140,7 +140,7 @@ Flow {
                 anchors.right: parent.right
                 anchors.rightMargin: 13 * root.s
                 text: card.modelData
-                    ? (card.modelData.deviceName || card.modelData.name || card.modelData.address || "Unknown")
+                    ? (card.modelData.deviceName || card.modelData.name || card.modelData.address || I18n.tr("Unknown"))
                     : I18n.tr("Unknown")
                 color: Theme.bright
                 font.family: Theme.font
@@ -185,7 +185,7 @@ Flow {
                 anchors.rightMargin: 13 * root.s
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 12 * root.s
-                text: "connected"
+                text: I18n.tr("connected")
                 color: Theme.faint
                 font.family: Theme.font
                 font.pixelSize: 10.5 * root.s

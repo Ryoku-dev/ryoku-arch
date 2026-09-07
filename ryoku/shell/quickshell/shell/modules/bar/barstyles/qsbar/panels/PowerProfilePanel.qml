@@ -21,9 +21,9 @@ PanelWindow {
     readonly property int gap: 6
 
     readonly property var allProfiles: [
-        { key: "power-saver",  icon: "\uF06C",  label: "Power Saver" },
-        { key: "balanced",     icon: "\uF24E", label: "Balanced" },
-        { key: "performance",  icon: "\uF0E7", label: "Performance" },
+        { key: "power-saver",  icon: "\uF06C",  label: I18n.tr("Power Saver") },
+        { key: "balanced",     icon: "\uF24E", label: I18n.tr("Balanced") },
+        { key: "performance",  icon: "\uF0E7", label: I18n.tr("Performance") },
     ]
 
     // Only offer profiles `powerprofilesctl list` reports (root.powerProfileAvailable),
@@ -193,7 +193,7 @@ PanelWindow {
                 UiText {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "Thermal"
+                    text: I18n.tr("Thermal")
                     color: root.sumiHi
                     font.family: root.mono; font.pixelSize: 11; font.letterSpacing: 1
                 }

@@ -272,7 +272,7 @@ Item {
                             anchors.right: cnt.left
                             anchors.rightMargin: Tokens.s2
                             anchors.verticalCenter: parent.verticalCenter
-                            text: railItem.modelData.name
+                            text: I18n.tr(railItem.modelData.name)
                             color: railItem.active ? Tokens.ink
                                  : (railItem.dimmed ? Tokens.inkFaint : Tokens.inkDim)
                             font.family: Tokens.ui
@@ -344,7 +344,7 @@ Item {
             Text {
                 anchors.centerIn: body
                 visible: sheet.loaded && sheet.shownCats.length === 0
-                text: I18n.tr("No shortcuts match") + " \u201c" + sheet.query.trim() + "\u201d"
+                text: I18n.tr("No shortcuts match \u201c%1\u201d").arg(sheet.query.trim())
                 color: Tokens.inkFaint
                 font.family: Tokens.ui; font.pixelSize: Tokens.fBody
             }

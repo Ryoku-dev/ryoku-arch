@@ -20,7 +20,7 @@ ryoku_filesystems() {
   # Alongside uses a distinct label in both XBOOTLDR and dedicated-ESP modes.
   local boot_label=BOOT
   [[ ${RYOKU_DISK_STRATEGY:-} == alongside ]] && boot_label=${RYOKU_ALONGSIDE_BOOT_LABEL:-RYOKUBOOT}
-  log "formatting boot ($ESP_DEV, vfat, label $boot_label) and root ($ROOT_DEV, btrfs)"
+  log 'formatting boot (%s, vfat, label %s) and root (%s, btrfs)' "$ESP_DEV" "$boot_label" "$ROOT_DEV"
   run mkfs.vfat -F32 -n "$boot_label" "$ESP_DEV"
   run mkfs.btrfs -f -L ryoku "$ROOT_DEV"
 
@@ -41,7 +41,7 @@ ryoku_filesystems() {
 
 ryoku_mount() {
   local o=$RYOKU_BTRFS_OPTS
-  log "mounting subvolumes under /mnt ($o)"
+  log 'mounting subvolumes under /mnt (%s)' "$o"
   run mount -o "$o,subvol=@" "$ROOT_DEV" /mnt
 
   # dirs must exist on @ before their subvols mount over them.
@@ -70,7 +70,7 @@ ryoku_mount() {
     local esp_avail_kib
     esp_avail_kib=$(df -k --output=avail /mnt/boot 2>/dev/null | tail -1 | tr -d ' ')
     [[ $esp_avail_kib =~ ^[0-9]+$ ]] || esp_avail_kib=0
-    (( esp_avail_kib >= 65536 )) || die "/boot has ${esp_avail_kib} KiB free; need >= 64 MiB for the bootloader + kernel + initramfs."
+    (( esp_avail_kib >= 65536 )) || die '/boot has %s KiB free; need >= 64 MiB for the bootloader + kernel + initramfs.' "$esp_avail_kib"
   fi
 
   ryoku_swapfile
@@ -84,7 +84,7 @@ ryoku_swapfile() {
   # @swap is mounted separately so the swapfile never lands inside a
   # snapshotted subvol (see above). mkswapfile sets NOCOW + the right perms;
   # genfstab picks up both the mount and the swap entry later.
-  log "swap: ${RYOKU_SWAP_GIB}GiB swapfile in @swap (kept out of snapshots)"
+  log 'swap: %sGiB swapfile in @swap (kept out of snapshots)' "$RYOKU_SWAP_GIB"
   run mkdir -p /mnt/swap
   run mount -o noatime,subvol=@swap "$ROOT_DEV" /mnt/swap
   run btrfs filesystem mkswapfile --size "${RYOKU_SWAP_GIB}g" /mnt/swap/swapfile

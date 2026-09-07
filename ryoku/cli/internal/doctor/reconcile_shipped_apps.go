@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: the apps Ryoku ships, and the user's right to delete them --
@@ -108,7 +110,7 @@ var (
 
 func reconcileShippedApps(checkOnly bool) recResult {
 	if !hasPacman() {
-		return okRes("not a pacman box; shipped apps are the installer's business")
+		return okRes(i18n.T("not a pacman box; shipped apps are the installer's business"))
 	}
 	apps := shippedApps()
 	installed, asDep := map[string]bool{}, map[string]bool{}
@@ -122,22 +124,22 @@ func reconcileShippedApps(checkOnly bool) recResult {
 
 	if len(plan.install) == 0 && len(plan.adopt) == 0 && len(plan.explicit) == 0 {
 		if len(plan.removed) > 0 {
-			return noteRes("%s stay removed (you deleted them; Ryoku does not put them back)",
+			return noteRes(i18n.T("%s stay removed (you deleted them; Ryoku does not put them back)"),
 				strings.Join(plan.removed, ", "))
 		}
-		return okRes("every shipped app is present and owned by you")
+		return okRes(i18n.T("every shipped app is present and owned by you"))
 	}
 	if checkOnly {
 		var parts []string
 		if len(plan.install) > 0 {
-			parts = append(parts, "would install "+strings.Join(plan.install, ", "))
+			parts = append(parts, i18n.Tf("would install %s", strings.Join(plan.install, ", ")))
 		}
 		if len(plan.explicit) > 0 || len(plan.adopt) > 0 {
-			parts = append(parts, fmt.Sprintf("would take ownership of %d present app(s)",
+			parts = append(parts, fmt.Sprintf(i18n.T("would take ownership of %d present app(s)"),
 				len(union(plan.adopt, plan.explicit))))
 		}
 		return wouldRes("%s", strings.Join(parts, "; ")).
-			withFix("run `ryoku doctor` (or `ryoku update`) to apply")
+			withFix(i18n.T("run `ryoku doctor` (or `ryoku update`) to apply"))
 	}
 
 	// Ownership first: it cannot fail the run, and it protects what is already
@@ -167,16 +169,16 @@ func reconcileShippedApps(checkOnly bool) recResult {
 
 	switch {
 	case len(missed) > 0 && len(landed) > 0:
-		return warnRes("installed %s; %s did not land", strings.Join(landed, ", "), strings.Join(missed, ", ")).
+		return warnRes(i18n.T("installed %s; %s did not land"), strings.Join(landed, ", "), strings.Join(missed, ", ")).
 			withFix("sudo pacman -S %s", strings.Join(missed, " "))
 	case len(missed) > 0:
-		return warnRes("%s could not be installed", strings.Join(missed, ", ")).
+		return warnRes(i18n.T("%s could not be installed"), strings.Join(missed, ", ")).
 			withFix("sudo pacman -Sy && sudo pacman -S %s", strings.Join(missed, " "))
 	case len(landed) > 0:
-		return fixedRes("installed %s (delete any of them and Ryoku will not reinstall it)",
+		return fixedRes(i18n.T("installed %s (delete any of them and Ryoku will not reinstall it)"),
 			strings.Join(landed, ", "))
 	}
-	return fixedRes("took ownership of %d shipped app(s) so an orphan sweep cannot remove them",
+	return fixedRes(i18n.T("took ownership of %d shipped app(s) so an orphan sweep cannot remove them"),
 		len(union(plan.adopt, plan.explicit)))
 }
 

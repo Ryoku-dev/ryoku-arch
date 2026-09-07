@@ -63,7 +63,7 @@ Column {
                 section.customOpen = false
                 section.errorText = ""
             } else {
-                section.errorText = error || qsTr("Could not change DNS provider")
+                section.errorText = error || I18n.tr("Could not change DNS provider")
             }
         }
     }
@@ -76,7 +76,7 @@ Column {
                 return
             section.pendingCallId = 0
             section.pendingProvider = ""
-            section.errorText = qsTr("DNS change timed out; check authorization and try again")
+            section.errorText = I18n.tr("DNS change timed out; check authorization and try again")
         }
     }
 
@@ -87,7 +87,7 @@ Column {
         UiText {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            text: qsTr("DNS PROVIDER")
+            text: I18n.tr("DNS PROVIDER")
             color: section.theme.sumiHi
             font.family: section.theme.mono
             font.pixelSize: 10
@@ -97,7 +97,7 @@ Column {
         UiText {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
-            text: section.busy ? qsTr("applying…") : ""
+            text: section.busy ? I18n.tr("applying…") : ""
             color: section.theme.seal
             font.family: section.theme.mono
             font.pixelSize: 9
@@ -112,10 +112,10 @@ Column {
 
         Repeater {
             model: [
-                { label: qsTr("DHCP"), value: "dhcp" },
-                { label: qsTr("Cloudflare"), value: "cloudflare" },
-                { label: qsTr("Google"), value: "google" },
-                { label: qsTr("Custom"), value: "custom" }
+                { label: I18n.tr("DHCP"), value: "dhcp" },
+                { label: I18n.tr("Cloudflare"), value: "cloudflare" },
+                { label: I18n.tr("Google"), value: "google" },
+                { label: I18n.tr("Custom"), value: "custom" }
             ]
 
             delegate: Rectangle {
@@ -187,7 +187,7 @@ Column {
                 anchors.leftMargin: 8
                 anchors.verticalCenter: parent.verticalCenter
                 visible: customInput.text === "" && !customInput.activeFocus
-                text: qsTr("DNS server addresses")
+                text: I18n.tr("DNS server addresses")
                 color: section.theme.sumiHi
                 font.family: section.theme.mono
                 font.pixelSize: 9
@@ -207,7 +207,7 @@ Column {
                 font.pixelSize: 10
                 clip: true
                 inputMethodHints: Qt.ImhNoPredictiveText
-                Accessible.name: qsTr("Custom DNS server addresses")
+                Accessible.name: I18n.tr("Custom DNS server addresses")
                 onTextEdited: section.customText = text
                 onAccepted: section.submitProvider("custom", section.customServers())
             }
@@ -223,11 +223,11 @@ Column {
             activeFocusOnTab: true
             enabled: !section.busy && section.customServers().length > 0
             Accessible.role: Accessible.Button
-            Accessible.name: qsTr("Apply custom DNS servers")
+            Accessible.name: I18n.tr("Apply custom DNS servers")
 
             UiText {
                 anchors.centerIn: parent
-                text: qsTr("apply")
+                text: I18n.tr("apply")
                 color: section.theme.paper
                 font.family: section.theme.mono
                 font.pixelSize: 9

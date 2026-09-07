@@ -35,8 +35,8 @@ PanelWindow {
 
     function formatFree(bytes) {
         var value = Number(bytes) || 0
-        if (value >= 1099511627776) return (value / 1099511627776).toFixed(1) + " TiB free"
-        return (value / 1073741824).toFixed(1) + " GiB free"
+        if (value >= 1099511627776) return I18n.tr("%1 TiB free").arg((value / 1099511627776).toFixed(1))
+        return I18n.tr("%1 GiB free").arg((value / 1073741824).toFixed(1))
     }
 
     function formatGiB(bytes) {
@@ -200,9 +200,9 @@ PanelWindow {
 
             Repeater {
                 model: [
-                    { label: "USED", value: storagePanel.formatGiB(drive.usedBytes) },
-                    { label: "FREE", value: storagePanel.formatGiB(drive.freeBytes) },
-                    { label: "TOTAL", value: storagePanel.formatGiB(drive.totalBytes) }
+                    { label: I18n.tr("USED"), value: storagePanel.formatGiB(drive.usedBytes) },
+                    { label: I18n.tr("FREE"), value: storagePanel.formatGiB(drive.freeBytes) },
+                    { label: I18n.tr("TOTAL"), value: storagePanel.formatGiB(drive.totalBytes) }
                 ]
                 delegate: Item {
                     required property var modelData
@@ -297,7 +297,7 @@ PanelWindow {
                     anchors.right: closeText.left
                     anchors.rightMargin: 16
                     anchors.verticalCenter: parent.verticalCenter
-                    text: I18n.tr("DRIVES: ") + root.storageDrives.length
+                    text: I18n.tr("DRIVES: %1").arg(root.storageDrives.length)
                     color: root.sumiHi
                     font.family: root.mono
                     font.pixelSize: 9
@@ -371,9 +371,9 @@ PanelWindow {
 
                 Repeater {
                     model: [
-                        { label: "USED", value: storagePanel.usedGiB.toFixed(1) + " GiB" },
-                        { label: "FREE", value: storagePanel.freeGiB.toFixed(1) + " GiB" },
-                        { label: "TOTAL", value: storagePanel.totalGiB.toFixed(1) + " GiB" }
+                        { label: I18n.tr("USED"), value: storagePanel.usedGiB.toFixed(1) + " GiB" },
+                        { label: I18n.tr("FREE"), value: storagePanel.freeGiB.toFixed(1) + " GiB" },
+                        { label: I18n.tr("TOTAL"), value: storagePanel.totalGiB.toFixed(1) + " GiB" }
                     ]
                     delegate: Item {
                         required property var modelData

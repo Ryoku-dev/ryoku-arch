@@ -17,7 +17,7 @@ Item {
         anchors.right: caps.left
         anchors.rightMargin: Tokens.s4
         anchors.verticalCenter: parent.verticalCenter
-        text: row.desc
+        text: I18n.tr(row.desc)
         color: Tokens.inkDim
         font.family: Tokens.ui
         font.pixelSize: Tokens.fBody

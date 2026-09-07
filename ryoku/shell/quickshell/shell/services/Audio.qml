@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Bluetooth
 import Quickshell.Services.Pipewire
+import Ryoku.Ui.Singletons
 
 // audio graph for the mixer: classifies Pipewire nodes into output devices,
 // input devices, and per-app playback streams; switches the default sink/source
@@ -135,7 +136,7 @@ Singleton {
         if (!n)
             return "";
         var p = n.properties || ({});
-        return n.description || n.nickname || p["node.description"] || n.name || "Audio device";
+        return n.description || n.nickname || p["node.description"] || n.name || I18n.tr("Audio device");
     }
 
     // a GlyphIcon name for a device, from its bluez-ness / icon hint / port.
@@ -229,8 +230,8 @@ Singleton {
         if (!root.btProfile.length)
             return "";
         if (root.isHeadset())
-            return "Headset";
-        return root.btProfile.indexOf("a2dp") >= 0 ? "Hi-Fi" : root.btProfile;
+            return I18n.tr("Headset");
+        return root.btProfile.indexOf("a2dp") >= 0 ? I18n.tr("Hi-Fi") : root.btProfile;
     }
 
     // flip the active bluez card between a2dp playback and headset mode.
@@ -275,7 +276,7 @@ Singleton {
 
     function streamName(n) {
         var p = (n && n.properties) ? n.properties : ({});
-        return p["application.name"] || p["media.name"] || (n ? n.description : "") || "Application";
+        return p["application.name"] || p["media.name"] || (n ? n.description : "") || I18n.tr("Application");
     }
 
     function streamIcon(n) {

@@ -29,10 +29,10 @@ Item {
     // greeting by hour, split into two stacked words (GOOD / <part>).
     readonly property string greetWord: {
         var h = Now.date.getHours();
-        if (h >= 5 && h < 12) return "Morning";
-        if (h >= 12 && h < 17) return "Afternoon";
-        if (h >= 17 && h < 21) return "Evening";
-        return "Night";
+        if (h >= 5 && h < 12) return Ui.I18n.tr("Morning");
+        if (h >= 12 && h < 17) return Ui.I18n.tr("Afternoon");
+        if (h >= 17 && h < 21) return Ui.I18n.tr("Evening");
+        return Ui.I18n.tr("Night");
     }
 
     implicitWidth: box.width * face.s
@@ -62,7 +62,7 @@ Item {
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: Ui.I18n.tr(face.greetWord).toUpperCase(); color: face.ink
+                    text: face.greetWord.toUpperCase(); color: face.ink
                     font.family: "Inter Display"; font.weight: Font.Medium
                     font.pixelSize: 26; font.letterSpacing: 10
                 }

@@ -53,8 +53,13 @@ anything else changes). What it actually runs depends on the world:
   branch (`main` for everyone), fast-forwards the checkout when it is sitting
   cleanly on that branch, and redeploys with `deploy.sh`. A feature branch or a
   dirty tree is left to git only the redeploy runs.
-- **Packaged install:** `sudo pacman -Syu`, then `yay -Sua` if yay is present,
-  then `ryoku materialize`, then a shell reload.
+- **Packaged install:** the packages the `[ryoku]` repo serves, by name
+  (`pacman -Sy`, then `pacman -S --needed ryoku/<pkg>...`), then
+  `ryoku materialize`, then a shell reload. It is not a sysupgrade: the base
+  system and its kernel come from Arch or CachyOS, and `sudo pacman -Syu` is
+  what moves them. The run reports how many packages that lane is holding, and
+  `ryoku update --system` runs it too (the full `pacman -Syu`, `yay -Sua`, and
+  `flatpak update`) for a box that wants one command.
 
 Throughout, it publishes progress to `$XDG_RUNTIME_DIR/ryoku-update.json` so the
 shell's update island can show the run.
@@ -64,8 +69,9 @@ shell's update island can show the run.
 A read-only report. It always prints the active config base. On a checkout it
 shows the channel, the deployed commit (`installed`), and how many commits behind
 the channel you are; on a packaged install it shows the installed `ryoku-desktop`
-version, what the `[ryoku]` repo offers, and the count of pending package updates
-(via `checkupdates` from `pacman-contrib`). It ends with the snapshot count.
+version, what the `[ryoku]` repo offers, and the count of pending package
+updates (via `checkupdates` from `pacman-contrib`), listed as `system:` because
+`ryoku update` does not take them. It ends with the snapshot count.
 
 `--json` is the data seam the Hub and the update island read; it is not meant for
 humans.

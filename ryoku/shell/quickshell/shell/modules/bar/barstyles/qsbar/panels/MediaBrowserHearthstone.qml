@@ -63,8 +63,8 @@ PanelWindow {
 
     readonly property string currentLabel:
         (filtered.length > 0 && selFilt >= 0 && selFilt < filtered.length)
-            ? filtered[selFilt].label
-            : (filterText ? "No matches" : "")
+            ? I18n.tr(filtered[selFilt].label)
+            : (filterText ? I18n.tr("No matches") : "")
 
     // ── open / style gating ──
     function releaseClosedState() {
@@ -315,7 +315,7 @@ PanelWindow {
         visible: root.mediaBrowserVisible && panel.active && panel.ready && panel.filtered.length === 0
         anchors.centerIn: parent
         horizontalAlignment: Text.AlignHCenter
-        text: I18n.tr("No matches: ") + panel.filterText + I18n.tr("\n\nBackspace to edit, or Esc to clear")
+        text: I18n.tr("No matches: %1").arg(panel.filterText) + I18n.tr("\n\nBackspace to edit, or Esc to clear")
         color: root.ink
         font.family: root.mono; font.pixelSize: 16; font.letterSpacing: 1
     }
@@ -552,8 +552,7 @@ PanelWindow {
         Text {
             visible: panel.confirmDelete
             anchors.horizontalCenter: parent.horizontalCenter
-            text: I18n.tr("Delete this ") + (panel.isVideos ? "video" : "screenshot")
-                  + I18n.tr("?   Del again to confirm   ·   Esc cancel")
+            text: I18n.tr("Delete this %1?   Del again to confirm   ·   Esc cancel").arg(panel.isVideos ? I18n.tr("video") : I18n.tr("screenshot"))
             color: root.seal
             font.family: root.mono; font.pixelSize: 11; font.weight: Font.Medium
             horizontalAlignment: Text.AlignHCenter

@@ -27,6 +27,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"ryoku-i18n"
 )
 
 const (
@@ -57,7 +59,7 @@ func hashPassword(pw string) (string, error) {
 func cryptSalt() (string, error) {
 	b := make([]byte, cryptSaltLen)
 	if _, err := io.ReadFull(rand.Reader, b); err != nil {
-		return "", fmt.Errorf("no random bytes for the salt: %w", err)
+		return "", fmt.Errorf("%s: %w", i18n.T("no random bytes for the salt"), err)
 	}
 	for i, v := range b {
 		b[i] = cryptAlphabet[v%64]

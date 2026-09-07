@@ -228,8 +228,8 @@ Item {
         anchors.leftMargin: Tokens.s6; anchors.rightMargin: Tokens.s6; anchors.topMargin: Tokens.s5
         height: 226
         label: {
-            var name = String(pg.variantEntry(pg.draft.variant).name || "Launcher");
-            return name.toUpperCase() + " " + I18n.tr("PREVIEW");
+            var name = String(pg.variantEntry(pg.draft.variant).name || I18n.tr("Launcher"));
+            return I18n.tr("%1 PREVIEW").arg(name.toUpperCase());
         }
         tag: variantPreview.item
             ? (variantPreview.item.implicitWidth + " × " + variantPreview.item.implicitHeight)
@@ -387,7 +387,7 @@ Item {
                     anchors.left: parent.left; anchors.right: parent.right
                     label: I18n.tr("Show greeting")
                     desc: I18n.tr("Time-of-day greeting above the hero clock.")
-                    def: pg.committed.showGreeting ? "ON" : "OFF"
+                    def: pg.committed.showGreeting ? I18n.tr("ON") : I18n.tr("OFF")
                     changed: !pg.same(pg.draft.showGreeting, pg.committed.showGreeting)
                     source: "launcher.json"
                     controlWidth: 54
@@ -403,7 +403,7 @@ Item {
                     divider: true
                     label: I18n.tr("Show weather")
                     desc: I18n.tr("Current conditions and temperature on the hero; off shows the date.")
-                    def: pg.committed.showWeather ? "ON" : "OFF"
+                    def: pg.committed.showWeather ? I18n.tr("ON") : I18n.tr("OFF")
                     changed: !pg.same(pg.draft.showWeather, pg.committed.showWeather)
                     source: "launcher.json"
                     controlWidth: 54
@@ -420,7 +420,7 @@ Item {
                     block: true
                     label: I18n.tr("Weather units")
                     desc: I18n.tr("Temperature scale on the hero; Auto follows your locale.")
-                    def: pg.unitLabel(pg.committed.weatherUnit)
+                    def: I18n.tr(pg.unitLabel(pg.committed.weatherUnit))
                     changed: !pg.same(pg.draft.weatherUnit, pg.committed.weatherUnit)
                     source: "launcher.json"
                     Seg {
@@ -437,7 +437,7 @@ Item {
                     block: true
                     label: I18n.tr("Solar line")
                     desc: I18n.tr("The warm line under the clock. Palette follows the wallpaper, Fixed uses a colour you pick, Off hides it.")
-                    def: pg.horizonModeLabel(pg.committed.horizonMode)
+                    def: I18n.tr(pg.horizonModeLabel(pg.committed.horizonMode))
                     changed: !pg.same(pg.draft.horizonMode, pg.committed.horizonMode)
                     source: "launcher.json"
                     Seg {
@@ -580,7 +580,9 @@ Item {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: pg.dirty
-                    ? (pg.dirtyCount + (pg.dirtyCount === 1 ? I18n.tr(" CHANGE") : I18n.tr(" CHANGES")) + I18n.tr(" \u00b7 PREVIEWING \u00b7 NOT SAVED"))
+                    ? (pg.dirtyCount === 1
+                        ? I18n.tr("%1 CHANGE \u00b7 PREVIEWING \u00b7 NOT SAVED").arg(pg.dirtyCount)
+                        : I18n.tr("%1 CHANGES \u00b7 PREVIEWING \u00b7 NOT SAVED").arg(pg.dirtyCount))
                     : I18n.tr("SAVED \u00b7 LIVE ON YOUR DESKTOP")
                 color: pg.dirty ? Tokens.ink : Tokens.inkMuted
                 font.family: Tokens.ui; font.pixelSize: Tokens.fMicro

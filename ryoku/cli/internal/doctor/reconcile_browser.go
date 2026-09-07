@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // The WebExtension native-messaging host name and the extension ids that may
@@ -26,7 +28,7 @@ const (
 func reconcileBrowserTheme(checkOnly bool) recResult {
 	home := homeDir()
 	if home == "" {
-		return okRes("no HOME")
+		return okRes(i18n.T("no HOME"))
 	}
 	launcher := filepath.Join(browserDataHome(), "ryoku", "ryoku-browser-host")
 
@@ -86,11 +88,11 @@ func reconcileBrowserTheme(checkOnly bool) recResult {
 				continue
 			}
 			if err := writeLauncher(launcher); err != nil {
-				return failRes("could not write the browser host launcher: %v", err)
+				return failRes(i18n.T("could not write the browser host launcher: %v"), err)
 			}
 			launcherOK = true
 			if err := writeManifestJSON(manifestPath, t.manifest); err != nil {
-				return failRes("could not install the host manifest for %s: %v", d, err)
+				return failRes(i18n.T("could not install the host manifest for %s: %v"), d, err)
 			}
 			did = append(did, d)
 		}
@@ -98,13 +100,13 @@ func reconcileBrowserTheme(checkOnly bool) recResult {
 
 	switch {
 	case !present:
-		return okRes("no supported browser present")
+		return okRes(i18n.T("no supported browser present"))
 	case checkOnly && len(pending) > 0:
-		return wouldRes("install the Ryoku browser host for: %s", strings.Join(pending, ", "))
+		return wouldRes(i18n.T("install the Ryoku browser host for: %s"), strings.Join(pending, ", "))
 	case len(did) > 0:
-		return fixedRes("installed the browser host for: %s", strings.Join(did, ", "))
+		return fixedRes(i18n.T("installed the browser host for: %s"), strings.Join(did, ", "))
 	default:
-		return okRes("browser host installed")
+		return okRes(i18n.T("browser host installed"))
 	}
 }
 

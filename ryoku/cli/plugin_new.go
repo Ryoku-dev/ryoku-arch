@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"ryoku-cli/internal/sys"
+	i18n "ryoku-i18n"
 )
 
 // plugin_new.go is `ryoku plugin new`: it scaffolds R1's plugin folder from the
@@ -40,7 +41,7 @@ func cmdPluginNew(args []string) error {
 		case a == "--name":
 			i++
 			if i >= len(args) {
-				return fmt.Errorf("--name needs a value")
+				return fmt.Errorf(i18n.T("--name needs a value"))
 			}
 			name = args[i]
 		case strings.HasPrefix(a, "--name="):
@@ -48,7 +49,7 @@ func cmdPluginNew(args []string) error {
 		case a == "--author":
 			i++
 			if i >= len(args) {
-				return fmt.Errorf("--author needs a value")
+				return fmt.Errorf(i18n.T("--author needs a value"))
 			}
 			author = args[i]
 		case strings.HasPrefix(a, "--author="):
@@ -56,34 +57,34 @@ func cmdPluginNew(args []string) error {
 		case a == "--to":
 			i++
 			if i >= len(args) {
-				return fmt.Errorf("--to needs a value")
+				return fmt.Errorf(i18n.T("--to needs a value"))
 			}
 			to = args[i]
 		case strings.HasPrefix(a, "--to="):
 			to = strings.TrimPrefix(a, "--to=")
 		case strings.HasPrefix(a, "-"):
-			return fmt.Errorf("unknown flag %q", a)
+			return fmt.Errorf(i18n.T("unknown flag %q"), a)
 		default:
 			if id != "" {
-				return fmt.Errorf("give one plugin id")
+				return fmt.Errorf(i18n.T("give one plugin id"))
 			}
 			id = a
 		}
 	}
 	if id == "" {
-		return fmt.Errorf(`usage: ryoku plugin new <id> [--bar|--desktop|--popout] [--name N] [--author "N <m>"] [--to <dir>]`)
+		return fmt.Errorf(i18n.T("usage: ryoku plugin new <id> [--bar|--desktop|--popout] [--name N] [--author \"N <m>\"] [--to <dir>]"))
 	}
 	if hostFlags > 1 {
-		return fmt.Errorf("choose one of --bar, --desktop, --popout")
+		return fmt.Errorf(i18n.T("choose one of --bar, --desktop, --popout"))
 	}
 	if host == "" {
 		host = "topbarGlyph" // default --bar
 	}
 	if !pluginIDRe.MatchString(id) {
-		return fmt.Errorf("id %q must be lowercase letters, digits and dashes, not starting with a dash", id)
+		return fmt.Errorf(i18n.T("id %q must be lowercase letters, digits and dashes, not starting with a dash"), id)
 	}
 	if reservedIDs()[id] {
-		return fmt.Errorf("%q is a reserved built-in widget id; choose another", id)
+		return fmt.Errorf(i18n.T("%q is a reserved built-in widget id; choose another"), id)
 	}
 	if name == "" {
 		name = titleFromID(id)
@@ -96,7 +97,7 @@ func cmdPluginNew(args []string) error {
 		dir = filepath.Join(pluginAuthorRoot(), id)
 	}
 	if entries, err := os.ReadDir(dir); err == nil && len(entries) > 0 {
-		return fmt.Errorf("%s already exists and is not empty", dir)
+		return fmt.Errorf(i18n.T("%s already exists and is not empty"), dir)
 	}
 
 	bar := host == "topbarGlyph"
@@ -304,20 +305,20 @@ func gitInitPlugin(dir, author string) {
 }
 
 func printNextSteps(id, dir string, bar bool) {
-	fmt.Printf("%s %s at %s\n\n", sys.Green("scaffolded"), id, dir)
-	fmt.Println("Next steps:")
-	edit := "  1. edit: service/Main.qml, content/Widget.qml"
+	fmt.Printf(i18n.T("%s %s at %s\n\n"), sys.Green(i18n.T("scaffolded")), id, dir)
+	fmt.Println(i18n.T("Next steps:"))
+	edit := i18n.T("  1. edit: service/Main.qml, content/Widget.qml")
 	if bar {
 		edit += ", content/Panel.qml"
 	}
 	fmt.Println(edit)
-	fmt.Println("  2. capture assets/preview-widget.png (see README.md), then list it in manifest files")
-	fmt.Printf("  3. check:   ryoku plugin validate %s\n", dir)
+	fmt.Println(i18n.T("  2. capture assets/preview-widget.png (see README.md), then list it in manifest files"))
+	fmt.Printf(i18n.T("  3. check:   ryoku plugin validate %s\n"), dir)
 	if bar {
-		fmt.Printf("  4. install: ryoku plugin add %s --bar --yes\n", dir)
-		fmt.Println("     then find it on the bar, and under QS Bar Settings > Community")
+		fmt.Printf(i18n.T("  4. install: ryoku plugin add %s --bar --yes\n"), dir)
+		fmt.Println(i18n.T("     then find it on the bar, and under QS Bar Settings > Community"))
 	} else {
-		fmt.Printf("  4. install: ryoku plugin add %s --yes\n", dir)
+		fmt.Printf(i18n.T("  4. install: ryoku plugin add %s --yes\n"), dir)
 	}
-	fmt.Printf("  5. publish: ryoku plugin share %s   (only when you want to share it)\n", id)
+	fmt.Printf(i18n.T("  5. publish: ryoku plugin share %s   (only when you want to share it)\n"), id)
 }

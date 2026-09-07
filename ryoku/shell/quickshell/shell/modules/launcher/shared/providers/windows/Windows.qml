@@ -2,6 +2,7 @@ import QtQuick
 import QtQml.Models
 import Quickshell
 import Quickshell.Hyprland
+import Ryoku.Ui.Singletons
 import "../../Singletons"
 import "../../lib/fuzzy.js" as Fuzzy
 import ".."
@@ -104,7 +105,7 @@ Provider {
             out.push({
                 address: o.address,
                 toplevel: t,
-                title: o.title || o.class || "Window",
+                title: o.title || o.class || I18n.tr("Window"),
                 cls: o.class || "",
                 workspace: workspace,
                 keywords: [o.class || ""]
@@ -137,7 +138,7 @@ Provider {
             score: 5,
             actions: [{
                 id: "focus",
-                name: "Focus",
+                name: I18n.tr("Focus"),
                 icon: "",
                 execute: function () {
                     windows.pendingFocus = e;

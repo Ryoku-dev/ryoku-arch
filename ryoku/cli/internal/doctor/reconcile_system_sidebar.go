@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // The full-height system sidebar was retired in favor of configurable modules
@@ -15,30 +17,30 @@ func reconcileLegacySystemSidebar(checkOnly bool) recResult {
 	path := filepath.Join(sys.ConfigHome(), "ryoku", "shell.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return okRes("no shell.json yet (seeded on first shell run)")
+		return okRes(i18n.T("no shell.json yet (seeded on first shell run)"))
 	}
 	migrated, changed, err := stripLegacySystemSidebar(raw)
 	if err != nil {
-		return warnRes("shell.json does not parse (%v); the shell falls back to defaults", err).
-			withFix("delete %s to re-seed it", path)
+		return warnRes(i18n.T("shell.json does not parse (%v); the shell falls back to defaults"), err).
+			withFix(i18n.T("delete %s to re-seed it"), path)
 	}
 	if !changed {
-		return okRes("shell.json carries no retired system sidebar")
+		return okRes(i18n.T("shell.json carries no retired system sidebar"))
 	}
 	if checkOnly {
-		return wouldRes("shell.json still carries retired frameBars.surfaces.system").
-			withFix("ryoku doctor strips it in place")
+		return wouldRes(i18n.T("shell.json still carries retired frameBars.surfaces.system")).
+			withFix(i18n.T("ryoku doctor strips it in place"))
 	}
 
 	tmp := path + ".ryoku-tmp"
 	if err := os.WriteFile(tmp, migrated, 0o644); err != nil {
-		return failRes("could not write %s: %v", tmp, err)
+		return failRes(i18n.T("could not write %s: %v"), tmp, err)
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		_ = os.Remove(tmp)
-		return failRes("could not replace %s: %v", path, err)
+		return failRes(i18n.T("could not replace %s: %v"), path, err)
 	}
-	return fixedRes("stripped retired frameBars.surfaces.system from shell.json")
+	return fixedRes(i18n.T("stripped retired frameBars.surfaces.system from shell.json"))
 }
 
 func stripLegacySystemSidebar(raw []byte) ([]byte, bool, error) {

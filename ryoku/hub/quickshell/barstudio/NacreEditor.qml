@@ -20,7 +20,7 @@ Column {
 
     function label(id) {
         const item = NacreConfig.entry(id);
-        return item ? qsTr(item.label) : id;
+        return item ? I18n.tr(item.label) : id;
     }
 
     function moveWidget(widgetId, sourceIsland, targetIsland, targetIndex) {

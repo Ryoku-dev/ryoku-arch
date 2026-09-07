@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: alongside UEFI boot entry -----------------------------------
@@ -80,18 +82,18 @@ func efibootmgrVerbose() string {
 // to watch. never writes NVRAM.
 func reconcileAlongsideBootEntry(_ bool) recResult {
 	if !isAlongsideSystem(readFileSafe("/etc/fstab"), sys.Exists(alongsideHopPath)) {
-		return okRes("not an alongside install (no shared ESP at /efi with our stage-1 hop)")
+		return okRes(i18n.T("not an alongside install (no shared ESP at /efi with our stage-1 hop)"))
 	}
 	if !sys.Has("efibootmgr") {
-		return okRes("no efibootmgr to inspect the UEFI boot menu")
+		return okRes(i18n.T("no efibootmgr to inspect the UEFI boot menu"))
 	}
 	out := efibootmgrVerbose()
 	if out == "" {
-		return okRes("no UEFI boot entries to check")
+		return okRes(i18n.T("no UEFI boot entries to check"))
 	}
 	if hasAlongsideBootEntry(out) {
-		return okRes(`alongside UEFI boot entry present (loads \EFI\ryoku\BOOTX64.EFI)`)
+		return okRes(i18n.T("alongside UEFI boot entry present (loads \\EFI\\ryoku\\BOOTX64.EFI)"))
 	}
-	return warnRes(`the alongside 'Ryoku' UEFI boot entry (\EFI\ryoku\BOOTX64.EFI on the shared ESP) is missing; some firmware drops NVRAM entries across updates, so the machine now boots only via the removable EFI/BOOT fallback, if at all`).
+	return warnRes(i18n.T("the alongside 'Ryoku' UEFI boot entry (\\EFI\\ryoku\\BOOTX64.EFI on the shared ESP) is missing; some firmware drops NVRAM entries across updates, so the machine now boots only via the removable EFI/BOOT fallback, if at all")).
 		withFix(`sudo efibootmgr --create --disk <shared-ESP disk> --part <shared-ESP part> --label Ryoku --loader '\EFI\ryoku\BOOTX64.EFI' --unicode`)
 }

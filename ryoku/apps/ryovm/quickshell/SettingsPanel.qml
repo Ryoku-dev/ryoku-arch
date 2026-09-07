@@ -166,9 +166,9 @@ Item {
                     font.family: Tokens.ui; font.pixelSize: 11; font.weight: Font.Medium
                     font.letterSpacing: Tokens.trackMark; font.capitalization: Font.AllUppercase
                 }
-                ProvRow { k: "Source"; v: (Vm.paths.provider || "quickemu + quickget") + " · " + (Vm.paths.source || "github.com/quickemu-project") }
-                ProvRow { k: "Logos"; v: Vm.paths.icons_provider || "simple-icons + quickemu-icons" }
-                ProvRow { k: "Cached"; v: Vm.paths.icons || "~/.cache/ryoku/ryovm-icons" }
+                ProvRow { k: I18n.tr("Source"); v: (Vm.paths.provider || "quickemu + quickget") + " · " + (Vm.paths.source || "github.com/quickemu-project") }
+                ProvRow { k: I18n.tr("Logos"); v: Vm.paths.icons_provider || "simple-icons + quickemu-icons" }
+                ProvRow { k: I18n.tr("Cached"); v: Vm.paths.icons || "~/.cache/ryoku/ryovm-icons" }
             }
         }
     }

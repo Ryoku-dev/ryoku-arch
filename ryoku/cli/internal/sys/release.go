@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	i18n "ryoku-i18n"
 )
 
 // Package channels. A packaged box takes its Ryoku set from one [ryoku] repo
@@ -128,7 +130,7 @@ func PackagedChannel() string { return ChannelOfServer(RyokuServer()) }
 func SetPackagedChannel(channel string) error {
 	server := ChannelServer(channel)
 	if server == "" {
-		return fmt.Errorf("unknown channel %q (stable, testing, or a release tag like v0.55.7-beta.19)", channel)
+		return fmt.Errorf(i18n.T("unknown channel %q (stable, testing, or a release tag like v0.55.7-beta.19)"), channel)
 	}
 	b, err := os.ReadFile(PacmanConf)
 	if err != nil {
@@ -148,7 +150,7 @@ func SetPackagedChannel(channel string) error {
 		}
 	}
 	if !done {
-		return fmt.Errorf("no [ryoku] repo in %s; run `ryoku doctor` to add it", PacmanConf)
+		return fmt.Errorf(i18n.T("no [ryoku] repo in %s; run `ryoku doctor` to add it"), PacmanConf)
 	}
 	if err := WriteRootFile(PacmanConf, strings.Join(lines, "\n"), "0644"); err != nil {
 		return err

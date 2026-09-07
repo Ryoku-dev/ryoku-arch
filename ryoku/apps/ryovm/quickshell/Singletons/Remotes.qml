@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 // The remote fleet: SSH hosts and VPS drawn from ~/.ssh/config (plus ryoport's
 // own include file), their live reachability, and on-demand health probes. All
@@ -161,7 +162,7 @@ Singleton {
     function connect(a) {
         connectProc.command = ["ryossh", "connect", a];
         connectProc.running = true;
-        logEvent("connect", a, "opened a session to " + a);
+        logEvent("connect", a, I18n.tr("opened a session to %1").arg(a));
     }
     function loadKeys() { keysProc.running = true; }
     // ssh-copy-id is interactive (it may prompt for a password), so it runs in a
@@ -177,7 +178,7 @@ Singleton {
     function runOn(alias, cmd) {
         Quickshell.execDetached(["sh", "-c",
             "exec \"${TERMINAL:-kitty}\" --class ryoport-ssh -e sh -c 'ssh -t \"$1\" \"$2\"; printf \"\\n── press enter to close ──\\n\"; read _' _ \"$1\" \"$2\"", "--", alias, cmd]);
-        logEvent("run", alias, cmd.split(" ")[0] + " on " + alias);
+        logEvent("run", alias, I18n.tr("%1 on %2").arg(cmd.split(" ")[0]).arg(alias));
     }
     // browse and transfer files over SFTP in the file manager. nautilus (the
     // shipped GUI file manager) auto-mounts the gvfs sftp location and opens it;
@@ -197,7 +198,7 @@ Singleton {
         addProc.clearPw = !!clearPw;
         addProc.command = ["ryossh", "add", JSON.stringify(obj)];
         addProc.running = true;
-        logEvent("add", obj.alias, "saved " + obj.alias);
+        logEvent("add", obj.alias, I18n.tr("saved %1").arg(obj.alias));
     }
     function setPass(alias, pw) {
         setPassProc.pw = pw;
@@ -211,7 +212,7 @@ Singleton {
     function removeHost(a) {
         rmProc.command = ["ryossh", "remove", a];
         rmProc.running = true;
-        logEvent("remove", a, "forgot " + a);
+        logEvent("remove", a, I18n.tr("forgot %1").arg(a));
     }
 
     function _mergeReach(arr) {
@@ -376,7 +377,7 @@ Singleton {
     }
     Process {
         id: tunnelOpenProc
-        onExited: (code) => { root.loadTunnels(); if (code === 0) root.logEvent("tunnel", "", "opened a tunnel"); }
+        onExited: (code) => { root.loadTunnels(); if (code === 0) root.logEvent("tunnel", "", I18n.tr("opened a tunnel")); }
     }
     Process { id: tunnelCloseProc; onExited: root.loadTunnels() }
 

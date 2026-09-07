@@ -3,6 +3,70 @@
 ## Unreleased
 
 ### Changed
+- **`ryoku update` moves the Ryoku packages, and nothing else.** It was a full
+  `pacman -Syu`, so a Ryoku update decided when a box changed kernel, rebuilt
+  its DKMS modules and rewrote its boot image, and `ryoku rollback` could never
+  put that half back. It now refreshes the databases, reads the installed
+  packages the `[ryoku]` repo serves, and installs exactly those by name
+  (`pacman -S --needed ryoku/<pkg>...`, never `-Su`). The base system and its
+  kernel come from Arch or CachyOS, whichever the box installed, and
+  `sudo pacman -Syu` is what moves them: expected, supported, never blocked by
+  a hook. Every run reports what that lane is holding, `ryoku status` prints it
+  as `system:`, and `ryoku update --system` runs both lanes in one command (the
+  full `-Syu`, `yay -Sua`, `flatpak update`). The refresh now happens before
+  the set is read, so a rollback onto a frozen release only asks for packages
+  that release served, and targets are repo-qualified so pacman takes our build
+  of a name that also exists in `extra` and moves it down as readily as up
+  (`internal/updater/ryokuset.go`, `internal/updater/update.go`).
+- **`available` in `ryoku status --json` is about the Ryoku lane alone.**
+  Pending Arch packages used to set it, so the Hub's update button offered a run
+  that would have moved none of them; they are now reported as `systemUpdates`
+  beside the existing `packages` list.
+- **The boot default is decided by the box, never by a kernel's name.**
+  `limineDefaultKernelPath` preferred any entry containing "cachyos", so a plain
+  install that added `linux-cachyos` from the Extras toggle had `default_entry`
+  repointed at a kernel it never chose as primary. The pick is now
+  `/etc/ryoku/default-kernel` (what the installer recorded), then the kernel this
+  session booted (`/usr/lib/modules/<release>/pkgbase`), then menu order. No
+  kernel name and no brand is preferred anywhere
+  (`internal/doctor/reconcile_limine.go`).
+
+### Added
+- **`ryoku doctor` reclaims the boot partition a kernel update needs, and says so
+  when it cannot.** Two checks, both aimed at the failure behind "pacman -Syu
+  never updates the kernel": `initramfs GPU trim` adds `ryoku-gpu-trim` to
+  `/etc/mkinitcpio.conf.d/ryoku.conf` and rebuilds the images once, which drops
+  the denylisted nouveau driver and its GSP firmware from every kernel image
+  (measured on an NVIDIA box: 254 MiB to 147 MiB per image, `/boot` 54% to 43%);
+  `boot partition headroom` reports the free space against the largest image and
+  warns when there is no room for a rebuild, because in that state mkinitcpio
+  builds the image and the hook cannot copy it in while pacman still reports
+  success, so the box keeps booting the previous kernel against a module tree
+  the upgrade deleted (#140). Nothing on a full `/boot` is safe to delete
+  unasked (every candidate is a running kernel's image or a snapshot's only
+  matching kernel), so that one names the wall and what to remove
+  (`internal/doctor/reconcile_initramfs.go`,
+  `internal/doctor/reconcile_boot_space.go`).
+- **`ryoku doctor` removes a boot menu entry that boots nothing.** The installer
+  writes one flat entry so a fresh box boots before limine-entry-tool ever runs;
+  when that tool adopts it as the tree root, any OTHER flat entry an earlier
+  installer left is stranded, and `limineDropFlat` only clears those in the
+  retired standalone `/+` layout. A box installed as plain Arch that a
+  CachyOS-variant installer once touched therefore kept offering
+  "Ryoku Linux (CachyOS)", pointing at a vmlinuz that is not on the ESP:
+  selecting it drops to the Limine console. The new `boot menu dead entries`
+  check removes a top-level entry by evidence, never by name: it has no
+  generated children, it names its image on this ESP, and that image is not
+  there. A directory with children, an unresolvable volume (a `guid()`
+  chainload into another disk) and an image that exists are all left alone, and
+  a `default_entry` that named a removed entry is repointed
+  (`internal/doctor/reconcile_limine_entries.go`).
+
+### Changed
+- `update`: `--overwrite` now also covers `/usr/lib/initcpio/install/ryoku-*`, so
+  the install hook an offline install seeds unowned is adopted by the package
+  instead of aborting the first `-Syu` with "exists in filesystem"
+  (`internal/updater/update.go`).
 - **The Depth and Parallax tabs fold into one Stage tab, and the doctor migrates a
   persisted rail.** Depth and Parallax became one feature, so `quick-settings stage
   tab` replaces the retired `depth`/`parallax` modules of a persisted quick-settings

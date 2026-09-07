@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+### Added
+- `bootloader`: **the install records the kernel it boots**, in
+  `/etc/ryoku/default-kernel` (`linux-cachyos` on the CachyOS variant, `linux`
+  on plain). On a live box a kernel package the user added later is
+  indistinguishable from the one the install was built around, which is why the
+  doctor used to sniff for "cachyos" in the entry names and repointed
+  `default_entry` on plain installs that had simply added a second kernel. The
+  doctor now reads this file first.
+- `bootloader`: **`ryoku_limine_autoboot` picks the kernel the install chose, by
+  the name it already knows.** It used to scan the generated menu for any entry
+  containing "cachyos" and prefer that, which is a guess where the variant is a
+  fact: it now matches `RYOKU_VARIANT`'s kernel (`linux` or `linux-cachyos`)
+  exactly, and falls back to the first kernel in the menu. Mirrors the doctor's
+  `pickKernelPath`, which no longer prefers a brand either.
+- `chroot`/`deploy`: **the initramfs stops carrying the denylisted nouveau
+  driver.** The shipped HOOKS drop-in now names `ryoku-gpu-trim` between
+  `autodetect` and `kms` (`system/boot/mkinitcpio/install/ryoku-gpu-trim`),
+  which keeps nouveau and the ~107 MiB of GSP firmware it pulls out of every
+  kernel image, so a 2 GiB `/boot` keeps the room a kernel update needs to copy
+  its new image in. `ryoku_cfg_initramfs` drops the name again when the repo
+  has no hook to deliver, since a HOOKS entry mkinitcpio cannot find aborts
+  every image build; `ryoku_seed_initcpio_hook` lays the hook after the desktop
+  set, and only when that set never installed it (an offline install with no
+  baked payload), so the packaged path stays owned by `ryoku-desktop` on a
+  normal install.
+
 ### Fixed
 - `bootloader`: **a CachyOS install autoboots the CachyOS kernel.**
   `ryoku_limine_autoboot` pointed default_entry at the first kernel the menu listed

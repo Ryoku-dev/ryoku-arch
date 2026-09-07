@@ -22,7 +22,7 @@
 
 ryoku_bootloader() {
   CMDLINE=$(ryoku_cmdline)
-  log "kernel cmdline: $CMDLINE quiet splash"
+  log 'kernel cmdline: %s quiet splash' "$CMDLINE"
 
   ryoku_boot_plymouth
   ryoku_boot_default_limine
@@ -73,7 +73,7 @@ ryoku_bootloader_finalize() {
   fi
   local conf=/mnt/boot/limine.conf
   if [[ -n ${RYOKU_DRYRUN:-} ]]; then
-    log "DRYRUN: promote $conf to the tool-managed menu (when the generated tree exists)"
+    log 'DRYRUN: promote %s to the tool-managed menu (when the generated tree exists)' "$conf"
     return 0
   fi
   [[ -f $conf ]] || return 0
@@ -104,7 +104,7 @@ ryoku_bootloader_finalize() {
 ryoku_bootloader_finalize_alongside() {
   local defaults=/mnt/etc/default/limine conf=/mnt/boot/limine.conf
   if [[ -n ${RYOKU_DRYRUN:-} ]]; then
-    log "DRYRUN: pin TARGET_OS_NAME + FIND_BOOTLOADERS=no + EFI_REGISTER=no in $defaults, then (when limine-mkinitcpio-hook is installed) rerun limine-update in the chroot and repoint /boot/limine.conf off the flat seed; offline keeps the seed at default_entry 1"
+    log 'DRYRUN: pin TARGET_OS_NAME + FIND_BOOTLOADERS=no + EFI_REGISTER=no in %s, then (when limine-mkinitcpio-hook is installed) rerun limine-update in the chroot and repoint /boot/limine.conf off the flat seed; offline keeps the seed at default_entry 1' "$defaults"
     return 0
   fi
   if [[ -f $defaults ]]; then
@@ -145,20 +145,23 @@ ryoku_limine_conf_set() {
 }
 
 # ryoku_limine_autoboot CONF: point default_entry at the Limine entry-path
-# ("<dir>/<kernel>") of the boot kernel -- the CachyOS kernel when the menu has
-# one (the cachyos variant installs linux-cachyos beside the stock linux
-# fallback and boots it by default), else the first kernel nested under the
-# top-level OS directory -- and ensure remember_last_entry: yes. Limine's numeric
-# default_entry counts TOP-LEVEL entries only, so on the hook's collapsed-directory
-# layout a bare index lands on the sibling "/EFI fallback", which chainloads Limine
-# and loops the countdown; an entry path (CONFIG.md) autoboots the kernel leaf
-# directly, and remember_last_entry autoboots the last kernel used.
-# A flat menu (no directory) keeps default_entry: 1, its bootable placeholder.
-# Mirrors limineDefaultKernelPath/reconcileLimineAutoboot so a doctored box
-# matches a fresh install.
+# ("<dir>/<kernel>") of the kernel this install boots -- the one RYOKU_VARIANT
+# chose, which is also what /etc/ryoku/default-kernel records -- else the first
+# kernel nested under the top-level OS directory. No kernel is preferred by
+# name here: the variant is known at install time, so nothing has to be guessed
+# from the menu text.
+#
+# Limine's numeric default_entry counts TOP-LEVEL entries only, so on the hook's
+# collapsed-directory layout a bare index lands on the sibling "/EFI fallback",
+# which chainloads Limine and loops the countdown; an entry path (CONFIG.md)
+# autoboots the kernel leaf directly, and remember_last_entry autoboots the last
+# kernel used. A flat menu (no directory) keeps default_entry: 1, its bootable
+# placeholder. Mirrors limineDefaultKernelPath/reconcileLimineAutoboot so a
+# doctored box matches a fresh install.
 ryoku_limine_autoboot() {
   local conf=$1 path tmp
-  path=$(awk '
+  local kver=linux; [[ ${RYOKU_VARIANT:-plain} == cachyos ]] && kver=linux-cachyos
+  path=$(awk -v want="$kver" '
     { t = $0; sub(/^[[:space:]]+/, "", t) }
     t ~ /^\/[^\/]/                 { dir = t; sub(/^\/\+?/, "", dir); next }
     t ~ /^\/\/[^\/]/ && dir != "" {
@@ -166,9 +169,9 @@ ryoku_limine_autoboot() {
       if (k == "Snapshots") next
       p = dir "/" k
       if (first == "") first = p
-      if (cachyos == "" && index(tolower(p), "cachyos")) cachyos = p
+      if (chosen == "" && k == want) chosen = p
     }
-    END { print (cachyos != "" ? cachyos : first) }
+    END { print (chosen != "" ? chosen : first) }
   ' "$conf")
   [[ -n $path ]] || path=1
   tmp=$(mktemp) || return 1
@@ -252,11 +255,11 @@ ryoku_cmdline() {
   local cmdline
   if [[ ${RYOKU_ENCRYPT:-} == 1 ]]; then
     local luks_uuid
-    luks_uuid=$(dev_uuid "$LUKS_PART") || die "could not read the LUKS UUID of $LUKS_PART (blkid returned nothing); refusing to write a cryptdevice= cmdline that would not boot."
+    luks_uuid=$(dev_uuid "$LUKS_PART") || die 'could not read the LUKS UUID of %s (blkid returned nothing); refusing to write a cryptdevice= cmdline that would not boot.' "$LUKS_PART"
     cmdline="root=/dev/mapper/root rootflags=subvol=@ rw cryptdevice=UUID=${luks_uuid}:root"
   else
     local root_uuid
-    root_uuid=$(dev_uuid "$ROOT_DEV") || die "could not read the root UUID of $ROOT_DEV (blkid returned nothing); refusing to write a root=UUID= cmdline that would not boot."
+    root_uuid=$(dev_uuid "$ROOT_DEV") || die 'could not read the root UUID of %s (blkid returned nothing); refusing to write a root=UUID= cmdline that would not boot.' "$ROOT_DEV"
     cmdline="root=UUID=${root_uuid} rootflags=subvol=@ rw"
   fi
   [[ $RYOKU_PROFILE == amd-nvidia ]] && cmdline+=" nvidia_drm.modeset=1"
@@ -353,6 +356,11 @@ ryoku_boot_limine_conf() {
   # variant kernel: cachyos boots linux-cachyos (stock linux stays installed and
   # the limine hook lists it as fallback); plain boots stock linux.
   local kver=linux; [[ ${RYOKU_VARIANT:-plain} == cachyos ]] && kver=linux-cachyos
+  # record it: on a live box a kernel package the user added later looks exactly
+  # like the one the install was built around, so `ryoku doctor` has nothing to
+  # point default_entry at without this (doctor.defaultKernelFile).
+  run mkdir -p /mnt/etc/ryoku
+  write_file /mnt/etc/ryoku/default-kernel <<<"$kver"
   local src="$RYOKU_REPO/system/boot/limine/limine.conf"
   local branding
   if [[ -f $src ]]; then
@@ -426,7 +434,7 @@ ryoku_dedicated_existing_entry() {
   local esp kind boot partuuid title
   [[ ${RYOKU_DISK_STRATEGY:-} == alongside && $mode == dedicated && -f $conf ]] || return 0
   if [[ -n ${RYOKU_DRYRUN:-} ]]; then
-    log "dry-run: would persist and add the existing non-Windows OS to $conf by ESP PARTUUID when a loader is found"
+    log 'dry-run: would persist and add the existing non-Windows OS to %s by ESP PARTUUID when a loader is found' "$conf"
     return 0
   fi
   esp=${RYOKU_PF_ESP:-}
@@ -437,18 +445,18 @@ ryoku_dedicated_existing_entry() {
     || die "dedicated bootloader: preflight did not preserve the existing ESP metadata."
   [[ $kind != windows ]] || return 0
   if [[ -z $boot || $boot == - || $boot == none ]]; then
-    log "note: the existing $kind system has no chainloadable EFI binary; it stays available through the firmware menu."
+    log 'note: the existing %s system has no chainloadable EFI binary; it stays available through the firmware menu.' "$kind"
     return 0
   fi
   partuuid=$(blkid -o value -s PARTUUID "$esp" 2>/dev/null || true)
   [[ -n $partuuid ]] \
-    || die "dedicated bootloader: blkid found no PARTUUID for the existing ESP $esp."
+    || die 'dedicated bootloader: blkid found no PARTUUID for the existing ESP %s.' "$esp"
   run mkdir -p "$(dirname "$state")"
   printf '%s\t%s\t%s\n' "$kind" "$partuuid" "$boot" | write_file "$state"
   [[ $kind == ryoku ]] && title="Ryoku (existing)" || title="Linux (existing)"
   grep -qxF "/$title" "$conf" && return 0
   ryoku_alongside_existing_entry "$kind" "$boot" "$partuuid" >>"$conf"
-  log "existing $kind install detected: added a GUID-addressed chainload entry"
+  log 'existing %s install detected: added a GUID-addressed chainload entry' "$kind"
 }
 
 # install_efi: drop the Limine EFI binary on the ESP and register a boot
@@ -467,7 +475,7 @@ ryoku_boot_install_efi() {
 
   local esp_partnum
   esp_partnum=$(part_num "$ESP_DEV")
-  [[ -n $esp_partnum ]] || die "could not derive the ESP partition number from $ESP_DEV; refusing to register a boot entry against a guessed partition."
+  [[ -n $esp_partnum ]] || die 'could not derive the ESP partition number from %s; refusing to register a boot entry against a guessed partition.' "$ESP_DEV"
   # efibootmgr writes firmware NVRAM, which some machines expose readonly or
   # report full (HP / Insyde-class firmware). that MUST NOT abort the install
   # (set -e): the removable-path EFI/BOOT/BOOTX64.EFI copy above still boots the
@@ -522,7 +530,7 @@ ryoku_bootloader_alongside() {
   # device, kind, and the existing system's EFI binary to chainload.
   local espinfo esp esp_kind esp_boot esp_partuuid
   espinfo=$(ryoku_esp_scan "$RYOKU_DISK") \
-    || die "alongside bootloader: no EFI System Partition on $RYOKU_DISK to share; refusing to install a bootloader with nowhere to land."
+    || die 'alongside bootloader: no EFI System Partition on %s to share; refusing to install a bootloader with nowhere to land.' "$RYOKU_DISK"
   read -r esp esp_kind esp_boot <<<"$espinfo"
   [[ $esp_boot == - ]] && esp_boot=none
 
@@ -530,7 +538,7 @@ ryoku_bootloader_alongside() {
   # guid(<this>):/... . an empty guid would silently un-boot the existing OS, so
   # ASSERT it -- the VM run lost a boot to an empty identifier.
   esp_partuuid=$(blkid -o value -s PARTUUID "$esp" 2>/dev/null || true)
-  [[ -n $esp_partuuid ]] || die "alongside bootloader: blkid found no PARTUUID for the shared ESP $esp; refusing to write guid()-addressed entries against an empty identifier."
+  [[ -n $esp_partuuid ]] || die 'alongside bootloader: blkid found no PARTUUID for the shared ESP %s; refusing to write guid()-addressed entries against an empty identifier.' "$esp"
 
   # STAGE 2 on our XBOOTLDR /boot (already mounted): the second-stage limine +
   # the tool-managed menu. touches only our own volume, so it precedes any write
@@ -539,7 +547,7 @@ ryoku_bootloader_alongside() {
   run cp /mnt/usr/share/limine/BOOTX64.EFI /mnt/boot/ryoku-limine.efi
   ryoku_alongside_conf_text "$esp_kind" "$esp_boot" "$esp_partuuid" | write_file /mnt/boot/limine.conf
   if [[ $esp_kind != windows && $esp_boot == none ]]; then
-    log "note: the existing $esp_kind system on the shared ESP has no chainloadable EFI binary; it stays bootable via the firmware boot menu only."
+    log 'note: the existing %s system on the shared ESP has no chainloadable EFI binary; it stays bootable via the firmware boot menu only.' "$esp_kind"
   fi
 
   run mkdir -p /mnt/efi
@@ -555,7 +563,7 @@ ryoku_bootloader_alongside() {
   esac
   run mkdir -p /mnt/var/backups/ryoku
   run_sh "tar -C /mnt/efi -cf /mnt/var/backups/ryoku/${bak} ."
-  log "backed up the shared ESP ($esp, kind=$esp_kind) to /var/backups/ryoku/${bak}"
+  log 'backed up the shared ESP (%s, kind=%s) to /var/backups/ryoku/%s' "$esp" "$esp_kind" "${bak}"
 
   # STAGE 1 on the shared ESP: our loader + the static hop in our OWN /EFI/ryoku
   # dir; NEVER a foreign vendor's dir.
@@ -585,7 +593,7 @@ ryoku_bootloader_alongside() {
   # effort: firmware that rejects NVRAM writes still boots via the fallback above.
   local esp_partnum
   esp_partnum=$(part_num "$esp")
-  [[ -n $esp_partnum ]] || die "could not derive the shared ESP partition number from $esp; refusing to register a boot entry against a guessed partition."
+  [[ -n $esp_partnum ]] || die 'could not derive the shared ESP partition number from %s; refusing to register a boot entry against a guessed partition.' "$esp"
   if ! run arch-chroot /mnt efibootmgr --create --disk "$RYOKU_DISK" --part "$esp_partnum" \
     --label Ryoku --loader '\EFI\ryoku\BOOTX64.EFI' --unicode; then
     log "WARNING: efibootmgr could not register the 'Ryoku' NVRAM boot entry (readonly or full firmware NVRAM). The system still boots via /EFI/BOOT/BOOTX64.EFI on the shared ESP; if the firmware ignores it, pick it once from the firmware boot menu."
@@ -698,7 +706,7 @@ ryoku_alongside_kernel_cmdline() {
 ryoku_alongside_fstab_efi() {
   local esp=$1 fstab=${2:-/mnt/etc/fstab} uuid
   uuid=$(blkid -o value -s UUID "$esp" 2>/dev/null || true)
-  [[ -n $uuid ]] || die "alongside bootloader: blkid found no filesystem UUID for the shared ESP $esp; refusing to append an empty-UUID /efi fstab line (a boot-losing mistake)."
+  [[ -n $uuid ]] || die 'alongside bootloader: blkid found no filesystem UUID for the shared ESP %s; refusing to append an empty-UUID /efi fstab line (a boot-losing mistake).' "$esp"
   printf 'UUID=%s\t/efi\tvfat\tdefaults,nofail,noatime\t0 2\n' "$uuid" >>"$fstab"
 }
 

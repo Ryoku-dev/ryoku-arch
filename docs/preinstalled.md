@@ -48,7 +48,7 @@ upgrade never leaves the shell QML running against a stale plugin.
 | `ryoku-rashin` | The system-map vault that keeps a live map of where everything lives |
 | `ryoku-blobs` | The shared `Ryoku.Blobs` QML plugin |
 | `gpk` | GlazePKG, the RyokuArch package manager |
-| `awww` | The animated wallpaper daemon the shell drives |
+| `ryogami` | The wallpaper daemon the shell drives: static, live, and shader transitions |
 | `ryomotion` | The screen-demo recorder and editor |
 | `ryostore` | RyoStore: the catalogue of rices, bundles, and bar styles |
 | `ryowalls` | The wallpaper browser, preview, and AI enhancer |

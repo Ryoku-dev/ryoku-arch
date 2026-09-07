@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Ryoku.Ui.Singletons
 
 Item {
     id: rootMod
@@ -26,9 +27,9 @@ Item {
     }
 
     readonly property string tooltipText: {
-        if (isPowerSaver)  return "Power Saver"
-        if (isPerformance) return "Performance"
-        return "Balanced"
+        if (isPowerSaver)  return I18n.tr("Power Saver")
+        if (isPerformance) return I18n.tr("Performance")
+        return I18n.tr("Balanced")
     }
 
     visible: implicitWidth > 0.5

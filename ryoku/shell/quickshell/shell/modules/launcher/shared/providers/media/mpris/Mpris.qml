@@ -2,6 +2,7 @@ import QtQuick
 import QtQml.Models
 import Quickshell
 import Quickshell.Services.Mpris
+import Ryoku.Ui.Singletons
 import "../../../Singletons"
 import "../.."
 
@@ -64,20 +65,20 @@ Provider {
         var p = mpris.player;
         var artist = Theme.joinArtists(p.trackArtists, p.trackArtist);
         var acts = [
-            { id: "toggle", name: p.isPlaying ? "Pause" : "Play", icon: "",
+            { id: "toggle", name: p.isPlaying ? I18n.tr("Pause") : I18n.tr("Play"), icon: "",
                 enabled: p.canTogglePlaying,
                 execute: function () { p.togglePlaying(); } },
-            { id: "next", name: "Next", icon: "", enabled: p.canGoNext,
+            { id: "next", name: I18n.tr("Next"), icon: "", enabled: p.canGoNext,
                 execute: function () { p.next(); } },
-            { id: "previous", name: "Previous", icon: "", enabled: p.canGoPrevious,
+            { id: "previous", name: I18n.tr("Previous"), icon: "", enabled: p.canGoPrevious,
                 execute: function () { p.previous(); } }
         ];
         return {
             // dbusName is constant for the lifetime of Quickshell's player
             // object, unlike track metadata and labels which change in place.
             id: "mpris:" + (p.dbusName || ("player-" + String(p.uniqueId))),
-            title: p.trackTitle && p.trackTitle.length ? p.trackTitle : "Now playing",
-            subtitle: artist.length ? artist : (p.identity || "Media"),
+            title: p.trackTitle && p.trackTitle.length ? p.trackTitle : I18n.tr("Now playing"),
+            subtitle: artist.length ? artist : (p.identity || I18n.tr("Media")),
             icon: "",
             type: "Now Playing",
             score: 2,

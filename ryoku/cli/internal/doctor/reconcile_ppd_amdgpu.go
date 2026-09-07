@@ -3,6 +3,8 @@ package doctor
 import (
 	"os/exec"
 	"strings"
+
+	i18n "ryoku-i18n"
 )
 
 // ---- reconciler: power-profiles-daemon vs the AMD compositor GPU ------------
@@ -68,19 +70,19 @@ func ppdActionEnabled(out, action string) bool {
 // planPpdAmdgpu turns observed state into a result. pure.
 func planPpdAmdgpu(s ppdAmdgpuState) recResult {
 	if !s.amdgpuDrivesPanel || s.actionsOut == "" {
-		return okRes("no amdgpu-driven panel with power-profiles-daemon actions to audit")
+		return okRes(i18n.T("no amdgpu-driven panel with power-profiles-daemon actions to audit"))
 	}
 	dpm := ppdActionEnabled(s.actionsOut, "amdgpu_dpm")
 	abm := ppdActionEnabled(s.actionsOut, "amdgpu_panel_power")
 	switch {
 	case dpm && abm:
-		return warnRes("power-profiles-daemon has amdgpu_dpm and amdgpu_panel_power enabled: power-saver will clamp the GPU rendering the desktop (visible lag) and ABM will wash panel colours. Disable them in the power-profiles-daemon action configuration")
+		return warnRes(i18n.T("power-profiles-daemon has amdgpu_dpm and amdgpu_panel_power enabled: power-saver will clamp the GPU rendering the desktop (visible lag) and ABM will wash panel colours. Disable them in the power-profiles-daemon action configuration"))
 	case dpm:
-		return warnRes("power-profiles-daemon has amdgpu_dpm enabled: the power-saver profile clamps the GPU rendering the desktop, which shows up as whole-desktop lag in saver mode. Disable the action in the power-profiles-daemon configuration")
+		return warnRes(i18n.T("power-profiles-daemon has amdgpu_dpm enabled: the power-saver profile clamps the GPU rendering the desktop, which shows up as whole-desktop lag in saver mode. Disable the action in the power-profiles-daemon configuration"))
 	case abm:
-		return warnRes("power-profiles-daemon has amdgpu_panel_power enabled: adaptive backlight (ABM) visibly washes out panel colours. Disable the action in the power-profiles-daemon configuration")
+		return warnRes(i18n.T("power-profiles-daemon has amdgpu_panel_power enabled: adaptive backlight (ABM) visibly washes out panel colours. Disable the action in the power-profiles-daemon configuration"))
 	default:
-		return okRes("power-profiles-daemon leaves the AMD compositor GPU alone (amdgpu actions disabled)")
+		return okRes(i18n.T("power-profiles-daemon leaves the AMD compositor GPU alone (amdgpu actions disabled)"))
 	}
 }
 

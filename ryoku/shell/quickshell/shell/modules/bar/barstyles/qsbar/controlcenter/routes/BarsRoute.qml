@@ -26,11 +26,11 @@ Item {
 
     // the five bar forms + their captions (drives the FORM grid)
     readonly property var formModel: [
-        { form: "islands", label: "Islands", detail: "Split pills" },
-        { form: "full",    label: "Full",    detail: "Edge to edge" },
-        { form: "fit",     label: "Fit",     detail: "Inset frame" },
-        { form: "dock",    label: "Dock",    detail: "Open edge" },
-        { form: "notch",   label: "Notch",   detail: "Flowing shoulders" }
+        { form: "islands", label: I18n.tr("Islands"), detail: I18n.tr("Split pills") },
+        { form: "full",    label: I18n.tr("Full"),    detail: I18n.tr("Edge to edge") },
+        { form: "fit",     label: I18n.tr("Fit"),     detail: I18n.tr("Inset frame") },
+        { form: "dock",    label: I18n.tr("Dock"),    detail: I18n.tr("Open edge") },
+        { form: "notch",   label: I18n.tr("Notch"),   detail: I18n.tr("Flowing shoulders") }
     ]
 
     // One shape picker over the single bar: islands is the split-pill form, the
@@ -48,13 +48,13 @@ Item {
 
     // gap-animation presets, label <-> mode value both ways (mirrors the Hub).
     readonly property var animModes: [
-        { v: 0, label: "Off" },
-        { v: 1, label: "Stream" },
-        { v: 2, label: "Surge" },
-        { v: 3, label: "Bolt" },
-        { v: 4, label: "Bolt-2" },
-        { v: 7, label: "Reactor" },
-        { v: 8, label: "Quotes" }
+        { v: 0, label: I18n.tr("Off") },
+        { v: 1, label: I18n.tr("Stream") },
+        { v: 2, label: I18n.tr("Surge") },
+        { v: 3, label: I18n.tr("Bolt") },
+        { v: 4, label: I18n.tr("Bolt-2") },
+        { v: 7, label: I18n.tr("Reactor") },
+        { v: 8, label: I18n.tr("Quotes") }
     ]
     function animLabel(v) {
         for (var i = 0; i < page.animModes.length; i++)
@@ -123,7 +123,7 @@ Item {
                 index: 0
                 SettingCard {
                     width: page.colW
-                    title: "01 POSITION"
+                    title: I18n.tr("01 POSITION")
                     kana: "\u4f4d\u7f6e"
 
                     SettingRow {
@@ -188,7 +188,7 @@ Item {
                 index: 1
                 SettingCard {
                     width: page.colW
-                    title: "02 MOTION"
+                    title: I18n.tr("02 MOTION")
                     kana: "\u52d5\u304d"
 
                     SettingRow {
@@ -217,7 +217,7 @@ Item {
                 index: 2
                 SettingCard {
                     width: page.colW
-                    title: "03 FORM"
+                    title: I18n.tr("03 FORM")
                     kana: "\u5f62"
 
                     Item {
@@ -298,7 +298,7 @@ Item {
                 index: 3
                 SettingCard {
                     width: page.colW
-                    title: "04 SURFACE"
+                    title: I18n.tr("04 SURFACE")
                     kana: "\u8868\u9762"
 
                     SettingRow {
@@ -384,7 +384,7 @@ Item {
                 index: 4
                 SettingCard {
                     width: page.colW
-                    title: "05 GAPS"
+                    title: I18n.tr("05 GAPS")
                     kana: "\u9593\u9694"
 
                     SettingRow {
@@ -471,7 +471,7 @@ Item {
                 index: 5
                 SettingCard {
                     width: page.colW
-                    title: "06 ACCENT"
+                    title: I18n.tr("06 ACCENT")
                     kana: "\u8272"
 
                     // Following the wallpaper is the honest default: matugen already

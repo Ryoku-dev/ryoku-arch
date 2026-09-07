@@ -64,7 +64,7 @@ Item {
             var lines = page.jobFull.trim().split("\n").filter(l => l.trim() !== "")
             page.jobText = lines.slice(-3).join("\n")
             page.jobFailed = code !== 0
-            if (page.jobText === "") page.jobText = code === 0 ? I18n.tr("done") : I18n.tr("failed (exit " + code + ")")
+            if (page.jobText === "") page.jobText = code === 0 ? I18n.tr("done") : I18n.tr("failed (exit %1)").arg(code)
         }
     }
     function run(label, cmd) {
@@ -82,13 +82,13 @@ Item {
         if (u === "") return
         // a folder typed the shell way: no shell runs here, so expand it
         if (u.indexOf("~/") === 0) u = Quickshell.env("HOME") + u.substring(1)
-        page.run(I18n.tr("Adding ") + u, ["ryoku", "plugin", "add", u, "--bar", "--yes"])
+        page.run(I18n.tr("Adding %1").arg(u), ["ryoku", "plugin", "add", u, "--bar", "--yes"])
         gitField.text = ""
     }
-    function exportPlugin(id) { page.run(I18n.tr("Exporting ") + id, ["ryoku", "plugin", "export", id]) }
-    function sharePlugin(id)  { page.run(I18n.tr("Sharing ") + id, ["ryoku", "plugin", "share", id]) }
+    function exportPlugin(id) { page.run(I18n.tr("Exporting %1").arg(id), ["ryoku", "plugin", "export", id]) }
+    function sharePlugin(id)  { page.run(I18n.tr("Sharing %1").arg(id), ["ryoku", "plugin", "share", id]) }
     function removePlugin(id) {
-        page.run(I18n.tr("Removing ") + id, ["ryoku", "plugin", "remove", id])
+        page.run(I18n.tr("Removing %1").arg(id), ["ryoku", "plugin", "remove", id])
         if (page.selId === id) page.selId = ""
     }
 
@@ -154,7 +154,7 @@ Item {
                 CcWidgetList {
                     id: clist
                     width: page.colW
-                    title: "INSTALLED"
+                    title: I18n.tr("INSTALLED")
                     kana: "\u5c0e\u5165"
                     root: page.root
                     tk: page.tk
@@ -279,7 +279,7 @@ Item {
                 index: 3
                 SettingCard {
                     width: page.colW
-                    title: "ADD"
+                    title: I18n.tr("ADD")
                     kana: "\u8ffd\u52a0"
                     collapsible: false
 
@@ -298,7 +298,7 @@ Item {
                                 id: gitField
                                 width: parent.width - addBtn.width - parent.spacing
                                 tabular: true
-                                placeholder: "https://github.com/someone/ryoku-widget  or  ~/my-widget"
+                                placeholder: I18n.tr("https://github.com/someone/ryoku-widget  or  ~/my-widget")
                                 onCommitted: (v) => page.addFrom(v)
                             }
                             Btn {

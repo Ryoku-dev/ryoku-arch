@@ -75,7 +75,7 @@ Item {
                 CcWidgetList {
                     id: wlist
                     width: page.colW
-                    title: "WIDGETS"
+                    title: I18n.tr("WIDGETS")
                     kana: "\u90e8\u54c1"
                     root: page.root
                     tk: page.tk

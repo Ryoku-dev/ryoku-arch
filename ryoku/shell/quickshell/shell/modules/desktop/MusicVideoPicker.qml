@@ -4,6 +4,7 @@ import Qt.labs.folderlistmodel
 import Quickshell
 import "Singletons"
 import "music"
+import Ryoku.Ui.Singletons
 
 // The desktop's own video/GIF chooser, in the shell's ink rather than the
 // system's file dialog: a paper card over a dim scrim, a folder list on the
@@ -67,7 +68,7 @@ Item {
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.margins: 16
-            text: qsTr("Choose video or GIF")
+            text: I18n.tr("Choose video or GIF")
             color: Theme.ink
             font.family: Theme.display
             font.pixelSize: 16
@@ -204,7 +205,7 @@ Item {
             Text {
                 anchors.centerIn: parent
                 visible: picker.sel.length === 0
-                text: qsTr("Pick a file to preview")
+                text: I18n.tr("Pick a file to preview")
                 color: Theme.inkDim
                 font.family: Theme.font
                 font.pixelSize: 11
@@ -226,7 +227,7 @@ Item {
 
             Text {
                 anchors.centerIn: parent
-                text: qsTr("Use this")
+                text: I18n.tr("Use this")
                 color: useBtn.ready ? Theme.surface : Theme.inkDim
                 font.family: Theme.font
                 font.pixelSize: 12

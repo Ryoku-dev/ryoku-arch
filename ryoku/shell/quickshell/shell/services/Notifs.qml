@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications
+import Ryoku.Ui.Singletons
 
 // Notification model, faithful to the reference wayle-notification service
 // (contract 07 sec 4.3, sec 8; verified against monitoring.rs). Two flat,
@@ -127,7 +128,7 @@ Singleton {
         if (root.format24h)
             return ("0" + d.getHours()).slice(-2) + ":" + mm;
         var h = d.getHours();
-        return ("0" + ((h % 12) || 12)).slice(-2) + ":" + mm + " " + (h < 12 ? "am" : "pm");
+        return ("0" + ((h % 12) || 12)).slice(-2) + ":" + mm + " " + (h < 12 ? I18n.tr("am") : I18n.tr("pm"));
     }
 
     // Popup reaper: remove popups past their deadline. A transient popup is

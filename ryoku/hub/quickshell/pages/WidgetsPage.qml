@@ -436,13 +436,13 @@ Item {
     property string selected: ""   // "" = grid; else the open widget's tab
 
     readonly property var widgets: [
-        { "tab": "clock",    "title": "Clock",        "jp": "時計", "enable": "clockEnabled",    "anchor": "clockAnchor",    "natW": 300, "natH": 150 },
-        { "tab": "aio",      "title": "All-in-one",   "jp": "一体", "enable": "aioEnabled",      "anchor": "aioAnchor",      "natW": 354, "natH": 227 },
-        { "tab": "stats",    "title": "System Stats", "jp": "統計", "enable": "statsEnabled",    "anchor": "statsAnchor",    "natW": 261, "natH": 458 },
-        { "tab": "calendar", "title": "Calendar",     "jp": "暦",   "enable": "calendarEnabled", "anchor": "calendarAnchor", "natW": 330, "natH": 210 },
-        { "tab": "music",    "title": "Music",        "jp": "音楽", "enable": "musicEnabled",    "anchor": "musicAnchor",    "natW": 400, "natH": 216 },
-        { "tab": "weather",  "title": "Weather",      "jp": "天気", "enable": "weatherEnabled",  "anchor": "weatherAnchor",  "natW": 220, "natH": 390 },
-        { "tab": "notes",    "title": "Notes",        "jp": "メモ", "enable": "notesEnabled",    "anchor": "notesAnchor",    "natW": 260, "natH": 180 }
+        { "tab": "clock",    "title": I18n.tr("Clock"),        "jp": "時計", "enable": "clockEnabled",    "anchor": "clockAnchor",    "natW": 300, "natH": 150 },
+        { "tab": "aio",      "title": I18n.tr("All-in-one"),   "jp": "一体", "enable": "aioEnabled",      "anchor": "aioAnchor",      "natW": 354, "natH": 227 },
+        { "tab": "stats",    "title": I18n.tr("System Stats"), "jp": "統計", "enable": "statsEnabled",    "anchor": "statsAnchor",    "natW": 261, "natH": 458 },
+        { "tab": "calendar", "title": I18n.tr("Calendar"),     "jp": "暦",   "enable": "calendarEnabled", "anchor": "calendarAnchor", "natW": 330, "natH": 210 },
+        { "tab": "music",    "title": I18n.tr("Music"),        "jp": "音楽", "enable": "musicEnabled",    "anchor": "musicAnchor",    "natW": 400, "natH": 216 },
+        { "tab": "weather",  "title": I18n.tr("Weather"),      "jp": "天気", "enable": "weatherEnabled",  "anchor": "weatherAnchor",  "natW": 220, "natH": 390 },
+        { "tab": "notes",    "title": I18n.tr("Notes"),        "jp": "メモ", "enable": "notesEnabled",    "anchor": "notesAnchor",    "natW": 260, "natH": 180 }
     ]
     function widgetOf(tab) { for (var i = 0; i < pg.widgets.length; i++) if (pg.widgets[i].tab === tab) return pg.widgets[i]; return null; }
     readonly property var curWidget: pg.selected === "" ? null : pg.widgetOf(pg.selected)
@@ -667,7 +667,9 @@ Item {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: pg.dirty
-                    ? (pg.dirtyCount + (pg.dirtyCount === 1 ? I18n.tr(" CHANGE") : I18n.tr(" CHANGES")) + I18n.tr(" · PREVIEWING · NOT SAVED"))
+                    ? (pg.dirtyCount === 1
+                       ? I18n.tr("%1 CHANGE · PREVIEWING · NOT SAVED").arg(pg.dirtyCount)
+                       : I18n.tr("%1 CHANGES · PREVIEWING · NOT SAVED").arg(pg.dirtyCount))
                     : I18n.tr("SAVED · LIVE ON YOUR DESKTOP")
                 color: pg.dirty ? Tokens.ink : Tokens.inkMuted
                 font.family: Tokens.ui; font.pixelSize: Tokens.fMicro

@@ -31,11 +31,11 @@ Item {
 
     function running(it) { return it && it.state === "running"; }
     function stateWord(s) {
-        return ({ running: "RUN", paused: "HOLD", shutoff: "OFF", absent: "ABSENT" })[s] || String(s || "").toUpperCase();
+        return ({ running: I18n.tr("RUN"), paused: I18n.tr("HOLD"), shutoff: I18n.tr("OFF"), absent: I18n.tr("ABSENT") })[s] || String(s || "").toUpperCase();
     }
     function specLine(it) {
         var g = Math.round((it.ramMb || 0) / 1024);
-        return (it.vcpus || 0) + "c · " + g + "G · " + (it.diskGb || 0) + "G disk";
+        return (it.vcpus || 0) + "c · " + g + "G · " + (it.diskGb || 0) + "G " + I18n.tr("disk");
     }
 
     // ---- head --------------------------------------------------------------
@@ -445,7 +445,7 @@ Item {
                                 model: [
                                     { n: "01", t: I18n.tr("Install the OS from the ISO the usual way.") },
                                     { n: "02", t: I18n.tr("Install the VirtIO drivers from the attached CD so disk and network work.") },
-                                    { n: "03", t: I18n.tr("Install the Looking Glass HOST app inside the guest — the viewer stays black until it runs.") }
+                                    { n: "03", t: I18n.tr("Install the Looking Glass HOST app inside the guest, the viewer stays black until it runs.") }
                                 ]
                                 Row {
                                     id: chkRow
@@ -588,7 +588,7 @@ Item {
         Column {
             anchors.verticalCenter: parent.verticalCenter
             spacing: Tokens.s1
-            FieldLabel { text: nr.label }
+            FieldLabel { text: I18n.tr(nr.label) }
             Text {
                 text: nr.value + (nr.unit.length > 0 ? " " + nr.unit : "")
                 color: Tokens.ink

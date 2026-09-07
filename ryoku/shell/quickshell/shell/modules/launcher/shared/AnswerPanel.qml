@@ -19,7 +19,7 @@ Item {
     // Prefer the source ("via Wikipedia") when DDG named one; a generic
     // "ANSWER" eyebrow fits calc/random-number answers that carry no source.
     readonly property string eyebrow: (answer && answer.source && String(answer.source).length > 0)
-        ? "via " + answer.source
+        ? I18n.tr("via %1").arg(answer.source)
         : I18n.tr("ANSWER")
     readonly property string heading: (answer && answer.heading) ? String(answer.heading) : ""
     readonly property string bodyText: (answer && answer.text) ? String(answer.text) : ""

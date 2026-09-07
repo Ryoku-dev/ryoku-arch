@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import "Singletons"
+import Ryoku.Ui.Singletons
 
 Item {
     id: pop
@@ -223,7 +224,7 @@ Item {
                     id: eyedrop
                     icon: "pen"
                     active: pop.eyedropArmed
-                    tooltip: "Pick a colour from the shot (i)"
+                    tooltip: I18n.tr("Pick a colour from the shot (i)")
                     onClicked: pop.eyedropRequested()
                 }
 

@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	"ryoku-cli/internal/sys"
+
+	i18n "ryoku-i18n"
 )
 
 // zenPolicies is the base Ryoku Zen policy, embedded in the ryoku binary. It is a
@@ -116,20 +118,20 @@ func reconcileZenInto(roots []string, checkOnly bool) recResult {
 			continue
 		}
 		if err := writeZenPolicy(dst, append(append([]byte{}, want...), '\n')); err != nil {
-			return failRes("could not write the Zen policy at %s: %v", dst, err).
+			return failRes(i18n.T("could not write the Zen policy at %s: %v"), dst, err).
 				withFix("sudo ryoku doctor")
 		}
 		did = append(did, root)
 	}
 	switch {
 	case len(present) == 0:
-		return okRes("Zen not installed")
+		return okRes(i18n.T("Zen not installed"))
 	case checkOnly && len(pending) > 0:
-		return wouldRes("apply the Ryoku Zen policy in: %s", strings.Join(pending, ", "))
+		return wouldRes(i18n.T("apply the Ryoku Zen policy in: %s"), strings.Join(pending, ", "))
 	case len(did) > 0:
-		return fixedRes("applied the Ryoku Zen policy in: %s", strings.Join(did, ", "))
+		return fixedRes(i18n.T("applied the Ryoku Zen policy in: %s"), strings.Join(did, ", "))
 	default:
-		return okRes("Zen policy up to date")
+		return okRes(i18n.T("Zen policy up to date"))
 	}
 }
 

@@ -1,6 +1,7 @@
 import QtQuick
 import shell.services
 import "../../../../../services/lib/weather.js" as Wx
+import Ryoku.Ui.Singletons
 
 // The bar's weather glyph. Reads the shared daemon-fed Weather singleton (the
 // same source as the dashboard this widget opens), so it honours the configured
@@ -36,7 +37,7 @@ Item {
             + (rootMod.weatherDesc ? " / " + rootMod.weatherDesc : "");
         if (rootMod.weatherLoaded)
             return reading;
-        return rootMod.weatherUnavailable ? "Weather offline" : "Weather\u2026";
+        return rootMod.weatherUnavailable ? I18n.tr("Weather offline") : I18n.tr("Weather\u2026");
     }
 
     implicitWidth: root.modWeather ? ico.implicitWidth : 0

@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	i18n "ryoku-i18n"
 )
 
 // setOpts is one `ryoku keyring set` invocation: the target mode and the two
@@ -33,16 +35,16 @@ func runSet(args []string) error {
 			o.stdin = true
 		default:
 			if strings.HasPrefix(a, "-") || o.mode != "" || !validMode(a) {
-				return fmt.Errorf("usage: ryoku keyring set <unlock-on-login|never-ask|ask> [--convert|--reset] [--password-stdin]")
+				return fmt.Errorf(i18n.T("usage: ryoku keyring set <unlock-on-login|never-ask|ask> [--convert|--reset] [--password-stdin]"))
 			}
 			o.mode = a
 		}
 	}
 	if o.mode == "" {
-		return fmt.Errorf("usage: ryoku keyring set <unlock-on-login|never-ask|ask> [--convert|--reset] [--password-stdin]")
+		return fmt.Errorf(i18n.T("usage: ryoku keyring set <unlock-on-login|never-ask|ask> [--convert|--reset] [--password-stdin]"))
 	}
 	if o.convert && o.reset {
-		return fmt.Errorf("--convert and --reset are mutually exclusive")
+		return fmt.Errorf(i18n.T("--convert and --reset are mutually exclusive"))
 	}
 	switch o.mode {
 	case ModeUnlockOnLogin:
@@ -57,29 +59,29 @@ func runSet(args []string) error {
 		// config-only; no keyring file changes.
 	}
 	if err := writeConfig(o.mode); err != nil {
-		return fmt.Errorf("record mode: %w", err)
+		return fmt.Errorf(i18n.T("record mode: %w"), err)
 	}
 	if err := applyPAMHalf(o.mode); err != nil {
-		return fmt.Errorf("wire PAM: %w", err)
+		return fmt.Errorf(i18n.T("wire PAM: %w"), err)
 	}
-	fmt.Printf("keyring mode set to %s\n", o.mode)
+	fmt.Printf(i18n.T("keyring mode set to %s\n"), o.mode)
 	return nil
 }
 
 func setUnlockOnLogin(o setOpts) error {
 	prev, changed, err := pointDefaultAt("login")
 	if err != nil {
-		return fmt.Errorf("point default keyring at login: %w", err)
+		return fmt.Errorf(i18n.T("point default keyring at login: %w"), err)
 	}
 	if changed {
-		fmt.Printf("backup: previous default pointer was %q (saved to keyrings/default.ryoku-bak)\n", strings.TrimSpace(prev))
+		fmt.Printf(i18n.T("backup: previous default pointer was %q (saved to keyrings/default.ryoku-bak)\n"), strings.TrimSpace(prev))
 	}
 	f := probeFormat(keyringFile("login"))
 	switch f {
 	case fmtAbsent:
-		fmt.Println("login keyring absent; PAM will create it at your next login")
+		fmt.Println(i18n.T("login keyring absent; PAM will create it at your next login"))
 	case fmtPlaintext:
-		fmt.Println("login keyring is blank; it is already unlocked")
+		fmt.Println(i18n.T("login keyring is blank; it is already unlocked"))
 	case fmtEncrypted:
 		switch {
 		case o.reset:
@@ -90,11 +92,11 @@ func setUnlockOnLogin(o setOpts) error {
 				return err
 			}
 			if err := ops.changePassword("login", old, newPw); err != nil {
-				return fmt.Errorf("convert login keyring: %w", err)
+				return fmt.Errorf(i18n.T("convert login keyring: %w"), err)
 			}
-			fmt.Println("login keyring re-keyed to the supplied password")
+			fmt.Println(i18n.T("login keyring re-keyed to the supplied password"))
 		default:
-			fmt.Println("login keyring is password-protected; it will unlock silently at next login only if that password is your login password (re-run with --convert to change it, or --reset to start fresh)")
+			fmt.Println(i18n.T("login keyring is password-protected; it will unlock silently at next login only if that password is your login password (re-run with --convert to change it, or --reset to start fresh)"))
 		}
 	}
 	return nil
@@ -106,11 +108,11 @@ func setNeverAsk(o setOpts) error {
 	switch f {
 	case fmtAbsent:
 		if err := ops.createBlank(name); err != nil {
-			return fmt.Errorf("create blank %q keyring: %w", name, err)
+			return fmt.Errorf(i18n.T("create blank %q keyring: %w"), name, err)
 		}
-		fmt.Printf("created a blank %q keyring (no password, never prompts)\n", name)
+		fmt.Printf(i18n.T("created a blank %q keyring (no password, never prompts)\n"), name)
 	case fmtPlaintext:
-		fmt.Printf("%q keyring is already blank\n", name)
+		fmt.Printf(i18n.T("%q keyring is already blank\n"), name)
 	case fmtEncrypted:
 		switch {
 		case o.reset:
@@ -118,23 +120,23 @@ func setNeverAsk(o setOpts) error {
 				return err
 			}
 			if err := ops.createBlank(name); err != nil {
-				return fmt.Errorf("create blank %q keyring: %w", name, err)
+				return fmt.Errorf(i18n.T("create blank %q keyring: %w"), name, err)
 			}
 			if _, _, err := pointDefaultAt(name); err != nil {
-				return fmt.Errorf("point default keyring at %q: %w", name, err)
+				return fmt.Errorf(i18n.T("point default keyring at %q: %w"), name, err)
 			}
-			fmt.Printf("started fresh: blank %q keyring, old one backed up\n", name)
+			fmt.Printf(i18n.T("started fresh: blank %q keyring, old one backed up\n"), name)
 		case o.convert:
 			old, err := readOnePassword()
 			if err != nil {
 				return err
 			}
 			if err := ops.changePassword(name, old, ""); err != nil {
-				return fmt.Errorf("convert %q keyring to blank: %w", name, err)
+				return fmt.Errorf(i18n.T("convert %q keyring to blank: %w"), name, err)
 			}
-			fmt.Printf("%q keyring converted to blank\n", name)
+			fmt.Printf(i18n.T("%q keyring converted to blank\n"), name)
 		default:
-			return fmt.Errorf("the %q keyring is password-protected; never-ask needs it blank -- re-run with --convert (supply its current password) or --reset (backs it up and starts fresh)", name)
+			return fmt.Errorf(i18n.T("the %q keyring is password-protected; never-ask needs it blank -- re-run with --convert (supply its current password) or --reset (backs it up and starts fresh)"), name)
 		}
 	}
 	return nil
@@ -165,7 +167,7 @@ func (liveSecretOps) changePassword(name, old, newPw string) error {
 func withDaemon(fn func(*secretsClient) error) error {
 	c, err := dial()
 	if err != nil {
-		return fmt.Errorf("%w (is gnome-keyring-daemon running?)", err)
+		return fmt.Errorf(i18n.T("%w (is gnome-keyring-daemon running?)"), err)
 	}
 	defer c.close()
 	return fn(c)
@@ -209,10 +211,10 @@ func resetKeyrings(names ...string) error {
 			continue
 		}
 		if err := os.Rename(src, filepath.Join(bak, n+".keyring")); err != nil {
-			return fmt.Errorf("back up %q keyring: %w", n, err)
+			return fmt.Errorf(i18n.T("back up %q keyring: %w"), n, err)
 		}
 	}
-	fmt.Printf("backup: moved keyring files to %s\n", bak)
+	fmt.Printf(i18n.T("backup: moved keyring files to %s\n"), bak)
 	return nil
 }
 
@@ -260,7 +262,7 @@ func selfExe() string {
 func readOnePassword() (string, error) {
 	sc := bufio.NewScanner(os.Stdin)
 	if !sc.Scan() {
-		return "", fmt.Errorf("expected the current keyring password on stdin")
+		return "", fmt.Errorf(i18n.T("expected the current keyring password on stdin"))
 	}
 	return sc.Text(), nil
 }
@@ -270,11 +272,11 @@ func readOnePassword() (string, error) {
 func readTwoPasswords() (old, newPw string, err error) {
 	sc := bufio.NewScanner(os.Stdin)
 	if !sc.Scan() {
-		return "", "", fmt.Errorf("expected the current keyring password on stdin (line 1)")
+		return "", "", fmt.Errorf(i18n.T("expected the current keyring password on stdin (line 1)"))
 	}
 	old = sc.Text()
 	if !sc.Scan() {
-		return "", "", fmt.Errorf("expected the new keyring password on stdin (line 2)")
+		return "", "", fmt.Errorf(i18n.T("expected the new keyring password on stdin (line 2)"))
 	}
 	return old, sc.Text(), nil
 }

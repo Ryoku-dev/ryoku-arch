@@ -170,7 +170,7 @@ Flickable {
                 anchors.right: parent.right
                 anchors.rightMargin: 6 * grid.s
                 anchors.verticalCenter: parent.verticalCenter
-                text: grid.entries.length + " apps"
+                text: I18n.tr("%1 apps").arg(grid.entries.length)
                 color: Theme.faint
                 font.family: Theme.font
                 font.pixelSize: Metrics.fontEyebrow * grid.s

@@ -106,7 +106,7 @@ PanelWindow {
             Text {
                 id: dragLabel
                 anchors.centerIn: parent
-                text: "DRAG TO PLACE"
+                text: I18n.tr("DRAG TO PLACE")
                 color: Keypresses.theme === "dark" ? Tokens.keycapOnLight : Tokens.keycapOnDark
                 font.family: Tokens.ui
                 font.pixelSize: 9 * win.us

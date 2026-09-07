@@ -6,6 +6,7 @@ import Quickshell.Io
 import ".."
 import shell.services
 import "../../../components"
+import Ryoku.Ui.Singletons
 
 // Bluetooth popout: a frame-edge card (the shared PopoutCard skin, so it opens,
 // melts and dismisses exactly like the music card) leading with the hero for the
@@ -142,7 +143,7 @@ Item {
                 const lines = pairProc.collected.trim().split("\n");
                 const msg = lines.length ? lines[lines.length - 1].trim() : "";
                 root.errorText = msg.length ? msg
-                    : qsTr("Pairing failed. Put the device in pairing mode and try again.");
+                    : I18n.tr("Pairing failed. Put the device in pairing mode and try again.");
             } else {
                 root.errorText = "";
             }
@@ -242,7 +243,7 @@ Item {
             Text {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("BLUETOOTH")
+                text: I18n.tr("BLUETOOTH")
                 color: root.inkDim
                 font.family: Theme.mono
                 font.pixelSize: 9 * root.s
@@ -289,7 +290,7 @@ Item {
             Text {
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
-                text: root.blocked ? qsTr("Bluetooth is blocked") : qsTr("Bluetooth is off")
+                text: root.blocked ? I18n.tr("Bluetooth is blocked") : I18n.tr("Bluetooth is off")
                 color: root.ink
                 font.family: Theme.fontPrimary
                 font.pixelSize: 12 * root.s
@@ -298,7 +299,7 @@ Item {
             PopoutAction {
                 anchors.horizontalCenter: parent.horizontalCenter
                 s: root.s
-                label: root.blocked ? qsTr("Unblock") : qsTr("Turn on")
+                label: root.blocked ? I18n.tr("Unblock") : I18n.tr("Turn on")
                 onClicked: root.toggleAdapter()
             }
         }
@@ -335,7 +336,7 @@ Item {
         Text {
             width: parent.width
             visible: root.adapterOn && root.focusDev !== null && root.railDevices.length > 0
-            text: root.discovering ? qsTr("OTHER · SCANNING") : qsTr("OTHER DEVICES")
+            text: root.discovering ? I18n.tr("OTHER · SCANNING") : I18n.tr("OTHER DEVICES")
             color: root.inkDim
             font.family: Theme.mono
             font.pixelSize: 8.5 * root.s
@@ -375,7 +376,7 @@ Item {
             Text {
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
-                text: root.discovering ? qsTr("Scanning…") : qsTr("No devices yet")
+                text: root.discovering ? I18n.tr("Scanning…") : I18n.tr("No devices yet")
                 color: root.ink
                 font.family: Theme.fontPrimary
                 font.pixelSize: 12 * root.s
@@ -385,7 +386,7 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 s: root.s
                 enabled: !root.discovering
-                label: root.discovering ? qsTr("Scanning…") : qsTr("Scan")
+                label: root.discovering ? I18n.tr("Scanning…") : I18n.tr("Scan")
                 onClicked: root.toggleScan()
             }
         }

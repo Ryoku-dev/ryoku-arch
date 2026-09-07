@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import shell.services
+import Ryoku.Ui.Singletons
 
 Item {
     id: rootMod
@@ -14,8 +15,8 @@ Item {
     readonly property color contentColor: root.widgetContentColor("G6", root.widgetIconColor)
 
     readonly property string tooltipText: muted
-        ? "Muted · " + volume + "%"
-        : "Audio " + volume + "%"
+        ? I18n.tr("Muted · %1%").arg(volume)
+        : I18n.tr("Audio %1%").arg(volume)
 
     visible: implicitWidth > 0.5
     implicitWidth: root.modVolume ? row.implicitWidth + 18 : 0

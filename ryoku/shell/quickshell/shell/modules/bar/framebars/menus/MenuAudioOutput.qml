@@ -4,6 +4,7 @@ import QtQuick
 import "../.." as Pill
 import shell.services
 import "../../../../components"
+import Ryoku.Ui.Singletons
 
 // Audio output mixer (contract 06 sec 2.8): the default sink's volume + mute on
 // a fader, a device switcher that lists the output devices with a check on the
@@ -40,7 +41,7 @@ Item {
             lit: root.open
             value: root.haveSink ? root.sink.audio.volume : 0
             muted: root.haveSink ? root.sink.audio.muted : false
-            valueLabel: !root.haveSink ? "" : (root.sink.audio.muted ? qsTr("off") : Math.round(root.sink.audio.volume * 100) + "%")
+            valueLabel: !root.haveSink ? "" : (root.sink.audio.muted ? I18n.tr("off") : Math.round(root.sink.audio.volume * 100) + "%")
             peakNode: root.sink
             peakEnabled: root.open && !!root.sink
             onMoved: v => { if (root.haveSink) root.sink.audio.volume = v; }
@@ -55,14 +56,14 @@ Item {
             devices: Audio.outputs
             listOpen: root.devicesOpen
             fallbackIcon: "speaker"
-            emptyLabel: qsTr("No output device")
+            emptyLabel: I18n.tr("No output device")
             onToggled: root.devicesOpen = !root.devicesOpen
             onPicked: node => Audio.setOutput(node)
         }
 
         // ── per-app mixer ─────────────────────────────────────────────────────
         MicroLabel {
-            label: qsTr("Apps")
+            label: I18n.tr("Apps")
             s: root.s
             visible: root.open && Audio.streams.length > 0
         }
@@ -80,7 +81,7 @@ Item {
             visible: root.open && Audio.streams.length === 0
             width: parent.width
             topPadding: 2 * root.s
-            text: qsTr("Nothing playing")
+            text: I18n.tr("Nothing playing")
             horizontalAlignment: Text.AlignHCenter
             color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
             font.family: Theme.fontPrimary

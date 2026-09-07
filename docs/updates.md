@@ -4,32 +4,66 @@ How a change in this repo reaches a running machine, and the contract that keeps
 a user's install a mirror of a dev checkout. Read this before adding a config
 file, a `shell.json` key, or anything a user must receive.
 
-## Two worlds, one result
+## Two lanes, and why
+
+Ryoku owns its own layer and nothing under it. Two package lanes, deliberately
+separate:
+
+| Lane | Command | What moves |
+|---|---|---|
+| **Ryoku** | `ryoku update` | the packages the signed `[ryoku]` repo serves, the config, the doctor |
+| **Your distribution** | `sudo pacman -Syu` | the base system and its kernel, from Arch or CachyOS, whichever you installed |
+
+`ryoku update` upgrades the installed `[ryoku]` packages by name
+(`pacman -Sy`, then `pacman -S --needed ryoku/<pkg>...`) and never runs a
+sysupgrade. The reasons are the design:
+
+- **The kernel is not ours to move.** Ryoku ships a plain Arch variant and a
+  CachyOS variant and publishes neither kernel. A Ryoku release must not decide
+  when your box changes kernel, rebuilds its DKMS modules, or rewrites its boot
+  image.
+- **A release has to be reversible.** `ryoku rollback` puts the Ryoku set back;
+  it cannot put Arch back. An update that moved both was never fully
+  reversible.
+- **The lanes fail apart.** A box that cannot take an Arch upgrade today (a
+  mirror out of sync, a full boot partition) must still be able to take a Ryoku
+  fix, and the reverse.
+
+So a plain `sudo pacman -Syu` is expected, supported, and the only thing that
+moves your kernel. Ryoku ships no hook that blocks it. Every `ryoku update`
+reports what that lane is holding (`N system package(s) waiting`), `ryoku
+status` prints it as `system:`, and the Hub lists it under SYSTEM PACKAGES;
+`ryoku update --system` runs both lanes in one command for those who want that.
 
 - A **dev box** runs the checkout: `ryoku deploy` builds the binaries and lays
   `ryoku/` into `~/.config`. `ryoku update` on it tracks `origin/main` (the git
   channel) and redeploys.
-- A **user box** runs signed packages: `ryoku update` runs `pacman -Syu` from the
-  `[ryoku]` repo, then `ryoku materialize`, then `ryoku doctor`.
+- A **user box** runs signed packages: `ryoku update` moves the `[ryoku]` set,
+  then `ryoku materialize`, then `ryoku doctor`.
 
 They must converge. A change that lands on one but not the other is the bug this
 page exists to prevent.
 
 ## `ryoku update`
 
-Snapper pre-snapshot, then the channel (git fast-forward, or `pacman -Syu` from
-`[ryoku]`), then stage2 through the just-installed binary: quiesce the shell,
+Snapper pre-snapshot, then the channel (git fast-forward, or the `[ryoku]`
+package set), then stage2 through the just-installed binary: quiesce the shell,
 `ryoku materialize`, reload Hyprland, restart the shell, `ryoku doctor`, snapper
 post-snapshot. Each stage publishes to `$XDG_RUNTIME_DIR/ryoku-update.json` (the
 ordered steps, the current label, a live log tail, and, on failure, the error
 and the pre-update snapshot), so the update island and the Hub's Updates page
 render a determinate run and a one-click rollback.
 
+The database refresh happens before the set is read, so a rollback onto a frozen
+release only ever asks for packages that release actually served; targets are
+repo-qualified (`ryoku/<name>`), so pacman takes our build of a name that also
+exists in `extra`, and moves it down as readily as up.
+
 After the desktop is back, the update refreshes the agent OS when it is present:
 `ryoku-rashin index` regenerates the vault and re-indexes the config mirror with
 Prowl, then `prowl-agent` is brought current. On a dev box (Prowl on PATH but
 not owned by a pacman package) it runs `prowl-agent update`; a packaged box
-already got the new build from `pacman -Syu`, so the step just logs that the
+already got the new build from the `[ryoku]` set, so the step just logs that the
 binary is managed by pacman. Both are best effort and never fail an update.
 
 ### The boot guard
@@ -42,8 +76,9 @@ manager, and only while that marker exists. The shell daemon records a good
 boot once the shell has stayed up 45 s (`/var/lib/ryoku/boot/ok-<uid>`, the boot
 id); a record from any boot other than the one the update ran in disarms the
 guard. Without one, the boot counts: on the second, the guard tracks the
-previous release back (`ryoku track <from>` plus `pacman -Syu`; the Ryoku set
-only, Arch untouched), re-materializes every user's config from it, and leaves
+previous release back (`ryoku track <from>`, then an explicit
+`pacman -S ryoku-desktop`; the Ryoku set only, Arch untouched),
+re-materializes every user's config from it, and leaves
 a notice `ryoku doctor` shows once. On a third it points the Limine boot menu
 at the pre-update snapshot entry, for the case where the packages were not what
 broke. `sudo ryoku boot-guard --disarm` clears a marker by hand. The `ryoku`
@@ -155,15 +190,20 @@ mount the repo domain serves (`repo.ryoku.dev/stable/<key>` is bucket object
 |---|---|---|
 | `x86_64/` | **stable**: the URL every installed box has | a release tag is published: a byte copy of that release |
 | `releases/<tag>/x86_64/` | one frozen release; never rewritten | the tag is published (`publish-repo.yml` refuses an existing directory) |
-| `releases/index.json` | the release ledger, newest first | after each release |
+| `releases/index.json` | the release ledger, newest first, with each release's ISO per variant (`images.plain`, `images.cachyos`) | after each release |
 | `channels/testing/x86_64/` | **testing** | every push to `unstable-dev` |
 
 So a box on stable moves between named releases, and can be put back on any
-earlier one. Each build carries a strictly increasing package version
-(`core.r<commit-count>.g<sha>`) that `pacman -Syu` upgrades to, and the
-`ryoku-desktop` package writes `/etc/ryoku-release` (`RELEASE=`, `CHANNEL=`,
-`VERSION=`, `COMMIT=`) so a box can say which release it runs; `release.json`
-beside each channel's db says which one the channel serves.
+earlier one, on either variant: the `[ryoku]` packages are one `x86_64` build
+that both variants install, the frozen release directories are never pruned,
+and the ledger's `images` map names the Arch and CachyOS ISO of each release
+(derived from the per-ISO manifests in the bucket, so it heals on every
+rebuild) for a reinstall of an older release. Each build carries a strictly
+increasing package version (`core.r<commit-count>.g<sha>`) that the Ryoku
+upgrade moves to, and the `ryoku-desktop` package writes `/etc/ryoku-release`
+(`RELEASE=`, `CHANNEL=`, `VERSION=`, `COMMIT=`) so a box can say which release
+it runs; `release.json` beside each channel's db says which one the channel
+serves.
 
 A release is a tag: `main` advances only by fast-forward from `unstable-dev`,
 and publishing nothing on that push. The maintainer runs **Stable Release**
@@ -186,10 +226,11 @@ stanza, so there is no second state to drift from it:
   it to **stable** (named releases). The two are aliases for `ryoku track testing`
   and `ryoku track stable`.
 - `ryoku track stable | testing | v<tag>` rewrites that line and runs an update
-  that moves the Ryoku set to what the channel serves, down as well as up
-  (`pacman -Syu`, then an explicit `-S ryoku-desktop`, whose exact-version
-  depends bring the whole set along). A tag pins the box to that release until
-  it is tracked away.
+  that moves the Ryoku set to what the channel serves, down as well as up: the
+  databases are force-refreshed (a frozen release's db is older than the
+  channel's, so pacman would keep the cached one), then the installed
+  `ryoku/<pkg>` set is installed at the versions that channel publishes. A tag
+  pins the box to that release until it is tracked away.
 - `ryoku rollback --to v<tag>` is `track` onto a frozen release: the Ryoku set
   goes back in one pacman transaction while Arch stays current. Bare
   `ryoku rollback` lists the ledger and the snapshots.
@@ -221,6 +262,20 @@ island (when the channel serves the next line) and the Hub's Updates page.
 
 ## The contract
 
+- **Ryoku moves only what Ryoku publishes.** `ryoku update` upgrades the
+  installed `[ryoku]` packages by name and nothing else: no sysupgrade, no
+  kernel, no `--ignore` list to maintain. Anything Ryoku needs from the base
+  system belongs in a package dependency, where pacman resolves it, not in a
+  transaction that quietly upgrades the machine. A user must never have to
+  choose between a Ryoku fix and their own upgrade schedule, and nothing may
+  block `sudo pacman -Syu`.
+- **What a surface shows about the system must be read from the system.** No
+  kernel, variant, or OS name is hardcoded into a menu, a default, or a report:
+  boot entries come from the installed kernels
+  (`/usr/lib/modules/*/pkgbase`), the boot default from
+  `/etc/ryoku/default-kernel` (what the install chose) then the running kernel,
+  and an entry whose image is not on the boot partition is removed. A box that
+  never had the CachyOS kernel must never be offered it.
 - **A user-facing config file must be delivered by a path a user runs**: shipped
   in a package (then materialized) or seeded by the installer. A file only
   `deploy.sh` lays, or one no path lays, reaches no user. `ryoku-dev-verify-delivery`
@@ -275,6 +330,14 @@ island (when the channel serves the next line) and the Hub's Updates page.
 - **A change reaches stable only when a release is tagged**, and testing on
   every `unstable-dev` push. Keep the gap small; the delivery check reports it
   on every push.
+- **Displayed English must be wrapped where it is displayed, or it never
+  translates.** `I18n.tr("...")` in QML, a Hub schema `label`/`desc`, `i18n.T`
+  in Go, `log 'fmt %s'` in the installer's shell. The `i18n` workflow extracts
+  only what is wrapped, so an unwrapped string ships English in all 35
+  languages and no later pass finds it. Keep a sentence whole with `%1`/`%s`
+  placeholders rather than concatenating fragments: a fragment freezes the word
+  order to English. `docs/i18n.md` has the rules; a new language is one row in
+  `ryoku/i18n/langs.json` and nothing else.
 
 ## Checks
 

@@ -10,7 +10,7 @@ Item {
     implicitWidth: logo.implicitWidth + logoPadding
     implicitHeight: 28
 
-    readonly property string tooltipText: Config.launcherTarget === "quick" ? "Quick settings" : "Control center"
+    readonly property string tooltipText: Config.launcherTarget === "quick" ? I18n.tr("Quick settings") : I18n.tr("Control center")
     readonly property real logoPadding: 12
     readonly property color contentColor: root.widgetContentColor("G1", root.seal)
 

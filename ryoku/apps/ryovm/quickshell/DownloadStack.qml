@@ -48,7 +48,7 @@ Column {
                         id: pctT
                         anchors.verticalCenter: parent.verticalCenter
                         text: dlRow.model.indet
-                            ? (({ "resolve": "FINDING MIRROR", "download": "DOWNLOADING", "config": "PREPARING" })[dlRow.model.phase] || "WORKING")
+                            ? (({ "resolve": I18n.tr("FINDING MIRROR"), "download": I18n.tr("DOWNLOADING"), "config": I18n.tr("PREPARING") })[dlRow.model.phase] || I18n.tr("WORKING"))
                             : Math.round(dlRow.model.progress * 100) + "%" + (dlRow.model.bps > 0 ? "  ·  " + (dlRow.model.bps / 1048576).toFixed(1) + I18n.tr(" MB/s") : "")
                         color: Tokens.inkMuted
                         font.family: Tokens.mono; font.pixelSize: 10

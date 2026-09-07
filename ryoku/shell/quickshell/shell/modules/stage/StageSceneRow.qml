@@ -1,6 +1,7 @@
 import QtQuick
 import shell.services
 import "../../components"
+import Ryoku.Ui.Singletons
 
 // One cast-order row: a layer, widget or the visualizer, with up/down movers
 // that reorder the whole front-first stack (docs/stage.md).
@@ -12,7 +13,7 @@ Item {
     signal move(string id, int dir)
     width: parent ? parent.width : 0
     height: 38
-    readonly property string rowLabel: row.rowData ? (row.rowData.label ? row.rowData.label : "") : ""
+    readonly property string rowLabel: row.rowData ? (row.rowData.label ? I18n.tr(row.rowData.label) : "") : ""
     readonly property string rowIcon: row.rowData ? (row.rowData.icon ? row.rowData.icon : "") : ""
     readonly property bool canMove: row.rowData ? row.rowData.movable === true : false
     Row {

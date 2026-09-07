@@ -1,5 +1,6 @@
 import QtQuick
 import "Singletons"
+import Ryoku.Ui.Singletons
 
 // One setting, drawn as a compact row instead of a value-hero card. The label
 // reads first (primary ink), the description sits under it (muted), and the
@@ -141,7 +142,7 @@ Item {
         spacing: 1
         Text {
             width: parent.width
-            text: row.label
+            text: I18n.tr(row.label)
             color: Tokens.ink
             font.family: Tokens.ui
             font.pixelSize: Tokens.fRow
@@ -151,7 +152,7 @@ Item {
         Text {
             visible: row.desc !== ""
             width: parent.width
-            text: row.desc
+            text: I18n.tr(row.desc)
             color: Tokens.inkMuted
             font.family: Tokens.ui
             font.pixelSize: Tokens.fSmall
@@ -162,7 +163,7 @@ Item {
         Text {
             visible: row.eg !== ""
             width: parent.width
-            text: "e.g. " + row.eg
+            text: I18n.tr("e.g. ") + row.eg
             color: Tokens.inkFaint
             font.family: Tokens.mono
             font.pixelSize: Tokens.fTiny

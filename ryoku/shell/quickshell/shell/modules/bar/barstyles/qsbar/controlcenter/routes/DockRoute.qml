@@ -281,7 +281,7 @@ Item {
                 index: 0
                 SettingCard {
                     width: page.colW
-                    title: "01 DOCK"
+                    title: I18n.tr("01 DOCK")
                     kana: "\u53f0"
 
                     SettingRow {
@@ -342,7 +342,7 @@ Item {
                 index: 1
                 SettingCard {
                     width: page.colW
-                    title: "02 BEHAVIOUR"
+                    title: I18n.tr("02 BEHAVIOUR")
                     kana: "\u632f\u821e"
 
                     SettingRow {
@@ -401,7 +401,7 @@ Item {
                 index: 2
                 SettingCard {
                     width: page.colW
-                    title: "03 SURFACE"
+                    title: I18n.tr("03 SURFACE")
                     kana: "\u8868\u9762"
 
                     SettingRow {
@@ -458,7 +458,7 @@ Item {
                 index: 3
                 SettingCard {
                     width: page.colW
-                    title: "04 PINNED APPS"
+                    title: I18n.tr("04 PINNED APPS")
                     kana: "\u56fa\u5b9a"
 
                     // A fact the title cannot carry: the dock owns the ordering.

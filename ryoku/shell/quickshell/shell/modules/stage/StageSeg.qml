@@ -1,5 +1,6 @@
 import QtQuick
 import shell.services
+import Ryoku.Ui.Singletons
 
 // A segmented control: one row of options, one selected (docs/stage.md).
 Rectangle {
@@ -32,7 +33,7 @@ Rectangle {
                 Behavior on color { ColorAnimation { duration: Motion.crossfade } }
                 Text {
                     anchors.centerIn: parent
-                    text: opt.modelData.label
+                    text: I18n.tr(opt.modelData.label)
                     color: opt.active ? Theme.inkOn(Theme.primary, Theme.onPrimary) : Theme.onSurface
                     font.family: Theme.fontPrimary
                     font.pixelSize: Theme.fontSm - 1

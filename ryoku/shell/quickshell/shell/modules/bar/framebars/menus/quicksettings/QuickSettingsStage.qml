@@ -6,6 +6,7 @@ import "../../../../stage"
 import "../../../../stage/Singletons" as St
 import "../../../../visualizer/Singletons" as VizCfg
 import "../../../../desktop/Singletons" as DesktopCfg
+import Ryoku.Ui.Singletons
 
 // Stage tab of the Super+Esc quick-settings panel (docs/stage.md). Three levels:
 // Effect (Off / Subject in front / Parallax) with a live preview, Look (quality,
@@ -108,7 +109,7 @@ Item {
         return false;
     }
     function rebuildScene() {
-        const names = { clock: "Clock", calendar: "Calendar", music: "Music", aio: "AIO", stats: "Stats", weather: "Weather", notes: "Notes" };
+        const names = { clock: I18n.tr("Clock"), calendar: I18n.tr("Calendar"), music: I18n.tr("Music"), aio: "AIO", stats: I18n.tr("Stats"), weather: I18n.tr("Weather"), notes: I18n.tr("Notes") };
         const rows = [];
         const scene = root.sb.effectiveSceneFor(root.wall);
         for (let k = scene.length - 1; k >= 0; k--) {
@@ -119,7 +120,7 @@ Item {
                 const lbl = root.sb.layerLabel(root.wall, li).toLowerCase();
                 rows.push({ id: id, label: root.sb.layerLabel(root.wall, li), icon: lbl.indexOf("subject") === 0 ? "person" : "layers", movable: true });
             } else if (id === "visualizer") {
-                rows.push({ id: id, label: "Visualizer", icon: "graphic_eq", movable: true });
+                rows.push({ id: id, label: I18n.tr("Visualizer"), icon: "graphic_eq", movable: true });
             } else {
                 const w = id.slice(7);
                 rows.push({ id: id, label: names[w] || w, icon: "widgets", movable: true });
@@ -177,7 +178,7 @@ Item {
                 width: parent.width
                 spacing: 2
                 Text {
-                    text: "Stage"
+                    text: I18n.tr("Stage")
                     color: Theme.onSurface
                     font.family: Theme.fontPrimary
                     font.pixelSize: Theme.fontLg
@@ -186,7 +187,7 @@ Item {
                 Text {
                     width: parent.width
                     wrapMode: Text.WordWrap
-                    text: "The desktop as a stage: lift your wallpaper's subject in front of the widgets, or drift the whole scene with the cursor."
+                    text: I18n.tr("The desktop as a stage: lift your wallpaper's subject in front of the widgets, or drift the whole scene with the cursor.")
                     color: Theme.onSurfaceVariant
                     font.family: Theme.fontPrimary
                     font.pixelSize: Theme.fontSm - 1
@@ -194,12 +195,12 @@ Item {
             }
 
             // ── 1. Effect ─────────────────────────────────────────────
-            StageSection { title: "Effect" }
+            StageSection { title: I18n.tr("Effect") }
             StageSeg {
                 options: [
-                    { id: "off", label: "Off" },
-                    { id: "subject", label: "Subject in front" },
-                    { id: "parallax", label: "Parallax" }
+                    { id: "off", label: I18n.tr("Off") },
+                    { id: "subject", label: I18n.tr("Subject in front") },
+                    { id: "parallax", label: I18n.tr("Parallax") }
                 ]
                 current: root.effect
                 onChose: id => root.setEffect(id)
@@ -207,7 +208,7 @@ Item {
             Text {
                 width: parent.width
                 visible: !root.checked
-                text: "Preparing engine…"
+                text: I18n.tr("Preparing engine…")
                 color: Theme.onSurfaceVariant
                 font.family: Theme.fontPrimary
                 font.pixelSize: Theme.fontSm - 1
@@ -216,8 +217,8 @@ Item {
                 width: parent.width
                 visible: root.checked && !root.ready
                 icon: "download"
-                label: root.installing ? "Installing engine…" : "Install engine"
-                sub: root.installing ? root.sb.progress : "A one-time on-device download to detect subjects."
+                label: root.installing ? I18n.tr("Installing engine…") : I18n.tr("Install engine")
+                sub: root.installing ? root.sb.progress : I18n.tr("A one-time on-device download to detect subjects.")
                 onActivated: if (!root.installing) root.sb.install("")
             }
 
@@ -273,7 +274,7 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                     visible: root.checked && root.layerCount === 0 && !root.busy
-                    text: root.ready ? "Turn on an effect to cut your subject." : "Install the engine to detect your subject."
+                    text: root.ready ? I18n.tr("Turn on an effect to cut your subject.") : I18n.tr("Install the engine to detect your subject.")
                     color: Theme.onSurfaceVariant
                     font.family: Theme.fontPrimary
                     font.pixelSize: Theme.fontSm - 1
@@ -287,7 +288,7 @@ Item {
                     spacing: 6
                     visible: root.busy
                     Text {
-                        text: root.sb.stage.length > 0 ? "Cutting the subject… (" + root.sb.stage + ")" : "Cutting the subject…"
+                        text: root.sb.stage.length > 0 ? I18n.tr("Cutting the subject… (%1)").arg(root.sb.stage) : I18n.tr("Cutting the subject…")
                         color: Theme.onSurface
                         font.family: Theme.fontPrimary
                         font.pixelSize: Theme.fontSm - 1
@@ -327,7 +328,7 @@ Item {
                             width: 56
                             height: 26
                             kind: "outlined"
-                            label: "Stop"
+                            label: I18n.tr("Stop")
                             onAct: root.sb.cancel()
                         }
                     }
@@ -344,14 +345,14 @@ Item {
                     width: parent.width
                     spacing: 12
 
-                    StageSection { title: "Look" }
+                    StageSection { title: I18n.tr("Look") }
                     StageField {
-                        title: "Quality"
-                        hint: "Higher detail traces hair and fine edges, but the cut takes longer."
+                        title: I18n.tr("Quality")
+                        hint: I18n.tr("Higher detail traces hair and fine edges, but the cut takes longer.")
                         choices: [
-                            { id: "draft", label: "Draft" },
-                            { id: "standard", label: "Standard" },
-                            { id: "fine", label: "Fine" }
+                            { id: "draft", label: I18n.tr("Draft") },
+                            { id: "standard", label: I18n.tr("Standard") },
+                            { id: "fine", label: I18n.tr("Fine") }
                         ]
                         current: root.quality
                         onChose: id => root.setQuality(id)
@@ -360,15 +361,15 @@ Item {
                         width: parent.width
                         visible: !root.qInstalled && root.qModel !== null
                         icon: "download"
-                        label: root.installing ? "Downloading…" : ("Download " + (root.qModel ? root.qModel.label : "") + " model")
-                        sub: root.installing ? root.sb.progress : (root.qModel ? ("One-time download (" + root.qModel.size + ").") : "")
+                        label: root.installing ? I18n.tr("Downloading…") : I18n.tr("Download %1 model").arg(root.qModel ? I18n.tr(root.qModel.label) : "")
+                        sub: root.installing ? root.sb.progress : (root.qModel ? I18n.tr("One-time download (%1).").arg(root.qModel.size) : "")
                         onActivated: if (!root.installing && root.qModel) root.sb.install(root.qModel.id)
                     }
                     StageBtn {
                         visible: root.qInstalled && root.qModel !== null && root.qModel.tier === "fine"
                         kind: "outlined"
                         icon: "delete"
-                        label: root.sb.removing ? "Removing…" : "Remove the Fine model"
+                        label: root.sb.removing ? I18n.tr("Removing…") : I18n.tr("Remove the Fine model")
                         enabledAct: !root.sb.removing && !root.installing
                         onAct: if (root.qModel) root.sb.remove(root.qModel.id)
                     }
@@ -383,19 +384,19 @@ Item {
                     }
 
                     StageDragSlider {
-                        title: "Edge fade"
+                        title: I18n.tr("Edge fade")
                         value: root.cfg.feather
                         min: 0; max: 1; decimals: 2
                         onChanged: v => root.cfg.setFeather(v)
                     }
                     StageDragSlider {
-                        title: "Strength"
+                        title: I18n.tr("Strength")
                         value: root.cfg.lift
                         min: 0.2; max: 1; decimals: 2
                         onChanged: v => root.cfg.setLift(v)
                     }
                     StageDragSlider {
-                        title: "Shadow"
+                        title: I18n.tr("Shadow")
                         value: root.cfg.shadow
                         min: 0; max: 1; decimals: 2
                         onChanged: v => root.cfg.setShadow(v)
@@ -412,14 +413,14 @@ Item {
                             width: parent.width - 84 - 12
                             spacing: 2
                             Text {
-                                text: "Shadow angle"
+                                text: I18n.tr("Shadow angle")
                                 color: Theme.onSurface
                                 font.family: Theme.fontPrimary
                                 font.pixelSize: Theme.fontSm - 1
                                 font.weight: Font.DemiBold
                             }
                             Text {
-                                text: root.cfg.shadowAngle + "\u00B0 - Drag the dot to set where the shadow falls."
+                                text: I18n.tr("%1\u00B0 - Drag the dot to set where the shadow falls.").arg(root.cfg.shadowAngle)
                                 wrapMode: Text.WordWrap
                                 color: Theme.onSurfaceVariant
                                 font.family: Theme.fontPrimary
@@ -436,7 +437,7 @@ Item {
                 width: parent.width
                 visible: root.checked && root.ready
                 icon: "layers"
-                label: "Scene"
+                label: I18n.tr("Scene")
                 expanded: root.sceneExpanded
                 onToggle: root.sceneExpanded = !root.sceneExpanded
             }
@@ -447,11 +448,11 @@ Item {
 
                 StageField {
                     visible: root.isParallax
-                    title: "Cutout source"
-                    hint: "Auto cuts the subject and recolours the hole. Manual uses the numbered PNGs you drop in the wallpaper's folder."
+                    title: I18n.tr("Cutout source")
+                    hint: I18n.tr("Auto cuts the subject and recolours the hole. Manual uses the numbered PNGs you drop in the wallpaper's folder.")
                     choices: [
-                        { id: "auto", label: "Auto (subject)" },
-                        { id: "manual", label: "Manual (numbered)" }
+                        { id: "auto", label: I18n.tr("Auto (subject)") },
+                        { id: "manual", label: I18n.tr("Manual (numbered)") }
                     ]
                     current: root.sb.mode
                     onChose: id => root.sb.setMode(id)
@@ -464,24 +465,24 @@ Item {
                         width: (parent.width - 8) / 2
                         kind: "filled"
                         icon: "folder_open"
-                        label: "Open folder"
+                        label: I18n.tr("Open folder")
                         onAct: root.sb.openFolder(root.wall)
                     }
                     StageBtn {
                         width: (parent.width - 8) / 2
                         kind: "outlined"
                         icon: "cached"
-                        label: "Rescan"
+                        label: I18n.tr("Rescan")
                         onAct: root.sb.refresh()
                     }
                 }
 
                 // Cast order.
-                StageSection { title: "Cast order" }
+                StageSection { title: I18n.tr("Cast order") }
                 Text {
                     width: parent.width
                     wrapMode: Text.WordWrap
-                    text: "The on-screen stack, front first. Move any row to sit it in front of or behind a layer."
+                    text: I18n.tr("The on-screen stack, front first. Move any row to sit it in front of or behind a layer.")
                     color: Theme.onSurfaceVariant
                     font.family: Theme.fontPrimary
                     font.pixelSize: Theme.fontSm - 3
@@ -499,17 +500,17 @@ Item {
                 StageBtn {
                     kind: "ghost"
                     icon: "restart_alt"
-                    label: "Reset order"
+                    label: I18n.tr("Reset order")
                     onAct: { root.sb.setScene([]); root.rebuildScene(); }
                 }
 
                 // Per-layer knobs.
-                StageSection { title: "Layers" }
+                StageSection { title: I18n.tr("Layers") }
                 Text {
                     width: parent.width
                     visible: root.layerCount === 0
                     wrapMode: Text.WordWrap
-                    text: "No layers yet. Turn on an effect to cut the subject."
+                    text: I18n.tr("No layers yet. Turn on an effect to cut the subject.")
                     color: Theme.onSurfaceVariant
                     font.family: Theme.fontPrimary
                     font.pixelSize: Theme.fontSm - 3
@@ -528,45 +529,45 @@ Item {
                 }
 
                 // Presets.
-                StageSection { title: "Presets" }
+                StageSection { title: I18n.tr("Presets") }
                 StageField {
-                    title: "Preset"
-                    hint: "Applies a tuning to every layer at once. None restores the defaults."
+                    title: I18n.tr("Preset")
+                    hint: I18n.tr("Applies a tuning to every layer at once. None restores the defaults.")
                     choices: [
-                        { id: "none", label: "None" },
-                        { id: "softdepth", label: "Soft Depth" },
-                        { id: "audiopulse", label: "Audio Pulse" },
-                        { id: "cinematic", label: "Cinematic" }
+                        { id: "none", label: I18n.tr("None") },
+                        { id: "softdepth", label: I18n.tr("Soft Depth") },
+                        { id: "audiopulse", label: I18n.tr("Audio Pulse") },
+                        { id: "cinematic", label: I18n.tr("Cinematic") }
                     ]
                     current: root.activePreset
                     onChose: id => root.applyPreset(id)
                 }
 
                 // Maintenance.
-                StageSection { title: "Arrange & maintain" }
+                StageSection { title: I18n.tr("Arrange & maintain") }
                 StageBtn {
                     kind: "filled"
                     icon: "open_with"
-                    label: "Edit stage"
+                    label: I18n.tr("Edit stage")
                     onAct: root.editStage()
                 }
                 StageBtn {
                     kind: "ghost"
                     icon: "folder_open"
-                    label: "Open folder"
+                    label: I18n.tr("Open folder")
                     onAct: root.sb.openFolder(root.wall)
                 }
                 StageBtn {
                     kind: "outlined"
                     icon: "cached"
-                    label: "Re-cut"
+                    label: I18n.tr("Re-cut")
                     enabledAct: root.ready && !root.busy
                     onAct: root.sb.refresh()
                 }
                 StageBtn {
                     kind: "ghost"
                     icon: "delete_sweep"
-                    label: "Clear cache"
+                    label: I18n.tr("Clear cache")
                     onAct: root.sb.clear()
                 }
             }

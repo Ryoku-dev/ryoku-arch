@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import "Singletons"
+import Ryoku.Ui.Singletons
 
 /**
  * A live, plain-QML preview of the desktop clock widget for the Desktop Widgets
@@ -36,7 +37,7 @@ Item {
     readonly property string hh: preview.is24 ? pad2(h) : String(h12)
     readonly property string mm: pad2(mins)
     readonly property string ss: pad2(secs)
-    readonly property string ampm: h < 12 ? "AM" : "PM"
+    readonly property string ampm: h < 12 ? I18n.tr("AM") : I18n.tr("PM")
 
     readonly property var weekdays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     readonly property var weekdaysShort: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -360,7 +361,7 @@ Item {
             }
             Text {
                 text: (preview.is24 ? "" : preview.ampm + "  |  ")
-                    + preview.weekdays[preview.dow] + "  |  Clear  \u00b7  23\u00b0"
+                    + preview.weekdays[preview.dow] + I18n.tr("  |  Clear  \u00b7  23\u00b0")
                 color: preview.ink; font.family: "Inter Display"; font.weight: Font.Bold
                 font.pixelSize: 25; font.letterSpacing: 0.5
             }
@@ -380,15 +381,15 @@ Item {
                 spacing: 12
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "GOOD"; color: preview.ink
+                    text: I18n.tr("GOOD"); color: preview.ink
                     font.family: "Inter Display"; font.weight: Font.Medium
                     font.pixelSize: 26; font.letterSpacing: 10
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: preview.h >= 5 && preview.h < 12 ? "MORNING"
-                        : preview.h >= 12 && preview.h < 17 ? "AFTERNOON"
-                        : preview.h >= 17 && preview.h < 21 ? "EVENING" : "NIGHT"
+                    text: preview.h >= 5 && preview.h < 12 ? I18n.tr("MORNING")
+                        : preview.h >= 12 && preview.h < 17 ? I18n.tr("AFTERNOON")
+                        : preview.h >= 17 && preview.h < 21 ? I18n.tr("EVENING") : I18n.tr("NIGHT")
                     color: preview.ink; font.family: "Inter Display"; font.weight: Font.Medium
                     font.pixelSize: 26; font.letterSpacing: 10
                 }

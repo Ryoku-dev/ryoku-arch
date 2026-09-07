@@ -115,8 +115,8 @@ Flickable {
             ChipRow {
                 width: parent.width
                 model: [
-                    { "key": "qsbar", "label": "QS Bar" },
-                    { "key": "sumi",  "label": "Sumi rail" }
+                    { "key": "qsbar", "label": I18n.tr("QS Bar") },
+                    { "key": "sumi",  "label": I18n.tr("Sumi rail") }
                 ]
                 current: step.barStyle
                 onSelected: (key) => { step.barStyle = key; step.setShellKey("barStyle", key); }
@@ -153,9 +153,9 @@ Flickable {
 
             Repeater {
                 model: [
-                    { "key": "clockEnabled",    "label": "Clock" },
-                    { "key": "calendarEnabled", "label": "Calendar" },
-                    { "key": "musicEnabled",    "label": "Music player" }
+                    { "key": "clockEnabled",    "label": I18n.tr("Clock") },
+                    { "key": "calendarEnabled", "label": I18n.tr("Calendar") },
+                    { "key": "musicEnabled",    "label": I18n.tr("Music player") }
                 ]
 
                 delegate: Row {
@@ -168,7 +168,7 @@ Flickable {
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         width: parent.width - toggle.width
-                        text: I18n.tr(wr.modelData.label)
+                        text: wr.modelData.label
                         color: Tokens.inkDim
                         font.family: Tokens.ui
                         font.pixelSize: Tokens.fBody
