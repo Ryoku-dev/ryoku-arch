@@ -7,6 +7,7 @@ import Ryoku.Ui.Singletons
 // shadowed this menu's own, leaving every widget toggle reading undefined.
 import shell.services as Services
 import "../visualizer/Singletons" as VizCfg
+import "../stage/Singletons" as StageCfg
 
 // The desktop right-click menu, built on the shared DesktopMenu chrome in the
 // quick-settings sidebar idiom. Two scopes:
@@ -128,9 +129,17 @@ Item {
         Config.set("musicVideo", d[(d.indexOf(Config.musicVideo) + 1) % d.length]);
     }
 
-    function editStage() {
+    function editWidgets() {
         const st = Services.ShellState.forActive();
         if (st) st.stageComposing = true;
+        menu.close();
+    }
+    function editLayout() {
+        StageCfg.StageSession.enterLayout();
+        menu.close();
+    }
+    function changeWallpaper() {
+        Services.ShellState.requestSurfaceActive("wallpaper", null);
         menu.close();
     }
 
@@ -142,64 +151,19 @@ Item {
         // ── desktop scope ──────────────────────────────────────────────
         MenuRow {
             visible: !menu.isWidget
-            label: I18n.tr("Clock")
-            value: Config.clockEnabled ? "On" : "Off"
-            on: Config.clockEnabled
-            closeOnTrigger: false
-            onTriggered: Config.set("clockEnabled", !Config.clockEnabled)
+            label: I18n.tr("Edit widgets")
+            onTriggered: menu.editWidgets()
         }
         MenuRow {
             visible: !menu.isWidget
-            label: I18n.tr("Calendar")
-            value: Config.calendarEnabled ? "On" : "Off"
-            on: Config.calendarEnabled
-            closeOnTrigger: false
-            onTriggered: Config.set("calendarEnabled", !Config.calendarEnabled)
+            label: I18n.tr("Edit shell layout")
+            onTriggered: menu.editLayout()
         }
         MenuRow {
             visible: !menu.isWidget
-            label: I18n.tr("Music")
-            value: Config.musicEnabled ? "On" : "Off"
-            on: Config.musicEnabled
+            label: I18n.tr("Change wallpaper")
             closeOnTrigger: false
-            onTriggered: Config.set("musicEnabled", !Config.musicEnabled)
-        }
-        MenuRow {
-            visible: !menu.isWidget
-            label: I18n.tr("All-in-one")
-            value: Config.aioEnabled ? "On" : "Off"
-            on: Config.aioEnabled
-            closeOnTrigger: false
-            onTriggered: Config.set("aioEnabled", !Config.aioEnabled)
-        }
-        MenuRow {
-            visible: !menu.isWidget
-            label: I18n.tr("System stats")
-            value: Config.statsEnabled ? "On" : "Off"
-            on: Config.statsEnabled
-            closeOnTrigger: false
-            onTriggered: Config.set("statsEnabled", !Config.statsEnabled)
-        }
-        MenuRow {
-            visible: !menu.isWidget
-            label: I18n.tr("Weather")
-            value: Config.weatherEnabled ? "On" : "Off"
-            on: Config.weatherEnabled
-            closeOnTrigger: false
-            onTriggered: Config.set("weatherEnabled", !Config.weatherEnabled)
-        }
-        MenuRow {
-            visible: !menu.isWidget
-            label: I18n.tr("Notes")
-            value: Config.notesEnabled ? "On" : "Off"
-            on: Config.notesEnabled
-            closeOnTrigger: false
-            onTriggered: Config.set("notesEnabled", !Config.notesEnabled)
-        }
-        MenuRow {
-            visible: !menu.isWidget
-            label: I18n.tr("Edit stage")
-            onTriggered: menu.editStage()
+            onTriggered: menu.changeWallpaper()
         }
 
         // ── widget scope ───────────────────────────────────────────────

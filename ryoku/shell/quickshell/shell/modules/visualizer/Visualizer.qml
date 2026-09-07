@@ -27,6 +27,9 @@ Item {
     // being aimed.
     property bool placing: false
     property bool suppressed: false
+    // The Stage editor's Visualizer scope drives the Placer with the island in
+    // charge of controls; forwarded so the Placer hides its own bar.
+    property bool placeEmbedded: false
     signal placingDone
 
     readonly property bool active: root.mode !== "off"
@@ -125,6 +128,7 @@ Item {
         active: root.placeable && root.activeView !== null
         sourceComponent: Placer {
             screen: root.screen
+            embedded: root.placeEmbedded
             box: root.activeView.boxRect
             guide: root.activeView.guide
             onDone: root.placingDone()

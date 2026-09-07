@@ -90,6 +90,8 @@ Item {
         title: lo.sb.layerLabel(lo.wallPath, lo.slot)
         selected: lo.selected
         clickable: true
+        // The subject (slot 0) shows the engine's cut progress as a ring.
+        ringPercent: (lo.slot === 0 && lo.sb.busy && lo.sb.stage === "cut") ? lo.sb.percent : -1
         onPicked: lo.picked()
     }
 }

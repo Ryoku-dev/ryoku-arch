@@ -66,7 +66,9 @@ Scope {
     onStageComposingChanged: {
         win.kbWanted += root.stageComposing ? 1 : -1;
         if (root.stageComposing)
-            StageCfg.StageSession.reset();
+            StageCfg.StageSession.enterWidgets("depth");
+        else if (StageCfg.StageSession.widgets)
+            StageCfg.StageSession.leave();
     }
     // Human titles + the Add-palette model + toggle for the edit session
     // (docs/stage.md): built-ins and the visualizer read their config flags,
@@ -74,6 +76,21 @@ Scope {
     function widgetTitle(w) {
         const n = { clock: "Clock", calendar: "Calendar", music: "Music", aio: "All-in-one", stats: "System stats", weather: "Weather", notes: "Notes" };
         return n[w] || w;
+    }
+    // Whether a built-in widget is locked, for its outline's state label.
+    function stageLockedOf(w) { return Config[w + "Locked"] === true; }
+    // The selected built-in widget's on-screen box, for the size readout.
+    readonly property rect stageSelBox: {
+        switch (StageCfg.StageSession.selected) {
+        case "clock": return Qt.rect(clockSlot.x, clockSlot.y, clockSlot.width, clockSlot.height);
+        case "calendar": return Qt.rect(calendarSlot.x, calendarSlot.y, calendarSlot.width, calendarSlot.height);
+        case "music": return Qt.rect(musicSlot.x, musicSlot.y, musicSlot.width, musicSlot.height);
+        case "aio": return Qt.rect(aioSlot.x, aioSlot.y, aioSlot.width, aioSlot.height);
+        case "stats": return Qt.rect(statsSlot.x, statsSlot.y, statsSlot.width, statsSlot.height);
+        case "weather": return Qt.rect(weatherSlot.x, weatherSlot.y, weatherSlot.width, weatherSlot.height);
+        case "notes": return Qt.rect(notesSlot.x, notesSlot.y, notesSlot.width, notesSlot.height);
+        }
+        return Qt.rect(0, 0, 0, 0);
     }
     readonly property var editItems: {
         const bi = [
@@ -406,7 +423,7 @@ Scope {
             anchor: Config.clockAnchor
             freeX: Config.clockX
             freeY: Config.clockY
-            locked: Config.clockLocked && !root.stageComposing
+            locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : Config.clockLocked
             bg: Config.clockBg
             radius: Config.clockRadius
             scaleCfg: Config.clockScale
@@ -424,7 +441,7 @@ Scope {
             anchor: Config.calendarAnchor
             freeX: Config.calendarX
             freeY: Config.calendarY
-            locked: Config.calendarLocked && !root.stageComposing
+            locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : Config.calendarLocked
             bg: "none"
             scaleCfg: Config.calendarScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -450,7 +467,7 @@ Scope {
             anchor: Config.musicAnchor
             freeX: Config.musicX
             freeY: Config.musicY
-            locked: Config.musicLocked && !root.stageComposing
+            locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : Config.musicLocked
             bg: "none"
             scaleCfg: Config.musicScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -479,7 +496,7 @@ Scope {
             anchor: Config.aioAnchor
             freeX: Config.aioX
             freeY: Config.aioY
-            locked: Config.aioLocked && !root.stageComposing
+            locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : Config.aioLocked
             bg: "none"
             scaleCfg: Config.aioScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -499,7 +516,7 @@ Scope {
             anchor: Config.statsAnchor
             freeX: Config.statsX
             freeY: Config.statsY
-            locked: Config.statsLocked && !root.stageComposing
+            locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : Config.statsLocked
             bg: "none"
             scaleCfg: Config.statsScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -518,7 +535,7 @@ Scope {
             anchor: Config.weatherAnchor
             freeX: Config.weatherX
             freeY: Config.weatherY
-            locked: Config.weatherLocked && !root.stageComposing
+            locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : Config.weatherLocked
             bg: "none"
             scaleCfg: Config.weatherScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -538,7 +555,7 @@ Scope {
             anchor: Config.notesAnchor
             freeX: Config.notesX
             freeY: Config.notesY
-            locked: Config.notesLocked && !root.stageComposing
+            locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : Config.notesLocked
             bg: "none"
             scaleCfg: Config.notesScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -579,7 +596,7 @@ Scope {
 
                 pluginId: slot.pid
                 visible: root.reloadReady
-                locked: (slot.dw.locked === true) && !root.stageComposing
+                locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : (slot.dw.locked === true)
                 scaleCfg: slot.dw.scale || 0.85
                 freeX: slot.dw.x !== undefined ? slot.dw.x : 80
                 freeY: slot.dw.y !== undefined ? slot.dw.y : 80
@@ -643,9 +660,9 @@ Scope {
                 // it sits above the tile and its chip is always placed.
                 StageOutline {
                     parent: composeOverlay
-                    visible: root.stageComposing
+                    visible: root.stageComposing && StageCfg.StageSession.scope === "widgets"
                     box: Qt.rect(slot.x, slot.y, slot.width, slot.height)
-                    title: (slot.entry && slot.entry.manifest && slot.entry.manifest.name) ? slot.entry.manifest.name : slot.pid
+                    title: ((slot.entry && slot.entry.manifest && slot.entry.manifest.name) ? slot.entry.manifest.name : slot.pid) + (slot.dw.locked === true ? " \u00b7 locked" : "")
                     selected: StageCfg.StageSession.selected === slot.pid
                     clickable: true
                     onPicked: StageCfg.StageSession.select(slot.pid)
@@ -687,6 +704,7 @@ Scope {
                 model: root.stageOn ? StageCfg.StageBackend.layerCountFor(root.wallpaperPath) : 0
                 delegate: StageLayerOutline {
                     required property int index
+                    visible: StageCfg.StageSession.scope === "depth"
                     wallPath: root.wallpaperPath
                     slot: index
                     count: StageCfg.StageBackend.layerCountFor(root.wallpaperPath)
@@ -699,9 +717,9 @@ Scope {
                 id: bo
                 property var slotItem: null
                 property string wid: ""
-                visible: bo.slotItem ? bo.slotItem.visible : false
+                visible: (bo.slotItem ? bo.slotItem.visible : false) && StageCfg.StageSession.scope === "widgets"
                 box: bo.slotItem ? Qt.rect(bo.slotItem.x, bo.slotItem.y, bo.slotItem.width, bo.slotItem.height) : Qt.rect(0, 0, 0, 0)
-                title: root.widgetTitle(bo.wid)
+                title: root.widgetTitle(bo.wid) + (root.stageLockedOf(bo.wid) ? " \u00b7 locked" : "")
                 selected: StageCfg.StageSession.selected === bo.wid
                 clickable: true
                 onPicked: StageCfg.StageSession.select(bo.wid)
@@ -713,17 +731,6 @@ Scope {
             BuiltinOutline { wid: "stats"; slotItem: statsSlot }
             BuiltinOutline { wid: "weather"; slotItem: weatherSlot }
             BuiltinOutline { wid: "notes"; slotItem: notesSlot }
-
-            // Visualizer: a selection outline over its band; on-desktop vs
-            // above-windows is its own placement, edited in the element tab.
-            StageOutline {
-                visible: VizCfg.Config.enabled
-                box: Qt.rect(composeOverlay.width * 0.12, composeOverlay.height * 0.72, composeOverlay.width * 0.76, composeOverlay.height * 0.2)
-                title: "Visualizer"
-                selected: StageCfg.StageSession.selected === "visualizer"
-                clickable: true
-                onPicked: StageCfg.StageSession.select("visualizer")
-            }
         }
 
         Process { id: paletteProc }
@@ -835,14 +842,18 @@ Scope {
                 }
             }
         }
-        // The Stage editor's one inspector, docked at the bottom (docs/stage.md).
-        // Widgets drag with the ordinary gesture; every knob and each element's
-        // actions live in the inspector's tabs, keyed off the current selection.
-        StageInspector {
+        // The Edit widgets session (docs/stage.md): the island and its floating
+        // panels. The desktop draws the outlines and runs the drag/resize; this
+        // owns the island, its second row, and the panels, keyed off the session.
+        StageWidgetsEditor {
             z: 101
-            visible: root.stageState ? root.stageState.stageComposing : false
+            visible: root.stageComposing
+            monitor: root.screen ? root.screen.name : ""
             elements: root.editItems
             vizOverlay: root.stageState ? root.stageState.visualizerOverlay : false
+            vizStyles: VizCfg.Config.knownStyles
+            vizStyle: VizCfg.Config.styleId
+            selectedBox: root.stageSelBox
             onDone: if (root.stageState) root.stageState.stageComposing = false
             onAddEnable: id => root.paletteToggle(id)
             onWidgetLockToggle: id => root.stageLockToggle(id)
@@ -850,6 +861,7 @@ Scope {
             onWidgetRemove: id => root.stageRemoveWidget(id)
             onVizFlip: if (root.stageState) root.stageState.visualizerOverlay = !root.stageState.visualizerOverlay
             onVizRemove: VizCfg.Config.setEnabled(false)
+            onVizStyleChose: key => VizCfg.Config.setStyle(key)
         }
 
         // position/scale writeback for plugin tiles. ryoku-plugins-place

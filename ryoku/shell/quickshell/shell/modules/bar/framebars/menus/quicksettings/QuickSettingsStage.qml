@@ -6,9 +6,9 @@ import "../../../../stage"
 import "../../../../stage/Singletons" as St
 
 // Stage entry card for the Super+Esc quick-settings panel (docs/stage.md).
-// Stage is a spatial feature, so it is edited on the desktop, not in a scrolling
-// sidebar: this card only previews the current cut, switches the effect, and
-// opens the desktop edit mode. Every knob lives in the on-desktop toolbar.
+// Stage is a spatial feature, edited on the desktop, so the sidebar holds only
+// this: a live preview of the current cut, the two switches (Depth, and Parallax
+// inside it), and Edit desktop. Every other knob lives on the desktop island.
 Item {
     id: root
 
@@ -27,11 +27,6 @@ Item {
             st.stageComposing = true;
         if (root.closePanel)
             root.closePanel();
-    }
-    function caption(e) {
-        if (e === "depth") return "The subject sits in front of your widgets.";
-        if (e === "parallax") return "The scene drifts with your cursor.";
-        return "Plain wallpaper.";
     }
 
     Rectangle { anchors.fill: parent; color: Theme.surface }
@@ -57,28 +52,22 @@ Item {
             busy: root.sb.busy
         }
 
-        StageSeg {
-            options: [
-                { id: "off", label: "Off" },
-                { id: "depth", label: "Depth" },
-                { id: "parallax", label: "Parallax" }
-            ]
-            current: root.effect
-            onChose: id => root.sb.setEffect(id)
+        StageSwitch {
+            label: "Depth"
+            checked: root.effect !== "off"
+            onToggled: root.sb.setEffect(root.effect === "off" ? "depth" : "off")
         }
-        Text {
-            width: parent.width
-            wrapMode: Text.WordWrap
-            text: root.caption(root.effect)
-            color: Theme.onSurfaceVariant
-            font.family: Theme.fontPrimary
-            font.pixelSize: Theme.fontSm - 1
+        StageSwitch {
+            label: "Parallax"
+            checked: root.effect === "parallax"
+            switchEnabled: root.effect !== "off"
+            onToggled: root.sb.setEffect(root.effect === "parallax" ? "depth" : "parallax")
         }
 
         StageBtn {
             kind: "filled"
             icon: "open_with"
-            label: "Edit stage"
+            label: "Edit desktop"
             onAct: root.editStage()
         }
     }

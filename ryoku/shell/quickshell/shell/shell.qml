@@ -19,6 +19,7 @@ import "modules/desktop"
 import "modules/visualizer"
 import "modules/bar"
 import "modules/dock"
+import "modules/shell-layout"
 import "modules/launcher"
 import "modules/overview"
 import QtQuick
@@ -189,7 +190,11 @@ ShellRoot {
                 mode: !VizCfg.Config.enabled ? "off"
                     : (perScreen.st && perScreen.st.visualizerOverlay ? "overlay" : "desktop")
                 placing: perScreen.st ? (perScreen.st.visualizerPlacing
-                    || (perScreen.st.stageComposing && StageCfg.StageSession.selected === "visualizer")) : false
+                    || (perScreen.st.stageComposing && StageCfg.StageSession.scope === "visualizer")) : false
+                // The Stage editor's Visualizer scope owns the controls on the
+                // island, so the Placer hides its own bar and yields input/keys.
+                placeEmbedded: perScreen.st ? (perScreen.st.stageComposing
+                    && StageCfg.StageSession.scope === "visualizer") : false
                 suppressed: false
                 onPlacingDone: if (perScreen.st) perScreen.st.visualizerPlacing = false
             }
@@ -277,6 +282,11 @@ ShellRoot {
             }
         }
     }
+
+    // Edit shell layout session (docs/stage.md): its own per-monitor overlay,
+    // shown while the layout session is on; the widgets session lives inside the
+    // desktop surface instead. Mounted once -- it fans over the screens itself.
+    ShellLayoutEditor {}
 
     // In-process global shortcuts. Each flips the focused monitor's ShellState
     // flag that the per-screen surfaces above bind their visibility to, so a

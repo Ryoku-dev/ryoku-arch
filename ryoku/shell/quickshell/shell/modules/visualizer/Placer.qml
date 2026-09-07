@@ -18,6 +18,10 @@ PanelWindow {
     required property var screen
     required property rect box     // the look's box in screen px
     required property color guide
+    // Embedded in the Stage editor's Visualizer scope: the island owns the
+    // controls and the keyboard, so hide the EditBar and mask input to the
+    // box + handles, letting clicks elsewhere reach the island below.
+    property bool embedded: false
 
     signal done
 
@@ -26,7 +30,12 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.namespace: "ryoku-visualizer-place"
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+    WlrLayershell.keyboardFocus: win.embedded ? WlrKeyboardFocus.None : WlrKeyboardFocus.Exclusive
+    mask: win.embedded ? embeddedMask : null
+    Region {
+        id: embeddedMask
+        Region { item: maskProxy }
+    }
     anchors { top: true; bottom: true; left: true; right: true }
 
     // Token-sized: a scale of its own would fight the shell's control metrics.
@@ -134,6 +143,15 @@ PanelWindow {
             border.color: win.guide
             x: parent.width / 2 - width / 2
             y: -win.handle * 1.6 - height / 2
+        }
+
+        // Input mask for embedded mode: the box plus its handle margins, so the
+        // grip and turn stem stay grabbable while clicks elsewhere fall through
+        // to the island below.
+        Item {
+            id: maskProxy
+            anchors.fill: parent
+            anchors.margins: -win.handle * 1.8
         }
     }
 
@@ -257,6 +275,7 @@ PanelWindow {
     // job is the placement gestures and the bar's job is the controls.
     EditBar {
         id: editBar
+        visible: !win.embedded
         box: win.box
         onDone: win.done()
     }
