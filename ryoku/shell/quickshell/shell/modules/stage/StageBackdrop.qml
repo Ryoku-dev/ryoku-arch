@@ -53,7 +53,10 @@ Item {
         fillMode: root.fillModeFor(bg)
         sourceSize.width: root.width
         sourceSize.height: root.height
-        scale: 1.1
+        // Never scaled: there are no pixels past the wallpaper's edge, so any
+        // overscan is the whole picture zooming when Parallax turns on. The far
+        // plane stays still by default; Backdrop drift moves it at the cost of
+        // a sliver of the base wallpaper at the trailing edge.
         opacity: (root.shown && status === Image.Ready) ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
         transform: Translate {

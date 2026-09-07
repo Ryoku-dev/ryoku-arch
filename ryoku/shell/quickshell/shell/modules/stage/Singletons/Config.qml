@@ -42,7 +42,7 @@ Singleton {
     readonly property bool followMouse: !(root.motion && root.motion.mouse === false)
     readonly property real sensitivity: (root.motion && typeof root.motion.sensitivity === "number") ? root.motion.sensitivity : 1.0
     readonly property real range: (root.motion && typeof root.motion.range === "number") ? root.motion.range : 1.0
-    readonly property real backdrop: (root.motion && typeof root.motion.backdrop === "number") ? root.motion.backdrop : 1.0
+    readonly property real backdrop: (root.motion && typeof root.motion.backdrop === "number") ? root.motion.backdrop : 0.0
 
     // `front` is read-only now: the layer owns whether it sits behind or in
     // front of the widgets, so the desktop editor never writes a per-widget
@@ -118,7 +118,7 @@ Singleton {
             property real edge: 0.15
             property real shadow: 0.0
             property int shadowAngle: 90
-            property var motion: ({ amount: "normal", idle: "none", music: false, musicLevel: 0.6, speed: 1.0, mouse: true, sensitivity: 1.0, range: 1.0, backdrop: 1.0 })
+            property var motion: ({ amount: "normal", idle: "none", music: false, musicLevel: 0.6, speed: 1.0, mouse: true, sensitivity: 1.0, range: 1.0, backdrop: 0.0 })
             property var front: []
         }
     }

@@ -111,7 +111,7 @@ Item {
         root.cfg.setMouse(true);
         root.cfg.setSensitivity(1.0);
         root.cfg.setRange(1.0);
-        root.cfg.setBackdrop(1.0);
+        root.cfg.setBackdrop(0.0);
     }
 
     // --- small pieces in the sidebar's language -------------------------------

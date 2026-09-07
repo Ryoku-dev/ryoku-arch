@@ -97,9 +97,11 @@ Item {
         fillMode: root._fillMode(img)
         sourceSize.width: root.width
         sourceSize.height: root.height
-        // Overscan only in Parallax, where drift needs headroom; Depth draws at
-        // 1.0 so the still cut lines up with the wallpaper's baked subject.
-        scale: (root.motionEnabled ? 1.1 : 1.0) * root._idleScale
+        // No overscan: a cut-out is transparent at its edges, so drift needs
+        // no headroom, and the subject keeps its size in Depth and Parallax
+        // alike (a scale jump reads as the picture zooming when Parallax turns
+        // on). Breathe is the only thing that scales it.
+        scale: root._idleScale
         rotation: root._idleRot
         opacity: (status === Image.Ready ? 1 : 0) * (root._busyHere ? 0.45 : 1)
         Behavior on opacity { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }

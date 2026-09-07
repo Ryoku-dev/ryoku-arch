@@ -268,7 +268,7 @@ Global only; anything per-wallpaper is in the registry.
 | `motion.mouse` | `true` | Parallax follows the pointer at all |
 | `motion.sensitivity` | `1.0` | the pointer's pull (0..2) |
 | `motion.range` | `1.0` | how far a layer may travel (0..2) |
-| `motion.backdrop` | `1.0` | the inpainted backdrop's own drift (0..1) |
+| `motion.backdrop` | `0` | the inpainted backdrop's own drift (0..1); above 0 a sliver of the base wallpaper shows at the trailing edge |
 | `front` | `[]` | widget ids drawn above the layers marked "in front" when the user lifts specific widgets from the desktop editor |
 
 The daemon reads `quality`; the shell reads the rest. On the first start after
