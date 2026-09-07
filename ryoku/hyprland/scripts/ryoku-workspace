@@ -17,6 +17,8 @@
 #   ryoku-workspace move  <1..PER>   move the active window there (and follow it)
 #   ryoku-workspace hide             stash the focused window in the scratchpad,
 #                                    or pull it back out if it is already there
+#   ryoku-workspace scratch          show the scratchpad, or hide it and hand
+#                                    keyboard focus back to what is on screen
 #
 set -euo pipefail
 
@@ -94,8 +96,30 @@ case "$cmd" in
       hyprctl dispatch "hl.dsp.focus({ workspace = $back })" >/dev/null
     fi
     ;;
+  scratch)
+    # activeworkspace reports the normal workspace under an open overlay, so this
+    # is what is on screen either way.
+    back=$(active_ws)
+    hyprctl dispatch "hl.dsp.workspace.toggle_special(\"$SCRATCH\")" >/dev/null
+    # Hyprland leaves keyboard focus on the window it just hid. The next surface
+    # that takes and releases a keyboard grab (any bar panel or menu) then hands
+    # focus back to it, and focusing a window on a special workspace shows that
+    # workspace: closing a panel would pop the scratchpad straight back open.
+    #
+    # So hiding hands focus to a window that is actually on screen. It has to be a
+    # window, not the workspace: focusing an empty workspace leaves Hyprland with
+    # nothing to focus, so it keeps the hidden window and re-reveals the
+    # scratchpad on the spot. Nothing to hand focus to means leave it alone.
+    if [[ -z $(special_ws) && $back -ge 1 ]]; then
+      addr=$(hyprctl clients -j 2>/dev/null | jq -r --argjson ws "$back" \
+        'map(select(.workspace.id == $ws)) | sort_by(.focusHistoryID) | .[0].address // empty' \
+        || true)
+      [[ -n $addr ]] &&
+        hyprctl dispatch "hl.dsp.focus({ window = \"address:$addr\" })" >/dev/null
+    fi
+    ;;
   *)
-    echo "usage: ryoku-workspace {desktop|focus <1..$PER>|move <1..$PER>|hide}" >&2
+    echo "usage: ryoku-workspace {desktop|focus <1..$PER>|move <1..$PER>|hide|scratch}" >&2
     exit 2
     ;;
 esac
