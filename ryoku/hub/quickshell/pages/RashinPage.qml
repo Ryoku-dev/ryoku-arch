@@ -59,6 +59,9 @@ Item {
     property bool installed: true
     property bool daemonEnabled: false
     property bool running: false
+    // the port the daemon reports, not a literal: a user who changed it in
+    // ~/.config/ryoku/rashin.json still gets a link that resolves.
+    property int port: 3600
     property bool vaultExists: false
     property int vaultFiles: 0
     property bool hermesInstalled: false
@@ -94,6 +97,8 @@ Item {
                     pg.installed = true;
                     pg.daemonEnabled = o.enabled === true;
                     pg.running = o.running === true;
+                    if (typeof o.port === "number" && o.port > 0)
+                        pg.port = o.port;
                     var v = o.vault || ({});
                     pg.vaultExists = v.exists === true;
                     pg.vaultFiles = (typeof v.files === "number") ? v.files : 0;
@@ -155,9 +160,26 @@ Item {
     function runSetup() {
         Spawn.run(["kitty", "--class", "ryoku-rashin-setup", "-e", "ryoku-rashin", "setup"]);
     }
+    // Open the dashboard the daemon actually serves. Two things used to send a
+    // user to a browser error they read as a 404: the port was hardcoded here
+    // while the daemon reads it from its own config, and the button opened the
+    // URL even with nothing listening. Take the port from `status --json` and
+    // start the daemon first when it is down; `ryoku-rashin serve` returns once
+    // the socket is up, so the browser never races it.
     function openDashboard() {
-        Spawn.run(["xdg-open", "http://127.0.0.1:3600"]);
+        var url = "http://127.0.0.1:" + pg.port;
+        if (pg.running) {
+            Spawn.run(["xdg-open", url]);
+            return;
+        }
+        openProc.command = ["sh", "-c",
+            "ryoku-rashin serve --if-enabled >/dev/null 2>&1 & "
+            + "for i in 1 2 3 4 5 6 7 8 9 10; do "
+            + "ryoku-rashin status --json 2>/dev/null | grep -q '\"running\":true' && break; sleep 0.3; done; "
+            + "xdg-open " + url];
+        openProc.running = true;
     }
+    Process { id: openProc; onExited: pg.refresh() }
 
     // ── reusable poster parts ────────────────────────────────────────────────
 
@@ -427,7 +449,7 @@ Item {
                         Text {
                             width: parent.width
                             text: pg.installed
-                                ? (pg.running ? I18n.tr("Running \u00b7 127.0.0.1:3600")
+                                ? (pg.running ? I18n.tr("Running \u00b7 127.0.0.1:%1").arg(pg.port)
                                    : (pg.daemonEnabled ? I18n.tr("Enabled \u00b7 starting\u2026") : I18n.tr("Off \u00b7 switch on to start it with the desktop")))
                                 : I18n.tr("Not installed \u00b7 install ryoku-rashin")
                             color: hx.inkDim; font.family: pg.fMono; font.pixelSize: 11; elide: Text.ElideRight
