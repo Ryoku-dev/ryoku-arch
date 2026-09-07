@@ -129,11 +129,37 @@ Singleton {
     // Device1.Pair registers no agent, so BlueZ cannot authorise a bond; this
     // bluetoothctl brings its own for the call. Its exit code is unreliable,
     // so success is read from the output. Exit 0 paired+connected, 1 pair
-    // failed, 2 connect failed.
+    // failed, 2 connect failed, 3 no usable adapter.
+    //
+    // The failure line is never filtered away. Matching a keyword list first
+    // and printing nothing when nothing matched is how a real cause ("No
+    // default controller available", an org.bluez.Error the list never named)
+    // became a blank string, and the popout then showed its own generic
+    // "put the device in pairing mode" text for every failure. The keyword
+    // pass still runs, because it picks the one interesting line out of
+    // bluetoothctl's chatter, but its miss falls through to the last non-empty
+    // line of real output instead of to silence.
     function pairCommand(mac) {
         const m = String(mac || "");
         const script = `
 mac="$1"
+# the interesting line if one matches, else whatever the tool actually said.
+reason() {
+    local out=$1 line
+    line=$(grep -iE 'Failed|not available|no default controller|not ready|error|refused|timed out|Authentication|Protocol|Blocked|rfkill' <<<"$out" | tail -1)
+    [ -n "$line" ] || line=$(grep -v '^[[:space:]]*$' <<<"$out" | tail -1)
+    printf '%s\\n' "$line"
+}
+# An unpowered or absent controller fails every pair instantly, which reads as
+# "it broke faster than before". Name it instead of blaming the device.
+sout=$(bluetoothctl show 2>&1)
+if grep -qiE 'No default controller available' <<<"$sout"; then
+    printf '%s\\n' "No Bluetooth controller is available (is the adapter blocked by rfkill?)"
+    exit 3
+fi
+if grep -qiE '^[[:space:]]*Powered:[[:space:]]*no' <<<"$sout"; then
+    bluetoothctl power on >/dev/null 2>&1
+fi
 pout=$(bluetoothctl --agent NoInputNoOutput --timeout 25 pair "$mac" 2>&1)
 if grep -qiE 'Pairing successful|already[ -]?paired|Paired: yes|AlreadyExists' <<<"$pout"; then
     bluetoothctl trust "$mac" >/dev/null 2>&1
@@ -141,10 +167,10 @@ if grep -qiE 'Pairing successful|already[ -]?paired|Paired: yes|AlreadyExists' <
     if grep -qiE 'Connection successful|Connected: yes|already connected' <<<"$cout"; then
         exit 0
     fi
-    grep -iE 'Failed|not available|error|refused|timed out' <<<"$cout" | tail -1
+    reason "$cout"
     exit 2
 fi
-grep -iE 'Failed|not available|error|timed out|refused|Authentication|Protocol' <<<"$pout" | tail -1
+reason "$pout"
 exit 1
 `;
         return ["bash", "-c", script, "bash", m];

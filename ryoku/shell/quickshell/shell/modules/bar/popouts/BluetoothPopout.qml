@@ -137,7 +137,12 @@ Item {
     Process {
         id: pairProc
         property string collected: ""
-        stdout: StdioCollector { onStreamFinished: pairProc.collected = this.text }
+        // stderr as well as stdout: the script redirects bluetoothctl's own
+        // stderr, but a failure in the script itself (no bash, no
+        // bluetoothctl) only ever lands here, and losing it is what left the
+        // user with a generic message and no way to tell why.
+        stdout: StdioCollector { onStreamFinished: pairProc.collected += this.text }
+        stderr: StdioCollector { onStreamFinished: pairProc.collected += this.text }
         onExited: code => {
             if (code !== 0) {
                 const lines = pairProc.collected.trim().split("\n");
