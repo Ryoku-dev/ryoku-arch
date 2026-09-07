@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Dialogs
 import shell.services
+import Ryoku.Ui.Singletons
 import "../../../../../components"
 import ".." as Menus
 import "../../../../stage"
@@ -123,9 +124,9 @@ Item {
             text: cr.message
             color: root.ink
             font.family: Theme.fontPrimary
-            font.pixelSize: Theme.fontSm
-            font.weight: Font.DemiBold
-            elide: Text.ElideMiddle
+            font.pixelSize: Theme.fontSm - 1
+            font.weight: Font.Medium
+            elide: Text.ElideRight
         }
         Row {
             id: crBtns
@@ -133,7 +134,7 @@ Item {
             anchors.rightMargin: 6
             anchors.verticalCenter: parent.verticalCenter
             spacing: 4
-            TextBtn { visible: cr.secondary !== ""; label: cr.secondary; onAct: cr.secondaryAct() }
+            TextBtn { visible: cr.secondary !== ""; label: cr.secondary; quiet: true; onAct: cr.secondaryAct() }
             TextBtn { visible: cr.primary !== ""; label: cr.primary; filled: true; onAct: cr.primaryAct() }
         }
     }
@@ -144,8 +145,8 @@ Item {
         property bool filled: false
         property bool quiet: false
         signal act()
-        implicitWidth: tbText.implicitWidth + 24
-        implicitHeight: 32
+        implicitWidth: tbText.implicitWidth + 20
+        implicitHeight: 30
         radius: Theme.radiusWidget - 4
         color: tb.filled ? Theme.primary
             : tbTap.containsMouse ? Qt.rgba(Theme.onSurface.r, Theme.onSurface.g, Theme.onSurface.b, 0.10) : "transparent"
@@ -362,7 +363,7 @@ Item {
                     width: tiles.tileWidth
                     icon: "layers"
                     label: qsTr("Depth")
-                    sub: !root.depthOn ? qsTr("Off") : root.sb.busy ? (qsTr("Cutting") + " " + root.sb.percent + "%") : qsTr("On")
+                    sub: !root.depthOn ? qsTr("Off") : root.sb.busy ? (root.sb.percent + "%") : qsTr("On")
                     on: root.depthOn
                     onToggled: root.toggleDepth()
                 }
@@ -380,7 +381,7 @@ Item {
                 width: parent.width
                 icon: "open_with"
                 label: qsTr("Edit widgets")
-                sub: qsTr("Arrange widgets in front of or behind the subject")
+                sub: qsTr("Arrange them on the desktop")
                 onActivated: root.editWidgets()
             }
 
@@ -600,13 +601,13 @@ Item {
                 }
                 SwitchRow {
                     label: qsTr("React to music")
-                    sub: qsTr("Near layers pulse with the visualizer")
+                    sub: qsTr("Near layers pulse with the beat")
                     on: root.cfg.music
                     onToggled: root.cfg.setMusic(!root.cfg.music)
                 }
                 SwitchRow {
                     label: qsTr("Follow mouse")
-                    sub: qsTr("Layers drift as the pointer moves over the desktop")
+                    sub: qsTr("Layers drift with the pointer")
                     on: root.cfg.followMouse
                     onToggled: root.cfg.setMouse(!root.cfg.followMouse)
                 }
