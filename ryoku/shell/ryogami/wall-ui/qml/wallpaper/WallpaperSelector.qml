@@ -1,6 +1,7 @@
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import QtQuick
 import QtQuick.Shapes
 import QtQuick.Effects
@@ -20,7 +21,21 @@ Scope {
   property alias selectorService: service
   property alias swService: swService
   property alias _whService: whService
+  // Which monitor the picker opens on. Config.mainMonitor is the monitor a
+  // wallpaper APPLIES to by default, which is a different question and is
+  // usually unset (so it fell through to screens[0], the internal panel, no
+  // matter which display you were on). The surface has to follow the focus,
+  // like every other shell surface does, or Super+W opens on the wrong screen
+  // whenever the external display is the one being used (#160). Read at open
+  // time, not bound, so the panel does not hop mid-session when focus moves.
   property string mainMonitor: Config.mainMonitor
+  property string openMonitor: ""
+  function focusedMonitorName() {
+      const m = Hyprland.focusedMonitor;
+      if (m && m.name)
+          return String(m.name);
+      return Quickshell.screens.length > 0 ? String(Quickshell.screens[0].name) : "";
+  }
   property string _activeThemeName: ""
   property var _stageWalls: ({})
   signal wallpaperChanged()
@@ -300,6 +315,9 @@ Scope {
 
   onShowingChanged: {
     if (showing) {
+      // latch the monitor before anything paints: the surface must land where
+      // the user is looking, and must not then chase focus while open.
+      openMonitor = wallpaperSelector.focusedMonitorName()
       _filterBarManuallyShown = Config.filterBarAlwaysVisible
       _restorePending = true
       _bindActiveViewModel()
@@ -553,7 +571,8 @@ Scope {
   PanelWindow {
     id: selectorPanel
 
-    screen: Quickshell.screens.find(s => s.name === wallpaperSelector.mainMonitor)
+    screen: Quickshell.screens.find(s => s.name === wallpaperSelector.openMonitor)
+        ?? Quickshell.screens.find(s => s.name === wallpaperSelector.mainMonitor)
         ?? Quickshell.screens[0]
 
     anchors {
