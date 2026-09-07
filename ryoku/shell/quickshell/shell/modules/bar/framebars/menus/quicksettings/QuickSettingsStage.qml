@@ -54,15 +54,6 @@ Item {
         root.clearArmed = false;
     }
     function tierLabel(t) { return t === "fine" ? "Fine" : t === "standard" ? "Standard" : "Draft"; }
-    function activeMonitor() {
-        const st = ShellState.forActive();
-        return (st && st.modelData) ? st.modelData.name : "";
-    }
-    function editWidgets() {
-        St.StageSession.enterWidgets(root.activeMonitor());
-        if (root.closePanel)
-            root.closePanel();
-    }
     // Depth off drops Parallax with it; Parallax on turns Depth on with it.
     function toggleDepth() { root.sb.setEffect(root.depthOn ? "off" : "depth"); }
     function toggleParallax() { root.sb.setEffect(root.parallaxOn ? "depth" : "parallax"); }
@@ -84,6 +75,30 @@ Item {
         const s = "" + u;
         return s.indexOf("file://") === 0 ? decodeURIComponent(s.slice(7)) : s;
     }
+    // Presets: one tap sets the whole motion. The row shows a preset only
+    // while every knob still matches it; any hand change clears the highlight.
+    readonly property var presets: ({
+        soft:      { amount: "subtle", idle: "float",   speed: 0.6, music: false },
+        cinematic: { amount: "normal", idle: "breathe", speed: 0.4, music: false },
+        beat:      { amount: "strong", idle: "sway",    speed: 1.0, music: true }
+    })
+    readonly property string currentPreset: {
+        for (const id in root.presets) {
+            const p = root.presets[id];
+            if (root.cfg.amount === p.amount && root.cfg.idle === p.idle
+                && Math.abs(root.cfg.speed - p.speed) < 0.01 && root.cfg.music === p.music)
+                return id;
+        }
+        return "";
+    }
+    function applyPreset(id) {
+        const p = root.presets[id];
+        if (!p) return;
+        root.cfg.setAmount(p.amount);
+        root.cfg.setIdle(p.idle);
+        root.cfg.setSpeed(p.speed);
+        root.cfg.setMusic(p.music);
+    }
     function resetLook() {
         root.cfg.setEdge(0.15);
         root.cfg.setShadow(0);
@@ -91,6 +106,8 @@ Item {
         root.cfg.setAmount("normal");
         root.cfg.setIdle("none");
         root.cfg.setMusic(false);
+        root.cfg.setMusicLevel(0.6);
+        root.cfg.setSpeed(1.0);
         root.cfg.setMouse(true);
         root.cfg.setSensitivity(1.0);
         root.cfg.setRange(1.0);
@@ -377,14 +394,6 @@ Item {
                 }
             }
 
-            Menus.QsNavRow {
-                width: parent.width
-                icon: "open_with"
-                label: qsTr("Edit widgets")
-                sub: qsTr("Arrange them on the desktop")
-                onActivated: root.editWidgets()
-            }
-
             Caption {
                 visible: !root.depthOn
                 topPadding: 4
@@ -588,6 +597,12 @@ Item {
                 width: parent.width
                 spacing: 8
                 ChoiceRow {
+                    label: qsTr("Preset")
+                    options: [{ id: "soft", label: "Soft" }, { id: "cinematic", label: "Cinematic" }, { id: "beat", label: "Beat" }]
+                    current: root.currentPreset
+                    onChose: id => root.applyPreset(id)
+                }
+                ChoiceRow {
                     label: qsTr("Amount")
                     options: [{ id: "subtle", label: "Subtle" }, { id: "normal", label: "Normal" }, { id: "strong", label: "Strong" }]
                     current: root.cfg.amount
@@ -595,15 +610,29 @@ Item {
                 }
                 ChoiceRow {
                     label: qsTr("Idle")
-                    options: [{ id: "none", label: "Still" }, { id: "float", label: "Float" }, { id: "breathe", label: "Breathe" }]
+                    options: [{ id: "none", label: "Still" }, { id: "float", label: "Float" }, { id: "breathe", label: "Breathe" }, { id: "sway", label: "Sway" }]
                     current: root.cfg.idle
                     onChose: id => root.cfg.setIdle(id)
+                }
+                KnobRow {
+                    visible: root.cfg.idle !== "none"
+                    label: qsTr("Speed")
+                    value: (root.cfg.speed - 0.25) / 1.75
+                    valueLabel: root.cfg.speed.toFixed(2) + "\u00d7"
+                    onMoved: v => root.cfg.setSpeed(0.25 + v * 1.75)
                 }
                 SwitchRow {
                     label: qsTr("React to music")
                     sub: qsTr("Near layers pulse with the beat")
                     on: root.cfg.music
                     onToggled: root.cfg.setMusic(!root.cfg.music)
+                }
+                KnobRow {
+                    visible: root.cfg.music
+                    label: qsTr("Intensity")
+                    value: root.cfg.musicLevel
+                    valueLabel: root.cfg.musicLevel.toFixed(2)
+                    onMoved: v => root.cfg.setMusicLevel(v)
                 }
                 SwitchRow {
                     label: qsTr("Follow mouse")

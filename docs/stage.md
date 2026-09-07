@@ -39,7 +39,8 @@ Two places, each with one job:
   Done; every change is live and shows its value.
 - **The desktop** (right-click): the two switches, `Edit widgets` (arrange
   widgets in front of or behind the subject), `Customize visualizer`, and
-  `Depth settings...`, which opens the Stage tab.
+  `Depth settings...`, which opens the Stage tab. Edit widgets is reached
+  from the desktop only; the tab is settings, the desktop is arrangement.
 
 There is no shell editor. The bar, dock and menus keep their Hub pages.
 
@@ -55,8 +56,9 @@ Settings
 Reload shell
 ```
 
-The switch cards sit under the rows and above `Depth settings...`. Tapping
-either keeps the menu open so the effect is seen at once.
+The switches are the menu's own choice chips (a bone plate while on, the state
+in the label: `Depth, On`), under the rows and above `Depth settings...`.
+Tapping either keeps the menu open so the effect is seen at once.
 
 - Depth on: `set-effect depth`. Depth off: `set-effect off` (Parallax's switch
   falls with it).
@@ -82,15 +84,12 @@ bottom:
 3. **Two tiles**, side by side like Wi-Fi and Bluetooth on Home: `Depth`
    (sub: `Off`, `On`, or the percentage while cutting) and `Parallax` (sub:
    `Off`, `On`). The whole face toggles; the same rules as the menu switches.
-4. **Edit widgets** (`QsNavRow`): sub `Arrange widgets in front of or behind
-   the subject`. Closes the panel and opens the desktop editor on this monitor.
-
 Everything below appears only while Depth is on. Off, one quiet line takes its
 place: `Turn on Depth to cut the subject out and shape it.` A first enable
 cuts in the current tier (Draft by default: the small model, seconds), so the
 first result is fast and quality is raised afterwards, with a confirm.
 
-5. **Cut quality** (`QsSection`): `Draft | Standard | Fine` (`QsSeg`), a
+4. **Cut quality** (`QsSection`): `Draft | Standard | Fine` (`QsSeg`), a
    caption under it naming the tier's model, size and whether it is installed
    (`Fine: 224 MB, installed`). Choosing another tier changes nothing yet: the
    segment shows the choice and a confirm row appears under the caption:
@@ -100,7 +99,7 @@ first result is fast and quality is raised afterwards, with a confirm.
    - while the engine runs: `Cutting in Fine, 40%` with `Stop`.
    `Re-cut` writes the tier and refreshes; `Cancel` (or leaving the panel)
    drops the choice and the segment snaps back to the tier in use.
-6. **Layers** (`QsSection`): one row per layer, the subject first. A row is
+5. **Layers** (`QsSection`): one row per layer, the subject first. A row is
    the layer's name on the left and `Behind | In front` (`QsSeg`) on the right;
    an added layer also has a remove cross, and, while Parallax is on, a
    `Drift` slider (near to far) under it. Below the rows, two half-width
@@ -109,14 +108,17 @@ first result is fast and quality is raised afterwards, with a confirm.
    <name>` with `Cut` and `Cancel`. `Clear cut-outs` shows `Remove every
    cut-out for this wallpaper` with `Clear` and `Cancel`. `Add a PNG...` is
    immediate (nothing runs).
-7. **Look** (`QsSection`): `Edge` (`QsSlider`, 0..1, value shown) and
+6. **Look** (`QsSection`): `Edge` (`QsSlider`, 0..1, value shown) and
    `Shadow` (`QsSlider`) with the angle dial at the row's end and the degrees
    under it. Both live. A quiet `Reset to defaults` link at the end of the
    section puts edge, shadow, angle and every motion knob back.
-8. **Motion** (`QsSection`, Parallax only): `Amount` `Subtle | Normal |
-   Strong`; `Idle` `Still | Float | Breathe`; `React to music` and `Follow
-   mouse` switch rows; a `Fine-tune pointer` revealer holding `Sensitivity`,
-   `Range` and `Backdrop drift` sliders (shown only while Follow mouse is on).
+7. **Motion** (`QsSection`, Parallax only): `Preset` `Soft | Cinematic |
+   Beat` (one tap sets amount, idle, speed and music; highlighted only while
+   every knob still matches); `Amount` `Subtle | Normal | Strong`; `Idle`
+   `Still | Float | Breathe | Sway` with a `Speed` slider while not still;
+   `React to music` with an `Intensity` slider while on; `Follow mouse`; a
+   `Fine-tune pointer` revealer holding `Sensitivity`, `Range` and `Backdrop
+   drift` sliders (shown only while Follow mouse is on).
 
 The confirm rows share one component: a message on the left, one or two text
 buttons on the right, in the section's own width; nothing floats and nothing
@@ -250,8 +252,10 @@ Global only; anything per-wallpaper is in the registry.
 | `shadow` | `0` | drop shadow behind every layer (0..1) |
 | `shadowAngle` | `90` | shadow direction in degrees, 0 = right, 90 = down |
 | `motion.amount` | `normal` | `subtle` / `normal` / `strong`: cursor drift, and the idle amplitude |
-| `motion.idle` | `none` | `none` / `float` / `breathe` |
+| `motion.idle` | `none` | `none` / `float` / `breathe` / `sway` |
 | `motion.music` | `false` | layers react to the shared spectrum |
+| `motion.musicLevel` | `0.6` | how hard the music pushes (0..1) |
+| `motion.speed` | `1.0` | idle motion speed (0.25..2) |
 | `motion.mouse` | `true` | Parallax follows the pointer at all |
 | `motion.sensitivity` | `1.0` | the pointer's pull (0..2) |
 | `motion.range` | `1.0` | how far a layer may travel (0..2) |
@@ -309,8 +313,12 @@ look, drift by the layer's `depth` x the shared motion Amount x Sensitivity x
 Range while Follow mouse is on, idle and music; z 4), then any widget the user
 lifted into `front` (z 5). Depth is the same
 stack with `motionEnabled: false` and no backdrop, so the still cut is
-pixel-locked over the wallpaper's own subject. There is no second renderer, no
-separate layer-shell surface, and no path that can draw the subject twice.
+pixel-locked over the wallpaper's own subject. While the stage is on and the
+visualizer is `On desktop`, the desktop hosts the visualizer inside this stack
+(`InlineVisualizer` at z 1.5: above the backdrop, below every cut-out and
+widget) and the visualizer's own surface is suppressed (cava keeps running);
+`Above windows` and the Placer use that surface as before. There is no second
+subject renderer, and no path that can draw the subject twice.
 While the engine cuts, the subject layer dims and draws its own progress ring.
 
 The Stage tab sits beside the stack, not in it: `QuickSettingsStage.qml`

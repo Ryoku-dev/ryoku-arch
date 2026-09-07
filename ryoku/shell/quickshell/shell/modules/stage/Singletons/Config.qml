@@ -28,6 +28,9 @@ Singleton {
     readonly property string amount: (root.motion && typeof root.motion.amount === "string") ? root.motion.amount : "normal"
     readonly property string idle: (root.motion && typeof root.motion.idle === "string") ? root.motion.idle : "none"
     readonly property bool music: !!(root.motion && root.motion.music === true)
+    // How hard the music pushes (0..1) and how fast idle motion runs (0.25..2).
+    readonly property real musicLevel: (root.motion && typeof root.motion.musicLevel === "number") ? root.motion.musicLevel : 0.6
+    readonly property real speed: (root.motion && typeof root.motion.speed === "number") ? root.motion.speed : 1.0
     readonly property real amountFactor: root.amount === "subtle" ? 0.5 : root.amount === "strong" ? 1.8 : 1.0
 
     // Parallax pointer + backdrop knobs the Stage tab's Motion section drives. The
@@ -73,7 +76,7 @@ Singleton {
         settle.restart();
     }
     function setAmount(a) { if (["subtle", "normal", "strong"].indexOf(a) >= 0) root._setMotion("amount", a); }
-    function setIdle(i) { if (["none", "float", "breathe"].indexOf(i) >= 0) root._setMotion("idle", i); }
+    function setIdle(i) { if (["none", "float", "breathe", "sway"].indexOf(i) >= 0) root._setMotion("idle", i); }
     function setMusic(on) { root._setMotion("music", on === true); }
 
     // Live (coalesced) motion writes for the drag sliders: update the in-memory
@@ -91,6 +94,8 @@ Singleton {
     function setSensitivity(v) { root._setMotionLive("sensitivity", Math.max(0, Math.min(2, v))); }
     function setRange(v) { root._setMotionLive("range", Math.max(0, Math.min(2, v))); }
     function setBackdrop(v) { root._setMotionLive("backdrop", Math.max(0, Math.min(1, v))); }
+    function setMusicLevel(v) { root._setMotionLive("musicLevel", Math.max(0, Math.min(1, v))); }
+    function setSpeed(v) { root._setMotionLive("speed", Math.max(0.25, Math.min(2, v))); }
 
     Timer {
         id: settle
@@ -113,7 +118,7 @@ Singleton {
             property real edge: 0.15
             property real shadow: 0.0
             property int shadowAngle: 90
-            property var motion: ({ amount: "normal", idle: "none", music: false, mouse: true, sensitivity: 1.0, range: 1.0, backdrop: 1.0 })
+            property var motion: ({ amount: "normal", idle: "none", music: false, musicLevel: 0.6, speed: 1.0, mouse: true, sensitivity: 1.0, range: 1.0, backdrop: 1.0 })
             property var front: []
         }
     }

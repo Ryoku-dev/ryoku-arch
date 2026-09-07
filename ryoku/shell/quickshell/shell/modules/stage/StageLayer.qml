@@ -60,7 +60,7 @@ Item {
     // Music lifts near layers more than far ones, so the stack pulses with depth.
     function _musicY() {
         if (!root.motionEnabled || !Config.music) return 0;
-        return -root.energy * 20 * Config.amountFactor * root._near;
+        return -root.energy * 34 * Config.musicLevel * Config.amountFactor * root._near;
     }
 
     // Idle life: Float bobs vertically, Breathe scales gently. Both are gated to
@@ -74,11 +74,15 @@ Item {
         running: root.layerShown && root._idleOn
         onTriggered: root.animT += 50
     }
-    readonly property real _phase: root.animT / 1000
+    // Speed scales the clock; Sway rocks the layer a degree or two around its
+    // centre, deeper layers less, so the stack leans rather than spins.
+    readonly property real _phase: root.animT / 1000 * Config.speed
     readonly property real _idleY: (root._idleOn && Config.idle === "float")
         ? Math.sin(root._phase * 1.1) * 6 * Config.amountFactor : 0
     readonly property real _idleScale: (root._idleOn && Config.idle === "breathe")
         ? 1 + 0.02 * Config.amountFactor * (0.5 + 0.5 * Math.sin(root._phase * 0.9)) : 1
+    readonly property real _idleRot: (root._idleOn && Config.idle === "sway")
+        ? Math.sin(root._phase * 0.7) * 1.6 * Config.amountFactor * root._near : 0
 
     // Cutting progress rides the subject itself, not a panel (docs/stage.md):
     // the subject layer (index 1) dims and a ring with the percent floats over it.
@@ -96,6 +100,7 @@ Item {
         // Overscan only in Parallax, where drift needs headroom; Depth draws at
         // 1.0 so the still cut lines up with the wallpaper's baked subject.
         scale: (root.motionEnabled ? 1.1 : 1.0) * root._idleScale
+        rotation: root._idleRot
         opacity: (status === Image.Ready ? 1 : 0) * (root._busyHere ? 0.45 : 1)
         Behavior on opacity { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
 

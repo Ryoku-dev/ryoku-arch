@@ -16,6 +16,7 @@ import shell.services as Services
 import "../stage"
 import "../stage/Singletons" as StageCfg
 import "../visualizer/Singletons" as VizCfg
+import "../visualizer" as Viz
 import "../wallpaper" as WallpaperMod
 
 // desktop widgets layer: WlrLayer.Bottom (below windows), instantiated once per
@@ -58,6 +59,8 @@ Scope {
         return StageCfg.Config.isFront(id) ? 5 : 3;
     }
     readonly property var stageState: Services.ShellState.forScreen(root.screen)
+    readonly property bool hostsVisualizer: root.stageOn && VizCfg.Config.enabled
+        && !(root.stageState && (root.stageState.visualizerOverlay || root.stageState.visualizerPlacing))
     readonly property string monitorName: root.screen ? root.screen.name : ""
     // Edit widgets on this monitor frees every widget for dragging and lifts
     // this desktop above open windows; Done restores the per-widget locks.
@@ -386,6 +389,18 @@ Scope {
             wallpaperPath: root.wallpaperPath
             wallpaperFit: root.wallpaperFit
             visible: root.stageParallax
+        }
+
+        // While the stage is on, the visualizer lives inside this surface so it
+        // sits behind every cut-out: above the backdrop, below every layer and
+        // widget. Its own surface (a sibling window that can never interleave
+        // with the subject) is suppressed meanwhile; Above windows and the
+        // Placer keep that surface (docs/stage.md).
+        Item {
+            z: 1.5
+            anchors.fill: parent
+            visible: root.hostsVisualizer
+            Viz.InlineVisualizer { anchors.fill: parent }
         }
 
         // Mirror of the same image for glass widgets: Qt cannot sample another

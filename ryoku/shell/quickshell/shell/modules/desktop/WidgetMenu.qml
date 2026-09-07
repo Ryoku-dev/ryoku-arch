@@ -8,7 +8,6 @@ import Ryoku.Ui.Singletons
 import shell.services as Services
 import "../visualizer/Singletons" as VizCfg
 import "../stage/Singletons" as StageCfg
-import Ryoku.Ui as Ui
 
 // The desktop right-click menu, built on the shared DesktopMenu chrome in the
 // quick-settings sidebar idiom. Two scopes:
@@ -380,75 +379,30 @@ Item {
             onTriggered: Config.set(menu.scope + "Enabled", false)
         }
 
-        // ── the two Stage switches, side by side, above Settings ───────
+        // ── the two Stage switches, side by side (docs/stage.md) ────────
+        // The menu's own choice chips: a bone plate when the effect is on, a
+        // quiet tile when off, the state spelled out in the label.
         MenuSection {}
-        Item {
+        Row {
+            id: stageRow
             visible: !menu.isWidget
             width: parent.width
-            implicitHeight: visible ? 64 : 0
-            Row {
-                id: stageRow
-                anchors.fill: parent
-                anchors.topMargin: Theme.s1
-                anchors.bottomMargin: Theme.s1
-                spacing: Theme.s1
-                readonly property real cw: (width - Theme.s1) / 2
-
-                // A label over a switch: the menu is 248 wide, so a label beside
-                // a switch would not fit two cards abreast.
-                component StageCard: Rectangle {
-                    id: card
-                    property string label: ""
-                    property string value: ""
-                    property bool on: false
-                    signal toggled()
-                    width: stageRow.cw
-                    height: stageRow.height
-                    radius: Theme.menuTileRadius
-                    color: cardMa.pressed ? Theme.tilePress : cardMa.containsMouse ? Theme.tileHover : "transparent"
-                    border.width: 1
-                    border.color: Theme.line
-                    Behavior on color { ColorAnimation { duration: Theme.quick } }
-                    MouseArea {
-                        id: cardMa
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onClicked: card.toggled()
-                    }
-                    Text {
-                        anchors { left: parent.left; leftMargin: Theme.s2; top: parent.top; topMargin: Theme.s2 }
-                        text: card.label
-                        color: card.on ? Theme.ink : Theme.inkSoft
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fBody
-                    }
-                    Ui.Sw {
-                        id: sw
-                        anchors { left: parent.left; leftMargin: Theme.s2; bottom: parent.bottom; bottomMargin: Theme.s2 }
-                        on: card.on
-                        onToggled: card.toggled()
-                    }
-                    Text {
-                        anchors { left: sw.right; leftMargin: Theme.s2; verticalCenter: sw.verticalCenter }
-                        visible: card.value !== ""
-                        text: card.value
-                        color: Theme.inkDim
-                        font.family: Theme.font
-                        font.pixelSize: Theme.fSmall
-                    }
-                }
-
-                StageCard {
-                    label: I18n.tr("Depth")
-                    on: menu.stageEffect !== "off"
-                    value: menu.stageBusy ? (menu.stagePct + "%") : ""
-                    onToggled: menu.toggleDepth()
-                }
-                StageCard {
-                    label: I18n.tr("Parallax")
-                    on: menu.stageEffect === "parallax"
-                    onToggled: menu.toggleParallax()
-                }
+            spacing: Theme.s1
+            readonly property real cw: (width - Theme.s1) / 2
+            MenuChip {
+                width: stageRow.cw
+                height: Theme.ctlH + 6
+                selected: menu.stageEffect !== "off"
+                label: I18n.tr("Depth") + " \u00b7 " + (menu.stageBusy ? (menu.stagePct + "%")
+                    : menu.stageEffect !== "off" ? I18n.tr("On") : I18n.tr("Off"))
+                onClicked: menu.toggleDepth()
+            }
+            MenuChip {
+                width: stageRow.cw
+                height: Theme.ctlH + 6
+                selected: menu.stageEffect === "parallax"
+                label: I18n.tr("Parallax") + " \u00b7 " + (menu.stageEffect === "parallax" ? I18n.tr("On") : I18n.tr("Off"))
+                onClicked: menu.toggleParallax()
             }
         }
 

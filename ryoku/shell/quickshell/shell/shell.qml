@@ -189,7 +189,9 @@ ShellRoot {
                 mode: !VizCfg.Config.enabled ? "off"
                     : (perScreen.st && perScreen.st.visualizerOverlay ? "overlay" : "desktop")
                 placing: perScreen.st ? perScreen.st.visualizerPlacing : false
-                suppressed: false
+                // The desktop hosts the visualizer behind the cut-outs while the
+                // stage is on; this surface steps aside (cava keeps running).
+                suppressed: desktop.hostsVisualizer
                 onPlacingDone: if (perScreen.st) perScreen.st.visualizerPlacing = false
             }
 
