@@ -115,6 +115,26 @@ func (d *daemon) startPowerProfiles() {
 			log.Printf("ryoku-shell: restore power profile %q: %v", saved, err)
 		}
 	}
+	// Nothing saved means this box has never been told which profile to run, so
+	// it is sitting on whatever ppd inherited from the firmware. On a gaming
+	// laptop that is `performance`, which pins the package power limit and holds
+	// the CPU at 80-90 C with the fans up during light use, and nothing in the
+	// desktop ever asked for it. Seed `balanced` once and bank it, so the box
+	// behaves like every other Ryoku install and the choice is visible in the
+	// Hub instead of hidden in firmware. Only `performance` is corrected: a
+	// firmware default of `power-saver` is a deliberately quiet machine, and a
+	// running game already owns the profile.
+	// setProfile rejects a name ppd does not offer, so a box with no `balanced`
+	// simply logs and keeps what it had.
+	if saved == "" && p.activeProfile() == "performance" && !gameModeActive() {
+		const seed = "balanced"
+		if err := p.setProfile(seed); err != nil {
+			log.Printf("ryoku-shell: seed power profile %q: %v", seed, err)
+		} else {
+			p.saved.Store(seed)
+			p.persistProfile(seed)
+		}
+	}
 	// restoreNs before restoreDone so the first post-restore signal sees both.
 	// The first activeProfile() read is not final: ppd can publish its boot
 	// default a beat later, which maybeHandleProfileChange re-asserts over.
