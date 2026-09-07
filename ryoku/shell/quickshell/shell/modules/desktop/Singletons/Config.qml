@@ -137,6 +137,16 @@ Singleton {
         adapter[key] = value;
         file.writeAdapter();
     }
+    // Many keys, one write. A burst of set() calls interleaves file writes with
+    // the watcher's reloads of older versions, and a stale reload followed by
+    // the next write can put an old value back (a Reset restoring thirty keys
+    // lost some this way); assigning everything first and writing once cannot.
+    function setMany(values) {
+        for (const key in values)
+            if (adapter[key] !== values[key])
+                adapter[key] = values[key];
+        file.writeAdapter();
+    }
     // memory-only, no file write. for a live drag like resize: aliases update
     // at once so the widget re-renders; setFree/set on release does the single
     // persisting write.

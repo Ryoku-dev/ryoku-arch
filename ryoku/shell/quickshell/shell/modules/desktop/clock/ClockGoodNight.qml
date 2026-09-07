@@ -7,7 +7,7 @@ import shell.services as Svc
 import Ryoku.Ui.Singletons as Ui
 
 /**
- * Good-night face: a minimal greeting card — a vertical rule, a time-of-day
+ * Good-night face: a minimal greeting card: a vertical rule, a time-of-day
  * greeting stacked in two lines, the weekday in an angular faux-kana stroke
  * alphabet (self-contained, no font dependency, "Japanese style but readable"),
  * the date and the time, closed by a second rule. Drawn on its own dark panel as

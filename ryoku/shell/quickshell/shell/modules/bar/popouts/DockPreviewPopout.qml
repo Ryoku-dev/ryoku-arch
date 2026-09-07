@@ -60,7 +60,7 @@ Popout {
     // desktop-entry app label + icon for the header / capture fallback.
     readonly property var entry: root.shownClass !== "" ? DesktopEntries.heuristicLookup(root.shownClass) : null
     readonly property string appLabel: (root.entry && root.entry.name) ? root.entry.name : root.shownClass
-    readonly property string appIcon: (root.entry && root.entry.icon) ? Quickshell.iconPath(root.entry.icon, true) : ""
+    readonly property string appIcon: (root.entry && root.entry.icon) ? Icons.path(root.entry.icon, true) : ""
 
     // ---- shared Popout wiring (hover-driven, welded to the rail edge) -------
     edge: DockPreview.edge

@@ -235,7 +235,7 @@ PanelWindow {
                             anchors.left: check.right; anchors.leftMargin: 2
                             anchors.verticalCenter: parent.verticalCenter
                             visible: entry.iconName.length > 0
-                            source: entry.iconName.length > 0 ? Quickshell.iconPath(entry.iconName, "") : ""
+                            source: entry.iconName.length > 0 ? Icons.path(entry.iconName, "") : ""
                             sourceSize.width: 14; sourceSize.height: 14
                             width: visible ? 14 : 0; height: 14
                             fillMode: Image.PreserveAspectFit; smooth: true

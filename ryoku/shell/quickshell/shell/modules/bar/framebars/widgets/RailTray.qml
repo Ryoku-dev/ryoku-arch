@@ -36,8 +36,8 @@ Item {
         if (it.iconPath && it.iconPath.length > 0)
             return it.iconPath.indexOf("/") === 0 ? ("file://" + it.iconPath) : it.iconPath;
         if (it.iconName && it.iconName.length > 0)
-            return Quickshell.iconPath(it.iconName, "application-x-executable-symbolic");
-        return Quickshell.iconPath("application-x-executable-symbolic", true);
+            return Icons.path(it.iconName, "application-x-executable-symbolic");
+        return Icons.path("application-x-executable-symbolic", true);
     }
 
     Loader {

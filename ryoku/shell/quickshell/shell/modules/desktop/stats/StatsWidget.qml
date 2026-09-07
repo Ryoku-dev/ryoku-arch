@@ -6,7 +6,7 @@ import "../Singletons"
 
 // System stats panel for the wallpaper: a CPU area chart, ticked metric rows, a
 // dual-line network chart, a disk-usage bar and a block of temps/battery. It is
-// a 1:1 copy of the design preview (/tmp/refimg/p3_stats.qml) — every
+// a 1:1 copy of the design preview (/tmp/refimg/p3_stats.qml): every
 // coordinate, font, size and weight is verbatim; sample values are swapped for
 // live feeds, and text ink follows the wallpaper luminance under the widget so
 // it reads on any backdrop.

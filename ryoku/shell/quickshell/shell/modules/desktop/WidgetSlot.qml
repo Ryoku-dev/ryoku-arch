@@ -28,12 +28,19 @@ Item {
     property real gridSize: 32
     property real zoneMargin: 64
     property real scaleCfg: 1                   // current Config <widget>Scale, for the resize readout
+    // While an Edit widgets session is on, keep the resize bracket present (not
+    // just on hover): the frame overlay above intercepts hover, so a hover-only
+    // bracket would never reveal, leaving the widget un-resizable in the editor.
+    property bool composing: false
 
     signal menuRequested(real x, real y, string widget)
     // emitted on drop with the slot's final pixel box, so the desktop layer can
     // flash the edges it landed on (and any centre line it snapped to). reported
     // one way, as a signal, like menuRequested.
     signal dropped(rect box)
+    // emitted whenever a resize (the corner bracket or Ctrl+wheel) persists a
+    // new scale, so the edit session can mark itself dirty.
+    signal resized()
 
     default property alias content: holder.data
 
@@ -310,7 +317,7 @@ Item {
     Timer {
         id: scalePersist
         interval: 350
-        onTriggered: Config.set(slot.widget + "Scale", slot.scaleCfg)
+        onTriggered: { Config.set(slot.widget + "Scale", slot.scaleCfg); slot.resized(); }
     }
 
     // quick resize: drag the bottom-right bracket to scrub the widget's
@@ -323,7 +330,7 @@ Item {
         height: 22
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        opacity: ((slotHover.hovered && !slot.locked && !slot.dragging) || slot.resizing) ? 1 : 0
+        opacity: (((slotHover.hovered || slot.composing) && !slot.locked && !slot.dragging) || slot.resizing) ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: 120 } }
 
@@ -378,6 +385,7 @@ Item {
                 if (slot.resizing) {
                     Config.setFree(slot.widget, Math.round(slot.resizeOX), Math.round(slot.resizeOY));
                     slot.resizing = false;
+                    slot.resized();
                     guard.restart();
                 }
             }

@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Ryoku.Ui.Singletons
+import shell.services
 
 /**
  * Local screen-time tracking. Every few seconds it asks Hyprland for the
@@ -42,7 +43,7 @@ Singleton {
                 cls: a.cls,
                 seconds: a.seconds,
                 name: (entry && entry.name) ? entry.name : root.prettyClass(a.cls),
-                icon: (entry && entry.icon) ? Quickshell.iconPath(entry.icon, true) : ""
+                icon: (entry && entry.icon) ? Icons.path(entry.icon, true) : ""
             };
         });
     }

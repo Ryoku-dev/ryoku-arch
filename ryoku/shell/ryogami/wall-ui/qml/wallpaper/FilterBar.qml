@@ -626,6 +626,15 @@ Item {
             onClicked: filterBar.settingsToggled()
         }
 
+        FilterButton {
+            colors: filterBar.colors
+            icon: "\u{f0450}"
+            tooltip: DaemonClient.cacheRunning ? "Refreshing the library\u2026" : "Refresh: clear the cache and rescan the folders"
+            isActive: DaemonClient.cacheRunning
+            enabled: !DaemonClient.cacheRunning
+            onClicked: DaemonClient.resetCache(function() {})
+        }
+
         Item {
             width: _countLabel.implicitWidth + 24 + filterBar._skew
             height: 24 * Config.uiScale

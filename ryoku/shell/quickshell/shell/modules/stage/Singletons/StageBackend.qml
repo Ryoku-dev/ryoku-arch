@@ -6,16 +6,11 @@ import Quickshell.Io
 import Ryoku.Ui.Singletons
 
 // The single door to the daemon `stage` topic and the `ryostage` engine
-// (docs/stage.md). It subscribes once to the coalesced, per-wallpaper-keyed
-// frame the daemon publishes, folds the global look from Config into each
-// layer's knobs, and turns every editor gesture into a `ryoku-shell stage`
-// intent. Engine provisioning (check / models / install / remove) reads the
-// `ryostage` helper directly, since those are not daemon verbs. No polling: the
-// frame is the sole source of render + status truth.
+// (docs/stage.md): it subscribes to the per-wallpaper frame, turns editor
+// gestures into `ryoku-shell stage` intents, and reads the engine directly.
 Singleton {
     id: root
 
-    // ── engine helper ─────────────────────────────────────────────────
     readonly property string bin: {
         const d = Quickshell.env("RYOKU_SHELL_DIR");
         return (d && d.length > 0) ? d + "/scripts/ryostage" : "ryostage";
@@ -24,7 +19,7 @@ Singleton {
     property bool checked: false
     property bool installing: false
     property bool removing: false
-    // Full curated catalogue objects: {id,tier,label,size,installed,licence,upstream}.
+    // Curated catalogue objects: {id,tier,label,size,installed,licence,upstream}.
     property var models: []
     property string progress: ""
 
@@ -45,36 +40,14 @@ Singleton {
         removeProc.running = false;
         removeProc.running = true;
     }
-    function modelById(id) {
-        const m = root.models || [];
-        for (var i = 0; i < m.length; i++) if (m[i].id === id) return m[i];
-        return null;
-    }
     function modelByTier(tier) {
         const m = root.models || [];
         for (var i = 0; i < m.length; i++) if (m[i].tier === tier) return m[i];
         return null;
     }
-    // Draft and Standard share the draft-tier model (u2netp); Fine needs the
-    // fine-tier weights. Returns the catalogue entry a quality tier requires.
-    function modelForQuality(q) {
-        return q === "fine" ? root.modelByTier("fine") : root.modelByTier("draft");
-    }
-    function qualityInstalled(q) {
-        const m = root.modelForQuality(q);
-        return !!(m && m.installed === true);
-    }
-    // Open ~/Pictures/Stage/<stem> for the wallpaper (its artifact folder).
-    function openFolder(wallPath) {
-        const p = wallPath || root.current;
-        const stem = root._stemFor(p);
-        const folder = (Quickshell.env("HOME") || "") + "/Pictures/Stage" + (stem ? "/" + stem : "");
-        openProc.command = ["sh", "-c",
-            "mkdir -p \"$1\" && (nautilus \"$1\" 2>/dev/null || gio open \"$1\" 2>/dev/null || xdg-open \"$1\")",
-            "sh", folder];
-        openProc.running = false;
-        openProc.running = true;
-    }
+    // Draft/Standard share the draft-tier model (u2netp); Fine needs the fine tier.
+    function modelForQuality(q) { return q === "fine" ? root.modelByTier("fine") : root.modelByTier("draft"); }
+    function qualityInstalled(q) { const m = root.modelForQuality(q); return !!(m && m.installed === true); }
 
     Process {
         id: checkProc
@@ -82,10 +55,9 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: {
                 root.available = ("" + this.text).trim() === "available";
-                if (root.available)
-                    modelsProc.running = true;
-                else
-                    root.checked = true;
+                // Static catalogue: fetch it even before anything is installed,
+                // so the Quality control has sizes to offer the first Download.
+                modelsProc.running = true;
             }
         }
     }
@@ -116,9 +88,7 @@ Singleton {
         stderr: SplitParser { onRead: line => root.progress = line }
         onExited: { root.removing = false; root.recheck(); }
     }
-    Process { id: openProc }
 
-    // ── daemon `stage` topic ──────────────────────────────────────────
     readonly property string sockPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/ryoku-shell.sock"
     property var frame: ({ current: "", busy: false, stage: "", percent: 0, walls: {} })
 
@@ -126,10 +96,10 @@ Singleton {
     readonly property bool busy: root.frame.busy === true
     readonly property string stage: root.frame.stage || ""
     readonly property int percent: (typeof root.frame.percent === "number") ? root.frame.percent : 0
+    readonly property string effect: root.effectFor(root.current)
 
-    // Optimistic per-layer overlay so a drag on the current wall's knobs shows
-    // instantly instead of waiting for the intent to round-trip through the
-    // daemon and republish. Keyed by "<path>|<index>".
+    // Optimistic per-layer overlay so a front/depth flip shows instantly instead
+    // of waiting for the intent to round-trip the daemon. Keyed "<path>|<i>".
     property var _opt: ({})
 
     function apply(line) {
@@ -142,8 +112,6 @@ Singleton {
         if (!f || typeof f !== "object") return;
         if (!f.walls) f.walls = {};
         root.frame = f;
-        // Drop optimistic entries for walls that are no longer current; the
-        // active editor only ever touches the current wall.
         const keep = {};
         const cur = f.current || "";
         for (const k in root._opt)
@@ -151,9 +119,8 @@ Singleton {
         root._opt = keep;
     }
 
-    // Transient per-monitor cursor (-1..1), shared so a screen's parallax bands
-    // drift in lockstep with its StageBackground. Not persisted; one pair per
-    // output keeps two monitors from fighting over the value.
+    // Transient per-monitor cursor (-1..1), shared so a screen's parallax layers
+    // drift in lockstep with its StageBackdrop; not persisted.
     property var _cursor: ({})
     function setCursor(name, nx, ny) {
         const next = {};
@@ -164,23 +131,28 @@ Singleton {
     function cursorNXFor(name) { const e = root._cursor && root._cursor[name]; return e ? e.nx : 0; }
     function cursorNYFor(name) { const e = root._cursor && root._cursor[name]; return e ? e.ny : 0; }
 
-    // ── per-wall lookups (each monitor reads its own wallpaper path) ───
+    // Per-wall lookups (each monitor reads its own wallpaper path).
     function wallOf(path) { return (path && root.frame.walls) ? (root.frame.walls[path] || null) : null; }
     function effectFor(path) { const w = root.wallOf(path); return w && w.effect ? w.effect : "off"; }
-    function modeFor(path) { const w = root.wallOf(path); return w && w.mode ? w.mode : "auto"; }
     function layersFor(path) { const w = root.wallOf(path); return (w && w.layers) ? w.layers : []; }
     function subjectFor(path) { const w = root.wallOf(path); return (w && w.subject) ? w.subject : ""; }
     function backgroundFor(path) { const w = root.wallOf(path); return (w && w.background) ? w.background : ""; }
     function layerCountFor(path) { return root.layersFor(path).length; }
-    // Active = an effect is on and there is at least one cut layer to draw.
     function isActiveFor(path) { return root.effectFor(path) !== "off" && root.layerCountFor(path) > 0; }
     function isParallaxFor(path) { return root.effectFor(path) === "parallax" && root.layerCountFor(path) > 0; }
-    function isSubjectFor(path) { return root.effectFor(path) === "subject" && root.layerCountFor(path) > 0; }
 
+    // The subject (layer 0) draws from the top-level `subject`, set only once the
+    // cut lands; every url is busted with the per-wall `rev`.
     function layerUrlFor(path, i) {
+        const w = root.wallOf(path);
+        const rev = (w && w.rev) ? w.rev : 0;
+        if (i === 0) {
+            const s = root.subjectFor(path);
+            return s === "" ? "" : "file://" + s + "?v=" + rev;
+        }
         const ls = root.layersFor(path);
         if (i < 0 || i >= ls.length || !ls[i] || !ls[i].out) return "";
-        return "file://" + ls[i].out + "?v=" + (ls[i].rev || 0);
+        return "file://" + ls[i].out + "?v=" + rev;
     }
     function backgroundUrlFor(path) {
         const bg = root.backgroundFor(path);
@@ -189,19 +161,7 @@ Singleton {
         return "file://" + bg + "?v=" + (w && w.rev ? w.rev : 0);
     }
 
-    // Current-wall convenience for the sidebar panel.
-    readonly property var wall: root.wallOf(root.current)
-    readonly property string effect: root.effectFor(root.current)
-    readonly property string mode: root.modeFor(root.current)
-    readonly property var layers: root.layersFor(root.current)
-    readonly property int layerCount: root.layers.length
-    readonly property string subject: root.subjectFor(root.current)
-    readonly property string background: root.backgroundFor(root.current)
-
-    // ── per-layer knobs, folding the global look for inherited fields ──
-    // Merged raw layer object (frame ∪ optimistic overlay); callers fold the
-    // global look for the inherited fields via layer*(…, inherit).
-    function layerData(path, i) { return root._raw(path, i); }
+    // Per-layer properties (frame ∪ optimistic overlay): on/off, front, depth.
     function _raw(path, i) {
         const opt = root._opt[path + "|" + i];
         const ls = root.layersFor(path);
@@ -213,90 +173,32 @@ Singleton {
         return out;
     }
     function _num(v, def) { return (typeof v === "number") ? v : def; }
-    // feather/lift/shadow/shadowAngle inherit the caller's global look (Config)
-    // when the layer has no own value; StageBackend stays free of Config so the
-    // singletons don't cross-reference.
-    function layerFeather(path, i, inherit) { return root._num(root._raw(path, i).feather, inherit); }
-    function layerLift(path, i, inherit) { return root._num(root._raw(path, i).lift, inherit); }
-    function layerShadow(path, i, inherit) { return root._num(root._raw(path, i).shadow, inherit); }
-    function layerShadowAngle(path, i, inherit) { return root._num(root._raw(path, i).shadowAngle, inherit); }
     function layerEnabled(path, i) { return root._raw(path, i).enabled !== false; }
-    function layerOpacity(path, i) { return root._num(root._raw(path, i).opacity, 1); }
-    function layerParallax(path, i) { return root._num(root._raw(path, i).parallax, 1); }
-    function layerDepthFactor(path, i) { return root._num(root._raw(path, i).depthFactor, 0.5); }
-    function layerOffsetX(path, i) { return root._num(root._raw(path, i).offsetX, 0); }
-    function layerOffsetY(path, i) { return root._num(root._raw(path, i).offsetY, 0); }
-    function layerMouseMax(path, i) { return root._num(root._raw(path, i).mouseMax, 32); }
-    function layerAudioLevel(path, i) { return root._num(root._raw(path, i).audioLevel, 0); }
-    function layerAnimType(path, i) { const t = root._raw(path, i).animType; return (typeof t === "string") ? t : "none"; }
-    function layerAnimSpeed(path, i) { return root._num(root._raw(path, i).animSpeed, 0.5); }
-    function layerAnimAmplitude(path, i) { return root._num(root._raw(path, i).animAmplitude, 10); }
+    function layerFront(path, i) { return root._raw(path, i).front === true; }
+    function layerDepth(path, i) { return root._num(root._raw(path, i).depth, 0.5); }
     function layerLabel(path, i) {
         const l = root._raw(path, i);
         const lbl = (typeof l.label === "string" && l.label.length) ? l.label : "";
         if (lbl) return lbl.charAt(0).toUpperCase() + lbl.slice(1);
-        return I18n.tr("Layer %1").arg(i + 1);
-    }
-    function layerPathName(path, i) {
-        const out = root._raw(path, i).out || "";
-        return out.split("/").pop();
-    }
-    function layerOut(path, i) { return root._raw(path, i).out || ""; }
-
-    // ── scene z (per path), matching the parallax interleave ──────────
-    readonly property var builtinWidgetIds: ["clock", "calendar", "music", "aio", "stats", "weather", "notes"]
-    function defaultSceneFor(path) {
-        const out = ["wallpaper"];
-        const n = root.layerCountFor(path);
-        for (var i = 1; i <= n; i++) out.push("layer:" + i);
-        for (const w of root.builtinWidgetIds) out.push("widget:" + w);
-        out.push("visualizer");
-        return out;
-    }
-    function effectiveSceneFor(path) {
-        const w = root.wallOf(path);
-        const s = (w && w.scene && w.scene.length) ? w.scene : [];
-        return s.length ? s : root.defaultSceneFor(path);
-    }
-    function sceneIndexOfFor(path, name) { return root.effectiveSceneFor(path).indexOf(name); }
-    function sceneZFor(path, name) {
-        const i = root.sceneIndexOfFor(path, name);
-        return i < 0 ? 0 : i * 2 + 1;
-    }
-    function sceneGapZFor(path) {
-        const s = root.effectiveSceneFor(path);
-        for (var i = s.length - 1; i >= 0; i--)
-            if (s[i].indexOf("layer:") === 0) return i * 2 + 1.5;
-        return 1;
-    }
-    function widgetZFor(path, id) {
-        const i = root.sceneIndexOfFor(path, "widget:" + id);
-        return i >= 0 ? i * 2 + 2 : root.sceneGapZFor(path);
+        return i === 0 ? I18n.tr("Subject") : I18n.tr("Layer %1").arg(i + 1);
     }
 
-    function _stemFor(path) {
-        if (!path) return "";
-        const base = path.split("/").pop();
-        return base.replace(/\.[^.]+$/, "");
-    }
-
-    // ── verbs (fire-and-forget; the topic republish is the confirmation) ─
+    // Verbs (fire-and-forget; the topic republish is the confirmation).
     function call(verb) {
         const cmd = ["ryoku-shell", "stage", verb];
         for (var i = 1; i < arguments.length; i++) cmd.push("" + arguments[i]);
         Quickshell.execDetached(cmd);
     }
     function setEffect(e) { root.call("set-effect", e); }
-    function setMode(m) { root.call("set-mode", m); }
     function refresh() { root.call("refresh"); }
     function cancel() { root.call("cancel"); }
-    function setScene(arr) { root.call("set-scene", JSON.stringify(arr || [])); }
-    function addLayer(p) { root.call("add-layer", p); }
-    function removeLayer(p) { root.call("remove-layer", p); }
+    function addLayer(png) { root.call("add-layer", png); }
+    function cutLayer(picture) { root.call("cut-layer", picture); }
+    function removeLayer(index) { root.call("remove-layer", index); }
     function clear() { root.call("clear"); }
-    // Per-layer knob edits coalesce: the optimistic overlay shows the value now,
-    // one settle flush sends the merged JSON so a drag is a single intent, not
-    // one per pixel.
+
+    // Per-layer edits coalesce: the overlay shows the value now, one settle flush
+    // sends the merged JSON so a drag is one intent.
     property var _pending: ({})
     function setLayer(i, obj) {
         const path = root.current;
@@ -313,7 +215,8 @@ Singleton {
         root._pending[i] = merged;
         layerSettle.restart();
     }
-    function toggleLayerEnabled(i) { root.setLayer(i, { enabled: !root.layerEnabled(root.current, i) }); }
+    function setLayerFront(i, front) { root.setLayer(i, { front: front === true }); }
+    function setLayerDepth(i, v) { root.setLayer(i, { depth: Math.max(0, Math.min(1, v)) }); }
     Timer {
         id: layerSettle
         interval: 300

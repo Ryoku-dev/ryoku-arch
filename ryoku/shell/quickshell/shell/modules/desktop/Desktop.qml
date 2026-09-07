@@ -15,8 +15,8 @@ import Ryoku.PluginKit
 import shell.services as Services
 import "../stage"
 import "../stage/Singletons" as StageCfg
-import "../visualizer"
 import "../visualizer/Singletons" as VizCfg
+import "../visualizer" as Viz
 import "../wallpaper" as WallpaperMod
 
 // desktop widgets layer: WlrLayer.Bottom (below windows), instantiated once per
@@ -45,24 +45,180 @@ Scope {
     // while the C player owns the background layer.
     property bool wallpaperLive: false
 
-    // The Stage parallax backdrop (modules/stage/StageBackground.qml) owns the
-    // screen's backdrop while this wallpaper's layers are cut (docs/stage.md).
-    readonly property bool stageParallaxOwns: StageCfg.StageBackend.isParallaxFor(root.wallpaperPath)
+    // Stage z-ordering (docs/stage.md): behind-layers sit below the widgets
+    // (z 2), in-front layers above them (z 4), and a widget the user lifted
+    // (Config.front) rises above even the in-front layers (z 5). Gated off for
+    // video/live walls, which the daemon skips.
+    readonly property bool stageOn: StageCfg.StageBackend.isActiveFor(root.wallpaperPath)
+        && root.videoUrl === "" && !root.wallpaperLive
+    readonly property bool stageParallax: StageCfg.StageBackend.isParallaxFor(root.wallpaperPath)
         && root.videoUrl === "" && !root.wallpaperLive
     function widgetZ(id) {
-        if (StageCfg.StageBackend.isParallaxFor(root.wallpaperPath))
-            return StageCfg.StageBackend.widgetZFor(root.wallpaperPath, id);
-        if (StageCfg.StageBackend.isSubjectFor(root.wallpaperPath))
-            return StageCfg.Config.isFront(id) ? 1 : 0;
-        return 0;
+        if (!root.stageOn)
+            return 0;
+        return StageCfg.Config.isFront(id) ? 5 : 3;
     }
     readonly property var stageState: Services.ShellState.forScreen(root.screen)
-    // Compose mode frees every widget for dragging (like visualiser placement),
-    // so a locked clock can still be nestled against the subject; Done restores it.
-    readonly property bool stageComposing: root.stageState ? root.stageState.stageComposing : false
+    readonly property bool hostsVisualizer: root.stageOn && VizCfg.Config.enabled
+        && !(root.stageState && (root.stageState.visualizerOverlay || root.stageState.visualizerPlacing))
+    readonly property string monitorName: root.screen ? root.screen.name : ""
+    // Edit widgets on this monitor frees every widget for dragging and lifts
+    // this desktop above open windows; Done restores the per-widget locks.
+    readonly property bool stageComposing: StageCfg.StageSession.onMonitor(root.monitorName)
     // Grab the keyboard while composing so Esc/Enter exit the mode (the bar owns
     // the keys); dropping it hands the keyboard back like any widget edit.
-    onStageComposingChanged: win.kbWanted += root.stageComposing ? 1 : -1
+    onStageComposingChanged: {
+        win.kbWanted += root.stageComposing ? 1 : -1;
+        if (root.stageComposing)
+            root._snapshot();
+    }
+    // Human titles for the built-in widgets, for the frame labels.
+    function widgetTitle(w) {
+        const n = { clock: "Clock", calendar: "Calendar", music: "Music", aio: "All-in-one", stats: "System stats", weather: "Weather", notes: "Notes" };
+        return n[w] || w;
+    }
+    // The Add drop-down's model (docs/stage.md, "Edit widgets"): every widget
+    // with its current on/off state. Built-ins and the visualizer read their
+    // config flags; the plugins are the Registry's placed desktopWidgets.
+    readonly property var addItems: {
+        const bi = [
+            { id: "clock", label: "Clock", icon: "schedule", enabled: Config.clockEnabled },
+            { id: "calendar", label: "Calendar", icon: "calendar_month", enabled: Config.calendarEnabled },
+            { id: "music", label: "Music", icon: "music_note", enabled: Config.musicEnabled },
+            { id: "aio", label: "All-in-one", icon: "dashboard", enabled: Config.aioEnabled },
+            { id: "stats", label: "System stats", icon: "monitor_heart", enabled: Config.statsEnabled },
+            { id: "weather", label: "Weather", icon: "partly_cloudy_day", enabled: Config.weatherEnabled },
+            { id: "notes", label: "Notes", icon: "sticky_note_2", enabled: Config.notesEnabled }
+        ];
+        const pl = (win.desktopPluginIds || []).map(pid => {
+            const e = Registry.plugins.find(p => p.id === pid);
+            return { id: "plugin:" + pid, label: (e && e.manifest && e.manifest.name) ? e.manifest.name : pid, icon: "widgets", enabled: true };
+        });
+        const viz = [{ id: "visualizer", label: "Visualizer", icon: "graphic_eq", enabled: VizCfg.Config.enabled }];
+        return bi.concat(pl).concat(viz);
+    }
+    // Add-drop-down toggle: on enables (a built-in flag, a plugin placement, or
+    // the visualizer), off runs the same Remove path. Every toggle marks the
+    // session dirty so Reset appears.
+    function stageAddToggle(id) {
+        if (id === "visualizer") {
+            VizCfg.Config.setEnabled(!VizCfg.Config.enabled);
+            StageCfg.StageSession.markDirty();
+            return;
+        }
+        if (id.indexOf("plugin:") === 0) {
+            const pid = id.slice(7);
+            const on = (win.desktopPluginIds || []).indexOf(pid) >= 0;
+            paletteProc.command = [root.placeTool, pid, "enabled", on ? "false" : "true"];
+            paletteProc.running = true;
+            StageCfg.StageSession.markDirty();
+            return;
+        }
+        Config.set(id + "Enabled", !Config[id + "Enabled"]);
+        StageCfg.StageSession.markDirty();
+    }
+    // The built-in slot behind a widget id, for placing its Settings menu.
+    function _builtinSlot(id) {
+        switch (id) {
+        case "clock": return clockSlot;
+        case "calendar": return calendarSlot;
+        case "music": return musicSlot;
+        case "aio": return aioSlot;
+        case "stats": return statsSlot;
+        case "weather": return weatherSlot;
+        case "notes": return notesSlot;
+        }
+        return null;
+    }
+    // A widget frame's Settings button: open that built-in's own menu at the
+    // frame's corner (its design, lock, size, opacity, colour, snap).
+    function stageOpenSettings(id) {
+        const s = root._builtinSlot(id);
+        if (s)
+            menu.openFor(id, s.x, s.y);
+        else
+            menu.openFor(id, 120, 120);
+    }
+    // A widget frame's Remove button: hide the built-in and drop any selection.
+    function stageRemoveWidget(id) {
+        Config.set(id + "Enabled", false);
+        if (StageCfg.StageSession.selected === id)
+            StageCfg.StageSession.deselect();
+        StageCfg.StageSession.markDirty();
+    }
+    // Reset snapshot (docs/stage.md, "Edit widgets"): the widgets Config and the
+    // placed plugin set as they were when this session opened, captured on enter
+    // and written back on resetRequested.
+    readonly property var _widgetKeys: [
+        "clockEnabled", "clockDesign", "clock24h", "clockSeconds", "clockAccent", "clockScale", "clockAnchor", "clockX", "clockY", "clockLocked", "clockOpacity", "clockBg", "clockRadius", "clockColor", "clockColor2", "clockGradient", "dateShow", "dateDesign", "widgetFont",
+        "calendarEnabled", "calendarStyle", "calendarWeeks", "calendarWeekNumbers", "calendarHolidayRegion", "calendarScale", "calendarAnchor", "calendarX", "calendarY", "calendarLocked", "calendarOpacity", "calendarColor", "calendarColor2", "calendarGradient",
+        "musicEnabled", "musicStyle", "musicLyrics", "musicViz", "musicScale", "musicAnchor", "musicX", "musicY", "musicLocked", "musicOpacity", "musicApp", "musicShape", "musicVideo", "musicVideoFile", "musicColor", "musicColor2", "musicGradient",
+        "aioEnabled", "aioStyle", "aioScale", "aioAnchor", "aioX", "aioY", "aioLocked", "aioOpacity", "aioColor", "aioColor2", "aioGradient",
+        "statsEnabled", "statsScale", "statsAnchor", "statsX", "statsY", "statsLocked", "statsOpacity", "statsColor", "statsColor2", "statsGradient",
+        "weatherEnabled", "weatherDesign", "weatherScale", "weatherAnchor", "weatherX", "weatherY", "weatherLocked", "weatherOpacity", "weatherColor", "weatherColor2", "weatherGradient",
+        "notesEnabled", "notesScale", "notesAnchor", "notesX", "notesY", "notesLocked", "notesOpacity", "notesWidth", "notesHeight", "notesColor", "notesColor2", "notesGradient"
+    ]
+    property var _snapConfig: null
+    property var _snapPlugins: null
+    property var _resetQueue: []
+    function _snapshot() {
+        const c = {};
+        const ks = root._widgetKeys;
+        for (var i = 0; i < ks.length; i++)
+            c[ks[i]] = Config[ks[i]];
+        root._snapConfig = c;
+        const pl = {};
+        const dps = win.desktopPlugins || [];
+        for (var j = 0; j < dps.length; j++) {
+            const p = dps[j];
+            const dw = (p.placement && p.placement.desktopWidget) || {};
+            pl[p.id] = { x: dw.x, y: dw.y, scale: dw.scale, locked: dw.locked === true };
+        }
+        root._snapPlugins = pl;
+    }
+    function _restore() {
+        if (root._snapConfig) {
+            const c = root._snapConfig;
+            const ks = root._widgetKeys;
+            const back = {};
+            for (var i = 0; i < ks.length; i++)
+                if (Config[ks[i]] !== c[ks[i]])
+                    back[ks[i]] = c[ks[i]];
+            Config.setMany(back);
+        }
+        const q = [];
+        const snap = root._snapPlugins || {};
+        const nowIds = win.desktopPluginIds || [];
+        for (var n = 0; n < nowIds.length; n++)
+            if (!snap.hasOwnProperty(nowIds[n]))
+                q.push([root.placeTool, nowIds[n], "enabled", "false"]);
+        for (var pid in snap) {
+            const s = snap[pid];
+            if (nowIds.indexOf(pid) < 0)
+                q.push([root.placeTool, pid, "enabled", "true"]);
+            const cmd = [root.placeTool, pid, "desktopWidget",
+                "" + (s.x !== undefined ? s.x : 80), "" + (s.y !== undefined ? s.y : 80)];
+            if (s.scale !== undefined) cmd.push("" + s.scale);
+            if (s.locked !== undefined) cmd.push("" + (s.locked === true));
+            q.push(cmd);
+        }
+        root._resetQueue = q;
+        root._runResetQueue();
+    }
+    function _runResetQueue() {
+        if (resetProc.running)
+            return;
+        if (!root._resetQueue || root._resetQueue.length === 0)
+            return;
+        const next = root._resetQueue.shift();
+        resetProc.command = next;
+        resetProc.running = true;
+    }
+    // Gate every widget's visibility on the layer being sized and Config +
+    // Registry loaded, so nothing flashes at its default before the real
+    // enabled flags arrive. An undefined here would short-circuit the visible
+    // bindings to undefined and leave them at their `true` default, rendering
+    // disabled widgets.
     readonly property bool reloadReady: readiness.ready
 
     ReloadReadiness {
@@ -118,7 +274,9 @@ Scope {
         visible: root.active
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
-        WlrLayershell.layer: WlrLayer.Bottom
+        // Editing lifts the desktop above open windows so the stage is never
+        // obscured by whatever was in front; Done drops it back under them.
+        WlrLayershell.layer: root.stageComposing ? WlrLayer.Top : WlrLayer.Bottom
         WlrLayershell.namespace: "ryoku-widgets"
         // None while nothing on this layer wants the keyboard, so this
         // full-screen Bottom layer never holds focus on an empty workspace
@@ -191,6 +349,8 @@ Scope {
             if (Math.abs(box.y + box.height / 2 - guides.height / 2) < gs / 2)
                 h.push(guides.height / 2);
             guides.flash(v, h);
+            if (root.stageComposing)
+                StageCfg.StageSession.markDirty();
         }
 
         // The base wallpaper painter: the reveal backdrop composites each new
@@ -202,9 +362,10 @@ Scope {
         WallpaperMod.Backdrop {
             id: backdrop
             anchors.fill: parent
-            // cava-bg model: while the parallax surface owns the background
-            // layer, this window only carries widgets and chrome.
-            visible: !root.stageParallaxOwns
+            // The base wallpaper draws under the stage (Parallax's StageBackdrop
+            // covers its baked subject, Depth locks the still cut over it), and
+            // yields to the ryogami-live player on its own `live` rule: forcing
+            // it visible painted the still over every video wallpaper.
             readonly property real screenDpr: (root.screen && root.screen.devicePixelRatio) ? root.screen.devicePixelRatio : 1
             dpr: screenDpr
             // Keep the still decoded while a video plays: the frame path is
@@ -217,6 +378,29 @@ Scope {
             live: root.wallpaperLive
             videoMuted: root.videoMuted
             videoVolume: root.videoVolume
+        }
+
+        // The Parallax backdrop: the inpainted background.png drifting just
+        // above the base wallpaper, covering its baked subject. Only Parallax
+        // shows it; it also owns the per-monitor cursor poll (docs/stage.md).
+        StageBackdrop {
+            z: 1
+            screen: root.screen
+            wallpaperPath: root.wallpaperPath
+            wallpaperFit: root.wallpaperFit
+            visible: root.stageParallax
+        }
+
+        // While the stage is on, the visualizer lives inside this surface so it
+        // sits behind every cut-out: above the backdrop, below every layer and
+        // widget. Its own surface (a sibling window that can never interleave
+        // with the subject) is suppressed meanwhile; Above windows and the
+        // Placer keep that surface (docs/stage.md).
+        Item {
+            z: 1.5
+            anchors.fill: parent
+            visible: root.hostsVisualizer
+            Viz.InlineVisualizer { anchors.fill: parent }
         }
 
         // Mirror of the same image for glass widgets: Qt cannot sample another
@@ -255,6 +439,24 @@ Scope {
             acceptedButtons: Qt.RightButton
             onPressed: (mouse) => menu.openDesktop(mouse.x, mouse.y)
         }
+        // Left-click on bare wallpaper unwinds one level while composing (an
+        // open drop-down, then the selection, then the session), the same order
+        // Escape uses. It sits below the widgets, so a click on a widget still
+        // reaches it, and it takes only the left button so the right-click menu
+        // still opens.
+        MouseArea {
+            anchors.fill: parent
+            enabled: root.stageComposing
+            acceptedButtons: Qt.LeftButton
+            onPressed: {
+                if (StageCfg.StageSession.panel !== "")
+                    StageCfg.StageSession.closePanel();
+                else if (StageCfg.StageSession.selected !== "")
+                    StageCfg.StageSession.deselect();
+                else
+                    StageCfg.StageSession.leave();
+            }
+        }
 
         // click-off for the notes pad: while it holds the keyboard, a press on
         // the bare wallpaper must drop its focus (and the layer's exclusive
@@ -287,13 +489,15 @@ Scope {
             anchor: Config.clockAnchor
             freeX: Config.clockX
             freeY: Config.clockY
-            locked: Config.clockLocked && !root.stageComposing
+            locked: root.stageComposing ? false : Config.clockLocked
+            composing: root.stageComposing
             bg: Config.clockBg
             radius: Config.clockRadius
             scaleCfg: Config.clockScale
             pad: Config.clockBg === "none" ? 0 : Math.round(24 * Config.clockScale)
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
             onDropped: (box) => win.flashDrop(box)
+            onResized: if (root.stageComposing) StageCfg.StageSession.markDirty()
             Clock {}
         }
 
@@ -305,11 +509,13 @@ Scope {
             anchor: Config.calendarAnchor
             freeX: Config.calendarX
             freeY: Config.calendarY
-            locked: Config.calendarLocked && !root.stageComposing
+            locked: root.stageComposing ? false : Config.calendarLocked
+            composing: root.stageComposing
             bg: "none"
             scaleCfg: Config.calendarScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
             onDropped: (box) => win.flashDrop(box)
+            onResized: if (root.stageComposing) StageCfg.StageSession.markDirty()
             CalendarWidget {
                 style: Config.calendarStyle
                 weeks: Config.calendarWeeks
@@ -331,11 +537,13 @@ Scope {
             anchor: Config.musicAnchor
             freeX: Config.musicX
             freeY: Config.musicY
-            locked: Config.musicLocked && !root.stageComposing
+            locked: root.stageComposing ? false : Config.musicLocked
+            composing: root.stageComposing
             bg: "none"
             scaleCfg: Config.musicScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
             onDropped: (box) => win.flashDrop(box)
+            onResized: if (root.stageComposing) StageCfg.StageSession.markDirty()
             MusicWidget {
                 style: Config.musicStyle
                 showLyrics: Config.musicLyrics
@@ -360,11 +568,13 @@ Scope {
             anchor: Config.aioAnchor
             freeX: Config.aioX
             freeY: Config.aioY
-            locked: Config.aioLocked && !root.stageComposing
+            locked: root.stageComposing ? false : Config.aioLocked
+            composing: root.stageComposing
             bg: "none"
             scaleCfg: Config.aioScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
             onDropped: (box) => win.flashDrop(box)
+            onResized: if (root.stageComposing) StageCfg.StageSession.markDirty()
             AioWidget {
                 style: Config.aioStyle
                 s: Config.aioScale
@@ -380,11 +590,13 @@ Scope {
             anchor: Config.statsAnchor
             freeX: Config.statsX
             freeY: Config.statsY
-            locked: Config.statsLocked && !root.stageComposing
+            locked: root.stageComposing ? false : Config.statsLocked
+            composing: root.stageComposing
             bg: "none"
             scaleCfg: Config.statsScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
             onDropped: (box) => win.flashDrop(box)
+            onResized: if (root.stageComposing) StageCfg.StageSession.markDirty()
             StatsWidget {
                 s: Config.statsScale
                 active: statsSlot.visible
@@ -399,11 +611,13 @@ Scope {
             anchor: Config.weatherAnchor
             freeX: Config.weatherX
             freeY: Config.weatherY
-            locked: Config.weatherLocked && !root.stageComposing
+            locked: root.stageComposing ? false : Config.weatherLocked
+            composing: root.stageComposing
             bg: "none"
             scaleCfg: Config.weatherScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
             onDropped: (box) => win.flashDrop(box)
+            onResized: if (root.stageComposing) StageCfg.StageSession.markDirty()
             WeatherWidget {
                 design: Config.weatherDesign
                 s: Config.weatherScale
@@ -419,11 +633,13 @@ Scope {
             anchor: Config.notesAnchor
             freeX: Config.notesX
             freeY: Config.notesY
-            locked: Config.notesLocked && !root.stageComposing
+            locked: root.stageComposing ? false : Config.notesLocked
+            composing: root.stageComposing
             bg: "none"
             scaleCfg: Config.notesScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
             onDropped: (box) => win.flashDrop(box)
+            onResized: if (root.stageComposing) StageCfg.StageSession.markDirty()
             // notes is the first built-in editable widget: while its pad holds
             // focus the layer must grab the keyboard (bump kbWanted), and drop
             // the grab the instant it blurs, or the desktop is stranded.
@@ -460,7 +676,8 @@ Scope {
 
                 pluginId: slot.pid
                 visible: root.reloadReady
-                locked: (slot.dw.locked === true) && !root.stageComposing
+                locked: root.stageComposing ? false : (slot.dw.locked === true)
+                composing: root.stageComposing
                 scaleCfg: slot.dw.scale || 0.85
                 freeX: slot.dw.x !== undefined ? slot.dw.x : 80
                 freeY: slot.dw.y !== undefined ? slot.dw.y : 80
@@ -470,6 +687,7 @@ Scope {
                 onMoved: (x, y) => {
                     persist.command = [root.placeTool, slot.pid, "desktopWidget", "" + x, "" + y];
                     persist.running = true;
+                    if (root.stageComposing) StageCfg.StageSession.markDirty();
                 }
                 onResized: (sc) => {
                     const x = (slot.dw.x !== undefined) ? slot.dw.x : Math.round(slot.x);
@@ -478,6 +696,7 @@ Scope {
                     persist.command = [root.placeTool, slot.pid, "desktopWidget",
                         "" + x, "" + y, "" + sc, "" + lk];
                     persist.running = true;
+                    if (root.stageComposing) StageCfg.StageSession.markDirty();
                 }
                 onMenuRequested: (mx, my, id) => {
                     pluginMenu.openFor(id, slot.dw.locked === true, mx, my,
@@ -519,62 +738,93 @@ Scope {
                     it.widthBudget = 360;
                     it.active = true;
                 }
+
+                // Edit-session frame, reparented to the overlay so it sits above
+                // the tile and its chrome is always placed.
+                StageOutline {
+                    parent: composeOverlay
+                    visible: root.stageComposing
+                    box: Qt.rect(slot.x, slot.y, slot.width, slot.height)
+                    title: (slot.entry && slot.entry.manifest && slot.entry.manifest.name) ? slot.entry.manifest.name : slot.pid
+                    selected: StageCfg.StageSession.selected === slot.pid
+                    onPicked: { StageCfg.StageSession.select(slot.pid); StageCfg.StageSession.closePanel(); }
+                    onSettings: pluginMenu.openFor(slot.pid, slot.dw.locked === true, slot.x, slot.y, slot.entry ? slot.entry.manifest : null, slot.entry ? slot.entry.placement : null)
+                    onRemove: {
+                        hide.command = [root.placeTool, slot.pid, "enabled", "false"];
+                        hide.running = true;
+                        if (StageCfg.StageSession.selected === slot.pid)
+                            StageCfg.StageSession.deselect();
+                        StageCfg.StageSession.markDirty();
+                    }
+                }
             }
         }
-        // Stage parallax bands live here so the scene order interleaves them
-        // with the widgets; the drift follows the cursor the backdrop polls.
+        // The one place a stage layer is drawn (docs/stage.md): every cut layer,
+        // each at its own z by its `front` flag -- behind the widgets (z 2) or in
+        // front of them (z 4). Depth renders this stack still (motion off, no
+        // backdrop); Parallax adds drift. Gated off for video/live walls.
         Repeater {
-            id: stageBands
-            // Gate on stageParallaxOwns so a video or live wallpaper that owns
-            // the surface never renders stray bands over it.
-            model: root.stageParallaxOwns ? StageCfg.StageBackend.layerCountFor(root.wallpaperPath) : 0
+            id: stageLayers
+            model: root.stageOn ? StageCfg.StageBackend.layerCountFor(root.wallpaperPath) : 0
             delegate: StageLayer {
                 required property int index
-                anchors.fill: parent
                 layerIndex: index + 1
                 wallPath: root.wallpaperPath
                 url: StageCfg.StageBackend.layerUrlFor(root.wallpaperPath, index)
                 fit: root.wallpaperFit
-                z: StageCfg.StageBackend.sceneZFor(root.wallpaperPath, "layer:" + (index + 1))
+                z: StageCfg.StageBackend.layerFront(root.wallpaperPath, index) ? 4 : 2
                 mouseNX: StageCfg.StageBackend.cursorNXFor(root.screen.name)
                 mouseNY: StageCfg.StageBackend.cursorNYFor(root.screen.name)
                 energy: VizCfg.Spectrum.energy
-                motionEnabled: true
+                motionEnabled: root.stageParallax
             }
         }
 
+        // ── Edit widgets overlay (docs/stage.md, "Edit widgets") ──────
+        // A frame on every enabled widget while composing: its outline, name and
+        // Settings/Remove buttons. The frames are input-transparent (a passive
+        // tap selects, presses fall through), so the widget's own grip still
+        // drags underneath; the ribbon draws the subject and layer outlines on
+        // its own surface, never here.
         Item {
-            id: inlineViz
+            id: composeOverlay
             anchors.fill: parent
-            z: StageCfg.StageBackend.sceneZFor(root.wallpaperPath, "visualizer")
-            visible: root.stageParallaxOwns && VizCfg.Config.enabled
-            InlineVisualizer {
-                anchors.fill: parent
+            z: 60
+            visible: root.stageComposing
+
+            component WidgetFrame: StageOutline {
+                id: wf
+                property var slotItem: null
+                property string wid: ""
+                visible: wf.slotItem ? wf.slotItem.visible : false
+                box: wf.slotItem ? Qt.rect(wf.slotItem.x, wf.slotItem.y, wf.slotItem.width, wf.slotItem.height) : Qt.rect(0, 0, 0, 0)
+                title: root.widgetTitle(wf.wid)
+                selected: StageCfg.StageSession.selected === wf.wid
+                onPicked: { StageCfg.StageSession.select(wf.wid); StageCfg.StageSession.closePanel(); }
+                onSettings: root.stageOpenSettings(wf.wid)
+                onRemove: root.stageRemoveWidget(wf.wid)
             }
+            WidgetFrame { wid: "clock"; slotItem: clockSlot }
+            WidgetFrame { wid: "calendar"; slotItem: calendarSlot }
+            WidgetFrame { wid: "music"; slotItem: musicSlot }
+            WidgetFrame { wid: "aio"; slotItem: aioSlot }
+            WidgetFrame { wid: "stats"; slotItem: statsSlot }
+            WidgetFrame { wid: "weather"; slotItem: weatherSlot }
+            WidgetFrame { wid: "notes"; slotItem: notesSlot }
         }
 
-        // The Subject-in-front effect: one still StageLayer above the widgets
-        // (declared here so non-front widgets fall behind it and front ones rise
-        // above). The same StageLayer renderer, motion off -- no separate depth
-        // renderer (docs/stage.md). Only in subject mode; parallax draws the
-        // subject as one of its interleaved bands above.
-        StageLayer {
-            visible: StageCfg.StageBackend.isSubjectFor(root.wallpaperPath)
-                && StageCfg.StageBackend.layerEnabled(root.wallpaperPath, 0)
-            layerIndex: 1
-            wallPath: root.wallpaperPath
-            url: StageCfg.StageBackend.layerUrlFor(root.wallpaperPath, 0)
-            fit: root.wallpaperFit
-            motionEnabled: false
-        }
+        Process { id: paletteProc }
 
-        WidgetMenu { id: menu }
+        // Menus sit above the whole stage stack (backdrop z 1, layers up to z 5),
+        // or a Parallax backdrop paints over an open right-click menu.
+        WidgetMenu { id: menu; z: 90 }
 
         // per-tile right-click menu, hoisted to PanelWindow level so the
         // click-away catcher covers the whole desktop and a tile that
         // vanishes (Hide) doesn't pull the menu down with it.
         PluginWidgetMenu {
             id: pluginMenu
+            z: 90
             onHideRequested: (id) => {
                 hide.command = [root.placeTool, id, "enabled", "false"];
                 hide.running = true;
@@ -672,13 +922,23 @@ Scope {
                 }
             }
         }
-        // The Stage compose toolbar; widgets are placed with the ordinary drag,
-        // so this only names the gesture and carries Done (docs/stage.md).
-        StageComposeBar {
+        // The Edit widgets toolbar (docs/stage.md, "Edit widgets"): one row
+        // docked top-centre. The desktop draws the per-widget frames and runs
+        // the drag/resize; this owns the toolbar and the Add drop-down.
+        StageWidgetsEditor {
             z: 101
-            visible: root.stageState ? root.stageState.stageComposing : false
-            onDone: if (root.stageState)
-                root.stageState.stageComposing = false
+            visible: root.stageComposing
+            monitor: root.screen ? root.screen.name : ""
+            items: root.addItems
+            onDone: StageCfg.StageSession.leave()
+            onAddToggle: id => root.stageAddToggle(id)
+            onVisualizer: {
+                StageCfg.StageSession.leave();
+                if (!VizCfg.Config.enabled)
+                    VizCfg.Config.setEnabled(true);
+                if (root.stageState)
+                    root.stageState.visualizerPlacing = true;
+            }
         }
 
         // position/scale writeback for plugin tiles. ryoku-plugins-place
@@ -691,5 +951,20 @@ Scope {
         Process { id: lockProc }
         // settings writeback from the right-click menu.
         Process { id: settingsProc }
+        // Reset (docs/stage.md, "Edit widgets"): restore the snapshot taken when
+        // the session opened. Config keys write directly; plugin re-place and
+        // unplace commands run one at a time through this Process.
+        Connections {
+            target: StageCfg.StageSession
+            function onResetRequested() {
+                if (!root.stageComposing)
+                    return;
+                root._restore();
+            }
+        }
+        Process {
+            id: resetProc
+            onRunningChanged: if (!resetProc.running) root._runResetQueue()
+        }
     }
 }

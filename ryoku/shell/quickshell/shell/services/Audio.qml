@@ -5,6 +5,7 @@ import Quickshell.Io
 import Quickshell.Bluetooth
 import Quickshell.Services.Pipewire
 import Ryoku.Ui.Singletons
+import shell.services
 
 // audio graph for the mixer: classifies Pipewire nodes into output devices,
 // input devices, and per-app playback streams; switches the default sink/source
@@ -283,7 +284,7 @@ Singleton {
         var p = (n && n.properties) ? n.properties : ({});
         var named = (p["application.icon-name"] || "") + "";
         if (named.length) {
-            var direct = Quickshell.iconPath(named, true);
+            var direct = Icons.path(named, true);
             if (direct.length)
                 return direct;
         }
@@ -292,12 +293,12 @@ Singleton {
             var e = (typeof DesktopEntries !== "undefined" && DesktopEntries.heuristicLookup)
                 ? DesktopEntries.heuristicLookup(bin) : null;
             if (e && e.icon)
-                return Quickshell.iconPath(e.icon, "application-x-executable");
-            var byBin = Quickshell.iconPath(bin, true);
+                return Icons.path(e.icon, "application-x-executable");
+            var byBin = Icons.path(bin, true);
             if (byBin.length)
                 return byBin;
         }
-        return Quickshell.iconPath("application-x-executable", true);
+        return Icons.path("application-x-executable", true);
     }
 
     Process {

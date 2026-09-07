@@ -95,7 +95,7 @@ Provider {
             appId: entryId,
             title: entry.name,
             subtitle: sub,
-            icon: entry.icon ? Quickshell.iconPath(entry.icon, "application-x-executable") : Quickshell.iconPath("application-x-executable", true),
+            icon: entry.icon ? Icons.path(entry.icon, "application-x-executable") : Icons.path("application-x-executable", true),
             type: "App",
             score: 0,
             actions: actions

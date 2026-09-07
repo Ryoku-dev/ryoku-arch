@@ -250,6 +250,8 @@ QtObject {
     function clearData(callback)       { call("wall.clear_data", {}, callback) }
     function cacheStatus(callback)     { call("wall.cache_status", {}, callback) }
     function clearVideoCache(days, callback) { call("wall.clear_video_cache", { days: days | 0 }, callback) }
+    // The picker's Refresh: drop every derived cache and scan the folders again.
+    function resetCache(callback) { call("wall.cache_reset", {}, callback) }
 
     function listWallpapers(favouritesOnly, callback) {
         call("wall.list", {favourites: !!favouritesOnly}, callback)

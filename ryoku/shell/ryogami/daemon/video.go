@@ -32,6 +32,9 @@ type videoPlayer struct {
 	outputs   []string
 	announced bool
 	onLive    func(bool)
+	// Unexpected-exit bookkeeping for respawn's backoff.
+	deaths  int
+	deathAt time.Time
 }
 
 func newVideoPlayer() *videoPlayer { return &videoPlayer{} }
@@ -156,9 +159,45 @@ func (p *videoPlayer) spawnLocked(gen int64, output, file string, capW int, fit 
 			fmt.Fprintf(os.Stderr, "ryogami: %s on %q exited unexpectedly: %v\n", liveDaemon, output, err)
 		}
 		if lastGone && cb != nil {
-			cb(false) // every player died: bring the still back
+			cb(false) // every player died: the still shows meanwhile
+		}
+		if tracked {
+			p.respawn(gen, output, file, capW, fit)
 		}
 	}()
+}
+
+// respawn brings back a player that died under the daemon (a compositor
+// output cycle, a suspend, a stray kill), so a video wallpaper never stays a
+// still until the next login. Backoff steps 1s, 2s, 4s, 8s and gives up after
+// the fifth death within a minute (a clip that cannot play at all would spin
+// otherwise); Stop or a new Play (a generation change) cancels a pending one.
+func (p *videoPlayer) respawn(gen int64, output, file string, capW int, fit string) {
+	p.mu.Lock()
+	now := time.Now()
+	if now.Sub(p.deathAt) > time.Minute {
+		p.deaths = 0
+	}
+	p.deaths++
+	p.deathAt = now
+	n := p.deaths
+	p.mu.Unlock()
+	if n > 5 {
+		fmt.Fprintf(os.Stderr, "ryogami: %s on %q keeps dying; leaving the still\n", liveDaemon, output)
+		return
+	}
+	delay := time.Second << (n - 1)
+	if delay > 8*time.Second {
+		delay = 8 * time.Second
+	}
+	time.Sleep(delay)
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.gen != gen {
+		return
+	}
+	p.announced = false
+	p.spawnLocked(gen, output, file, capW, fit)
 }
 
 // scanReady tees one player's stdout into the managed log and fires onLive(true)

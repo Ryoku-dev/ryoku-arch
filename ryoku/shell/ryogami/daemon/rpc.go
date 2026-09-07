@@ -168,6 +168,10 @@ func (d *daemon) dispatchRequest(req *request) response {
 		go d.rescan(true)
 		return ok(req.ID, map[string]interface{}{"started": true})
 
+	case "wall.cache_reset":
+		go d.resetCache()
+		return ok(req.ID, map[string]interface{}{"started": true})
+
 	case "wall.recompute_colors":
 		go d.rescan(true)
 		return ok(req.ID, map[string]interface{}{"started": true})

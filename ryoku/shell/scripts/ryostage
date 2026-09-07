@@ -261,35 +261,61 @@ cmd_inpaint() {
     local tmp
     tmp="$(mktemp "${out}.XXXXXX")"
     if "$PY" - "$in" "$mask" "$tmp" <<'PY'
+# The Parallax backdrop: the wallpaper with the subject's hole filled from its
+# surroundings, then softened as the far plane. The fill grows inward by
+# normalized convolution (a Gaussian of the known colour over a Gaussian of the
+# known mask), so the hole takes the colours and gradients around it instead of
+# one flat plate, and a drifting subject never reveals its own silhouette. The
+# hole is the matte grown outward first, so no subject pixel seeds the fill.
+# Half resolution keeps it at a few seconds for a 4K wallpaper; the result is
+# blurred anyway, so nothing is lost.
 import sys
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 from scipy import ndimage
 
 image_path, mask_path, out_path = sys.argv[1:4]
 
-img = Image.open(image_path).convert("RGB")
+img_full = Image.open(image_path).convert("RGB")
 mask_rgba = Image.open(mask_path).convert("RGBA")
-if mask_rgba.size != img.size:
-    mask_rgba = mask_rgba.resize(img.size, Image.BILINEAR)
+W, H = img_full.size
+scale = 2 if max(W, H) > 1600 else 1
+size = (max(1, W // scale), max(1, H // scale))
+img = np.asarray(img_full.resize(size, Image.BILINEAR), dtype=np.float32) / 255.0
+alpha = np.asarray(mask_rgba.resize(size, Image.BILINEAR), dtype=np.uint8)[..., 3]
 
-alpha = np.asarray(mask_rgba, dtype=np.uint8)[..., 3]
-# Solid blob for the hole: fill interior fragments, close gaps, then widen
-# the rim so nothing dark survives (the subject PNG covers the margin).
-hole = ndimage.binary_fill_holes(alpha > 25)
-hole = ndimage.binary_closing(hole, iterations=8)
-hole = ndimage.binary_dilation(hole, iterations=4)
-src = np.asarray(img, dtype=np.uint8)
+hole = ndimage.binary_fill_holes(alpha > 8)
+hole = ndimage.binary_closing(hole, iterations=4)
+hole = ndimage.binary_dilation(hole, iterations=6)
 
-ring = ndimage.binary_dilation(hole, iterations=14) & ~hole
-if ring.sum() > 0:
-    fill = src[ring].mean(axis=0).astype(np.uint8)
-else:
-    fill = np.array([128, 128, 128], dtype=np.uint8)
+known = (~hole).astype(np.float32)
+col = img * known[..., None]
+sigma = 8.0
+for _ in range(80):
+    num = np.stack([ndimage.gaussian_filter(col[..., c], sigma=sigma) for c in range(3)], -1)
+    den = ndimage.gaussian_filter(known, sigma=sigma)
+    reach = den > 0.05
+    fill = num / np.maximum(den, 0.05)[..., None]
+    newly = reach & (known < 0.5)
+    if not newly.any():
+        break
+    col = np.where(newly[..., None], fill, col)
+    known = np.where(newly, 1.0, known)
+    if known.min() > 0.5:
+        break
+if known.min() < 0.5:
+    # A hole the fill could not reach (a subject covering the whole frame):
+    # the mean of everything known, never a hard default.
+    mean = (img * known[..., None]).sum((0, 1)) / max(1.0, known.sum())
+    col = np.where((known < 0.5)[..., None], mean, col)
 
-result = src.copy()
-result[hole] = fill
-Image.fromarray(result, "RGB").save(out_path, "PNG")
+res = np.where(hole[..., None], col, img)
+out = Image.fromarray(np.clip(res * 255.0, 0, 255).astype(np.uint8))
+if scale != 1:
+    out = out.resize((W, H), Image.BILINEAR)
+out = out.filter(ImageFilter.GaussianBlur(4))
+out = Image.fromarray((np.asarray(out, dtype=np.float32) * 0.90).astype(np.uint8))
+out.save(out_path, "PNG")
 PY
     then
         if [[ -s "$tmp" ]]; then

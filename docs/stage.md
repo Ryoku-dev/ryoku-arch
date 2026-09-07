@@ -27,52 +27,149 @@ migrates all of them (below).
 
 ## The mental model a user needs
 
-One stack, back to front: the **backdrop** (the wallpaper), the **layers**
-(the cut-out subject, plus any picture you add), and the **widgets**. A layer
-is either behind the widgets or in front of them. That is the whole model,
-and the Stage tab shows exactly that and nothing engine-shaped.
+One feature: **Depth**. It lifts the wallpaper's subject in front of your
+widgets. **Parallax** is a switch inside Depth: the same cut, the same look,
+now drifting with the pointer over an inpainted backdrop. Nothing is configured
+twice.
+
+Two places, each with one job:
+
+- **The Stage tab** (Super+Esc, the last rail icon): every setting, one
+  scrolling column, ordered by how often it is touched. Nothing here needs a
+  Done; every change is live and shows its value.
+- **The desktop** (right-click): the two switches, `Edit widgets` (arrange
+  widgets in front of or behind the subject), `Customize visualizer`, and
+  `Depth settings...`, which opens the Stage tab. Edit widgets is reached
+  from the desktop only; the tab is settings, the desktop is arrangement.
+
+There is no shell editor. The bar, dock and menus keep their Hub pages.
+
+## The desktop right-click menu
 
 ```
- Stage
- [ preview card: the wallpaper with the subject lifted            ]
- [ while cutting: the same card dims, a progress ring + Stop      ]
- Effect     ( Off | Depth | Parallax )
-            "Depth: the subject sits in front of your widgets."
- LOOK
- Quality    ( Draft | Standard | Fine )          "224 MB  Download"
- Edge       [-----o----]
- Shadow     [--o-------]  (o) angle dial, shown only while Shadow > 0
- MOTION                                   (only while Parallax)
- Amount     ( Subtle | Normal | Strong )
- Idle       ( None | Float | Breathe )
- [x] React to music
- LAYERS
- [ img ] Subject            ( Behind | In front )   [near ---o--- far]
- [ img ] Lantern.png        ( Behind | In front )   [near --o---- far]  x
- + Add layer   (Cut from a picture... / From a PNG...)
- ARRANGE
- [ Edit on desktop ] [ Open folder ] [ Re-cut ] [ Clear cut-outs ]
+Edit widgets
+Customize visualizer
+Change wallpaper
+[Depth      (o)] [Parallax   ( )]     <- two switch cards, side by side
+Depth settings...                     <- opens Super+Esc on the Stage tab
+Settings
+Reload shell
 ```
 
-Rules that keep it simple:
+The switches are the menu's own choice chips (a bone plate while on, the state
+in the label: `Depth, On`), under the rows and above `Depth settings...`.
+Tapping either keeps the menu open so the effect is seen at once.
 
-- **Every idea has one control.** Edge, shadow and quality live once, in
-  Look, and apply to every layer. There are no per-layer look overrides.
-- **A layer has three properties**: on/off, *behind or in front of the
-  widgets*, and *near or far* (how much it drifts in Parallax; ignored in
-  Depth). Nothing else. Offsets, per-layer opacity, per-layer audio and
-  animation, mouse caps and presets are gone: Amount / Idle / React to music
-  cover the whole stack.
-- **Depth and Parallax are the same stack.** Depth renders the layers still;
-  Parallax adds drift and the recoloured backdrop. Switching effect never
-  re-cuts: the cut depends on the wallpaper and the quality only.
-- **Labels never clip**: the effect control is `Off | Depth | Parallax` (the
-  names people already use) and the one-line caption under it explains the
-  selected one.
-- **The preview card owns progress.** Cutting dims the card and draws a ring
-  with a Stop button on it; nothing else in the tab moves or appears.
-- The audio visualizer keeps its own placement (its own tab); it is not a
-  stage layer.
+- Depth on: `set-effect depth`. Depth off: `set-effect off` (Parallax's switch
+  falls with it).
+- Parallax on: `set-effect parallax`, and Depth's switch turns on with it if it
+  was off (one tap, no "enable Depth first"). Parallax off: `set-effect depth`.
+- While the engine cuts (first enable on a wallpaper), the Depth card reads the
+  daemon's percentage; the switch stays on.
+- `Depth settings...` asks for the `quick-settings#stage` surface: the panel
+  opens (or switches) to the Stage tab on this monitor.
+
+## The Stage tab
+
+`modules/bar/framebars/menus/quicksettings/QuickSettingsStage.qml`, built only
+from the sidebar's own kit (`QsTile`, `QsNavRow`, `QsSection`, `QsSeg`,
+`QsSlider`, `LinkToggle`, `RevealerButton`) plus the stage's preview card and
+angle dial, so it reads like the Home and Capture tabs. One column, one
+Flickable, 12 px margins, sections in the sidebar's eyebrow rhythm. Top to
+bottom:
+
+1. **Title** `Stage`.
+2. **Preview**: the current wallpaper with its cut drawn over it; the ring
+   while the engine runs.
+3. **Two tiles**, side by side like Wi-Fi and Bluetooth on Home: `Depth`
+   (sub: `Off`, `On`, or the percentage while cutting) and `Parallax` (sub:
+   `Off`, `On`). The whole face toggles; the same rules as the menu switches.
+Everything below appears only while Depth is on. Off, one quiet line takes its
+place: `Turn on Depth to cut the subject out and shape it.` A first enable
+cuts in the current tier (Draft by default: the small model, seconds), so the
+first result is fast and quality is raised afterwards, with a confirm.
+
+4. **Cut quality** (`QsSection`): `Draft | Standard | Fine` (`QsSeg`), a
+   caption under it naming the tier's model, size and whether it is installed
+   (`Fine: 224 MB, installed`). Choosing another tier changes nothing yet: the
+   segment shows the choice and a confirm row appears under the caption:
+   - model installed: `Re-cut in Fine` with `Re-cut` and `Cancel`;
+   - model missing: `Fine needs a 224 MB download` with `Download` and
+     `Cancel`; when the download lands the row becomes the Re-cut one;
+   - while the engine runs: `Cutting in Fine, 40%` with `Stop`.
+   `Re-cut` writes the tier and refreshes; `Cancel` (or leaving the panel)
+   drops the choice and the segment snaps back to the tier in use.
+5. **Layers** (`QsSection`): one row per layer, the subject first. A row is
+   the layer's name on the left and `Behind | In front` (`QsSeg`) on the right;
+   an added layer also has a remove cross, and, while Parallax is on, a
+   `Drift` slider (near to far) under it. Below the rows, two half-width
+   buttons `Cut a picture...` and `Add a PNG...`, and a quiet `Clear cut-outs`
+   link. `Cut a picture...` opens the picker, then shows `Cut from
+   <name>` with `Cut` and `Cancel`. `Clear cut-outs` shows `Remove every
+   cut-out for this wallpaper` with `Clear` and `Cancel`. `Add a PNG...` is
+   immediate (nothing runs).
+6. **Look** (`QsSection`): `Edge` (`QsSlider`, 0..1, value shown) and
+   `Shadow` (`QsSlider`) with the angle dial at the row's end and the degrees
+   under it. Both live. A quiet `Reset to defaults` link at the end of the
+   section puts edge, shadow, angle and every motion knob back.
+7. **Motion** (`QsSection`, Parallax only): `Preset` `Soft | Cinematic |
+   Beat` (one tap sets amount, idle, speed and music; highlighted only while
+   every knob still matches); `Amount` `Subtle | Normal | Strong`; `Idle`
+   `Still | Float | Breathe | Sway` with a `Speed` slider while not still;
+   `React to music` with an `Intensity` slider while on; `Follow mouse`; a
+   `Fine-tune pointer` revealer holding `Sensitivity`, `Range` and `Backdrop
+   drift` sliders (shown only while Follow mouse is on).
+
+The confirm rows share one component: a message on the left, one or two text
+buttons on the right, in the section's own width; nothing floats and nothing
+covers another control. Escape closes the panel as it always did.
+
+## Edit widgets
+
+The desktop lifts above open windows, the dock steps back, and every enabled
+widget wears a frame:
+
+- a 1 px outline with the widget's name at its top-left;
+- drag anywhere on it to move (grid-snapped, live), the bottom-right bracket to
+  resize;
+- two small buttons on its top-right: **Settings** (opens that widget's own
+  menu: design, lock, size, opacity, colour, snap) and **Remove** (hides it).
+
+Nothing is locked while editing: `locked` is false for every widget for the
+length of the session, and a widget added during the session is draggable the
+moment it appears. Per-widget Lock still applies outside the session.
+
+One toolbar docked top-centre, one row:
+
+```
+Edit widgets   [+ Add widget v]  [Visualizer...]        [Reset]  [Done]
+```
+
+- **Add widget** drops a panel under the button: one row per widget (clock,
+  calendar, music, all-in-one, stats, weather, notes, every plugin widget, the
+  visualizer) with a switch; on adds it at its default anchor, off removes it.
+- **Visualizer...** leaves this session and opens Customize visualizer.
+- **Reset** restores widgets.json as it was when the session opened (enabled
+  set, free positions, sizes); its slot is kept while clean so Done never
+  moves.
+- **Done** (or Escape, or a click on bare wallpaper when nothing is selected)
+  leaves. There is no Save; the desktop is the document.
+
+## Customize visualizer
+
+The visualizer's own editor, unchanged: the Placer (drag to move, corner to
+size, dot to turn, scroll to resize) with its EditBar fixed to a screen edge.
+The menu row (and the Edit widgets toolbar's `Visualizer...`) turns the
+visualizer on if it is off and opens it. Its Done closes it.
+
+## Session model
+
+`modules/stage/Singletons/StageSession.qml` is the Edit widgets session only:
+`mode` is `""` or `"widgets"`; `monitor` names the screen that opened it;
+`selected` is a widget id; `panel` is the drop-down that is open (`"add"`);
+`dirty` shows Reset. `escapeStep()` unwinds one level per press: the
+drop-down, then the selection, then the session. The Stage tab keeps its own
+pending confirm locally; it is a panel, not a session.
 
 ## Models: one catalogue, visible provenance
 
@@ -117,6 +214,15 @@ helper adopts a pre-split `~/.local/state/ryoku/depth` or `.../parallax` tree by
 rename (same filesystem, no re-download); a leftover second tree is reported
 by the doctor as reclaimable space.
 
+`inpaint` makes the Parallax backdrop from the one cut: the subject's hole
+(the matte grown outward so no subject pixel seeds the fill) is filled from its
+surroundings by normalized convolution, growing inward until covered, then the
+whole image is softened as the far plane (a 4 px blur, a touch darker). A
+drifting subject therefore reveals the colours around it, never a flat plate
+or its own silhouette. Half resolution above 1600 px keeps a 4K wallpaper at a
+few seconds. Backdrops made before this land are regenerated by a re-cut or
+Refresh.
+
 ## Daemon: `ipc/stage.go`
 
 One worker, one registry (below), one topic.
@@ -127,7 +233,12 @@ One worker, one registry (below), one topic.
   `.index.json` (mtime + quality reuse).
 - **Topic** `stage`: `{ current, busy, stage: "cut"|"inpaint"|"", percent,
   walls: { <path>: { effect, subject, background, rev, layers: [...] } } }`,
-  published on every change. QML renders from it and nothing else.
+  published on every change and on each generation phase. QML renders from it
+  and nothing else. `subject`/`background` are absolute paths ("" until fresh);
+  `rev` is the max mtime across the wall's `subject.png`/`background.png`/
+  `layer-NN.png`, so the shell busts every url with the one revision. The frame
+  layers carry `{out, label, enabled, front, depth}` and no per-layer rev, and
+  `layers[0]` is always the subject slot.
 - **Verbs** (`ryoku-shell stage ...`): `set-effect <off|depth|parallax>`,
   `set-layer <index> <json>` (enabled/front/depth), `add-layer <png>`,
   `cut-layer <picture>` (runs the engine on another picture and adds the
@@ -150,14 +261,27 @@ Global only; anything per-wallpaper is in the registry.
 | `shadow` | `0` | drop shadow behind every layer (0..1) |
 | `shadowAngle` | `90` | shadow direction in degrees, 0 = right, 90 = down |
 | `motion.amount` | `normal` | `subtle` / `normal` / `strong`: cursor drift, and the idle amplitude |
-| `motion.idle` | `none` | `none` / `float` / `breathe` |
+| `motion.idle` | `none` | `none` / `float` / `breathe` / `sway` |
 | `motion.music` | `false` | layers react to the shared spectrum |
+| `motion.musicLevel` | `0.6` | how hard the music pushes (0..1) |
+| `motion.speed` | `1.0` | idle motion speed (0.25..2) |
+| `motion.mouse` | `true` | Parallax follows the pointer at all |
+| `motion.sensitivity` | `1.0` | the pointer's pull (0..2) |
+| `motion.range` | `1.0` | how far a layer may travel (0..2) |
+| `motion.backdrop` | `0` | the inpainted backdrop's own drift (0..1); above 0 a sliver of the base wallpaper shows at the trailing edge |
 | `front` | `[]` | widget ids drawn above the layers marked "in front" when the user lifts specific widgets from the desktop editor |
 
-The daemon reads `quality`; the shell reads the rest. `feather`, `lift`,
-`motion.{mouse,sensitivity,range,wallpaper}` and `preset` from the first
-Ryostage cut are folded once (`feather` -> `edge`; any `mouse: false` ->
-`amount: subtle`, `preset` dropped) and the file rewritten.
+The daemon reads `quality`; the shell reads the rest. On the first start after
+v2 a v1 `stage.json` (one still carrying `feather`, `lift`, `preset` or the
+`motion.{mouse,sensitivity,range,wallpaper}` sub-knobs) is folded once and
+rewritten atomically: `feather` -> `edge`, `lift` and `preset` dropped, and the
+motion sub-knobs reduce to `motion.amount` (`mouse: false` -> `subtle`,
+else `sensitivity >= 1.5` -> `strong`, else `normal`) with `motion.idle`/
+`motion.music` defaulted. An already-v2 file is left alone; the daemon never
+creates the GUI-owned file. A stable box that skipped v1 has no `stage.json` but
+still carries the retired `depth.json`/`parallax.json`; those are folded instead
+(model+matting -> `quality`, higher tier winning; `feather` -> `edge`;
+`shadow`/`shadowAngle` scalars kept, per-layer arrays skipped).
 
 ## Registry: per-wallpaper stage
 
@@ -174,31 +298,48 @@ Ryostage cut are folded once (`feather` -> `edge`; any `mouse: false` ->
 `layers[0]` is always the subject the engine cut (`subject.png`); every
 later entry is a picture the user added (`layer-NN.png`, cut from a picture
 or dropped in as a PNG). `front` is behind/in front of the widgets; `depth`
-0..1 is near..far for Parallax drift. `effect: subject` and `mode`, `scene`
-and the per-layer knobs from the first Ryostage cut are migrated once: a
-`scene` order is reduced to each layer's `front`, `subject` becomes `depth`.
+0..1 is near..far for Parallax drift. The v1 registry is folded once, gated by
+`~/.local/state/ryoku/migrations/ryostage-v2`: `effect: subject` becomes
+`depth`, a `scene` order reduces to each layer's `front` (a layer listed after
+any `widget:*` token is `front: true`), a v1 `depthFactor` becomes `depth`, and
+`mode`, `scene` and the other per-layer knobs are dropped. A v1 manual wall's
+`layer-NN.png` entries are kept after a prepended subject slot. Under the same
+marker and before the v1 fold, the retired Depth (`depth-walls.json` +
+`~/Pictures/Depth`) and Parallax (`layers.pz` + `~/Pictures/Parallax`) state a
+stable box still carries is folded in for walls v1 has not claimed, its
+artifacts moved by rename into `~/Pictures/Stage/<stem>/`, so both upgrade paths
+converge on one registry.
 
 ## Rendering: `modules/stage/`
 
-One surface, one stack. The desktop surface draws, back to front: the
-backdrop (`StageBackdrop.qml`: the inpainted `background.png` with drift,
-only for Parallax, sized with the wallpaper's own fit so it can never
-misalign with ryogami's surface underneath), then every layer marked behind
-the widgets, then the widgets, then every layer marked in front
-(`StageLayer.qml`: edge, shadow, drift by `depth`, idle, music). Depth is the
-same stack with `motionEnabled: false` and no backdrop. There is no
-second renderer, no separate layer-shell surface, and no path that can draw
-the subject twice: the wallpaper's own subject is covered by the backdrop in
-Parallax and is pixel-locked under the still cut in Depth.
+One surface, one stack. The desktop surface draws, back to front:
+`StageBackdrop.qml` (Parallax only: the inpainted `background.png`, sized with
+the wallpaper's own fit and drifting with the cursor, so it covers the
+wallpaper's baked subject and can never misalign with ryogami's surface), then
+the layers marked behind the widgets (z 2), then the widgets (z 3), then the
+layers marked in front (`StageLayer.qml`: edge, shadow and angle from the global
+look, drift by the layer's `depth` x the shared motion Amount x Sensitivity x
+Range while Follow mouse is on, idle and music; z 4), then any widget the user
+lifted into `front` (z 5). Depth is the same
+stack with `motionEnabled: false` and no backdrop, so the still cut is
+pixel-locked over the wallpaper's own subject. While the stage is on and the
+visualizer is `On desktop`, the desktop hosts the visualizer inside this stack
+(`InlineVisualizer` at z 1.5: above the backdrop, below every cut-out and
+widget) and the visualizer's own surface is suppressed (cava keeps running);
+`Above windows` and the Placer use that surface as before. There is no second
+subject renderer, and no path that can draw the subject twice.
+While the engine cuts, the subject layer dims and draws its own progress ring.
 
-## Editing on the desktop
-
-Right-click on the desktop gains **Edit stage**. It opens the existing
-compose mode (widgets draggable, the compose bar) with the Stage tab docked,
-and each element's right-click menu carries **In front of the subject /
-Behind the subject** and, with parallax on, its layer. Knobs stay in the
-sidebar; the desktop is only the canvas. That is the whole editor: no
-floating inspectors, no second settings surface.
+The Stage tab sits beside the stack, not in it: `QuickSettingsStage.qml`
+writes stage.json through `modules/stage/Singletons/Config.qml` (drag-y
+setters coalesce through one settle timer) and the daemon through
+`StageBackend`. Edit widgets is `modules/stage/StageWidgetsEditor.qml` (the
+toolbar), `StageOutline.qml` (the frame on every widget) and
+`StageAddPanel.qml` (the Add widget drop-down), mounted by the desktop surface,
+which lifts to the Top layer for the session. Config writes from its Reset go
+out as one write per file (`Config.setMany`), because a burst of single-key
+writes interleaves with the watcher's reloads of older versions and can put an
+old value back.
 
 ## Delivery
 

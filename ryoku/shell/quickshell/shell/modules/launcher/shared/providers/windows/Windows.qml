@@ -6,6 +6,7 @@ import Ryoku.Ui.Singletons
 import "../../Singletons"
 import "../../lib/fuzzy.js" as Fuzzy
 import ".."
+import shell.services as Svc
 
 // Open-window switcher: lists Hyprland toplevels, fuzzy-matched by title and
 // class, and focuses the picked one. Default-ranked just below apps so "fire"
@@ -133,7 +134,7 @@ Provider {
             appId: e.cls,
             title: e.title,
             subtitle: e.cls,
-            icon: e.cls ? Quickshell.iconPath(e.cls, "application-x-executable") : "",
+            icon: e.cls ? Svc.Icons.path(e.cls, "application-x-executable") : "",
             type: "Window",
             score: 5,
             actions: [{

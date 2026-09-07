@@ -117,10 +117,10 @@ Item {
         Quickshell.execDetached(["ryoku-shell", "reload"]);
         menu.close();
     }
-    function videoLabel(v) { return v === "canvas" ? "Spotify Canvas" : v === "custom" ? I18n.tr("Custom") : I18n.tr("Off"); }
+    function videoLabel(v) { return v === "canvas" ? "Spotify Canvas" : v === "custom" ? "Custom" : "Off"; }
     function videoName(p) {
         if (!p || p.length === 0)
-            return I18n.tr("None");
+            return "None";
         const s = ("" + p).replace(/\/+$/, "");
         return decodeURIComponent(s.slice(s.lastIndexOf("/") + 1));
     }
@@ -128,30 +128,43 @@ Item {
         const d = ["off", "canvas", "custom"];
         Config.set("musicVideo", d[(d.indexOf(Config.musicVideo) + 1) % d.length]);
     }
-
-    // Stage: place a widget in front of or behind the subject by moving its
-    // token past the subject layer in the current wall's scene (docs/stage.md).
-    readonly property bool stageActive: StageCfg.StageBackend.isActiveFor(StageCfg.StageBackend.current)
-    function isWidgetFront(id) {
-        const scene = StageCfg.StageBackend.effectiveSceneFor(StageCfg.StageBackend.current);
-        const si = scene.indexOf("layer:1");
-        const wi = scene.indexOf("widget:" + id);
-        return wi >= 0 && si >= 0 && wi > si;
-    }
-    function setWidgetFront(id, front) {
-        const scene = StageCfg.StageBackend.effectiveSceneFor(StageCfg.StageBackend.current).slice();
-        const tok = "widget:" + id;
-        const wi = scene.indexOf(tok);
-        if (wi >= 0) scene.splice(wi, 1);
-        const si = scene.indexOf("layer:1");
-        if (si < 0) scene.push(tok);
-        else if (front) scene.splice(si + 1, 0, tok);
-        else scene.splice(si, 0, tok);
-        StageCfg.StageBackend.setScene(scene);
-    }
-    function editStage() {
+    // The three editors and the visualizer's own editor (docs/stage.md, "The
+    // desktop right-click menu"). Sessions open on the monitor the menu is on.
+    function activeMonitor() {
         const st = Services.ShellState.forActive();
-        if (st) st.stageComposing = true;
+        return (st && st.modelData) ? st.modelData.name : "";
+    }
+    function editWidgets() {
+        StageCfg.StageSession.enterWidgets(menu.activeMonitor());
+        menu.close();
+    }
+    // Every Depth and Parallax setting lives on the Stage tab of Super+Esc;
+    // "#stage" deep-links the panel there (FrameMenuManager.openSurface).
+    function depthSettings() {
+        Services.ShellState.requestSurfaceActive("quick-settings#stage", undefined);
+        menu.close();
+    }
+    function customizeVisualizer() {
+        const st = Services.ShellState.forActive();
+        if (!st)
+            return;
+        if (!VizCfg.Config.enabled)
+            VizCfg.Config.setEnabled(true);
+        st.visualizerPlacing = true;
+        menu.close();
+    }
+    // Depth off drops Parallax with it; Parallax on turns Depth on with it.
+    readonly property string stageEffect: StageCfg.StageBackend.effect
+    readonly property bool stageBusy: StageCfg.StageBackend.busy
+    readonly property int stagePct: StageCfg.StageBackend.percent
+    function toggleDepth() {
+        StageCfg.StageBackend.setEffect(menu.stageEffect === "off" ? "depth" : "off");
+    }
+    function toggleParallax() {
+        StageCfg.StageBackend.setEffect(menu.stageEffect === "parallax" ? "depth" : "parallax");
+    }
+    function changeWallpaper() {
+        Services.ShellState.requestSurfaceActive("wallpaper", null);
         menu.close();
     }
 
@@ -163,75 +176,19 @@ Item {
         // ── desktop scope ──────────────────────────────────────────────
         MenuRow {
             visible: !menu.isWidget
-            label: I18n.tr("Clock")
-            value: Config.clockEnabled ? I18n.tr("On") : I18n.tr("Off")
-            on: Config.clockEnabled
-            closeOnTrigger: false
-            onTriggered: Config.set("clockEnabled", !Config.clockEnabled)
+            label: I18n.tr("Edit widgets")
+            onTriggered: menu.editWidgets()
         }
         MenuRow {
             visible: !menu.isWidget
-            label: I18n.tr("Calendar")
-            value: Config.calendarEnabled ? I18n.tr("On") : I18n.tr("Off")
-            on: Config.calendarEnabled
-            closeOnTrigger: false
-            onTriggered: Config.set("calendarEnabled", !Config.calendarEnabled)
+            label: I18n.tr("Customize visualizer")
+            onTriggered: menu.customizeVisualizer()
         }
         MenuRow {
             visible: !menu.isWidget
-            label: I18n.tr("Music")
-            value: Config.musicEnabled ? I18n.tr("On") : I18n.tr("Off")
-            on: Config.musicEnabled
+            label: I18n.tr("Change wallpaper")
             closeOnTrigger: false
-            onTriggered: Config.set("musicEnabled", !Config.musicEnabled)
-        }
-        MenuRow {
-            visible: !menu.isWidget
-            label: I18n.tr("All-in-one")
-            value: Config.aioEnabled ? I18n.tr("On") : I18n.tr("Off")
-            on: Config.aioEnabled
-            closeOnTrigger: false
-            onTriggered: Config.set("aioEnabled", !Config.aioEnabled)
-        }
-        MenuRow {
-            visible: !menu.isWidget
-            label: I18n.tr("System stats")
-            value: Config.statsEnabled ? I18n.tr("On") : I18n.tr("Off")
-            on: Config.statsEnabled
-            closeOnTrigger: false
-            onTriggered: Config.set("statsEnabled", !Config.statsEnabled)
-        }
-        MenuRow {
-            visible: !menu.isWidget
-            label: I18n.tr("Weather")
-            value: Config.weatherEnabled ? I18n.tr("On") : I18n.tr("Off")
-            on: Config.weatherEnabled
-            closeOnTrigger: false
-            onTriggered: Config.set("weatherEnabled", !Config.weatherEnabled)
-        }
-        MenuRow {
-            visible: !menu.isWidget
-            label: I18n.tr("Notes")
-            value: Config.notesEnabled ? I18n.tr("On") : I18n.tr("Off")
-            on: Config.notesEnabled
-            closeOnTrigger: false
-            onTriggered: Config.set("notesEnabled", !Config.notesEnabled)
-        }
-        // The spectrum is a wallpaper surface with no pointer of its own, so the
-        // desktop menu is where you reach for it.
-        MenuRow {
-            visible: !menu.isWidget && menu.vizOn
-            label: I18n.tr("Move visualiser")
-            onTriggered: {
-                const st = Services.ShellState.forActive();
-                if (st)
-                    st.visualizerPlacing = true;
-            }
-        }
-        MenuRow {
-            visible: !menu.isWidget && menu.stageActive
-            label: I18n.tr("Edit stage")
-            onTriggered: menu.editStage()
+            onTriggered: menu.changeWallpaper()
         }
 
         // ── widget scope ───────────────────────────────────────────────
@@ -245,7 +202,7 @@ Item {
         MenuRow {
             visible: menu.isClock
             label: I18n.tr("Date")
-            value: Config.dateShow ? I18n.tr("On") : I18n.tr("Off")
+            value: Config.dateShow ? "On" : "Off"
             on: Config.dateShow
             closeOnTrigger: false
             onTriggered: Config.toggle("dateShow")
@@ -253,7 +210,7 @@ Item {
         MenuRow {
             visible: menu.isMusic
             label: I18n.tr("Lyrics")
-            value: Config.musicLyrics ? I18n.tr("On") : I18n.tr("Off")
+            value: Config.musicLyrics ? "On" : "Off"
             on: Config.musicLyrics
             closeOnTrigger: false
             onTriggered: Config.toggle("musicLyrics")
@@ -261,7 +218,7 @@ Item {
         MenuRow {
             visible: menu.isMusic
             label: I18n.tr("Visualiser")
-            value: Config.musicViz === "wave" ? I18n.tr("Wave") : I18n.tr("Bars")
+            value: Config.musicViz === "wave" ? "Wave" : "Bars"
             on: Config.musicViz === "wave"
             closeOnTrigger: false
             onTriggered: Config.set("musicViz", Config.musicViz === "wave" ? "bars" : "wave")
@@ -269,7 +226,7 @@ Item {
         MenuRow {
             visible: menu.isMusic
             label: I18n.tr("Canvas")
-            value: Config.musicShape === "tall" ? "9:16" : I18n.tr("Wide")
+            value: Config.musicShape === "tall" ? "9:16" : "Wide"
             on: Config.musicShape === "tall"
             closeOnTrigger: false
             onTriggered: Config.set("musicShape", Config.musicShape === "tall" ? "wide" : "tall")
@@ -291,26 +248,10 @@ Item {
         MenuRow {
             visible: menu.isWidget
             label: I18n.tr("Lock")
-            value: menu.locked ? I18n.tr("On") : I18n.tr("Off")
+            value: menu.locked ? "On" : "Off"
             on: menu.locked
             closeOnTrigger: false
             onTriggered: Config.toggle(menu.scope + "Locked")
-        }
-        MenuRow {
-            visible: menu.isWidget && menu.stageActive
-            label: I18n.tr("In front of the subject")
-            value: menu.isWidgetFront(menu.scope) ? I18n.tr("On") : I18n.tr("Off")
-            on: menu.isWidgetFront(menu.scope)
-            closeOnTrigger: false
-            onTriggered: menu.setWidgetFront(menu.scope, true)
-        }
-        MenuRow {
-            visible: menu.isWidget && menu.stageActive
-            label: I18n.tr("Behind the subject")
-            value: !menu.isWidgetFront(menu.scope) ? I18n.tr("On") : I18n.tr("Off")
-            on: !menu.isWidgetFront(menu.scope)
-            closeOnTrigger: false
-            onTriggered: menu.setWidgetFront(menu.scope, false)
         }
 
         // Size + Opacity: discoverable equivalents of the corner-drag resize and
@@ -436,6 +377,39 @@ Item {
             visible: menu.isWidget
             label: I18n.tr("Hide")
             onTriggered: Config.set(menu.scope + "Enabled", false)
+        }
+
+        // ── the two Stage switches, side by side (docs/stage.md) ────────
+        // The menu's own choice chips: a bone plate when the effect is on, a
+        // quiet tile when off, the state spelled out in the label.
+        MenuSection {}
+        Row {
+            id: stageRow
+            visible: !menu.isWidget
+            width: parent.width
+            spacing: Theme.s1
+            readonly property real cw: (width - Theme.s1) / 2
+            MenuChip {
+                width: stageRow.cw
+                height: Theme.ctlH + 6
+                selected: menu.stageEffect !== "off"
+                label: I18n.tr("Depth") + " \u00b7 " + (menu.stageBusy ? (menu.stagePct + "%")
+                    : menu.stageEffect !== "off" ? I18n.tr("On") : I18n.tr("Off"))
+                onClicked: menu.toggleDepth()
+            }
+            MenuChip {
+                width: stageRow.cw
+                height: Theme.ctlH + 6
+                selected: menu.stageEffect === "parallax"
+                label: I18n.tr("Parallax") + " \u00b7 " + (menu.stageEffect === "parallax" ? I18n.tr("On") : I18n.tr("Off"))
+                onClicked: menu.toggleParallax()
+            }
+        }
+
+        MenuRow {
+            visible: !menu.isWidget
+            label: I18n.tr("Depth settings…")
+            onTriggered: menu.depthSettings()
         }
 
         // ── globals ────────────────────────────────────────────────────

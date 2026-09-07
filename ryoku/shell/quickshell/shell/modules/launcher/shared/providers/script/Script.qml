@@ -7,6 +7,7 @@ import "../../lib/providerids.js" as ProviderIds
 import "../../lib/rofiscript.js" as RofiScript
 import "../requeststate.js" as RequestState
 import ".."
+import shell.services as Svc
 
 // Script provider: runs user scripts that speak the rofi-script protocol, so the
 // existing ecosystem (rofimoji, rofi-rbw, custom menus) works in Ryoku unchanged.
@@ -160,7 +161,7 @@ Provider {
             id: ProviderIds.scriptRowId(def.keyword, row),
             title: row.text,
             subtitle: def.name || def.keyword,
-            icon: row.icon ? Quickshell.iconPath(row.icon, "") : "",
+            icon: row.icon ? Svc.Icons.path(row.icon, "") : "",
             type: def.name || "Script",
             score: 0,
             actions: [{
