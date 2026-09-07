@@ -547,6 +547,7 @@ func updateStage2(pre string, withSystem bool) error {
 	if err := Materialize(); err != nil {
 		hyprReload()
 		startShell()
+		restartWallpaper()
 		progress.fail(err)
 		return err
 	}
@@ -557,6 +558,7 @@ func updateStage2(pre string, withSystem bool) error {
 	// start the shell daemon so the new binary + QML both take effect.
 	hyprReload()
 	startShell()
+	restartWallpaper()
 	rashinReindex()
 	prowlRefresh()
 
@@ -1421,6 +1423,31 @@ func startShell() {
 		cmd.Stdout, cmd.Stderr = f, f
 	}
 	_ = cmd.Start()
+}
+
+// restartWallpaper brings the wallpaper daemon onto the binary the update just
+// installed. It is a second supervised daemon, not part of ryoku-shell, and it
+// was quietly left running across every update: pacman replaced /usr/bin/ryogami
+// while the old process kept the ryogami.sock it owns, so the restarted shell's
+// QML spoke to a daemon from the previous release. The wallpaper, the picker and
+// the palette that follows the wallpaper all cross that socket, which is why all
+// three went at once (#159) and why nothing looked wrong: the unit was enabled
+// and active, just old.
+//
+// try-restart, not restart: outside a graphical session the unit's
+// ConditionEnvironment refuses a start and autostart brings it up at the next
+// login instead, so a down daemon must not be forced up here.
+func restartWallpaper() {
+	if !sys.Has("ryogami") {
+		return
+	}
+	_ = exec.Command("systemctl", "--user", "daemon-reload").Run()
+	if exec.Command("systemctl", "--user", "try-restart", "ryogami.service").Run() == nil {
+		return
+	}
+	// no unit yet (a box mid-cutover): drop the old process so the shell's
+	// respawn picks up the installed binary.
+	_ = exec.Command("pkill", "-x", "ryogami").Run()
 }
 
 func materializeStatePath() string {
