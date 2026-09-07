@@ -115,24 +115,14 @@ func (d *daemon) startPowerProfiles() {
 			log.Printf("ryoku-shell: restore power profile %q: %v", saved, err)
 		}
 	}
-	// Nothing saved means this box has never been told which profile to run, so
-	// it is sitting on whatever ppd inherited from the firmware. On a gaming
-	// laptop that is `performance`, which pins the package power limit and holds
-	// the CPU at 80-90 C with the fans up during light use, and nothing in the
-	// desktop ever asked for it. Seed `balanced` once and bank it, so the box
-	// behaves like every other Ryoku install and the choice is visible in the
-	// Hub instead of hidden in firmware. Only `performance` is corrected: a
-	// firmware default of `power-saver` is a deliberately quiet machine, and a
-	// running game already owns the profile.
-	// setProfile rejects a name ppd does not offer, so a box with no `balanced`
-	// simply logs and keeps what it had.
-	if saved == "" && p.activeProfile() == "performance" && !gameModeActive() {
-		const seed = "balanced"
-		if err := p.setProfile(seed); err != nil {
-			log.Printf("ryoku-shell: seed power profile %q: %v", seed, err)
+	if shouldSeedBalanced(saved, p.activeProfile(), gameModeActive()) {
+		// setProfile rejects a name ppd does not offer, so a box with no
+		// `balanced` simply logs and keeps what it had.
+		if err := p.setProfile(seedProfile); err != nil {
+			log.Printf("ryoku-shell: seed power profile %q: %v", seedProfile, err)
 		} else {
-			p.saved.Store(seed)
-			p.persistProfile(seed)
+			p.saved.Store(seedProfile)
+			p.persistProfile(seedProfile)
 		}
 	}
 	// restoreNs before restoreDone so the first post-restore signal sees both.
@@ -314,6 +304,25 @@ func sinceStamp(ns int64) time.Duration {
 		return time.Duration(1) << 62
 	}
 	return time.Since(time.Unix(0, ns))
+}
+
+// seedProfile is what a box that has never been told which profile to run gets
+// put on, when the alternative is the firmware's own choice.
+const seedProfile = "balanced"
+
+// shouldSeedBalanced: nothing saved means this box has never been told which
+// profile to run, so it is sitting on whatever power-profiles-daemon inherited
+// from the firmware. On a gaming laptop that is `performance`, which pins the
+// package power limit and holds the CPU near 90 C with the fans up during light
+// use, and nothing in the desktop ever asked for it (#157). Seed `balanced`
+// once and bank it, so the box behaves like every other install and the choice
+// is visible in the Hub instead of buried in firmware.
+//
+// Only `performance` is corrected: a firmware default of `power-saver` is a
+// deliberately quiet machine, a saved pick is the user's and is restored above,
+// and a running game already owns the profile.
+func shouldSeedBalanced(saved, active string, gaming bool) bool {
+	return saved == "" && active == "performance" && !gaming
 }
 
 // readPersistedProfile returns the user's last saved profile, or "" when none is

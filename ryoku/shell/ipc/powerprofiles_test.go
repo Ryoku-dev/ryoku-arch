@@ -181,3 +181,28 @@ func TestDecideProfileChange(t *testing.T) {
 		}
 	}
 }
+
+// A box whose firmware boots power-profiles-daemon on performance and has never
+// been given a profile gets balanced; nothing else is touched. This is the #157
+// case: the CPU sat near 90 C on light use because nobody had ever chosen.
+func TestShouldSeedBalanced(t *testing.T) {
+	for _, c := range []struct {
+		name          string
+		saved, active string
+		gaming, want  bool
+	}{
+		{"firmware boots on performance, never chosen", "", "performance", false, true},
+		{"a saved pick is the user's", "performance", "performance", false, false},
+		{"a saved balanced is left alone", "balanced", "performance", false, false},
+		{"a quiet machine stays quiet", "", "power-saver", false, false},
+		{"already balanced needs nothing", "", "balanced", false, false},
+		{"a running game owns the profile", "", "performance", true, false},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			if got := shouldSeedBalanced(c.saved, c.active, c.gaming); got != c.want {
+				t.Errorf("shouldSeedBalanced(%q, %q, %v) = %v, want %v",
+					c.saved, c.active, c.gaming, got, c.want)
+			}
+		})
+	}
+}
