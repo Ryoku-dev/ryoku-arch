@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell.Io
 import "Singletons"
 
 // The Parallax backdrop, drawn inside the desktop surface just above the base
@@ -61,39 +60,19 @@ Item {
         }
     }
 
-    // Parallax needs the global cursor, which Quickshell does not surface without
-    // a poll; the value is smoothed and shared per-monitor so the layers above
-    // drift in lockstep with this backdrop.
-    Timer {
-        id: cursorTick
-        interval: 40
-        repeat: true
-        running: root.owns
-        onTriggered: {
+    // The drift follows the pointer while it is over the desktop surface: an
+    // event, not a poll, so nothing runs while the pointer is over a window.
+    HoverHandler {
+        enabled: root.owns
+        acceptedButtons: Qt.NoButton
+        onPointChanged: {
             const m = root.screen;
-            if (!m || m.width <= 0) return;
-            cursorProc.running = false;
-            cursorProc.running = true;
-        }
-    }
-    Process {
-        id: cursorProc
-        command: ["hyprctl", "cursorpos"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                const m = root.screen;
-                if (!m || m.width <= 0) return;
-                const parts = ("" + this.text).trim().split(",");
-                if (parts.length !== 2) return;
-                const cx = parseFloat(parts[0]);
-                const cy = parseFloat(parts[1]);
-                if (isNaN(cx) || isNaN(cy)) return;
-                const nx = Math.max(-1, Math.min(1, (cx - m.x) / m.width * 2 - 1));
-                const ny = Math.max(-1, Math.min(1, (cy - m.y) / m.height * 2 - 1));
-                root.cursorNX = root.cursorNX + (nx - root.cursorNX) * 0.55;
-                root.cursorNY = root.cursorNY + (ny - root.cursorNY) * 0.55;
-                StageBackend.setCursor(m.name, root.cursorNX, root.cursorNY);
-            }
+            if (!m || root.width <= 0 || root.height <= 0) return;
+            const nx = Math.max(-1, Math.min(1, point.position.x / root.width * 2 - 1));
+            const ny = Math.max(-1, Math.min(1, point.position.y / root.height * 2 - 1));
+            root.cursorNX = root.cursorNX + (nx - root.cursorNX) * 0.55;
+            root.cursorNY = root.cursorNY + (ny - root.cursorNY) * 0.55;
+            StageBackend.setCursor(m.name, root.cursorNX, root.cursorNY);
         }
     }
 }

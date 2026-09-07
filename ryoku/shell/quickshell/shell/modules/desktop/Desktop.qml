@@ -728,13 +728,16 @@ Scope {
 
         Process { id: paletteProc }
 
-        WidgetMenu { id: menu }
+        // Menus sit above the whole stage stack (backdrop z 1, layers up to z 5),
+        // or a Parallax backdrop paints over an open right-click menu.
+        WidgetMenu { id: menu; z: 90 }
 
         // per-tile right-click menu, hoisted to PanelWindow level so the
         // click-away catcher covers the whole desktop and a tile that
         // vanishes (Hide) doesn't pull the menu down with it.
         PluginWidgetMenu {
             id: pluginMenu
+            z: 90
             onHideRequested: (id) => {
                 hide.command = [root.placeTool, id, "enabled", "false"];
                 hide.running = true;
