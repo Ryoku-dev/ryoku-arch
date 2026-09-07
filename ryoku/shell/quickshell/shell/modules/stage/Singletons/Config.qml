@@ -30,22 +30,13 @@ Singleton {
     readonly property bool music: !!(root.motion && root.motion.music === true)
     readonly property real amountFactor: root.amount === "subtle" ? 0.5 : root.amount === "strong" ? 1.8 : 1.0
 
+    // `front` is read-only now: the layer owns whether it sits behind or in
+    // front of the widgets, so the desktop editor never writes a per-widget
+    // lift. Kept only so an existing stage.json that pinned widgets still
+    // renders them above the in-front layers (docs/stage.md).
     function isFront(id) {
         return (adapter.front || []).indexOf(id) >= 0;
     }
-    function setFront(id, on) {
-        var arr = (adapter.front || []).slice();
-        var i = arr.indexOf(id);
-        if (on && i < 0)
-            arr.push(id);
-        else if (!on && i >= 0)
-            arr.splice(i, 1);
-        else
-            return;
-        adapter.front = arr;
-        settle.restart();
-    }
-    function toggleFront(id) { root.setFront(id, !root.isFront(id)); }
 
     // Quality is a plain tier the daemon maps to model + matting when it cuts;
     // the UI never names "u2netp" or "alpha matting". Written eagerly because a

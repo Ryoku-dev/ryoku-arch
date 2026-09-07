@@ -1,9 +1,13 @@
 StageBackdrop StageBackdrop.qml
 StageLayer StageLayer.qml
-StageComposeBar StageComposeBar.qml
-StageLayerChip StageLayerChip.qml
-StageWidgetChip StageWidgetChip.qml
-StageAddPalette StageAddPalette.qml
+StageInspector StageInspector.qml
+StageOutline StageOutline.qml
+StageLayerOutline StageLayerOutline.qml
+StageEffectTab StageEffectTab.qml
+StageLookTab StageLookTab.qml
+StageMotionTab StageMotionTab.qml
+StageAddTab StageAddTab.qml
+StageElementTab StageElementTab.qml
 StagePreviewCard StagePreviewCard.qml
 StageQuality StageQuality.qml
 StageSeg StageSeg.qml

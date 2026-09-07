@@ -77,18 +77,19 @@ Scope {
     }
     readonly property var editItems: {
         const bi = [
-            { id: "clock", label: "Clock", icon: "schedule", enabled: Config.clockEnabled },
-            { id: "calendar", label: "Calendar", icon: "calendar_month", enabled: Config.calendarEnabled },
-            { id: "music", label: "Music", icon: "music_note", enabled: Config.musicEnabled },
-            { id: "aio", label: "All-in-one", icon: "dashboard", enabled: Config.aioEnabled },
-            { id: "stats", label: "System stats", icon: "monitor_heart", enabled: Config.statsEnabled },
-            { id: "weather", label: "Weather", icon: "partly_cloudy_day", enabled: Config.weatherEnabled },
-            { id: "notes", label: "Notes", icon: "sticky_note_2", enabled: Config.notesEnabled },
-            { id: "visualizer", label: "Visualizer", icon: "graphic_eq", enabled: VizCfg.Config.enabled }
+            { id: "clock", label: "Clock", icon: "schedule", enabled: Config.clockEnabled, locked: Config.clockLocked === true, kind: "widget" },
+            { id: "calendar", label: "Calendar", icon: "calendar_month", enabled: Config.calendarEnabled, locked: Config.calendarLocked === true, kind: "widget" },
+            { id: "music", label: "Music", icon: "music_note", enabled: Config.musicEnabled, locked: Config.musicLocked === true, kind: "widget" },
+            { id: "aio", label: "All-in-one", icon: "dashboard", enabled: Config.aioEnabled, locked: Config.aioLocked === true, kind: "widget" },
+            { id: "stats", label: "System stats", icon: "monitor_heart", enabled: Config.statsEnabled, locked: Config.statsLocked === true, kind: "widget" },
+            { id: "weather", label: "Weather", icon: "partly_cloudy_day", enabled: Config.weatherEnabled, locked: Config.weatherLocked === true, kind: "widget" },
+            { id: "notes", label: "Notes", icon: "sticky_note_2", enabled: Config.notesEnabled, locked: Config.notesLocked === true, kind: "widget" },
+            { id: "visualizer", label: "Visualizer", icon: "graphic_eq", enabled: VizCfg.Config.enabled, locked: false, kind: "viz" }
         ];
         const pl = (win.desktopPluginIds || []).map(pid => {
             const e = Registry.plugins.find(p => p.id === pid);
-            return { id: "plugin:" + pid, label: (e && e.manifest && e.manifest.name) ? e.manifest.name : pid, icon: "widgets", enabled: true };
+            const dw = (e && e.placement && e.placement.desktopWidget) || {};
+            return { id: "plugin:" + pid, label: (e && e.manifest && e.manifest.name) ? e.manifest.name : pid, icon: "widgets", enabled: true, locked: dw.locked === true, kind: "widget" };
         });
         return bi.concat(pl);
     }
@@ -103,17 +104,61 @@ Scope {
         }
         Config.set(id + "Enabled", !Config[id + "Enabled"]);
     }
-    // Live drag readout for the toolbar (built-in widget drags).
-    readonly property string dragReadout: {
-        const s = win.dragSlot;
-        return s ? (root.widgetTitle(s.widget) + "  " + Math.round(s.dragX) + ", " + Math.round(s.dragY)) : "";
+    // Widget/visualizer element actions from the inspector's element tab
+    // (docs/stage.md): lock, settings and remove, resolved for a built-in or a
+    // plugin tile. Layers are daemon-owned, so the inspector edits those itself.
+    function _builtinSlot(id) {
+        switch (id) {
+        case "clock": return clockSlot;
+        case "calendar": return calendarSlot;
+        case "music": return musicSlot;
+        case "aio": return aioSlot;
+        case "stats": return statsSlot;
+        case "weather": return weatherSlot;
+        case "notes": return notesSlot;
+        }
+        return null;
     }
-    Binding {
-        target: StageCfg.StageSession
-        property: "readout"
-        value: root.dragReadout
-        when: root.stageComposing
+    function stageLockToggle(id) {
+        if (id.indexOf("plugin:") === 0) {
+            const pid = id.slice(7);
+            const dw = win.placementOf(pid);
+            const x = (dw.x !== undefined) ? dw.x : 80;
+            const y = (dw.y !== undefined) ? dw.y : 80;
+            const sc = (dw.scale !== undefined) ? dw.scale : 1;
+            lockProc.command = [root.placeTool, pid, "desktopWidget", "" + x, "" + y, "" + sc, "" + !(dw.locked === true)];
+            lockProc.running = true;
+            return;
+        }
+        Config.toggle(id + "Locked");
     }
+    function stageOpenSettings(id) {
+        if (id.indexOf("plugin:") === 0) {
+            const pid = id.slice(7);
+            const dw = win.placementOf(pid);
+            const e = Registry.plugins.find(p => p.id === pid);
+            pluginMenu.openFor(pid, dw.locked === true, 120, 120, e ? e.manifest : null, e ? e.placement : null);
+            return;
+        }
+        const s = root._builtinSlot(id);
+        if (s)
+            menu.openFor(id, s.x + 20, s.y + 20);
+        else
+            menu.openFor(id, 120, 120);
+    }
+    function stageRemoveWidget(id) {
+        if (id.indexOf("plugin:") === 0) {
+            hide.command = [root.placeTool, id.slice(7), "enabled", "false"];
+            hide.running = true;
+            return;
+        }
+        Config.set(id + "Enabled", false);
+    }
+    // Gate every widget's visibility on the layer being sized and Config +
+    // Registry loaded, so nothing flashes at its default before the real
+    // enabled flags arrive. An undefined here would short-circuit the visible
+    // bindings to undefined and leave them at their `true` default, rendering
+    // disabled widgets.
     readonly property bool reloadReady: readiness.ready
 
     ReloadReadiness {
@@ -319,6 +364,15 @@ Scope {
             anchors.fill: parent
             acceptedButtons: Qt.RightButton
             onPressed: (mouse) => menu.openDesktop(mouse.x, mouse.y)
+        }
+        // Left-click on bare wallpaper clears the selection while composing; it
+        // sits below the widgets, so a click on an element still reaches it, and
+        // it only takes the left button so the right-click menu still opens.
+        MouseArea {
+            anchors.fill: parent
+            enabled: root.stageComposing
+            acceptedButtons: Qt.LeftButton
+            onPressed: StageCfg.StageSession.deselect()
         }
 
         // click-off for the notes pad: while it holds the keyboard, a press on
@@ -585,27 +639,15 @@ Scope {
                     it.active = true;
                 }
 
-                // Edit-session chip, reparented to the overlay so its pill stays
-                // clickable past a small tile's edge (docs/stage.md).
-                StageWidgetChip {
+                // Edit-session selection outline, reparented to the overlay so
+                // it sits above the tile and its chip is always placed.
+                StageOutline {
                     parent: composeOverlay
                     visible: root.stageComposing
                     box: Qt.rect(slot.x, slot.y, slot.width, slot.height)
                     title: (slot.entry && slot.entry.manifest && slot.entry.manifest.name) ? slot.entry.manifest.name : slot.pid
-                    isFront: StageCfg.Config.isFront(slot.pid)
-                    locked: slot.dw.locked === true
                     selected: StageCfg.StageSession.selected === slot.pid
-                    onFlip: StageCfg.Config.toggleFront(slot.pid)
-                    onToggleLock: {
-                        const dw = slot.dw;
-                        const x = (dw.x !== undefined) ? dw.x : 80;
-                        const y = (dw.y !== undefined) ? dw.y : 80;
-                        const sc = (dw.scale !== undefined) ? dw.scale : 1;
-                        lockProc.command = [root.placeTool, slot.pid, "desktopWidget", "" + x, "" + y, "" + sc, "" + !(dw.locked === true)];
-                        lockProc.running = true;
-                    }
-                    onRemoveEl: { hide.command = [root.placeTool, slot.pid, "enabled", "false"]; hide.running = true; }
-                    onOpenSettings: pluginMenu.openFor(slot.pid, slot.dw.locked === true, slot.x + 20, slot.y + 20, slot.entry ? slot.entry.manifest : null, slot.entry ? slot.entry.placement : null)
+                    clickable: true
                     onPicked: StageCfg.StageSession.select(slot.pid)
                 }
             }
@@ -643,93 +685,47 @@ Scope {
 
             Repeater {
                 model: root.stageOn ? StageCfg.StageBackend.layerCountFor(root.wallpaperPath) : 0
-                delegate: StageLayerChip {
+                delegate: StageLayerOutline {
                     required property int index
                     wallPath: root.wallpaperPath
                     slot: index
                     count: StageCfg.StageBackend.layerCountFor(root.wallpaperPath)
-                    parallax: root.stageParallax
+                    selected: StageCfg.StageSession.selected === ("layer:" + index)
+                    onPicked: StageCfg.StageSession.select("layer:" + index)
                 }
             }
 
-            component BuiltinChip: StageWidgetChip {
-                id: bc
+            component BuiltinOutline: StageOutline {
+                id: bo
                 property var slotItem: null
                 property string wid: ""
-                visible: bc.slotItem ? bc.slotItem.visible : false
-                box: bc.slotItem ? Qt.rect(bc.slotItem.x, bc.slotItem.y, bc.slotItem.width, bc.slotItem.height) : Qt.rect(0, 0, 0, 0)
-                title: root.widgetTitle(bc.wid)
-                isFront: StageCfg.Config.isFront(bc.wid)
-                locked: Config[bc.wid + "Locked"] === true
-                selected: StageCfg.StageSession.selected === bc.wid
-                onFlip: StageCfg.Config.toggleFront(bc.wid)
-                onToggleLock: Config.toggle(bc.wid + "Locked")
-                onRemoveEl: Config.set(bc.wid + "Enabled", false)
-                onOpenSettings: menu.openFor(bc.wid, bc.box.x + 20, bc.box.y + 20)
-                onPicked: StageCfg.StageSession.select(bc.wid)
+                visible: bo.slotItem ? bo.slotItem.visible : false
+                box: bo.slotItem ? Qt.rect(bo.slotItem.x, bo.slotItem.y, bo.slotItem.width, bo.slotItem.height) : Qt.rect(0, 0, 0, 0)
+                title: root.widgetTitle(bo.wid)
+                selected: StageCfg.StageSession.selected === bo.wid
+                clickable: true
+                onPicked: StageCfg.StageSession.select(bo.wid)
             }
-            BuiltinChip { wid: "clock"; slotItem: clockSlot }
-            BuiltinChip { wid: "calendar"; slotItem: calendarSlot }
-            BuiltinChip { wid: "music"; slotItem: musicSlot }
-            BuiltinChip { wid: "aio"; slotItem: aioSlot }
-            BuiltinChip { wid: "stats"; slotItem: statsSlot }
-            BuiltinChip { wid: "weather"; slotItem: weatherSlot }
-            BuiltinChip { wid: "notes"; slotItem: notesSlot }
+            BuiltinOutline { wid: "clock"; slotItem: clockSlot }
+            BuiltinOutline { wid: "calendar"; slotItem: calendarSlot }
+            BuiltinOutline { wid: "music"; slotItem: musicSlot }
+            BuiltinOutline { wid: "aio"; slotItem: aioSlot }
+            BuiltinOutline { wid: "stats"; slotItem: statsSlot }
+            BuiltinOutline { wid: "weather"; slotItem: weatherSlot }
+            BuiltinOutline { wid: "notes"; slotItem: notesSlot }
 
-            // Visualizer: its own surface, so front/behind maps to its layer.
-            StageWidgetChip {
+            // Visualizer: a selection outline over its band; on-desktop vs
+            // above-windows is its own placement, edited in the element tab.
+            StageOutline {
                 visible: VizCfg.Config.enabled
                 box: Qt.rect(composeOverlay.width * 0.12, composeOverlay.height * 0.72, composeOverlay.width * 0.76, composeOverlay.height * 0.2)
                 title: "Visualizer"
-                frontLabel: "Above windows"
-                behindLabel: "On desktop"
-                isFront: root.stageState ? root.stageState.visualizerOverlay : false
-                canLock: false
-                canSettings: false
                 selected: StageCfg.StageSession.selected === "visualizer"
-                onFlip: if (root.stageState) root.stageState.visualizerOverlay = !root.stageState.visualizerOverlay
-                onRemoveEl: VizCfg.Config.setEnabled(false)
+                clickable: true
                 onPicked: StageCfg.StageSession.select("visualizer")
             }
         }
 
-        // The Add palette, docked at the left while composing.
-        StageAddPalette {
-            anchors.left: parent.left
-            anchors.leftMargin: 20
-            anchors.top: parent.top
-            anchors.topMargin: 24
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 180
-            z: 62
-            visible: root.stageComposing && StageCfg.StageSession.paletteOpen
-            items: root.editItems
-            onToggle: id => root.paletteToggle(id)
-            onClosed: StageCfg.StageSession.paletteOpen = false
-        }
-        // A small handle to reopen the palette once it is closed.
-        Rectangle {
-            anchors.left: parent.left
-            anchors.leftMargin: 20
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 180
-            z: 62
-            visible: root.stageComposing && !StageCfg.StageSession.paletteOpen
-            width: reopenRow.implicitWidth + 24
-            height: 40
-            radius: 12
-            color: Qt.rgba(Services.Theme.surface.r, Services.Theme.surface.g, Services.Theme.surface.b, 0.92)
-            border.width: 1
-            border.color: Qt.rgba(Services.Theme.outline.r, Services.Theme.outline.g, Services.Theme.outline.b, 0.4)
-            Row {
-                id: reopenRow
-                anchors.centerIn: parent
-                spacing: 6
-                Text { anchors.verticalCenter: parent.verticalCenter; text: "+"; color: Services.Theme.onSurface; font.family: Services.Theme.fontPrimary; font.pixelSize: 20; font.weight: Font.DemiBold }
-                Text { anchors.verticalCenter: parent.verticalCenter; text: "Add"; color: Services.Theme.onSurface; font.family: Services.Theme.fontPrimary; font.pixelSize: Services.Theme.fontSm; font.weight: Font.DemiBold }
-            }
-            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: StageCfg.StageSession.paletteOpen = true }
-        }
         Process { id: paletteProc }
 
         WidgetMenu { id: menu }
@@ -836,13 +832,21 @@ Scope {
                 }
             }
         }
-        // The Stage compose toolbar; widgets are placed with the ordinary drag,
-        // so this only names the gesture and carries Done (docs/stage.md).
-        StageComposeBar {
+        // The Stage editor's one inspector, docked at the bottom (docs/stage.md).
+        // Widgets drag with the ordinary gesture; every knob and each element's
+        // actions live in the inspector's tabs, keyed off the current selection.
+        StageInspector {
             z: 101
             visible: root.stageState ? root.stageState.stageComposing : false
-            onDone: if (root.stageState)
-                root.stageState.stageComposing = false
+            elements: root.editItems
+            vizOverlay: root.stageState ? root.stageState.visualizerOverlay : false
+            onDone: if (root.stageState) root.stageState.stageComposing = false
+            onAddEnable: id => root.paletteToggle(id)
+            onWidgetLockToggle: id => root.stageLockToggle(id)
+            onWidgetSettings: id => root.stageOpenSettings(id)
+            onWidgetRemove: id => root.stageRemoveWidget(id)
+            onVizFlip: if (root.stageState) root.stageState.visualizerOverlay = !root.stageState.visualizerOverlay
+            onVizRemove: VizCfg.Config.setEnabled(false)
         }
 
         // position/scale writeback for plugin tiles. ryoku-plugins-place
