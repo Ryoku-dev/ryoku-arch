@@ -140,7 +140,7 @@ Item {
             height: item.iconSize
             source: {
                 const i = Dock.iconFor(item.className);
-                return i !== "" ? i : Quickshell.iconPath("application-x-executable", true);
+                return i !== "" ? i : Icons.path("application-x-executable", true);
             }
             // Size the pixmap for the magnified icon so a grown icon never softens.
             sourceSize.width: Math.round(item.iconSize * item.band.maxScale)

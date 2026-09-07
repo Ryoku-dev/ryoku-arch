@@ -35,7 +35,7 @@ Item {
 
                 Image {
                     anchors.centerIn: parent
-                    source: modelData.iconPath ? "file://" + modelData.iconPath : (modelData.iconName ? Quickshell.iconPath(modelData.iconName, true) : "")
+                    source: modelData.iconPath ? "file://" + modelData.iconPath : (modelData.iconName ? Icons.path(modelData.iconName, true) : "")
                     sourceSize.width: 14
                     sourceSize.height: 14
                     width: 14

@@ -299,7 +299,7 @@ Item {
                                     sourceSize.height: height
                                     smooth: true
                                     asynchronous: true
-                                    source: row.iconName.length > 0 ? Quickshell.iconPath(row.iconName, "") : ""
+                                    source: row.iconName.length > 0 ? Icons.path(row.iconName, "") : ""
                                     opacity: row.rowEnabled ? 1 : 0.38
                                 }
 

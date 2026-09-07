@@ -88,9 +88,9 @@ Item {
     function iconFor(className) {
         const desktop = DesktopEntries.heuristicLookup(className);
         const byEntry = (desktop && desktop.icon) ?
-            Quickshell.iconPath(desktop.icon, true) : "";
+            Icons.path(desktop.icon, true) : "";
         return byEntry !== "" ? byEntry :
-            Quickshell.iconPath(className.toLowerCase(), true);
+            Icons.path(className.toLowerCase(), true);
     }
 
     function focusWorkspace(id) {

@@ -6,6 +6,7 @@ import Quickshell.Hyprland
 import Quickshell.Widgets
 import "../../shared/Singletons"
 import Ryoku.Ui.Singletons
+import shell.services as Svc
 
 Item {
     id: root
@@ -197,7 +198,7 @@ Item {
                     anchors.centerIn: parent
                     implicitSize: 21 * root.s
                     source: tile.modelData.cls
-                        ? Quickshell.iconPath(tile.modelData.cls,
+                        ? Svc.Icons.path(tile.modelData.cls,
                             "application-x-executable") : ""
                 }
             }

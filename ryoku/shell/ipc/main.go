@@ -64,6 +64,13 @@ func main() {
 		}
 		return
 	}
+	if args[0] == "icons" {
+		// The icon index (every name reachable through the theme chain) is far
+		// larger than the daemon's socket reply and needs no running daemon, so
+		// build and print it here, like `theme catalog`. `icons <name>...` prints
+		// one resolved path per line for spot checks.
+		os.Exit(runIcons(args[1:]))
+	}
 	if args[0] == "browser-host" {
 		// WebExtension native-messaging host: the browser launches this with the
 		// manifest path as argv, then talks over stdin/stdout. Standalone, no

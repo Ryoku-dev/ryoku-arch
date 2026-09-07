@@ -100,6 +100,13 @@ Singleton {
         target: DesktopEntries
         function onApplicationsChanged() { root.iconRev++; }
     }
+    // The icon index lands a moment after startup (a `ryoku-shell icons` run);
+    // bump iconRev the instant it does so pins re-resolve off the fallback
+    // without waiting on the warm-up poll below.
+    Connections {
+        target: Icons
+        function onRevChanged() { root.iconRev++; }
+    }
     // The icon-theme cache warms a little after the shell starts and nothing signals
     // it, so an icon can be unresolvable at first paint and findable a moment later.
     // Re-resolve a bounded handful of times over the first few seconds after load, so
@@ -255,8 +262,8 @@ Singleton {
     function iconFor(className) {
         void root.iconRev;
         const desktop = DesktopEntries.heuristicLookup(className);
-        const byEntry = (desktop && desktop.icon) ? Quickshell.iconPath(desktop.icon, true) : "";
-        return byEntry !== "" ? byEntry : Quickshell.iconPath(String(className).toLowerCase(), true);
+        const byEntry = (desktop && desktop.icon) ? Icons.path(desktop.icon, true) : "";
+        return byEntry !== "" ? byEntry : Icons.path(String(className).toLowerCase(), true);
     }
 
     // No clients -> launch; focused already -> cycle by address; else focus,

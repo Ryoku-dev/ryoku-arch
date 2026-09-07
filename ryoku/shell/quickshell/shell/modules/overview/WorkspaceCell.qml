@@ -7,6 +7,7 @@ import Quickshell.Wayland
 import Quickshell.Widgets
 import "Singletons"
 import Ryoku.Ui.Singletons
+import shell.services as Svc
 
 /**
  * One workspace as a scaled mini-desktop. A large Fraunces workspace numeral is
@@ -114,7 +115,7 @@ Item {
                 continue;
             seen[c] = true;
             var e = DesktopEntries.heuristicLookup(c);
-            var p = (e && e.icon) ? Quickshell.iconPath(e.icon, true) : Quickshell.iconPath(c, true);
+            var p = (e && e.icon) ? Svc.Icons.path(e.icon, true) : Svc.Icons.path(c, true);
             if (p)
                 out.push(p);
         }
@@ -343,9 +344,9 @@ Item {
                     source: {
                         var c = tile.modelData.cls;
                         var e = c ? DesktopEntries.heuristicLookup(c) : null;
-                        var p = (e && e.icon) ? Quickshell.iconPath(e.icon, true) : "";
+                        var p = (e && e.icon) ? Svc.Icons.path(e.icon, true) : "";
                         if (!p && c)
-                            p = Quickshell.iconPath(c, true);
+                            p = Svc.Icons.path(c, true);
                         return p;
                     }
                 }

@@ -397,7 +397,7 @@ Scope {
 
                                     IconImage {
                                         implicitSize: 24
-                                        source: Quickshell.iconPath((li.modelData && li.modelData.icon) || "application-x-executable", true)
+                                        source: Icons.path((li.modelData && li.modelData.icon) || "application-x-executable", true)
                                     }
                                     Text {
                                         Layout.fillWidth: true

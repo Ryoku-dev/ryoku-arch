@@ -171,7 +171,7 @@ PanelWindow {
                                     ? "\u26a0 " + (appDescription !== "" ? appDescription : "Needs attention")
                                     : appDescription
                                 readonly property int cellWidth: 96
-                                readonly property string iconSource: modelData.iconPath ? "file://" + modelData.iconPath : (modelData.iconName ? Quickshell.iconPath(modelData.iconName, true) : "")
+                                readonly property string iconSource: modelData.iconPath ? "file://" + modelData.iconPath : (modelData.iconName ? Icons.path(modelData.iconName, true) : "")
                                 readonly property bool hasMenu: modelData.menu != null
 
                                 width: trayRows.width

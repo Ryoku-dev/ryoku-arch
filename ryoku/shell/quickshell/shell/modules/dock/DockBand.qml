@@ -401,7 +401,7 @@ Item {
             height: band.iconSize
             source: {
                 const i = Dock.iconFor(band.dragClass);
-                return i !== "" ? i : Quickshell.iconPath("application-x-executable", true);
+                return i !== "" ? i : Icons.path("application-x-executable", true);
             }
             sourceSize.width: Math.round(band.iconSize * 1.3)
             sourceSize.height: Math.round(band.iconSize * 1.3)
