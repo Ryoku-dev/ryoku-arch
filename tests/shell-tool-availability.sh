@@ -10,7 +10,7 @@ pkgs="$ROOT/system/packages"
 
 ships() {
   grep -qxF "$1" "$pkgs/base.packages" "$pkgs/dev.packages" "$pkgs/aur.packages" 2>/dev/null && return 0
-  # first-party [ryoku] repo packages (awww, ...) ship from release/packages,
+  # first-party [ryoku] repo packages (ryogami, ...) ship from release/packages,
   # not the package sets.
   [[ -d "$ROOT/release/packages/$1" ]]
 }
@@ -54,9 +54,11 @@ declare -A dependExempt=( [chromium]=1 )
 
 # feature -> package that provides it
 declare -A need=(
-  # live wallpapers ride ryoku-livewall, which ships inside the ryoku-shell
-  # package itself (phonto/mpvpaper were dropped with it, 7c20f7dd).
-  [wallpaper-daemon]=awww
+  # the wallpaper daemon is ryogami, a first-party [ryoku] package and a hard
+  # ryoku-desktop depend; live wallpapers ride ryoku-livewall, which ships
+  # inside the ryoku-shell package itself (phonto/mpvpaper were dropped with
+  # it, 7c20f7dd; awww was retired with 25a57f57).
+  [wallpaper-daemon]=ryogami
   [palette]=matugen
   [clipboard-history]=cliphist
   [color-picker]=hyprpicker

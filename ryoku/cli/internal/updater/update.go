@@ -1394,7 +1394,8 @@ func stopShell() {
 	// current one so the restarted daemon relaunches it on the new binary, and
 	// the legacy backends older releases shipped (mpvpaper, phonto) -- the new
 	// daemon no longer knows their names, and an orphan left on the background
-	// layer stacks above awww and swallows every static set after the update.
+	// layer stacks above Ryogami's surface and swallows every static set after
+	// the update.
 	for _, p := range []string{"ryoku-livewall", "mpvpaper", "phonto"} {
 		_ = exec.Command("pkill", "-x", p).Run()
 	}

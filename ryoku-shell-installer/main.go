@@ -144,7 +144,9 @@ func buildItems(f *facts, p *plan) []planItem {
 	if len(f.monOutputs) > 0 {
 		it = append(it, planItem{"Carry over monitor layout", i18n.Tf("pins %d output(s) from your %s setup (rotation, scale, position) into monitors_user.lua", len(f.monOutputs), f.monSource), &p.monPins, false})
 	}
-	it = append(it, planItem{"AUR extras", i18n.T("awww (wallpaper engine), Bibata cursor, LocalSend, Voxtype"), &p.aur, false})
+	// awww is retired: the wallpaper daemon is ryogami, a hard ryoku-desktop
+	// depend the packages step pulls, not an AUR build.
+	it = append(it, planItem{"AUR extras", i18n.T("Bibata cursor, LocalSend, Voxtype"), &p.aur, false})
 	it = append(it, planItem{"Developer toolchain", i18n.T("go, rust, node, python (ISO parity); ryoku recovery rebuilds from source and needs go"), &p.devtools, false})
 	if !strings.HasSuffix(f.userShell, "/fish") {
 		it = append(it, planItem{"fish as login shell", i18n.T("Ryoku's default shell; your current one stays installed"), &p.fish, false})

@@ -68,9 +68,10 @@ var bootChainSkip = map[string]bool{
 	"limine-mkinitcpio-hook": true, "limine-snapper-sync": true,
 }
 
-// the standard Ryoku extras, all best-effort here. awww (the wallpaper daemon,
-// from the [ryoku] repo) and matugen (the palette generator, from the official
-// repo) are hard ryoku-desktop depends the packages step already pulled; no AUR build is needed.
+// the standard Ryoku extras, all best-effort here. ryogami (the wallpaper
+// daemon, from the [ryoku] repo) and matugen (the palette generator, from the
+// official repo) are hard ryoku-desktop depends the packages step already
+// pulled; no AUR build is needed.
 var aurPkgs = []string{"bibata-cursor-theme-bin", "localsend-bin", "voxtype-bin"}
 
 // system/packages/dev.packages; ryoku recovery builds from source and needs go.
@@ -1240,7 +1241,7 @@ EOF`); err != nil {
 
 func stepAUR(e *engine) error {
 	if !e.p.aur {
-		e.say(i18n.T("AUR extras skipped by choice; wallpaper needs awww (ryoku doctor will nag)"))
+		e.say(i18n.T("AUR extras skipped by choice; the wallpaper daemon is a package depend and is unaffected"))
 		return nil
 	}
 	helper := e.f.aurHelper
@@ -1363,8 +1364,8 @@ func stepVerify(e *engine) error {
 	} else {
 		check(has("matugen"), i18n.T("matugen palette generator (colors follow the wallpaper)"))
 	}
-	if !has("awww") {
-		e.say(gWarn + " " + i18n.T("awww missing (AUR): static wallpapers will not set until it installs (ryoku doctor retries it)"))
+	if !has("ryogami") {
+		e.say(gWarn + " " + i18n.T("ryogami missing: the wallpaper will not paint until it installs (ryoku doctor retries it)"))
 	}
 	if e.p.devtools {
 		check(has("go"), i18n.T("go toolchain on PATH (ryoku recovery rebuilds from source)"))
