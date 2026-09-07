@@ -40,6 +40,8 @@ package() {
     "$pkgdir/usr/bin/ryoku-reload-cover"
   install -Dm755 "$_repo/ryoku/shell/scripts/ryostage" \
     "$pkgdir/usr/bin/ryostage"
+  install -Dm755 "$_repo/ryoku/shell/scripts/ryoku-eq" \
+    "$pkgdir/usr/bin/ryoku-eq"
   install -d "$pkgdir/usr/share/ryoku/reload-cover"
   cp -a "$_repo/ryoku/shell/quickshell/reload-cover/." "$pkgdir/usr/share/ryoku/reload-cover/"
 }

@@ -145,6 +145,7 @@ install -m755 "$here/ipc/ryoku-shell" "$bindir/ryoku-shell"
 say "installed $bindir/ryoku-shell"
 install -m755 "$here/scripts/ryoku-reload-cover" "$bindir/ryoku-reload-cover"
 install -m755 "$here/scripts/ryostage" "$bindir/ryostage"
+install -m755 "$here/scripts/ryoku-eq" "$bindir/ryoku-eq"
 # Depth and Parallax merged into ryostage; a checkout box that installed the old
 # helpers keeps them on PATH forever otherwise (pacman drops them on packaged boxes).
 rm -f "$bindir"/ryoku-{depth,parallax-engine}

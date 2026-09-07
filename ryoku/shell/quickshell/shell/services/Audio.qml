@@ -27,12 +27,22 @@ Singleton {
         return (n && typeof PwNodeType !== "undefined") ? PwNodeType.toString(n.type) : "";
     }
 
+    // The equalizer's filter pair (see ryoku-eq). WirePlumber splices it in front
+    // of the real device and never treats it as a default node, so it is plumbing
+    // rather than a device or an app: listing it would show the speakers twice in
+    // the mixer and offer a "Ryoku Equalizer" output nobody should pick. Matched on
+    // node.name, a constant, so this never reads an untracked property.
+    function isShellFilter(n) {
+        return ((n && n.name) + "").indexOf("ryoku_equalizer") === 0;
+    }
+
     // a real, switchable output/input device (not a stream).
-    function isOutput(n) { return !!(n && n.isSink && !n.isStream && n.audio); }
-    function isInput(n) { return !!(n && !n.isSink && !n.isStream && n.audio); }
+    function isOutput(n) { return !!(n && n.isSink && !n.isStream && n.audio && !root.isShellFilter(n)); }
+    function isInput(n) { return !!(n && !n.isSink && !n.isStream && n.audio && !root.isShellFilter(n)); }
     // an application feeding the graph (playback, not capture). per-app here.
     function isPlayStream(n) {
-        return !!(n && n.isStream && n.audio && root.typeOf(n).indexOf("In") < 0);
+        return !!(n && n.isStream && n.audio && root.typeOf(n).indexOf("In") < 0
+            && !root.isShellFilter(n));
     }
 
     // an application capturing from the graph -- a screen recorder, a call, a

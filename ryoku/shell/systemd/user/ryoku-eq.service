@@ -1,0 +1,16 @@
+[Unit]
+Description=Ryoku equalizer (PipeWire smart filter)
+Documentation=man:pipewire(1)
+# The filter is a PipeWire client, so it lives and dies with the server: PartOf
+# carries a pipewire restart through to it, and ryoku-eq writes the config the
+# unit loads before ever starting it.
+After=pipewire.service
+PartOf=pipewire.service
+ConditionPathExists=%t/ryoku/eq/filter-chain.conf
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/pipewire -c %t/ryoku/eq/filter-chain.conf
+Restart=on-failure
+RestartSec=2
+Slice=session.slice

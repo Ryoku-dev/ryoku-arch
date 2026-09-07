@@ -4,6 +4,36 @@
 
 ### Added
 
+- **The qsbar music widget opens a now-playing card, with a 10-band equalizer.**
+  Clicking the widget (its title, its spectrum glyph, or anywhere on it in the
+  `full` style) opens the record and the track: artwork with the playback spectrum
+  ringing it, title/artist/album, the output device and the source player, a
+  seekable progress bar, and the transport. The old compact card is what grew into
+  it, so it keeps the same anchor, reveal and dismissal, and it now draws the
+  spectrum from the shell's one `AudioBars` analyser instead of spawning a private
+  cava that ignored the Power Saver policy.
+
+  Under the track is the equalizer: ISO octave bands from 31 Hz to 16 kHz, +/-12 dB
+  each, the eight presets (Flat, Bass, Treble, Vocal, Pop, Rock, Jazz, Classic),
+  and an ON/OFF bypass. `scripts/ryoku-eq` renders ten `bq_peaking` biquads into a
+  `libpipewire-module-filter-chain` graph and runs it as a WirePlumber **smart
+  filter**, which is spliced between every playback stream and the real device: no
+  second output device to pick, already-playing streams included, and players that
+  name the default sink themselves (mpv, so also Ryotunes) caught too. Bands are
+  live node params, so a slider changes the sound mid-note; `Flat` or OFF releases
+  the filter entirely, so a desktop that never opens the card carries no extra
+  node. Releasing it is done the way WirePlumber intends, and not by killing the
+  process: a player that loses its sink mid-track does not wait for it to come
+  back (mpv, so also Ryotunes, treats it as the end of the file and skips on), so
+  the filter is marked disabled, which relinks every stream straight to the
+  device, and the process is stopped only once the graph says nothing is feeding
+  it. The filter runs in the `ryoku-eq.service` user unit, state lives in
+  `~/.config/ryoku/equalizer.json` and is watched, so a curve set from a shell or
+  a second monitor's card shows up in the one in front of you. The `Equalizer`
+  service is what the card binds to, and `Audio.qml` hides the filter pair from
+  the mixer's device and app lists
+  (`services/Equalizer.qml`, `panels/MprisPanel.qml`, `docs/bar.md`).
+
 - **`deploy.sh` lays the `ryoku-gpu-trim` initramfs hook.** The shipped HOOKS
   drop-in names it, and mkinitcpio aborts on a hook it cannot find, so a dev
   checkout needs the file before `ryoku-boot-apply` rebuilds the images. It also

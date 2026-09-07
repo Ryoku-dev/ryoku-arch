@@ -229,6 +229,16 @@ Item {
                 maskSpreadAtMin: 0.5
             }
 
+            // The title is the widget's own surface -- the transport glyphs beside
+            // it keep their own clicks -- so this is where a click means "show me
+            // the track", i.e. open the now-playing card.
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.LeftButton
+                cursorShape: Qt.PointingHandCursor
+                onClicked: { tip.hide(); root.mprisVisible = !root.mprisVisible }
+            }
+
             Text {
                 id: marqueeText
                 anchors.verticalCenter: parent.verticalCenter
@@ -319,6 +329,12 @@ Item {
                 function onBarH1Changed() { eqCanvas.requestPaint() }
                 function onBarH2Changed() { eqCanvas.requestPaint() }
                 function onBarH3Changed() { eqCanvas.requestPaint() }
+            }
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.LeftButton
+                cursorShape: Qt.PointingHandCursor
+                onClicked: { tip.hide(); root.mprisVisible = !root.mprisVisible }
             }
             Component.onCompleted: requestPaint()
         }
@@ -494,7 +510,10 @@ Item {
                 hoverEnabled: true
                 acceptedButtons: Qt.LeftButton
                 cursorShape: Qt.PointingHandCursor
-                onClicked: if (rootMod.player) rootMod.player.togglePlaying()
+                // Full mode shows no transport glyphs, so a click on it means the
+                // same as a click on the compact title: open the now-playing card,
+                // where play/pause (and Space) live. The wheel still skips tracks.
+                onClicked: { tip.hide(); root.mprisVisible = !root.mprisVisible }
                 onWheel: function(wheel) {
                     if (!rootMod.player || wheel.angleDelta.y === 0) return
                     if (wheel.angleDelta.y > 0) {
