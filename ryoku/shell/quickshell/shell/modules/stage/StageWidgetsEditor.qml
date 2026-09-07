@@ -150,12 +150,16 @@ Item {
             anchors.rightMargin: 16
             anchors.verticalCenter: parent.verticalCenter
             spacing: 10
+            // Reset keeps its slot while clean (faded, inert) so the centred bar
+            // never changes width and Done never moves under the pointer.
             Tool {
                 anchors.verticalCenter: parent.verticalCenter
-                visible: ed.ses.dirty
+                opacity: ed.ses.dirty ? 1 : 0
+                enabled: ed.ses.dirty
                 icon: "restart_alt"
                 label: "Reset"
                 onAct: ed.ses.reset()
+                Behavior on opacity { NumberAnimation { duration: 120 } }
             }
             Tool {
                 anchors.verticalCenter: parent.verticalCenter

@@ -12,6 +12,7 @@ import Quickshell.Io
 import "modules"
 import shell.services as Svc
 import Ryoku.PluginKit
+import "../../../stage/Singletons" as StageCfg
 
 PanelWindow {
     id: barSlot
@@ -84,6 +85,10 @@ PanelWindow {
     }
     // grab keyboard while unlocked so ESC can exit
     WlrLayershell.keyboardFocus: barSlot.root.barUnlocked ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    // Edit shell lifts the desktop to Top; the bar steps up to Overlay for the
+    // session so a change is seen on the real bar (docs/stage.md).
+    WlrLayershell.layer: StageCfg.StageSession.shell && StageCfg.StageSession.monitor === barSlot.screenName
+        ? WlrLayer.Overlay : WlrLayer.Top
 
     // ── auto-hide reveal state ──
     property bool hovering: false

@@ -26,8 +26,12 @@ Item {
     property real cursorNY: 0
     // The backdrop is the farthest plane, so it drifts the least; Amount scales it.
     readonly property real _max: root.width * 0.04
-    function offsetX() { return root.cursorNX * root._max * Config.amountFactor * 0.25; }
-    function offsetY() { return root.cursorNY * root._max * Config.amountFactor * 0.25; }
+    // Backdrop drift scales the farthest plane on its own; Follow mouse and
+    // Sensitivity gate and scale the pointer's pull like every layer.
+    readonly property real _gain: Config.followMouse
+        ? Config.amountFactor * Config.sensitivity * Config.backdrop * 0.25 : 0
+    function offsetX() { return root.cursorNX * root._max * root._gain; }
+    function offsetY() { return root.cursorNY * root._max * root._gain; }
 
     function fillModeFor(im) {
         switch (root.wallpaperFit) {

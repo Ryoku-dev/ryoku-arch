@@ -51,14 +51,12 @@ Item {
         }
     }
 
-    function _driftX() {
-        if (!root.motionEnabled) return 0;
-        return root.mouseNX * root._baseMax * Config.amountFactor * root._near;
-    }
-    function _driftY() {
-        if (!root.motionEnabled) return 0;
-        return root.mouseNY * root._baseMax * Config.amountFactor * root._near;
-    }
+    // Pointer drift: Follow mouse gates it, Sensitivity scales the pointer's
+    // pull, Range scales how far a layer may travel (the Parallax tab's knobs).
+    readonly property real _pointerGain: (root.motionEnabled && Config.followMouse)
+        ? Config.sensitivity * Config.range * Config.amountFactor * root._near : 0
+    function _driftX() { return root.mouseNX * root._baseMax * root._pointerGain; }
+    function _driftY() { return root.mouseNY * root._baseMax * root._pointerGain; }
     // Music lifts near layers more than far ones, so the stack pulses with depth.
     function _musicY() {
         if (!root.motionEnabled || !Config.music) return 0;

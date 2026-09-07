@@ -388,7 +388,7 @@ Item {
         Item {
             visible: !menu.isWidget
             width: parent.width
-            implicitHeight: visible ? Theme.s6 + Theme.s2 : 0
+            implicitHeight: visible ? 64 : 0
             Row {
                 id: stageRow
                 anchors.fill: parent
@@ -397,6 +397,8 @@ Item {
                 spacing: Theme.s1
                 readonly property real cw: (width - Theme.s1) / 2
 
+                // A label over a switch: the menu is 248 wide, so a label beside
+                // a switch would not fit two cards abreast.
                 component StageCard: Rectangle {
                     id: card
                     property string label: ""
@@ -410,41 +412,39 @@ Item {
                     border.width: 1
                     border.color: Theme.line
                     Behavior on color { ColorAnimation { duration: Theme.quick } }
-                    Column {
-                        anchors { left: parent.left; leftMargin: Theme.s2; verticalCenter: parent.verticalCenter }
-                        spacing: 1
-                        Text {
-                            text: card.label
-                            color: card.on ? Theme.ink : Theme.inkSoft
-                            font.family: Theme.font
-                            font.pixelSize: Theme.fBody
-                        }
-                        Text {
-                            visible: card.value !== ""
-                            text: card.value
-                            color: Theme.inkDim
-                            font.family: Theme.font
-                            font.pixelSize: Theme.fSmall
-                        }
-                    }
-                    Ui.Sw {
-                        anchors { right: parent.right; rightMargin: Theme.s2; verticalCenter: parent.verticalCenter }
-                        on: card.on
-                        onToggled: card.toggled()
-                    }
                     MouseArea {
                         id: cardMa
                         anchors.fill: parent
                         hoverEnabled: true
-                        z: -1
                         onClicked: card.toggled()
+                    }
+                    Text {
+                        anchors { left: parent.left; leftMargin: Theme.s2; top: parent.top; topMargin: Theme.s2 }
+                        text: card.label
+                        color: card.on ? Theme.ink : Theme.inkSoft
+                        font.family: Theme.font
+                        font.pixelSize: Theme.fBody
+                    }
+                    Ui.Sw {
+                        id: sw
+                        anchors { left: parent.left; leftMargin: Theme.s2; bottom: parent.bottom; bottomMargin: Theme.s2 }
+                        on: card.on
+                        onToggled: card.toggled()
+                    }
+                    Text {
+                        anchors { left: sw.right; leftMargin: Theme.s2; verticalCenter: sw.verticalCenter }
+                        visible: card.value !== ""
+                        text: card.value
+                        color: Theme.inkDim
+                        font.family: Theme.font
+                        font.pixelSize: Theme.fSmall
                     }
                 }
 
                 StageCard {
                     label: I18n.tr("Depth")
                     on: menu.stageEffect !== "off"
-                    value: menu.stageBusy ? (I18n.tr("Cutting") + " " + menu.stagePct + "%") : ""
+                    value: menu.stageBusy ? (menu.stagePct + "%") : ""
                     onToggled: menu.toggleDepth()
                 }
                 StageCard {

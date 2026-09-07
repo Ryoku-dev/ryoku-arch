@@ -34,7 +34,9 @@ Singleton {
     // v2 settings table folded the old motion.{mouse,sensitivity,range} into
     // motion.amount, but the ribbon exposes them directly, so they live back
     // under `motion` as their own keys (default: a plain follow with unit gain).
-    readonly property bool followMouse: !!(root.motion && root.motion.mouse === true)
+    // Follow mouse is on unless the key says false: a Parallax that ignores the
+    // pointer is the exception, not the default.
+    readonly property bool followMouse: !(root.motion && root.motion.mouse === false)
     readonly property real sensitivity: (root.motion && typeof root.motion.sensitivity === "number") ? root.motion.sensitivity : 1.0
     readonly property real range: (root.motion && typeof root.motion.range === "number") ? root.motion.range : 1.0
     readonly property real backdrop: (root.motion && typeof root.motion.backdrop === "number") ? root.motion.backdrop : 1.0
@@ -68,7 +70,7 @@ Singleton {
             m[k] = src[k];
         m[key] = v;
         adapter.motion = m;
-        file.writeAdapter();
+        settle.restart();
     }
     function setAmount(a) { if (["subtle", "normal", "strong"].indexOf(a) >= 0) root._setMotion("amount", a); }
     function setIdle(i) { if (["none", "float", "breathe"].indexOf(i) >= 0) root._setMotion("idle", i); }
@@ -111,7 +113,7 @@ Singleton {
             property real edge: 0.15
             property real shadow: 0.0
             property int shadowAngle: 90
-            property var motion: ({ amount: "normal", idle: "none", music: false, mouse: false, sensitivity: 1.0, range: 1.0, backdrop: 1.0 })
+            property var motion: ({ amount: "normal", idle: "none", music: false, mouse: true, sensitivity: 1.0, range: 1.0, backdrop: 1.0 })
             property var front: []
         }
     }

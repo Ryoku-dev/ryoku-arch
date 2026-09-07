@@ -230,15 +230,22 @@ Singleton {
         cfg.setAmount(m.amount || "normal");
         cfg.setIdle(m.idle || "none");
         cfg.setMusic(m.music === true);
-        cfg.setMouse(m.mouse === true);
+        cfg.setMouse(m.mouse !== false);
         cfg.setSensitivity(typeof m.sensitivity === "number" ? m.sensitivity : 1.0);
         cfg.setRange(typeof m.range === "number" ? m.range : 1.0);
         cfg.setBackdrop(typeof m.backdrop === "number" ? m.backdrop : 1.0);
         cfg.setQuality(s.quality);
 
-        sb.setEffect(s.effect);
-        for (let i = 0; i < s.layers.length; i++)
-            sb.setLayer(i, { front: s.layers[i].front, depth: s.layers[i].depth });
+        // Only what changed goes back to the daemon: set-effect reconciles the
+        // stage, and a reconcile after a quality change would re-cut, which
+        // Reset must never do (docs/stage.md, "Nothing re-cuts without a confirm").
+        if (sb.effectFor(s.wall) !== s.effect)
+            sb.setEffect(s.effect);
+        for (let i = 0; i < s.layers.length; i++) {
+            const front = sb.layerFront(s.wall, i), depth = sb.layerDepth(s.wall, i);
+            if (front !== s.layers[i].front || Math.abs(depth - s.layers[i].depth) > 1e-6)
+                sb.setLayer(i, { front: s.layers[i].front, depth: s.layers[i].depth });
+        }
     }
 
     Connections {

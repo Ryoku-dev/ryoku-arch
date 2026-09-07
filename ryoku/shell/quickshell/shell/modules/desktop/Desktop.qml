@@ -178,9 +178,11 @@ Scope {
         if (root._snapConfig) {
             const c = root._snapConfig;
             const ks = root._widgetKeys;
+            const back = {};
             for (var i = 0; i < ks.length; i++)
                 if (Config[ks[i]] !== c[ks[i]])
-                    Config.set(ks[i], c[ks[i]]);
+                    back[ks[i]] = c[ks[i]];
+            Config.setMany(back);
         }
         const q = [];
         const snap = root._snapPlugins || {};

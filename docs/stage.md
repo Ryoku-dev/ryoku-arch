@@ -270,6 +270,10 @@ Global only; anything per-wallpaper is in the registry.
 | `motion.amount` | `normal` | `subtle` / `normal` / `strong`: cursor drift, and the idle amplitude |
 | `motion.idle` | `none` | `none` / `float` / `breathe` |
 | `motion.music` | `false` | layers react to the shared spectrum |
+| `motion.mouse` | `true` | Parallax follows the pointer at all |
+| `motion.sensitivity` | `1.0` | the pointer's pull (0..2) |
+| `motion.range` | `1.0` | how far a layer may travel (0..2) |
+| `motion.backdrop` | `1.0` | the inpainted backdrop's own drift (0..1) |
 | `front` | `[]` | widget ids drawn above the layers marked "in front" when the user lifts specific widgets from the desktop editor |
 
 The daemon reads `quality`; the shell reads the rest. On the first start after
@@ -319,12 +323,26 @@ the wallpaper's own fit and drifting with the cursor, so it covers the
 wallpaper's baked subject and can never misalign with ryogami's surface), then
 the layers marked behind the widgets (z 2), then the widgets (z 3), then the
 layers marked in front (`StageLayer.qml`: edge, shadow and angle from the global
-look, drift by the layer's `depth` x the shared motion Amount, idle and music;
-z 4), then any widget the user lifted into `front` (z 5). Depth is the same
+look, drift by the layer's `depth` x the shared motion Amount x Sensitivity x
+Range while Follow mouse is on, idle and music; z 4), then any widget the user
+lifted into `front` (z 5). Depth is the same
 stack with `motionEnabled: false` and no backdrop, so the still cut is
 pixel-locked over the wallpaper's own subject. There is no second renderer, no
 separate layer-shell surface, and no path that can draw the subject twice.
 While the engine cuts, the subject layer dims and draws its own progress ring.
+
+The editors sit beside the stack, not in it: Edit widgets is
+`modules/stage/StageWidgetsEditor.qml` (the toolbar), `StageOutline.qml` (the
+frame on every widget) and `StageAddPanel.qml` (the Add widget drop-down),
+mounted by the desktop surface, which lifts to the Top layer for either
+session; Edit shell is `modules/shell-layout/` (`ShellRibbon.qml` and one
+`*Tab.qml` per tab, `RibbonGroup.qml`, `RibbonDropdown.qml`,
+`ShellLayoutCanvas.qml`, `Singletons/Layout.qml`), its own Overlay surface per
+monitor that maps 150 ms after the session opens so it lands above the bar and
+dock, which step to Overlay for the session. Config writes from a Reset go out
+as one write per file (`Config.setMany`, the settle timer), because a burst of
+single-key writes interleaves with the watcher's reloads of older versions and
+can put an old value back.
 
 ## Delivery
 
