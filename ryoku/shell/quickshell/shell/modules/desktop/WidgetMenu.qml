@@ -139,8 +139,10 @@ Item {
         StageCfg.StageSession.enterWidgets(menu.activeMonitor());
         menu.close();
     }
-    function editShell() {
-        StageCfg.StageSession.enterShell(menu.activeMonitor(), "bar");
+    // Every Depth and Parallax setting lives on the Stage tab of Super+Esc;
+    // "#stage" deep-links the panel there (FrameMenuManager.openSurface).
+    function depthSettings() {
+        Services.ShellState.requestSurfaceActive("quick-settings#stage", undefined);
         menu.close();
     }
     function customizeVisualizer() {
@@ -177,11 +179,6 @@ Item {
             visible: !menu.isWidget
             label: I18n.tr("Edit widgets")
             onTriggered: menu.editWidgets()
-        }
-        MenuRow {
-            visible: !menu.isWidget
-            label: I18n.tr("Edit shell")
-            onTriggered: menu.editShell()
         }
         MenuRow {
             visible: !menu.isWidget
@@ -453,6 +450,12 @@ Item {
                     onToggled: menu.toggleParallax()
                 }
             }
+        }
+
+        MenuRow {
+            visible: !menu.isWidget
+            label: I18n.tr("Depth settings…")
+            onTriggered: menu.depthSettings()
         }
 
         // ── globals ────────────────────────────────────────────────────

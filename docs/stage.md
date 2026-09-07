@@ -32,43 +32,100 @@ widgets. **Parallax** is a switch inside Depth: the same cut, the same look,
 now drifting with the pointer over an inpainted backdrop. Nothing is configured
 twice.
 
-Three ways to change the desktop, all from its right-click menu:
+Two places, each with one job:
 
-- **Edit widgets**: move, resize, add, remove and configure widgets.
-- **Edit shell**: the bar, the dock, the edge menus, Depth and Parallax.
-- **Customize visualizer**: the visualizer's own editor (its looks, colour,
-  bands, mirror, peaks, gain, smoothing, angle, lean, size), placed on the
-  desktop.
+- **The Stage tab** (Super+Esc, the last rail icon): every setting, one
+  scrolling column, ordered by how often it is touched. Nothing here needs a
+  Done; every change is live and shows its value.
+- **The desktop** (right-click): the two switches, `Edit widgets` (arrange
+  widgets in front of or behind the subject), `Customize visualizer`, and
+  `Depth settings...`, which opens the Stage tab.
 
-The two Stage switches sit in that menu as well, so turning Depth or Parallax
-on never needs an editor.
+There is no shell editor. The bar, dock and menus keep their Hub pages.
 
 ## The desktop right-click menu
 
 ```
 Edit widgets
-Edit shell
 Customize visualizer
 Change wallpaper
 [Depth      (o)] [Parallax   ( )]     <- two switch cards, side by side
+Depth settings...                     <- opens Super+Esc on the Stage tab
 Settings
 Reload shell
 ```
 
-The switch cards sit directly above `Settings`. Each is a label plus a switch;
-tapping either keeps the menu open so the effect is seen at once.
+The switch cards sit under the rows and above `Depth settings...`. Tapping
+either keeps the menu open so the effect is seen at once.
 
 - Depth on: `set-effect depth`. Depth off: `set-effect off` (Parallax's switch
   falls with it).
 - Parallax on: `set-effect parallax`, and Depth's switch turns on with it if it
   was off (one tap, no "enable Depth first"). Parallax off: `set-effect depth`.
-- While the engine cuts (first enable on a wallpaper), the Depth card's value
-  reads `Cutting 40%` from the daemon's status; the switch stays on.
+- While the engine cuts (first enable on a wallpaper), the Depth card reads the
+  daemon's percentage; the switch stays on.
+- `Depth settings...` asks for the `quick-settings#stage` surface: the panel
+  opens (or switches) to the Stage tab on this monitor.
+
+## The Stage tab
+
+`modules/bar/framebars/menus/quicksettings/QuickSettingsStage.qml`, built only
+from the sidebar's own kit (`QsTile`, `QsNavRow`, `QsSection`, `QsSeg`,
+`QsSlider`, `LinkToggle`, `RevealerButton`) plus the stage's preview card and
+angle dial, so it reads like the Home and Capture tabs. One column, one
+Flickable, 12 px margins, sections in the sidebar's eyebrow rhythm. Top to
+bottom:
+
+1. **Title** `Stage`.
+2. **Preview**: the current wallpaper with its cut drawn over it; the ring
+   while the engine runs.
+3. **Two tiles**, side by side like Wi-Fi and Bluetooth on Home: `Depth`
+   (sub: `Off`, `On`, or the percentage while cutting) and `Parallax` (sub:
+   `Off`, `On`). The whole face toggles; the same rules as the menu switches.
+4. **Edit widgets** (`QsNavRow`): sub `Arrange widgets in front of or behind
+   the subject`. Closes the panel and opens the desktop editor on this monitor.
+
+Everything below appears only while Depth is on. Off, one quiet line takes its
+place: `Turn on Depth to cut the subject out and shape it.` A first enable
+cuts in the current tier (Draft by default: the small model, seconds), so the
+first result is fast and quality is raised afterwards, with a confirm.
+
+5. **Cut quality** (`QsSection`): `Draft | Standard | Fine` (`QsSeg`), a
+   caption under it naming the tier's model, size and whether it is installed
+   (`Fine: 224 MB, installed`). Choosing another tier changes nothing yet: the
+   segment shows the choice and a confirm row appears under the caption:
+   - model installed: `Re-cut in Fine` with `Re-cut` and `Cancel`;
+   - model missing: `Fine needs a 224 MB download` with `Download` and
+     `Cancel`; when the download lands the row becomes the Re-cut one;
+   - while the engine runs: `Cutting in Fine, 40%` with `Stop`.
+   `Re-cut` writes the tier and refreshes; `Cancel` (or leaving the panel)
+   drops the choice and the segment snaps back to the tier in use.
+6. **Layers** (`QsSection`): one row per layer, the subject first. A row is
+   the layer's name on the left and `Behind | In front` (`QsSeg`) on the right;
+   an added layer also has a remove cross, and, while Parallax is on, a
+   `Drift` slider (near to far) under it. Below the rows, two half-width
+   buttons `Cut a picture...` and `Add a PNG...`, and a quiet `Clear cut-outs`
+   link. `Cut a picture...` opens the picker, then shows `Cut from
+   <name>` with `Cut` and `Cancel`. `Clear cut-outs` shows `Remove every
+   cut-out for this wallpaper` with `Clear` and `Cancel`. `Add a PNG...` is
+   immediate (nothing runs).
+7. **Look** (`QsSection`): `Edge` (`QsSlider`, 0..1, value shown) and
+   `Shadow` (`QsSlider`) with the angle dial at the row's end and the degrees
+   under it. Both live. A quiet `Reset to defaults` link at the end of the
+   section puts edge, shadow, angle and every motion knob back.
+8. **Motion** (`QsSection`, Parallax only): `Amount` `Subtle | Normal |
+   Strong`; `Idle` `Still | Float | Breathe`; `React to music` and `Follow
+   mouse` switch rows; a `Fine-tune pointer` revealer holding `Sensitivity`,
+   `Range` and `Backdrop drift` sliders (shown only while Follow mouse is on).
+
+The confirm rows share one component: a message on the left, one or two text
+buttons on the right, in the section's own width; nothing floats and nothing
+covers another control. Escape closes the panel as it always did.
 
 ## Edit widgets
 
-The desktop lifts above open windows, the dock and bar step back, and every
-enabled widget wears a frame:
+The desktop lifts above open windows, the dock steps back, and every enabled
+widget wears a frame:
 
 - a 1 px outline with the widget's name at its top-left;
 - drag anywhere on it to move (grid-snapped, live), the bottom-right bracket to
@@ -91,80 +148,10 @@ Edit widgets   [+ Add widget v]  [Visualizer...]        [Reset]  [Done]
   visualizer) with a switch; on adds it at its default anchor, off removes it.
 - **Visualizer...** leaves this session and opens Customize visualizer.
 - **Reset** restores widgets.json as it was when the session opened (enabled
-  set, free positions, sizes); it appears only once something changed.
+  set, free positions, sizes); its slot is kept while clean so Done never
+  moves.
 - **Done** (or Escape, or a click on bare wallpaper when nothing is selected)
   leaves. There is no Save; the desktop is the document.
-
-## Edit shell
-
-A ribbon in the MS Paint sense: docked to the top of the screen, full width,
-two rows. Row one is the tabs; row two is the active tab's controls, in
-labelled groups separated by thin dividers, with each group's name in small
-caps under its controls. Buttons that need more than a row (`Layers`,
-`Pinned apps`, `Modules`) drop a panel down from the button, Paint's
-Colours/Rotate way; one panel at a time, click elsewhere or Escape closes it.
-
-```
-| Edit shell   [Bar] [Dock] [Menus] [Depth] [Parallax]           [Reset] [Done] |
-| [Top|Bottom]  |  (o) Auto-hide  |  [Islands|Full|Fit|Dock|Notch]  |  Size ---o--  |
-|   POSITION    |    BEHAVIOUR    |            FORM                  |     SIZE      |
-```
-
-The desktop lifts above windows (the same lift as Edit widgets) so the stage
-and the widgets are the canvas; the bar and the dock stay visible and live on
-top of it (they move to the Overlay layer for the session), so a change is
-seen on the real thing, not a stand-in. The ribbon sits under the bar when the
-bar is at the top. Every change applies immediately through the seams the Hub
-uses (`settings.patch` for `qsbar` and `frameBars`, the Dock singleton, the
-stage daemon), and **Reset** puts back everything the session touched.
-
-Tabs and their groups:
-
-- **Bar**: Position `Top | Bottom`; Behaviour `Auto-hide`; Form
-  `Islands | Full | Fit | Dock | Notch`; Size (scale 0.8 to 1.3); Surface
-  `Frost`, `Shadow`, `Border`, Corners (0 to 24); Modules (drop-down: the
-  left / centre / right module lists with move and remove).
-- **Dock**: Show `Dock`; Position `Auto | Top | Bottom | Left | Right` (Auto is
-  the edge opposite the bar); Style `Ledger | Islands | Rail | Seal | Tanzaku`;
-  Behaviour `Auto-hide`, `Magnify`, `Media chip`; Surface `Frost`, `Shadow`,
-  `Labels`; Apps (drop-down: the pinned list with remove and reorder, and a
-  Pin an app picker).
-- **Menus**: Menu `Quick settings | Theme | Wallpaper | Weather` (a chip per
-  menu; the chosen one is outlined on its edge); Edge
-  `Top | Bottom | Left | Right` (two menus asked for one edge swap); Stretch
-  `Always | Never` (expansion); Width (minWidth).
-- **Depth**: Depth switch; Subject `Behind widgets | In front`; Edge slider;
-  Shadow slider with the angle dial; Quality `Draft | Standard | Fine` with a
-  **Re-cut** button; Layers (drop-down: one row per layer with front/behind,
-  drift when Parallax is on, and remove; `Cut a picture...`, `Add a PNG...`,
-  `Clear cut-outs`).
-- **Parallax**: Parallax switch; Drift slider (near to far, the selected
-  layer's depth, the subject by default); Motion `Amount Subtle | Normal |
-  Strong`, `Idle None | Float | Breathe`, `React to music`; Mouse
-  `Follow mouse`, Sensitivity, Range; Backdrop drift.
-
-On the canvas, the Bar, Dock and Menus tabs outline every surface with its
-name and edge; the selected surface's legal edges show as strips, and clicking
-a strip is the same as the Edge control. The Depth and Parallax tabs outline
-the subject and every layer (click to select; the cut ring sits on the subject
-while the engine runs).
-
-### Nothing re-cuts without a confirm
-
-Edge, Shadow, Subject and Drift are render-only and apply as they move. Only
-these run the engine, and each needs a second, explicit press:
-
-- **Quality**: choosing a tier marks it pending (the tile highlights, the
-  Re-cut button fills and reads `Re-cut in Fine`); Re-cut writes the tier and
-  refreshes; a click elsewhere or Escape drops the pending tier. A tier whose
-  model is not installed shows `Download 224 MB` in the same place first.
-- **Cut a picture...**: the file picker, then the picked name with `Cut` and
-  `Cancel`.
-- **Clear cut-outs**: `Clear` and `Cancel`.
-- Turning Depth on for a wallpaper that has no cut is itself the consent; the
-  switch shows progress.
-
-While the engine runs, the Re-cut button becomes `Stop` with the percentage.
 
 ## Customize visualizer
 
@@ -173,19 +160,14 @@ size, dot to turn, scroll to resize) with its EditBar fixed to a screen edge.
 The menu row (and the Edit widgets toolbar's `Visualizer...`) turns the
 visualizer on if it is off and opens it. Its Done closes it.
 
-## The Stage card (Super+Esc)
-
-Preview, `Depth`, `Parallax`, `Edit shell`, `Edit widgets`. Nothing else.
-
 ## Session model
 
-`modules/stage/Singletons/StageSession.qml`: `mode` is `""`, `"widgets"` or
-`"shell"`; `monitor` names the screen that opened it; `tab` is the ribbon's
-tab; `selected` is a widget id, a surface id or `layer:N`; `panel` is the
-drop-down that is open; `dirty` shows Reset. `escapeStep()` unwinds one level
-per press: an open drop-down, then a pending confirm, then the selection, then
-the session. Each editor captures its own snapshot on enter and restores it on
-`resetRequested`.
+`modules/stage/Singletons/StageSession.qml` is the Edit widgets session only:
+`mode` is `""` or `"widgets"`; `monitor` names the screen that opened it;
+`selected` is a widget id; `panel` is the drop-down that is open (`"add"`);
+`dirty` shows Reset. `escapeStep()` unwinds one level per press: the
+drop-down, then the selection, then the session. The Stage tab keeps its own
+pending confirm locally; it is a panel, not a session.
 
 ## Models: one catalogue, visible provenance
 
@@ -331,18 +313,16 @@ pixel-locked over the wallpaper's own subject. There is no second renderer, no
 separate layer-shell surface, and no path that can draw the subject twice.
 While the engine cuts, the subject layer dims and draws its own progress ring.
 
-The editors sit beside the stack, not in it: Edit widgets is
-`modules/stage/StageWidgetsEditor.qml` (the toolbar), `StageOutline.qml` (the
-frame on every widget) and `StageAddPanel.qml` (the Add widget drop-down),
-mounted by the desktop surface, which lifts to the Top layer for either
-session; Edit shell is `modules/shell-layout/` (`ShellRibbon.qml` and one
-`*Tab.qml` per tab, `RibbonGroup.qml`, `RibbonDropdown.qml`,
-`ShellLayoutCanvas.qml`, `Singletons/Layout.qml`), its own Overlay surface per
-monitor that maps 150 ms after the session opens so it lands above the bar and
-dock, which step to Overlay for the session. Config writes from a Reset go out
-as one write per file (`Config.setMany`, the settle timer), because a burst of
-single-key writes interleaves with the watcher's reloads of older versions and
-can put an old value back.
+The Stage tab sits beside the stack, not in it: `QuickSettingsStage.qml`
+writes stage.json through `modules/stage/Singletons/Config.qml` (drag-y
+setters coalesce through one settle timer) and the daemon through
+`StageBackend`. Edit widgets is `modules/stage/StageWidgetsEditor.qml` (the
+toolbar), `StageOutline.qml` (the frame on every widget) and
+`StageAddPanel.qml` (the Add widget drop-down), mounted by the desktop surface,
+which lifts to the Top layer for the session. Config writes from its Reset go
+out as one write per file (`Config.setMany`), because a burst of single-key
+writes interleaves with the watcher's reloads of older versions and can put an
+old value back.
 
 ## Delivery
 

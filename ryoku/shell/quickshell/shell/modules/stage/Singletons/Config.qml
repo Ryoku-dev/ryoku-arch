@@ -30,7 +30,7 @@ Singleton {
     readonly property bool music: !!(root.motion && root.motion.music === true)
     readonly property real amountFactor: root.amount === "subtle" ? 0.5 : root.amount === "strong" ? 1.8 : 1.0
 
-    // Parallax pointer + backdrop knobs the Edit shell Parallax tab drives. The
+    // Parallax pointer + backdrop knobs the Stage tab's Motion section drives. The
     // v2 settings table folded the old motion.{mouse,sensitivity,range} into
     // motion.amount, but the ribbon exposes them directly, so they live back
     // under `motion` as their own keys (default: a plain follow with unit gain).

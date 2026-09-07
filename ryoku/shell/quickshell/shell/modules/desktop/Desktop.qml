@@ -59,10 +59,9 @@ Scope {
     }
     readonly property var stageState: Services.ShellState.forScreen(root.screen)
     readonly property string monitorName: root.screen ? root.screen.name : ""
-    // Edit widgets on this monitor frees every widget for dragging; Done restores
-    // the per-widget locks. Either session lifts this desktop above open windows.
-    readonly property bool stageComposing: StageCfg.StageSession.widgets && StageCfg.StageSession.monitor === root.monitorName
-    readonly property bool stageLifted: StageCfg.StageSession.onMonitor(root.monitorName)
+    // Edit widgets on this monitor frees every widget for dragging and lifts
+    // this desktop above open windows; Done restores the per-widget locks.
+    readonly property bool stageComposing: StageCfg.StageSession.onMonitor(root.monitorName)
     // Grab the keyboard while composing so Esc/Enter exit the mode (the bar owns
     // the keys); dropping it hands the keyboard back like any widget edit.
     onStageComposingChanged: {
@@ -274,7 +273,7 @@ Scope {
         exclusionMode: ExclusionMode.Ignore
         // Editing lifts the desktop above open windows so the stage is never
         // obscured by whatever was in front; Done drops it back under them.
-        WlrLayershell.layer: root.stageLifted ? WlrLayer.Top : WlrLayer.Bottom
+        WlrLayershell.layer: root.stageComposing ? WlrLayer.Top : WlrLayer.Bottom
         WlrLayershell.namespace: "ryoku-widgets"
         // None while nothing on this layer wants the keyboard, so this
         // full-screen Bottom layer never holds focus on an empty workspace

@@ -19,7 +19,6 @@ import "modules/desktop"
 import "modules/visualizer"
 import "modules/bar"
 import "modules/dock"
-import "modules/shell-layout"
 import "modules/launcher"
 import "modules/overview"
 import QtQuick
@@ -209,7 +208,7 @@ ShellRoot {
             DockSurface {
                 id: perScreenDock
                 screen: perScreen.modelData
-                // Edit widgets steps the dock back; Edit shell keeps it live on top.
+                // Edit widgets steps the dock back so the whole desktop is the canvas.
                 visible: Dock.cfg("enabled", false)
                     && !(StageCfg.StageSession.widgets && StageCfg.StageSession.monitor === perScreen.modelData.name)
             }
@@ -278,11 +277,6 @@ ShellRoot {
             }
         }
     }
-
-    // Edit shell layout session (docs/stage.md): its own per-monitor overlay,
-    // shown while the layout session is on; the widgets session lives inside the
-    // desktop surface instead. Mounted once -- it fans over the screens itself.
-    ShellLayoutEditor {}
 
     // In-process global shortcuts. Each flips the focused monitor's ShellState
     // flag that the per-screen surfaces above bind their visibility to, so a

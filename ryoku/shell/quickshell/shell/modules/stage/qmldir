@@ -1,13 +1,7 @@
 StageBackdrop StageBackdrop.qml
 StageLayer StageLayer.qml
 StageOutline StageOutline.qml
-StageLayerOutline StageLayerOutline.qml
-StageSwitch StageSwitch.qml
 StageWidgetsEditor StageWidgetsEditor.qml
 StageAddPanel StageAddPanel.qml
 StagePreviewCard StagePreviewCard.qml
-StageQuality StageQuality.qml
-StageSeg StageSeg.qml
-StageDragSlider StageDragSlider.qml
 StageAngleDial StageAngleDial.qml
-StageBtn StageBtn.qml
