@@ -189,12 +189,7 @@ ShellRoot {
                 screen: perScreen.modelData
                 mode: !VizCfg.Config.enabled ? "off"
                     : (perScreen.st && perScreen.st.visualizerOverlay ? "overlay" : "desktop")
-                placing: perScreen.st ? (perScreen.st.visualizerPlacing
-                    || (perScreen.st.stageComposing && StageCfg.StageSession.scope === "visualizer")) : false
-                // The Stage editor's Visualizer scope owns the controls on the
-                // island, so the Placer hides its own bar and yields input/keys.
-                placeEmbedded: perScreen.st ? (perScreen.st.stageComposing
-                    && StageCfg.StageSession.scope === "visualizer") : false
+                placing: perScreen.st ? perScreen.st.visualizerPlacing : false
                 suppressed: false
                 onPlacingDone: if (perScreen.st) perScreen.st.visualizerPlacing = false
             }
@@ -214,8 +209,9 @@ ShellRoot {
             DockSurface {
                 id: perScreenDock
                 screen: perScreen.modelData
-                // The stage toolbar docks where the dock lives; editing hides it.
-                visible: Dock.cfg("enabled", false) && !(perScreen.st && perScreen.st.stageComposing)
+                // Edit widgets steps the dock back; Edit shell keeps it live on top.
+                visible: Dock.cfg("enabled", false)
+                    && !(StageCfg.StageSession.widgets && StageCfg.StageSession.monitor === perScreen.modelData.name)
             }
 
             // The dock's right-click context menu: a full-screen overlay on the

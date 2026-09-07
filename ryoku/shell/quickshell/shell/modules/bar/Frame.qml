@@ -8,6 +8,7 @@ import Ryoku.Blobs
 import Ryoku.Ui.Singletons
 import shell.services
 import "framebars/RailGeometry.js" as RailGeometry
+import "../stage/Singletons" as StageCfg
 
 // One monitor's frame bar. It maps four exclusive-zone background surfaces that
 // reserve the revealed bar's thickness (so tiled windows clear the rails) and a
@@ -167,7 +168,10 @@ Scope {
         screen: root.modelData
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
-        WlrLayershell.layer: WlrLayer.Top
+        // Edit shell lifts the desktop to Top; the bar steps up to Overlay for
+        // the session so a change is seen on the real bar (docs/stage.md).
+        WlrLayershell.layer: StageCfg.StageSession.shell && StageCfg.StageSession.monitor === (root.modelData ? root.modelData.name : "")
+            ? WlrLayer.Overlay : WlrLayer.Top
         WlrLayershell.keyboardFocus: frameMenus.keyboardMode === "exclusive" ? WlrKeyboardFocus.Exclusive
             : frameMenus.keyboardMode === "ondemand" ? WlrKeyboardFocus.OnDemand
             : WlrKeyboardFocus.None

@@ -28,81 +28,164 @@ migrates all of them (below).
 ## The mental model a user needs
 
 One feature: **Depth**. It lifts the wallpaper's subject in front of your
-widgets. Depth has one optional motion, **Parallax**, which lets the scene
-drift with the pointer over a recoloured backdrop. Parallax is a switch inside
-Depth, never a sibling with its own settings: the same cut, the same quality,
-the same edge and shadow. Nothing about the feature is configured twice.
+widgets. **Parallax** is a switch inside Depth: the same cut, the same look,
+now drifting with the pointer over an inpainted backdrop. Nothing is configured
+twice.
 
-Where things live:
+Three ways to change the desktop, all from its right-click menu:
 
-- **Super+Esc, Stage card**: the two switches (Depth, Parallax) with a live
-  preview, and one button, `Edit desktop`. That is all the sidebar holds.
-- **Right-click the desktop**: `Edit widgets` and `Edit shell layout`, two
-  separate sessions (below), plus `Change wallpaper`, `Settings`, `Reload shell`.
+- **Edit widgets**: move, resize, add, remove and configure widgets.
+- **Edit shell**: the bar, the dock, the edge menus, Depth and Parallax.
+- **Customize visualizer**: the visualizer's own editor (its looks, colour,
+  bands, mirror, peaks, gain, smoothing, angle, lean, size), placed on the
+  desktop.
 
-## Editing: two sessions, one language
+The two Stage switches sit in that menu as well, so turning Depth or Parallax
+on never needs an editor.
 
-Both sessions share one visual grammar, Ryoku's own (the frame bar's glass,
-its type, its accent), not Material: a floating **island** docked at the top
-centre of the monitor, an optional second row that belongs to the current
-selection, labelled outlines on the things you can touch, and floating
-**panels** that can be moved, pinned and closed. No sidebar, no bottom bar.
-
-### Edit widgets (Ryostage)
+## The desktop right-click menu
 
 ```
-          ┌────────────────────────────────────────────────────────┐
-          │ Edit desktop · DP-2     Depth  Widgets  Visualizer   ✓ Done │   island
-          │ [selection row: what the selected thing can do]         │
-          └────────────────────────────────────────────────────────┘
-   ┌ Clock ─────────┐                    ┌ Depth ───────── ✥ 📌 ✕ ┐
-   │ (outlined, drag │                   │ Depth      on            │  floating panel
-   │  to move, corner│                   │ Parallax   off           │  (moves, pins, closes;
-   │  to resize)     │                   │ Quality  Draft·Std·Fine  │   remembers its spot)
-   └─────────────────┘                   │ Edge      ──o────        │
-                                         │ Shadow    ──o──── (dial) │
-                                         │ Layers   Subject  ...    │
-                                         └──────────────────────────┘
+Edit widgets
+Edit shell
+Customize visualizer
+Change wallpaper
+[Depth      (o)] [Parallax   ( )]     <- two switch cards, side by side
+Settings
+Reload shell
 ```
 
-- The island's first row names the session and the monitor, holds the three
-  scopes (`Depth`, `Widgets`, `Visualizer`) and `Done`. `Reset` appears only
-  once something changed this session.
-- **Depth scope**: the island's second row is the two switches and Quality;
-  the `Depth` panel (a floating window) carries Edge, Shadow with its dial, and
-  the layer list: each layer with `Behind widgets / In front of widgets`,
-  near/far while Parallax is on, remove (never the subject), and `Add layer`
-  (cut from a picture, or a PNG). The subject on the desktop gets an outline
-  labelled `Subject`; cutting shows a ring on it.
-- **Widgets scope**: every desktop widget gets an outline with its name and
-  state (`Clock`, `Clock · locked`, `Clock · hidden`); drag to move, corner to
-  resize, with a live size readout on the island's second row. Click one and
-  the second row shows its actions: `Lock`, `Settings` (opens that widget's
-  settings as a floating panel with the same move/pin/close chrome), `Hide`.
-  The row also has `Add widget`, which lists the ones that are off.
-- **Visualizer scope**: the visualizer is outlined and draggable/resizable
-  exactly as its old placer did (that placer is what runs here); the second
-  row has `On desktop / Above windows`, `Style`, and `Hide`.
-- Session rules: Escape cancels the current gesture, a second Escape leaves;
-  `Done` leaves; nothing needs saving. The desktop lifts above windows and
-  the dock hides while editing.
+The switch cards sit directly above `Settings`. Each is a label plus a switch;
+tapping either keeps the menu open so the effect is seen at once.
 
-### Edit shell layout
+- Depth on: `set-effect depth`. Depth off: `set-effect off` (Parallax's switch
+  falls with it).
+- Parallax on: `set-effect parallax`, and Depth's switch turns on with it if it
+  was off (one tap, no "enable Depth first"). Parallax off: `set-effect depth`.
+- While the engine cuts (first enable on a wallpaper), the Depth card's value
+  reads `Cutting 40%` from the daemon's status; the switch stays on.
 
-The same island, scoped to the shell's surfaces: `Bar`, `Dock`, `Quick
-settings`, `Theme`, `Wallpaper` (the frame bar's menus). Each surface is
-outlined with its name and current edge; the island's second row offers the
-edges that surface may take (`Top / Bottom / Left / Right`, only the legal
-ones) and applies on click. Dropping two menus on one edge swaps them. Nothing
-here touches Depth or widgets; that separation is the point.
+## Edit widgets
 
-### Panels
+The desktop lifts above open windows, the dock and bar step back, and every
+enabled widget wears a frame:
 
-A floating panel is a small window inside the editor: a title row with a
-grab handle (move), a pin (keeps it open after Done), and close; a body no
-wider than 360 px. Panels remember their last position per monitor in
-`~/.local/state/ryoku/stage-ui.json`. Only one settings panel is open at a
-time; opening another replaces it.
+- a 1 px outline with the widget's name at its top-left;
+- drag anywhere on it to move (grid-snapped, live), the bottom-right bracket to
+  resize;
+- two small buttons on its top-right: **Settings** (opens that widget's own
+  menu: design, lock, size, opacity, colour, snap) and **Remove** (hides it).
+
+Nothing is locked while editing: `locked` is false for every widget for the
+length of the session, and a widget added during the session is draggable the
+moment it appears. Per-widget Lock still applies outside the session.
+
+One toolbar docked top-centre, one row:
+
+```
+Edit widgets   [+ Add widget v]  [Visualizer...]        [Reset]  [Done]
+```
+
+- **Add widget** drops a panel under the button: one row per widget (clock,
+  calendar, music, all-in-one, stats, weather, notes, every plugin widget, the
+  visualizer) with a switch; on adds it at its default anchor, off removes it.
+- **Visualizer...** leaves this session and opens Customize visualizer.
+- **Reset** restores widgets.json as it was when the session opened (enabled
+  set, free positions, sizes); it appears only once something changed.
+- **Done** (or Escape, or a click on bare wallpaper when nothing is selected)
+  leaves. There is no Save; the desktop is the document.
+
+## Edit shell
+
+A ribbon in the MS Paint sense: docked to the top of the screen, full width,
+two rows. Row one is the tabs; row two is the active tab's controls, in
+labelled groups separated by thin dividers, with each group's name in small
+caps under its controls. Buttons that need more than a row (`Layers`,
+`Pinned apps`, `Modules`) drop a panel down from the button, Paint's
+Colours/Rotate way; one panel at a time, click elsewhere or Escape closes it.
+
+```
+| Edit shell   [Bar] [Dock] [Menus] [Depth] [Parallax]           [Reset] [Done] |
+| [Top|Bottom]  |  (o) Auto-hide  |  [Islands|Full|Fit|Dock|Notch]  |  Size ---o--  |
+|   POSITION    |    BEHAVIOUR    |            FORM                  |     SIZE      |
+```
+
+The desktop lifts above windows (the same lift as Edit widgets) so the stage
+and the widgets are the canvas; the bar and the dock stay visible and live on
+top of it (they move to the Overlay layer for the session), so a change is
+seen on the real thing, not a stand-in. The ribbon sits under the bar when the
+bar is at the top. Every change applies immediately through the seams the Hub
+uses (`settings.patch` for `qsbar` and `frameBars`, the Dock singleton, the
+stage daemon), and **Reset** puts back everything the session touched.
+
+Tabs and their groups:
+
+- **Bar**: Position `Top | Bottom`; Behaviour `Auto-hide`; Form
+  `Islands | Full | Fit | Dock | Notch`; Size (scale 0.8 to 1.3); Surface
+  `Frost`, `Shadow`, `Border`, Corners (0 to 24); Modules (drop-down: the
+  left / centre / right module lists with move and remove).
+- **Dock**: Show `Dock`; Position `Auto | Top | Bottom | Left | Right` (Auto is
+  the edge opposite the bar); Style `Ledger | Islands | Rail | Seal | Tanzaku`;
+  Behaviour `Auto-hide`, `Magnify`, `Media chip`; Surface `Frost`, `Shadow`,
+  `Labels`; Apps (drop-down: the pinned list with remove and reorder, and a
+  Pin an app picker).
+- **Menus**: Menu `Quick settings | Theme | Wallpaper | Weather` (a chip per
+  menu; the chosen one is outlined on its edge); Edge
+  `Top | Bottom | Left | Right` (two menus asked for one edge swap); Stretch
+  `Always | Never` (expansion); Width (minWidth).
+- **Depth**: Depth switch; Subject `Behind widgets | In front`; Edge slider;
+  Shadow slider with the angle dial; Quality `Draft | Standard | Fine` with a
+  **Re-cut** button; Layers (drop-down: one row per layer with front/behind,
+  drift when Parallax is on, and remove; `Cut a picture...`, `Add a PNG...`,
+  `Clear cut-outs`).
+- **Parallax**: Parallax switch; Drift slider (near to far, the selected
+  layer's depth, the subject by default); Motion `Amount Subtle | Normal |
+  Strong`, `Idle None | Float | Breathe`, `React to music`; Mouse
+  `Follow mouse`, Sensitivity, Range; Backdrop drift.
+
+On the canvas, the Bar, Dock and Menus tabs outline every surface with its
+name and edge; the selected surface's legal edges show as strips, and clicking
+a strip is the same as the Edge control. The Depth and Parallax tabs outline
+the subject and every layer (click to select; the cut ring sits on the subject
+while the engine runs).
+
+### Nothing re-cuts without a confirm
+
+Edge, Shadow, Subject and Drift are render-only and apply as they move. Only
+these run the engine, and each needs a second, explicit press:
+
+- **Quality**: choosing a tier marks it pending (the tile highlights, the
+  Re-cut button fills and reads `Re-cut in Fine`); Re-cut writes the tier and
+  refreshes; a click elsewhere or Escape drops the pending tier. A tier whose
+  model is not installed shows `Download 224 MB` in the same place first.
+- **Cut a picture...**: the file picker, then the picked name with `Cut` and
+  `Cancel`.
+- **Clear cut-outs**: `Clear` and `Cancel`.
+- Turning Depth on for a wallpaper that has no cut is itself the consent; the
+  switch shows progress.
+
+While the engine runs, the Re-cut button becomes `Stop` with the percentage.
+
+## Customize visualizer
+
+The visualizer's own editor, unchanged: the Placer (drag to move, corner to
+size, dot to turn, scroll to resize) with its EditBar fixed to a screen edge.
+The menu row (and the Edit widgets toolbar's `Visualizer...`) turns the
+visualizer on if it is off and opens it. Its Done closes it.
+
+## The Stage card (Super+Esc)
+
+Preview, `Depth`, `Parallax`, `Edit shell`, `Edit widgets`. Nothing else.
+
+## Session model
+
+`modules/stage/Singletons/StageSession.qml`: `mode` is `""`, `"widgets"` or
+`"shell"`; `monitor` names the screen that opened it; `tab` is the ribbon's
+tab; `selected` is a widget id, a surface id or `layer:N`; `panel` is the
+drop-down that is open; `dirty` shows Reset. `escapeStep()` unwinds one level
+per press: an open drop-down, then a pending confirm, then the selection, then
+the session. Each editor captures its own snapshot on enter and restores it on
+`resetRequested`.
 
 ## Models: one catalogue, visible provenance
 

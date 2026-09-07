@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import shell.services
+import "../stage/Singletons" as StageCfg
 
 // The Ryoku dock: a first-class shell surface (namespace ryoku-dock), one per
 // monitor and style-agnostic -- it no longer belongs to any bar. A frosted
@@ -57,6 +58,10 @@ PanelWindow {
     visible: Dock.cfg("enabled", false)
     // `screen` is PanelWindow's own property, set per monitor from shell.qml.
     WlrLayershell.namespace: "ryoku-dock"
+    // Edit shell lifts the desktop to Top; the dock steps up to Overlay for the
+    // session so it stays visible and live while its edge is chosen.
+    WlrLayershell.layer: StageCfg.StageSession.shell && StageCfg.StageSession.monitor === (dock.screen ? dock.screen.name : "")
+        ? WlrLayer.Overlay : WlrLayer.Top
     exclusionMode: ExclusionMode.Normal
     // A pinned (non-autohide) dock reserves its depth; an autohiding one floats
     // over the desktop and reserves nothing.

@@ -8,6 +8,7 @@ import Ryoku.Ui.Singletons
 import shell.services as Services
 import "../visualizer/Singletons" as VizCfg
 import "../stage/Singletons" as StageCfg
+import Ryoku.Ui as Ui
 
 // The desktop right-click menu, built on the shared DesktopMenu chrome in the
 // quick-settings sidebar idiom. Two scopes:
@@ -128,15 +129,38 @@ Item {
         const d = ["off", "canvas", "custom"];
         Config.set("musicVideo", d[(d.indexOf(Config.musicVideo) + 1) % d.length]);
     }
-
-    function editWidgets() {
+    // The three editors and the visualizer's own editor (docs/stage.md, "The
+    // desktop right-click menu"). Sessions open on the monitor the menu is on.
+    function activeMonitor() {
         const st = Services.ShellState.forActive();
-        if (st) st.stageComposing = true;
+        return (st && st.modelData) ? st.modelData.name : "";
+    }
+    function editWidgets() {
+        StageCfg.StageSession.enterWidgets(menu.activeMonitor());
         menu.close();
     }
-    function editLayout() {
-        StageCfg.StageSession.enterLayout();
+    function editShell() {
+        StageCfg.StageSession.enterShell(menu.activeMonitor(), "bar");
         menu.close();
+    }
+    function customizeVisualizer() {
+        const st = Services.ShellState.forActive();
+        if (!st)
+            return;
+        if (!VizCfg.Config.enabled)
+            VizCfg.Config.setEnabled(true);
+        st.visualizerPlacing = true;
+        menu.close();
+    }
+    // Depth off drops Parallax with it; Parallax on turns Depth on with it.
+    readonly property string stageEffect: StageCfg.StageBackend.effect
+    readonly property bool stageBusy: StageCfg.StageBackend.busy
+    readonly property int stagePct: StageCfg.StageBackend.percent
+    function toggleDepth() {
+        StageCfg.StageBackend.setEffect(menu.stageEffect === "off" ? "depth" : "off");
+    }
+    function toggleParallax() {
+        StageCfg.StageBackend.setEffect(menu.stageEffect === "parallax" ? "depth" : "parallax");
     }
     function changeWallpaper() {
         Services.ShellState.requestSurfaceActive("wallpaper", null);
@@ -156,8 +180,13 @@ Item {
         }
         MenuRow {
             visible: !menu.isWidget
-            label: I18n.tr("Edit shell layout")
-            onTriggered: menu.editLayout()
+            label: I18n.tr("Edit shell")
+            onTriggered: menu.editShell()
+        }
+        MenuRow {
+            visible: !menu.isWidget
+            label: I18n.tr("Customize visualizer")
+            onTriggered: menu.customizeVisualizer()
         }
         MenuRow {
             visible: !menu.isWidget
@@ -352,6 +381,78 @@ Item {
             visible: menu.isWidget
             label: I18n.tr("Hide")
             onTriggered: Config.set(menu.scope + "Enabled", false)
+        }
+
+        // ── the two Stage switches, side by side, above Settings ───────
+        MenuSection {}
+        Item {
+            visible: !menu.isWidget
+            width: parent.width
+            implicitHeight: visible ? Theme.s6 + Theme.s2 : 0
+            Row {
+                id: stageRow
+                anchors.fill: parent
+                anchors.topMargin: Theme.s1
+                anchors.bottomMargin: Theme.s1
+                spacing: Theme.s1
+                readonly property real cw: (width - Theme.s1) / 2
+
+                component StageCard: Rectangle {
+                    id: card
+                    property string label: ""
+                    property string value: ""
+                    property bool on: false
+                    signal toggled()
+                    width: stageRow.cw
+                    height: stageRow.height
+                    radius: Theme.menuTileRadius
+                    color: cardMa.pressed ? Theme.tilePress : cardMa.containsMouse ? Theme.tileHover : "transparent"
+                    border.width: 1
+                    border.color: Theme.line
+                    Behavior on color { ColorAnimation { duration: Theme.quick } }
+                    Column {
+                        anchors { left: parent.left; leftMargin: Theme.s2; verticalCenter: parent.verticalCenter }
+                        spacing: 1
+                        Text {
+                            text: card.label
+                            color: card.on ? Theme.ink : Theme.inkSoft
+                            font.family: Theme.font
+                            font.pixelSize: Theme.fBody
+                        }
+                        Text {
+                            visible: card.value !== ""
+                            text: card.value
+                            color: Theme.inkDim
+                            font.family: Theme.font
+                            font.pixelSize: Theme.fSmall
+                        }
+                    }
+                    Ui.Sw {
+                        anchors { right: parent.right; rightMargin: Theme.s2; verticalCenter: parent.verticalCenter }
+                        on: card.on
+                        onToggled: card.toggled()
+                    }
+                    MouseArea {
+                        id: cardMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        z: -1
+                        onClicked: card.toggled()
+                    }
+                }
+
+                StageCard {
+                    label: I18n.tr("Depth")
+                    on: menu.stageEffect !== "off"
+                    value: menu.stageBusy ? (I18n.tr("Cutting") + " " + menu.stagePct + "%") : ""
+                    onToggled: menu.toggleDepth()
+                }
+                StageCard {
+                    label: I18n.tr("Parallax")
+                    on: menu.stageEffect === "parallax"
+                    onToggled: menu.toggleParallax()
+                }
+            }
         }
 
         // ── globals ────────────────────────────────────────────────────

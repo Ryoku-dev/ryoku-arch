@@ -21,10 +21,17 @@ Item {
     readonly property string effect: root.sb.effect
     readonly property string wall: root.sb.current
 
-    function editStage() {
+    function activeMonitor() {
         const st = ShellState.forActive();
-        if (st)
-            st.stageComposing = true;
+        return (st && st.modelData) ? st.modelData.name : "";
+    }
+    function editShell() {
+        St.StageSession.enterShell(root.activeMonitor(), "depth");
+        if (root.closePanel)
+            root.closePanel();
+    }
+    function editWidgets() {
+        St.StageSession.enterWidgets(root.activeMonitor());
         if (root.closePanel)
             root.closePanel();
     }
@@ -60,15 +67,19 @@ Item {
         StageSwitch {
             label: "Parallax"
             checked: root.effect === "parallax"
-            switchEnabled: root.effect !== "off"
             onToggled: root.sb.setEffect(root.effect === "parallax" ? "depth" : "parallax")
         }
 
         StageBtn {
             kind: "filled"
+            icon: "tune"
+            label: "Edit shell"
+            onAct: root.editShell()
+        }
+        StageBtn {
             icon: "open_with"
-            label: "Edit desktop"
-            onAct: root.editStage()
+            label: "Edit widgets"
+            onAct: root.editWidgets()
         }
     }
 }

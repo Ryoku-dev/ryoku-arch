@@ -58,18 +58,14 @@ Scope {
         return StageCfg.Config.isFront(id) ? 5 : 3;
     }
     readonly property var stageState: Services.ShellState.forScreen(root.screen)
-    // Compose mode frees every widget for dragging (like visualiser placement),
-    // so a locked clock can still be nestled against the subject; Done restores it.
-    readonly property bool stageComposing: root.stageState ? root.stageState.stageComposing : false
+    readonly property string monitorName: root.screen ? root.screen.name : ""
+    // Edit widgets on this monitor frees every widget for dragging; Done restores
+    // the per-widget locks. Either session lifts this desktop above open windows.
+    readonly property bool stageComposing: StageCfg.StageSession.widgets && StageCfg.StageSession.monitor === root.monitorName
+    readonly property bool stageLifted: StageCfg.StageSession.onMonitor(root.monitorName)
     // Grab the keyboard while composing so Esc/Enter exit the mode (the bar owns
     // the keys); dropping it hands the keyboard back like any widget edit.
-    onStageComposingChanged: {
-        win.kbWanted += root.stageComposing ? 1 : -1;
-        if (root.stageComposing)
-            StageCfg.StageSession.enterWidgets("depth");
-        else if (StageCfg.StageSession.widgets)
-            StageCfg.StageSession.leave();
-    }
+    onStageComposingChanged: win.kbWanted += root.stageComposing ? 1 : -1
     // Human titles + the Add-palette model + toggle for the edit session
     // (docs/stage.md): built-ins and the visualizer read their config flags,
     // plugins come from the Registry's placed desktopWidgets.
@@ -233,7 +229,7 @@ Scope {
         exclusionMode: ExclusionMode.Ignore
         // Editing lifts the desktop above open windows so the stage is never
         // obscured by whatever was in front; Done drops it back under them.
-        WlrLayershell.layer: root.stageComposing ? WlrLayer.Top : WlrLayer.Bottom
+        WlrLayershell.layer: root.stageLifted ? WlrLayer.Top : WlrLayer.Bottom
         WlrLayershell.namespace: "ryoku-widgets"
         // None while nothing on this layer wants the keyboard, so this
         // full-screen Bottom layer never holds focus on an empty workspace
@@ -423,7 +419,7 @@ Scope {
             anchor: Config.clockAnchor
             freeX: Config.clockX
             freeY: Config.clockY
-            locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : Config.clockLocked
+            locked: root.stageComposing ? false : Config.clockLocked
             bg: Config.clockBg
             radius: Config.clockRadius
             scaleCfg: Config.clockScale
@@ -441,7 +437,7 @@ Scope {
             anchor: Config.calendarAnchor
             freeX: Config.calendarX
             freeY: Config.calendarY
-            locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : Config.calendarLocked
+            locked: root.stageComposing ? false : Config.calendarLocked
             bg: "none"
             scaleCfg: Config.calendarScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -467,7 +463,7 @@ Scope {
             anchor: Config.musicAnchor
             freeX: Config.musicX
             freeY: Config.musicY
-            locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : Config.musicLocked
+            locked: root.stageComposing ? false : Config.musicLocked
             bg: "none"
             scaleCfg: Config.musicScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -496,7 +492,7 @@ Scope {
             anchor: Config.aioAnchor
             freeX: Config.aioX
             freeY: Config.aioY
-            locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : Config.aioLocked
+            locked: root.stageComposing ? false : Config.aioLocked
             bg: "none"
             scaleCfg: Config.aioScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -516,7 +512,7 @@ Scope {
             anchor: Config.statsAnchor
             freeX: Config.statsX
             freeY: Config.statsY
-            locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : Config.statsLocked
+            locked: root.stageComposing ? false : Config.statsLocked
             bg: "none"
             scaleCfg: Config.statsScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -535,7 +531,7 @@ Scope {
             anchor: Config.weatherAnchor
             freeX: Config.weatherX
             freeY: Config.weatherY
-            locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : Config.weatherLocked
+            locked: root.stageComposing ? false : Config.weatherLocked
             bg: "none"
             scaleCfg: Config.weatherScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -555,7 +551,7 @@ Scope {
             anchor: Config.notesAnchor
             freeX: Config.notesX
             freeY: Config.notesY
-            locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : Config.notesLocked
+            locked: root.stageComposing ? false : Config.notesLocked
             bg: "none"
             scaleCfg: Config.notesScale
             onMenuRequested: (x, y, w) => menu.openFor(w, x, y)
@@ -596,7 +592,7 @@ Scope {
 
                 pluginId: slot.pid
                 visible: root.reloadReady
-                locked: root.stageComposing ? (StageCfg.StageSession.scope !== "widgets") : (slot.dw.locked === true)
+                locked: root.stageComposing ? false : (slot.dw.locked === true)
                 scaleCfg: slot.dw.scale || 0.85
                 freeX: slot.dw.x !== undefined ? slot.dw.x : 80
                 freeY: slot.dw.y !== undefined ? slot.dw.y : 80
@@ -854,7 +850,7 @@ Scope {
             vizStyles: VizCfg.Config.knownStyles
             vizStyle: VizCfg.Config.styleId
             selectedBox: root.stageSelBox
-            onDone: if (root.stageState) root.stageState.stageComposing = false
+            onDone: StageCfg.StageSession.leave()
             onAddEnable: id => root.paletteToggle(id)
             onWidgetLockToggle: id => root.stageLockToggle(id)
             onWidgetSettings: id => root.stageOpenSettings(id)
