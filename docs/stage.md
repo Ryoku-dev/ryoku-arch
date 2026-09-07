@@ -47,27 +47,33 @@ The Super+Esc **Stage entry card** is tiny: a live preview, the
 **Edit stage** (also on the desktop right-click) turns the live desktop into
 the editor: one mode, no second surface:
 
-- every element: each layer, every widget and the visualizer: gets a soft
-  outline and a **chip**: `Behind <-> In front` (one tap flips; the visualizer
-  reads `On desktop <-> Above windows`, since it is its own surface), plus
-  lock, settings (its existing right-click menu) and remove. In Parallax a
-  layer's chip also carries a `near <-> far` control. Widgets drag/resize as
-  the old compose mode already did.
-- a left **Add palette** lists every widget and the visualizer as a card you
-  toggle on/off (with a search box), and carries **Add layer** at the top
-  (Cut from a picture... / From a PNG...).
-- one slim, bottom **toolbar** holds the stage knobs: effect, quality (with an
-  inline Download when a model is missing), edge, shadow (+ an angle dial only
-  while shadow > 0), motion (Amount / Idle / React-to-music, Parallax only) and
-  Done. It flows to one row on a wide screen and two on a narrow one, and never
-  leaves the bottom edge, so it cannot obscure the subject.
+- every element: each layer, every widget and the visualizer: wears a soft
+  outline; a tap selects it and its name appears as a tab in the inspector.
+  Nothing floats across the desktop: one element is outlined at a time and its
+  controls live in its own inspector tab, so the same control is never shown
+  twice. Widgets drag/resize as the old compose mode already did; a cut-out
+  layer stays pixel-locked and is selected by its outline.
+- one slim **inspector** docks at the bottom, a fixed compact height that never
+  wraps at any width and never leaves the bottom edge, so it cannot obscure the
+  subject. Its tab row is `Effect` (`Off | Depth | Parallax`), `Look` (quality
+  with an inline Download when a model is missing, edge, shadow, and -- only
+  while shadow > 0 -- the angle dial), `Motion` (Amount / Idle / React-to-music,
+  Parallax only), `Add`, the selected element's name, and `Done`.
+- the **Add** tab is a horizontally scrollable strip of cards -- Cut from a
+  picture... / From a PNG..., then a card per widget and the visualizer to
+  toggle on (a search field appears when the cards overflow the row). The
+  selected element's own tab carries its actions: a layer's `Behind <-> In
+  front` and, in Parallax, `near <-> far`, plus Remove (never the subject); a
+  widget's lock, settings (its existing right-click menu) and remove; the
+  visualizer's `On desktop <-> Above windows` and remove.
 - **cutting progress rides the subject itself**: the layer dims and a ring with
   the percent is drawn on it, never in a panel.
 
 Rules that keep it simple:
 
 - **Every idea has one control.** Edge, shadow and quality live once, in the
-  toolbar, and apply to every layer. There are no per-layer look overrides.
+  inspector's Look tab, and apply to every layer. There are no per-layer look
+  overrides.
 - **A layer has three properties**: on/off, *behind or in front of the cast*,
   and *near or far* (its Parallax drift; ignored in Depth). Offsets, per-layer
   opacity/audio/animation, mouse caps and presets are gone; Amount / Idle /
@@ -223,22 +229,31 @@ While the engine cuts, the subject layer dims and draws its own progress ring.
 ## Editing on the desktop
 
 Right-click the desktop (or the entry card's **Edit stage**) enters one edit
-mode on the live desktop: no floating inspectors, no second settings surface:
+mode on the live desktop: one docked inspector, no chips scattered across the
+desktop, no second settings surface:
 
-- **Chips** (`StageWidgetChip.qml`, `StageLayerChip.qml`) sit on every element
-  with a soft outline: `Behind <-> In front` (widgets/plugins via `Config.front`;
-  the subject via its layer `front`; the visualizer via `On desktop <-> Above
-  windows`, its own surface's layer), plus lock, its existing right-click menu
-  for settings, and remove. A layer's chip adds `near <-> far` in Parallax.
-- The **Add palette** (`StageAddPalette.qml`) docks left: a card per widget and
-  the visualizer to toggle, a search box, and **Add layer** at the top.
-- The **toolbar** (`StageComposeBar.qml`) docks bottom with the stage knobs and
-  Done; it wraps to fit the screen and never covers the subject.
-- The visualizer's placement reuses its own Placer, activated by selecting its
-  chip; there is no separate "Move visualiser" command.
+- **Selection outlines** (`StageOutline.qml`, and `StageLayerOutline.qml` for a
+  cut layer, which sizes the outline to the layer's opaque bounds) sit on every
+  element -- each layer, every widget and the visualizer. A tap selects one; a
+  drag still falls through to the widget's own move handler. Only the selected
+  element is outlined, and its name shows as a tab in the inspector.
+- The **inspector** (`StageInspector.qml`) docks at the bottom, a single compact
+  row that never wraps. Its stage-wide tabs are `StageEffectTab.qml` (the
+  `Off | Depth | Parallax` control), `StageLookTab.qml` (quality with an inline
+  Download, edge, shadow and the angle dial while shadow > 0) and
+  `StageMotionTab.qml` (Amount / Idle / React-to-music, Parallax only).
+- `StageAddTab.qml` adds elements: Cut from a picture / From a PNG, then a card
+  per widget and the visualizer to toggle on, with a search field when the strip
+  overflows. The selected element's `StageElementTab.qml` carries its own
+  actions -- a layer's `Behind <-> In front`, `near <-> far` (Parallax only) and
+  Remove (never the subject); a widget's lock, its existing right-click menu for
+  settings, and remove; the visualizer's `On desktop <-> Above windows` (its own
+  surface's layer) and remove. A pinned-widget lift (`Config.front`) is
+  read-only now -- the layer owns front/behind -- and there is no separate
+  "Move visualiser" command.
 
-Widgets drag/resize as before, with a live readout while a gesture is in flight.
-There is no Save: one Escape cancels the selection, a second (or Done) exits.
+Widgets drag/resize as before. There is no Save: one Escape drops the current
+selection, a second (or Done) exits.
 
 ## Delivery
 

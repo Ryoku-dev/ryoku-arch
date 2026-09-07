@@ -7,7 +7,6 @@ import Ryoku.Ui.Singletons
 // shadowed this menu's own, leaving every widget toggle reading undefined.
 import shell.services as Services
 import "../visualizer/Singletons" as VizCfg
-import "../stage/Singletons" as StageCfg
 
 // The desktop right-click menu, built on the shared DesktopMenu chrome in the
 // quick-settings sidebar idiom. Two scopes:
@@ -129,11 +128,6 @@ Item {
         Config.set("musicVideo", d[(d.indexOf(Config.musicVideo) + 1) % d.length]);
     }
 
-    // Stage: lift a widget in front of the "in front" layers (the subject), or
-    // drop it back behind them, via Config.front (docs/stage.md).
-    readonly property bool stageActive: StageCfg.StageBackend.isActiveFor(StageCfg.StageBackend.current)
-    function isWidgetFront(id) { return StageCfg.Config.isFront(id); }
-    function setWidgetFront(id, front) { StageCfg.Config.setFront(id, front); }
     function editStage() {
         const st = Services.ShellState.forActive();
         if (st) st.stageComposing = true;
@@ -269,22 +263,6 @@ Item {
             on: menu.locked
             closeOnTrigger: false
             onTriggered: Config.toggle(menu.scope + "Locked")
-        }
-        MenuRow {
-            visible: menu.isWidget && menu.stageActive
-            label: I18n.tr("In front of the subject")
-            value: menu.isWidgetFront(menu.scope) ? "On" : "Off"
-            on: menu.isWidgetFront(menu.scope)
-            closeOnTrigger: false
-            onTriggered: menu.setWidgetFront(menu.scope, true)
-        }
-        MenuRow {
-            visible: menu.isWidget && menu.stageActive
-            label: I18n.tr("Behind the subject")
-            value: !menu.isWidgetFront(menu.scope) ? "On" : "Off"
-            on: !menu.isWidgetFront(menu.scope)
-            closeOnTrigger: false
-            onTriggered: menu.setWidgetFront(menu.scope, false)
         }
 
         // Size + Opacity: discoverable equivalents of the corner-drag resize and
