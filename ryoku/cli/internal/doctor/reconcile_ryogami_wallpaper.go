@@ -1,6 +1,7 @@
 package doctor
 
 import (
+	"os"
 	"os/exec"
 	"strings"
 
@@ -28,15 +29,26 @@ const ryogamiUserUnit = "ryogami.service"
 // on, split out so the decision is unit-testable without a live user manager.
 type ryogamiWallpaperState struct {
 	enabled     bool
+	active      bool
 	failed      bool
 	awwwRunning bool
+	inSession   bool // doctor is running inside the graphical session
 }
 
-// ryogamiWallpaperActions decides what a box needs to finish the cutover: enable
-// the delivered unit when it is not, clear a wedged failed state, and stop a
-// leftover awww-daemon so it stops stacking over Ryogami's surface.
-func ryogamiWallpaperActions(s ryogamiWallpaperState) (enable, clearFailed, stopAwww bool) {
-	return !s.enabled, s.failed, s.awwwRunning
+// ryogamiWallpaperActions decides what a box needs: enable the delivered unit
+// when it is not, clear a wedged failed state, start a daemon that is down, and
+// stop a leftover awww-daemon so it stops stacking over Ryogami's surface.
+//
+// `start` is the case an enabled-only check cannot see, and the one that leaves
+// a user staring at a black desktop while doctor reports everything fine: the
+// unit carries ConditionEnvironment=WAYLAND_DISPLAY, so a login that lost the
+// race against the environment import has systemd skip it. A skipped unit is
+// inactive, exit 0, and NOT failed, so is-enabled and is-failed both look clean.
+// Only judged inside the graphical session: from a TTY, or during the update's
+// quiesced stage, inactive is correct and the condition would refuse a start
+// anyway.
+func ryogamiWallpaperActions(s ryogamiWallpaperState) (enable, clearFailed, start, stopAwww bool) {
+	return !s.enabled, s.failed, s.inSession && !s.active, s.awwwRunning
 }
 
 func ryogamiUnitEnabled() bool {
@@ -44,9 +56,20 @@ func ryogamiUnitEnabled() bool {
 	return strings.TrimSpace(string(out)) == "enabled"
 }
 
+func ryogamiUnitActive() bool {
+	out, _ := exec.Command("systemctl", "--user", "is-active", ryogamiUserUnit).Output()
+	return strings.TrimSpace(string(out)) == "active"
+}
+
 func ryogamiUnitFailed() bool {
 	out, _ := exec.Command("systemctl", "--user", "is-failed", ryogamiUserUnit).Output()
 	return strings.TrimSpace(string(out)) == "failed"
+}
+
+// inGraphicalSession: the same signal the unit's own condition tests, so doctor
+// judges the daemon exactly when systemd would agree to run it.
+func inGraphicalSession() bool {
+	return os.Getenv("WAYLAND_DISPLAY") != ""
 }
 
 func awwwDaemonRunning() bool {
@@ -59,12 +82,14 @@ func reconcileRyogamiWallpaper(checkOnly bool) recResult {
 	}
 	state := ryogamiWallpaperState{
 		enabled:     ryogamiUnitEnabled(),
+		active:      ryogamiUnitActive(),
 		failed:      ryogamiUnitFailed(),
 		awwwRunning: awwwDaemonRunning(),
+		inSession:   inGraphicalSession(),
 	}
-	enable, clearFailed, stopAwww := ryogamiWallpaperActions(state)
-	if !enable && !clearFailed && !stopAwww {
-		return okRes(i18n.T("ryogami wallpaper daemon enabled; no awww left to retire"))
+	enable, clearFailed, start, stopAwww := ryogamiWallpaperActions(state)
+	if !enable && !clearFailed && !start && !stopAwww {
+		return okRes(i18n.T("ryogami wallpaper daemon enabled and running"))
 	}
 	if checkOnly {
 		switch {
@@ -74,9 +99,12 @@ func reconcileRyogamiWallpaper(checkOnly bool) recResult {
 		case clearFailed:
 			return wouldRes(i18n.T("the ryogami wallpaper daemon is wedged off (failed); the wallpaper is down")).
 				withFix(i18n.T("ryoku doctor reloads and restarts the ryogami unit"))
-		default:
+		case enable:
 			return wouldRes(i18n.T("the ryogami wallpaper daemon is delivered but not enabled")).
 				withFix(i18n.T("ryoku doctor enables the ryogami unit so the session starts it"))
+		default:
+			return wouldRes(i18n.T("the ryogami wallpaper daemon is down in this session; the desktop has no wallpaper")).
+				withFix(i18n.T("ryoku doctor starts the ryogami unit"))
 		}
 	}
 	// daemon-reload so systemd runs the just-delivered unit file.
@@ -94,12 +122,21 @@ func reconcileRyogamiWallpaper(checkOnly bool) recResult {
 		_ = exec.Command("pkill", "-x", "awww-daemon").Run()
 		did = append(did, i18n.T("stopped the retired awww-daemon"))
 	}
-	// Refresh a daemon still running the pre-cutover binary so the delivered one
-	// takes over and paints -- it restores the recorded wallpaper, or a shipped
-	// default when none is recorded, instead of leaving the empty grey frame --
-	// then start one that is down. Best-effort: a no-op outside a graphical
-	// session (the unit gates on ConditionEnvironment=WAYLAND_DISPLAY), where
-	// autostart starts it at login.
+	if start {
+		did = append(did, i18n.T("started the wallpaper daemon"))
+	}
+	// A unit systemd skipped on its ConditionEnvironment stays inactive until
+	// something asks again, and `start` alone would be refused a second time on
+	// the stale condition result, so reset-failed clears the recorded outcome
+	// first. try-restart then refreshes a daemon still running a pre-update
+	// binary so the delivered one paints (it restores the recorded wallpaper, or
+	// a shipped default when none is recorded, instead of leaving an empty
+	// frame), and start brings up one that is down. Best-effort: outside a
+	// graphical session the condition refuses them all and autostart starts the
+	// daemon at the next login.
+	if start {
+		_ = exec.Command("systemctl", "--user", "reset-failed", ryogamiUserUnit).Run()
+	}
 	_ = exec.Command("systemctl", "--user", "try-restart", ryogamiUserUnit).Run()
 	_ = exec.Command("systemctl", "--user", "start", ryogamiUserUnit).Run()
 	return fixedRes(i18n.T("cut the wallpaper over to Ryogami: ") + strings.Join(did, ", "))
