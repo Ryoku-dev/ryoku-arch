@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell.Bluetooth
+import Quickshell.Io
 import shell.services
 import Ryoku.Ui.Singletons
 
@@ -125,20 +126,32 @@ Item {
         return a;
     }
 
-    // Each action maps to a method or writable property that exists on the
-    // Quickshell BluetoothDevice, so nothing here is faked.
+    // Trust, untrust, disconnect and forget are plain Quickshell
+    // BluetoothDevice members. Connect and pair are not: Device1.Pair and
+    // Device1.Connect register no agent for BlueZ to authorise through, and
+    // Connect on a bond BlueZ holds but the device has forgotten fails at once
+    // with nothing clearing it (#144/#156). Both go through the one link
+    // script instead, which brings an agent, retries, and rebuilds a dead bond.
     function runDeviceAction(d, act) {
         if (!d)
             return;
         switch (act) {
-        case "connect": d.connect(); break;
+        case "connect":
+        case "pair": root.link(d); break;
         case "disconnect": d.disconnect(); break;
         case "trust": d.trusted = true; break;
         case "untrust": d.trusted = false; break;
-        case "pair": d.pair(); break;
         case "forget": d.forget(); break;
         }
     }
+    function link(d) {
+        if (!d || linkProc.running)
+            return;
+        linkProc.command = BtLink.linkCommand(d.address);
+        linkProc.running = false;
+        linkProc.running = true;
+    }
+    Process { id: linkProc }
 
     RevealerRow {
         id: row

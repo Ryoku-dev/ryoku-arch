@@ -119,40 +119,41 @@ Item {
         }
         if (d.blocked)
             d.blocked = false;
-        if (d.paired || d.bonded) {
-            d.connect();
-            return;
-        }
-        root.pair(d);
+        // Paired and unpaired both go through the same script. Device1.Connect
+        // on an existing bond was the dead end in #144/#156: it fails at once
+        // when BlueZ holds keys the device has forgotten, and nothing here ever
+        // cleared that. BtLink.linkCommand pairs if needed, retries, and
+        // rebuilds a bond that will not carry a connection.
+        root.link(d);
     }
-    function pair(d) {
-        if (!d || pairProc.running)
+    function link(d) {
+        if (!d || linkProc.running)
             return;
         root.busyAddr = d.address;
         root.errorText = "";
-        pairProc.command = BtLink.pairCommand(d.address);
-        pairProc.running = false;
-        pairProc.running = true;
+        linkProc.command = BtLink.linkCommand(d.address);
+        linkProc.running = false;
+        linkProc.running = true;
     }
     Process {
-        id: pairProc
+        id: linkProc
         property string collected: ""
         // stderr as well as stdout: the script redirects bluetoothctl's own
         // stderr, but a failure in the script itself (no bash, no
         // bluetoothctl) only ever lands here, and losing it is what left the
         // user with a generic message and no way to tell why.
-        stdout: StdioCollector { onStreamFinished: pairProc.collected += this.text }
-        stderr: StdioCollector { onStreamFinished: pairProc.collected += this.text }
+        stdout: StdioCollector { onStreamFinished: linkProc.collected += this.text }
+        stderr: StdioCollector { onStreamFinished: linkProc.collected += this.text }
         onExited: code => {
             if (code !== 0) {
-                const lines = pairProc.collected.trim().split("\n");
+                const lines = linkProc.collected.trim().split("\n");
                 const msg = lines.length ? lines[lines.length - 1].trim() : "";
                 root.errorText = msg.length ? msg
-                    : I18n.tr("Pairing failed. Put the device in pairing mode and try again.");
+                    : I18n.tr("Could not connect. Put the device in pairing mode and try again.");
             } else {
                 root.errorText = "";
             }
-            pairProc.collected = "";
+            linkProc.collected = "";
             root.busyAddr = "";
         }
     }

@@ -68,21 +68,21 @@ PanelWindow {
             device.disconnect()
             return
         }
-        if (device.paired || device.bonded) {
-            if (device.blocked) device.blocked = false
-            device.connect()
-            return
-        }
-        btPanel.pair(device)
+        if (device.blocked) device.blocked = false
+        // Paired and unpaired take the same path: Device1.Connect on an
+        // existing bond fails at once when BlueZ holds keys the device has
+        // forgotten, and nothing here cleared that. BtLink.linkCommand pairs
+        // if needed, retries, and rebuilds a bond that will not connect.
+        btPanel.link(device)
     }
 
-    function pair(device) {
+    function link(device) {
         if (!device || pairProc.running) return
         var mac = String(device.address || "")
         if (!/^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/.test(mac)) return
         btPanel.pairError = ""
         btPanel.pairingAddr = mac
-        pairProc.command = BtLink.pairCommand(mac)
+        pairProc.command = BtLink.linkCommand(mac)
         pairProc.running = false
         pairProc.running = true
     }
@@ -484,13 +484,17 @@ PanelWindow {
         id: pairProc
         running: false
         property string collected: ""
-        stdout: StdioCollector { onStreamFinished: pairProc.collected = this.text }
+        // stderr as well as stdout: a failure in the script itself only lands
+        // there, and losing it leaves the user the generic message with no way
+        // to tell what went wrong.
+        stdout: StdioCollector { onStreamFinished: pairProc.collected += this.text }
+        stderr: StdioCollector { onStreamFinished: pairProc.collected += this.text }
         onExited: function(code, status) {
             if (code !== 0) {
                 var lines = pairProc.collected.trim().split("\n")
                 var msg = lines.length ? lines[lines.length - 1].trim() : ""
                 btPanel.pairError = msg.length ? msg
-                    : I18n.tr("Pairing failed. Put the device in pairing mode and try again.")
+                    : I18n.tr("Could not connect. Put the device in pairing mode and try again.")
             } else {
                 btPanel.pairError = ""
             }
