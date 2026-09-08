@@ -6,6 +6,9 @@ for finer detail.
 ## Unreleased
 
 ### Fixed
+- The Now playing widget now respects Power Saver, reduced motion, and the shared
+  audio-animation policy instead of keeping its private waveform and decorative
+  animations running. Song information and playback controls remain available.
 - Ryotunes installs and upgrades now use the official epoch-1 release instead of
   the retired `2.5.1` distro build. Both developer and packaged desktops restore
   a missing installation through the verified release channel.

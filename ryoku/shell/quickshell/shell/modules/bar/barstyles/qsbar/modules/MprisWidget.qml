@@ -3,6 +3,7 @@ import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Mpris
+import shell.services
 
 Item {
     id: rootMod
@@ -14,6 +15,7 @@ Item {
     readonly property bool active:  sel.active
     readonly property bool playing: sel.playing
     readonly property bool fullMode: root.mprisBarStyle === "full"
+    readonly property bool motionAllowed: !Perf.reduceMotion && !Perf.pillFrozen
     readonly property color contentColor: root.widgetContentColor("G9", root.ink)
     readonly property color accentColor: root.widgetHasFill("G9")
         ? contentColor
@@ -40,7 +42,7 @@ Item {
 
     Process {
         id: museCava
-        running: rootMod.visible && rootMod.active && rootMod.fullMode && rootMod.playing
+        running: rootMod.visible && rootMod.active && rootMod.fullMode && rootMod.playing && rootMod.motionAllowed
         command: ["bash", "-c",
             "command -v cava >/dev/null 2>&1 || exit 0; " +
             "exec cava -p <(printf '%s\\n' " +
@@ -53,7 +55,7 @@ Item {
         stdout: SplitParser {
             splitMarker: "\n"
             onRead: function(line) {
-                if (!rootMod.playing || !rootMod.fullMode) return
+                if (!rootMod.playing || !rootMod.fullMode || !rootMod.motionAllowed) return
                 var parts = line.split(";")
                 var out = []
                 for (var i = 0; i < rootMod.museBands; i++) {
@@ -73,7 +75,7 @@ Item {
     // bounce sequences - regular animations with explicit target, no PVS conflict
     SequentialAnimation {
         id: anim1
-        running: rootMod.visible && rootMod.playing && !rootMod.fullMode; loops: Animation.Infinite   // don't animate the EQ while the widget is hidden (toggle off)
+        running: rootMod.visible && rootMod.playing && !rootMod.fullMode && rootMod.motionAllowed; loops: Animation.Infinite
         NumberAnimation { target: rootMod; property: "barH1"; to: 0.85; duration: 220; easing.type: Easing.InOutSine }
         NumberAnimation { target: rootMod; property: "barH1"; to: 0.18; duration: 300; easing.type: Easing.InOutSine }
         NumberAnimation { target: rootMod; property: "barH1"; to: 0.70; duration: 260; easing.type: Easing.InOutSine }
@@ -81,7 +83,7 @@ Item {
     }
     SequentialAnimation {
         id: anim2
-        running: rootMod.visible && rootMod.playing && !rootMod.fullMode; loops: Animation.Infinite
+        running: rootMod.visible && rootMod.playing && !rootMod.fullMode && rootMod.motionAllowed; loops: Animation.Infinite
         NumberAnimation { target: rootMod; property: "barH2"; to: 0.45; duration: 310; easing.type: Easing.InOutSine }
         NumberAnimation { target: rootMod; property: "barH2"; to: 0.92; duration: 280; easing.type: Easing.InOutSine }
         NumberAnimation { target: rootMod; property: "barH2"; to: 0.28; duration: 340; easing.type: Easing.InOutSine }
@@ -89,7 +91,7 @@ Item {
     }
     SequentialAnimation {
         id: anim3
-        running: rootMod.visible && rootMod.playing && !rootMod.fullMode; loops: Animation.Infinite
+        running: rootMod.visible && rootMod.playing && !rootMod.fullMode && rootMod.motionAllowed; loops: Animation.Infinite
         NumberAnimation { target: rootMod; property: "barH3"; to: 0.60; duration: 380; easing.type: Easing.InOutSine }
         NumberAnimation { target: rootMod; property: "barH3"; to: 0.12; duration: 320; easing.type: Easing.InOutSine }
         NumberAnimation { target: rootMod; property: "barH3"; to: 0.95; duration: 350; easing.type: Easing.InOutSine }
@@ -108,6 +110,16 @@ Item {
             dropAnim.restart()
             resetMuseLevels()
         }
+    }
+    onMotionAllowedChanged: {
+        if (!motionAllowed) {
+            dropAnim.stop()
+            barH1 = 0.08
+            barH2 = 0.08
+            barH3 = 0.08
+            resetMuseLevels()
+        }
+        if (marqueeClip) marqueeClip.resetMarquee()
     }
     onFullModeChanged: {
         resetMuseLevels()
@@ -244,7 +256,7 @@ Item {
             function resetMarquee() {
                 marqueeAnim.stop()
                 marqueeText.x = 0
-                if (rootMod.visible && rootMod.playing && marqueeText.implicitWidth > marqueeClip.width)
+                if (rootMod.visible && rootMod.playing && !rootMod.fullMode && rootMod.motionAllowed && marqueeText.implicitWidth > marqueeClip.width)
                     marqueeAnim.start()
             }
 
@@ -386,7 +398,7 @@ Item {
                         to: 360
                         duration: 3200
                         loops: Animation.Infinite
-                        running: rootMod.visible && rootMod.fullMode && rootMod.playing
+                        running: rootMod.visible && rootMod.fullMode && rootMod.playing && rootMod.motionAllowed
                     }
                 }
 
