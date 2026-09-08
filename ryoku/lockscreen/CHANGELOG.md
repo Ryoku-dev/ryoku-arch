@@ -14,6 +14,12 @@
   this root installer). Honors `RYOKU_DRYRUN`; `ryoku keyring` changes it later.
 
 ### Fixed
+- **The login screen waits for a slow second monitor before it starts.** On
+  boards that bring one connector up a beat before another (DP before HDMI), the
+  greeter probed once and lit only the fast panel, so login landed on the wrong
+  screen or just one of two. It now polls until the connected set holds steady,
+  then lights every output, bounded so login always comes up and tunable with
+  `RYOKU_GREETER_SETTLE` and `RYOKU_GREETER_DEADLINE` (`sddm/ryoku-greeter`).
 - **Pressing Enter on an empty password no longer strands the in-session lock
   on a white screen, taking the reboot and shutdown buttons with it.** The
   clockwork/orbital submit runs a windup that ends in a full-screen blast (white

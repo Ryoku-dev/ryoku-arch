@@ -48,8 +48,9 @@ command -v modetest >/dev/null 2>&1 || weston_plain "$@"
 
 # Per connected connector, pick the largest resolution then its highest refresh.
 # Output: "<name> <w> <h> <refresh-string>" lines. Refresh is kept verbatim from
-# modetest so weston matches the exact modelist entry.
-modes="$(
+# modetest so weston matches the exact modelist entry. modetest holds no DRM
+# master, so this is safe to poll before weston takes the card.
+probe_modes() {
   modetest -c 2>/dev/null | awk '
     /^Connectors:/ { insec = 1; next }
     /^(CRTCs|Encoders|Planes|Framebuffers):/ { insec = 0 }
@@ -66,9 +67,7 @@ modes="$(
     }
     END { for (c in bw) printf "%s %d %d %s\n", c, bw[c], bh[c], brs[c] }
   '
-)"
-
-[ -n "$modes" ] || weston_plain "$@"
+}
 
 gen_ini() {
   while read -r name w h rr; do
@@ -79,9 +78,34 @@ gen_ini() {
 
 # Inspect the generated config without starting the greeter.
 if [ "${RYOKU_GREETER_DRYRUN:-0}" = 1 ]; then
+  modes="$(probe_modes)"
   gen_ini
   exit 0
 fi
+
+# Some boards bring one connector up a beat before another (DP a moment before
+# HDMI), so a greeter that probes once lights only the fast panel and the login
+# lands on the wrong screen -- or on just one of two. Poll until the connected
+# set holds steady, giving a slower panel time to arrive, then build the .ini
+# from the full set so weston lights every output. Bounded so the login screen
+# always starts; tune the floor and cap with RYOKU_GREETER_SETTLE and
+# RYOKU_GREETER_DEADLINE (seconds).
+settle="${RYOKU_GREETER_SETTLE:-1}"
+deadline="${RYOKU_GREETER_DEADLINE:-6}"
+start=$SECONDS
+modes=""
+last=-1
+while :; do
+  modes="$(probe_modes)"
+  n=$(printf '%s' "$modes" | awk 'NF { c++ } END { print c + 0 }')
+  elapsed=$(( SECONDS - start ))
+  [ "$elapsed" -ge "$deadline" ] && break
+  [ "$n" -gt 0 ] && [ "$n" -eq "$last" ] && [ "$elapsed" -ge "$settle" ] && break
+  last="$n"
+  sleep 0.3
+done
+
+[ -n "$modes" ] || weston_plain "$@"
 
 ini="$(mktemp --tmpdir ryoku-greeter.XXXXXX.ini 2>/dev/null)" || weston_plain "$@"
 gen_ini > "$ini"
