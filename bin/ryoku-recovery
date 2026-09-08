@@ -5,7 +5,7 @@
 # dont edit this lightly, talk to me first.
 set -euo pipefail
 
-REPO_URL="${RYOKU_RECOVERY_URL:-https://github.com/neur0map/ryoku-arch.git}"
+REPO_URL="${RYOKU_RECOVERY_URL:-https://github.com/ryoku-dev/ryoku-arch.git}"
 # Recovery always restores the stable channel. Every Ryoku machine runs main; a
 # leaked RYOKU_CHANNEL (an old ISO that switched to a release branch, or a
 # maintainer shell) must never redirect the rescue onto unstable-dev, or the
@@ -32,7 +32,7 @@ rebuilds + redeploys the desktop, and CLEARS your user_edits overlay and Hub
 settings, OVERWRITING your Ryoku configs in ~/.config with the shipped defaults.
 
   ryoku recovery [--yes] [--no-packages]
-  curl -fsSL https://raw.githubusercontent.com/neur0map/ryoku-arch/main/bin/ryoku-recovery | bash
+  curl -fsSL https://raw.githubusercontent.com/ryoku-dev/ryoku-arch/main/bin/ryoku-recovery | bash
 
   -y, --yes          skip the confirmation prompt
       --no-packages  only pull and redeploy configs, skip the pacman step

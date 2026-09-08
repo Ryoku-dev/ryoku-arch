@@ -89,7 +89,7 @@ type riceRegistry struct {
 const riceStoreVersion = "1.0.0"
 
 func extrasReleaseURL(asset string) string {
-	return "https://github.com/neur0map/ryostore/releases/download/rices/" + asset
+	return "https://github.com/ryoku-dev/ryostore/releases/download/rices/" + asset
 }
 
 // publishRice lays a local rice into a catalogue checkout's store structure as

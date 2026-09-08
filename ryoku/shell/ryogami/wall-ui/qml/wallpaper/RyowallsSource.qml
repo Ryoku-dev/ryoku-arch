@@ -19,7 +19,7 @@ QtObject {
     // native (no-binary) source paths, phased in per provider; the ryowalls
     // binary stays the fallback until every provider is ported (then it sunsets).
     readonly property string _ua: "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"
-    readonly property string _ryostoreBase: "https://raw.githubusercontent.com/neur0map/ryostore/main"
+    readonly property string _ryostoreBase: "https://raw.githubusercontent.com/ryoku-dev/ryostore/main"
     readonly property string _mbBase: "https://motionbgs.com"
     readonly property string _mwBase: "https://moewalls.com"
     property string _nativeProvider: ""

@@ -6,7 +6,7 @@ The extras subsystem: the helpers that install, remove, and report the optional
 
 A bundle is a curated set of tools (packages, small installer scripts, and shell
 plugins) defined in the `ryostore` catalogue
-(`https://github.com/neur0map/ryostore`, under `bundles/`). `ryoku-hub`
+(`https://github.com/ryoku-dev/ryostore`, under `bundles/`). `ryoku-hub`
 fetches and caches that catalogue; the helpers here do the work.
 
 ## The helpers

@@ -14,7 +14,7 @@ set -euo pipefail
 
 here="$(cd "$(dirname "$0")/.." && pwd)"
 pkgdir="$here/release/packages/ryotunes"
-repo="neur0map/ryotunes"
+repo="ryoku-dev/ryotunes"
 want="${1:-latest}"
 
 api() { curl -sSfL -H "Accept: application/vnd.github+json" ${GITHUB_TOKEN:+-H "Authorization: Bearer $GITHUB_TOKEN"} "$@"; }
@@ -81,7 +81,7 @@ python3 - "$here/release/CHANGELOG.md" "$version" "$tag" "$summary" <<'PY'
 import sys
 p, version, tag, summary = sys.argv[1:]
 s = open(p).read()
-line = f"- **`ryotunes` {version}-1 tracks neur0map/ryotunes {tag}.**" + (f" {summary}" if summary else "") + "\n"
+line = f"- **`ryotunes` {version}-1 tracks ryoku-dev/ryotunes {tag}.**" + (f" {summary}" if summary else "") + "\n"
 if line.split("**")[1] in s:
     sys.exit()
 i = s.index("### Changed", s.index("## Unreleased")) if "### Changed" in s[s.index("## Unreleased"):s.index("## Unreleased")+4000] else -1

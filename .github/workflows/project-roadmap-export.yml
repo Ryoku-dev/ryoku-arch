@@ -58,7 +58,7 @@ jobs:
 
           # shellcheck disable=SC2016
           items_query='query($login: String!, $number: Int!, $cursor: String) {
-            user(login: $login) {
+            organization(login: $login) {
               projectV2(number: $number) {
                 title
                 url
@@ -112,16 +112,16 @@ jobs:
             fi
 
             if [[ "$meta" == "null" ]]; then
-              meta="$(jq -c '.data.user.projectV2 | if . == null then null else {title, url, number} end' <<<"$page")"
+              meta="$(jq -c '.data.organization.projectV2 | if . == null then null else {title, url, number} end' <<<"$page")"
               if [[ "$meta" == "null" || -z "$meta" ]]; then
                 echo "::notice::Could not resolve project #$PROJECT_NUMBER for $OWNER; skipping export."
                 exit 0
               fi
             fi
 
-            jq -c '.data.user.projectV2.items.nodes[]?' <<<"$page" >>"$tmp/nodes.ndjson"
-            has_next="$(jq -r '.data.user.projectV2.items.pageInfo.hasNextPage' <<<"$page")"
-            cursor="$(jq -r '.data.user.projectV2.items.pageInfo.endCursor // empty' <<<"$page")"
+            jq -c '.data.organization.projectV2.items.nodes[]?' <<<"$page" >>"$tmp/nodes.ndjson"
+            has_next="$(jq -r '.data.organization.projectV2.items.pageInfo.hasNextPage' <<<"$page")"
+            cursor="$(jq -r '.data.organization.projectV2.items.pageInfo.endCursor // empty' <<<"$page")"
             [[ "$has_next" == "true" && -n "$cursor" ]] || break
           done
 

@@ -30,7 +30,7 @@ import (
 // has run it, so the set stays small instead of piling up like a migration
 // ledger.
 
-const ryokuIssuesURL = "https://github.com/neur0map/ryoku-arch/issues"
+const ryokuIssuesURL = "https://github.com/ryoku-dev/ryoku-arch/issues"
 
 type recStatus int
 

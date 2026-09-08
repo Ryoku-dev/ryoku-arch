@@ -1,7 +1,7 @@
 # Maintainer: Ryoku <releases@ryoku.dev>
 #
 # ryotunes: the Ryoku music app. A YouTube Music client with native libmpv
-# playback, built from github.com/neur0map/ryotunes at a pinned commit. It
+# playback, built from github.com/ryoku-dev/ryotunes at a pinned commit. It
 # ships two clients over one daemon: the Tauri (WebKitGTK) app (`ryotunes`,
 # still the default) and the native Quickshell client (`ryotunes-qml`, pure
 # QML at /usr/share/ryotunes/client) behind `ryotunesd`, a socket-activated
@@ -27,7 +27,7 @@ pkgrel=1
 install=ryotunes.install
 pkgdesc="Ryotunes: the Ryoku music app (YouTube Music client with native playback)"
 arch=('x86_64')
-url="https://github.com/neur0map/ryotunes"
+url="https://github.com/ryoku-dev/ryotunes"
 license=('GPL-3.0-or-later')
 # webkit2gtk-4.1 renders the UI; mpv is the audio engine (libmpv, linked);
 # libappindicator-gtk3 is dlopen'd for the tray icon.
@@ -46,7 +46,7 @@ conflicts=("${_legacy[@]}")
 replaces=("${_legacy[@]}")
 # Rust already strips with the release profile; the debug split has nothing.
 options=('!lto' '!debug')
-source=("ryotunes-$pkgver.tar.gz::https://github.com/neur0map/ryotunes/releases/download/v$pkgver/ryotunes-$pkgver.tar.gz")
+source=("ryotunes-$pkgver.tar.gz::https://github.com/ryoku-dev/ryotunes/releases/download/v$pkgver/ryotunes-$pkgver.tar.gz")
 sha256sums=('6348be9c853050dd532ecc4ba4f0cd1ff8c5b466c409e31239844ad924faf411')
 
 build() {

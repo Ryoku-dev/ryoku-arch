@@ -8,7 +8,7 @@
 #   main          the stable channel everyone runs (packages)
 #   unstable-dev  the bleeding edge, rebuilt from source (at your own risk)
 #
-#   curl -fsSL https://raw.githubusercontent.com/neur0map/ryoku-arch/main/bin/ryoku-track | bash -s -- unstable-dev
+#   curl -fsSL https://raw.githubusercontent.com/ryoku-dev/ryoku-arch/main/bin/ryoku-track | bash -s -- unstable-dev
 set -euo pipefail
 
 CHANNEL="${1:-unstable-dev}"
@@ -23,7 +23,7 @@ case "$CHANNEL" in
 esac
 
 REPO="$HOME/ryoku-arch"
-REPO_URL="${RYOKU_TRACK_URL:-https://github.com/neur0map/ryoku-arch.git}"
+REPO_URL="${RYOKU_TRACK_URL:-https://github.com/ryoku-dev/ryoku-arch.git}"
 say() { printf '\n==> %s\n' "$*"; }
 
 if [[ $CHANNEL == unstable-dev ]]; then

@@ -11,7 +11,7 @@
 #
 # usage:
 #   PROJECTS_TOKEN=ghp_xxxxxxxx bin/ryoku-project-bootstrap
-#   OWNER=neur0map REPO=ryoku-arch bin/ryoku-project-bootstrap   # override defaults
+#   OWNER=ryoku-dev REPO=ryoku-arch bin/ryoku-project-bootstrap   # override defaults
 #
 # behaviour: reuses an existing "Ryoku Roadmap" board or creates one, links it to
 # the repo, ensures the Status/Area/Type/Channel single-select fields carry the
@@ -19,7 +19,7 @@
 # publish PROJECT_NUMBER and PROJECT_URL as repo variables. safe to re-run.
 set -euo pipefail
 
-OWNER="${OWNER:-neur0map}"
+OWNER="${OWNER:-ryoku-dev}"
 REPO="${REPO:-ryoku-arch}"
 TITLE="${PROJECT_TITLE:-Ryoku Roadmap}"
 

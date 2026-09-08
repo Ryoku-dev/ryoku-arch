@@ -26,8 +26,8 @@ import (
 // it in the catalogue, or the submission form when gh is not around. Neither
 // executes anything from the plugin.
 
-const ryostoreRepo = "neur0map/ryostore"
-const ryostoreFormURL = "https://github.com/neur0map/ryostore/issues/new"
+const ryostoreRepo = "ryoku-dev/ryostore"
+const ryostoreFormURL = "https://github.com/ryoku-dev/ryostore/issues/new"
 
 // exportRoot is where exports land: the user's Documents dir when the desktop
 // names one, else the home dir, under ryoku-plugins/.

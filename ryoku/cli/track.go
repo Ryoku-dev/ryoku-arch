@@ -11,7 +11,7 @@ import (
 // where the track script lives, for boxes with no local checkout (a packaged
 // install switching onto a dev channel). Always the main copy: the stable script
 // moves a box in either direction, so a packaged main box can still reach it.
-const trackURL = "https://raw.githubusercontent.com/neur0map/ryoku-arch/main/bin/ryoku-track"
+const trackURL = "https://raw.githubusercontent.com/ryoku-dev/ryoku-arch/main/bin/ryoku-track"
 
 // the two git channels a checkout box can track: the stable branch everyone
 // runs and the bleeding edge rebuilt from source. a packaged box tracks

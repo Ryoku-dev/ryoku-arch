@@ -171,7 +171,7 @@ depends=(
   # to import a clip; ships in the ISO and reaches boxes on `ryoku update`.
   'ryomotion'
   # Ryotunes: the music app (Tauri + libmpv, built for the [ryoku] repo from
-  # neur0map/ryotunes). The desktop now-playing widget, the dock pill and the
+  # ryoku-dev/ryotunes). The desktop now-playing widget, the dock pill and the
   # music toggle follow its MPRIS name; ships in the ISO and reaches boxes on
   # `ryoku update`, where it takes over /usr/bin/ryotunes from the Chromium
   # app-window wrapper this package used to install.

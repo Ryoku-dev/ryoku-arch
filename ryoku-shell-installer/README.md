@@ -9,7 +9,7 @@ modules and `Ryoku.Blobs` are compiled locally. The Hyprland compositor plugins
 need `makepkg` and are skipped there; the shell degrades to them being off.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/neur0map/ryoku-arch/main/ryoku-shell-installer/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ryoku-dev/ryoku-arch/main/ryoku-shell-installer/install.sh | bash
 ```
 
 Headless / unattended:
@@ -101,7 +101,7 @@ The binary and its checksum are committed (same convention as
 raw.githubusercontent.com with no release infrastructure. Test a branch with:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/neur0map/ryoku-arch/<branch>/ryoku-shell-installer/install.sh \
+curl -fsSL https://raw.githubusercontent.com/ryoku-dev/ryoku-arch/<branch>/ryoku-shell-installer/install.sh \
   | RYOKU_SHELL_REF=<branch> bash
 ```
 

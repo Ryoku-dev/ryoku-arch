@@ -90,7 +90,7 @@ var bundledPlugins = []pluginDef{
 		Plugin: "keysounds", Local: "ryoku/hyprland/plugins/keysounds",
 		Package: "ryoku-keysounds",
 		// its README ships with the source (checkout or /usr/share); resolved per box below
-		Docs:   "https://github.com/neur0map/ryoku-arch/blob/unstable-dev/ryoku/hyprland/plugins/keysounds/README.md",
+		Docs:   "https://github.com/ryoku-dev/ryoku-arch/blob/unstable-dev/ryoku/hyprland/plugins/keysounds/README.md",
 		Sounds: "https://github.com/hainguyents13/mechvibes/tree/main/src/audio",
 		Loaded: "keysounds",
 	},

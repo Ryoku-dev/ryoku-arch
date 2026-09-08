@@ -1,7 +1,7 @@
 name: Ryotunes release
 
 # Keeps the [ryoku] ryotunes package on Ryotunes' latest GitHub release with no
-# hand in the loop: neur0map/ryotunes' release workflow dispatches
+# hand in the loop: ryoku-dev/ryotunes' release workflow dispatches
 # `ryotunes-release` the moment a tag is published, and a daily poll covers a
 # dispatch that never arrived. bin/ryoku-release-ryotunes rewrites the PKGBUILD
 # (tarball, sha256, pkgver, install hook, changelog); the commit lands on

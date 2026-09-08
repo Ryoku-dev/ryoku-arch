@@ -22,7 +22,7 @@ import (
 // line-anchored so a commented-out "#[ryoku]" stanza does not count.
 var ryokuStanzaRe = regexp.MustCompile(`(?m)^\[ryoku\]`)
 
-const repoURL = "https://github.com/neur0map/ryoku-arch.git"
+const repoURL = "https://github.com/ryoku-dev/ryoku-arch.git"
 
 const pacmanStanza = `
 [ryoku]

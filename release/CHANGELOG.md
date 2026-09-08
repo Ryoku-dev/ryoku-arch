@@ -13,8 +13,8 @@
   the other plugin packages.
 
 ### Changed
-- **`ryotunes` 2.5.1-1 tracks neur0map/ryotunes v2.5.1.** The heart saves without an account. Liking a track when there is no YouTube Music session (or on a SoundCloud/local track) lands it in a device-local Liked...
-- **`ryotunes` 2.5.0-1 tracks neur0map/ryotunes v2.5.0.** The package now follows
+- **`ryotunes` 2.5.1-1 tracks ryoku-dev/ryotunes v2.5.1.** The heart saves without an account. Liking a track when there is no YouTube Music session (or on a SoundCloud/local track) lands it in a device-local Liked...
+- **`ryotunes` 2.5.0-1 tracks ryoku-dev/ryotunes v2.5.0.** The package now follows
   Ryotunes' GitHub releases (a sha256-pinned source tarball) instead of a hand-pinned
   commit: `.github/workflows/ryotunes-release.yml` bumps it on every upstream release
   (dispatch or daily poll) and publishes to testing. The package enables
@@ -28,7 +28,7 @@
   page, the generated `settings.lua` and `ryoku doctor` read it to tell a copy
   an Arch bump left behind from a working one without loading it, and rebuild
   it locally until the next publish ships a fresh package.
-- **`ryotunes` 2.4.1-7 tracks neur0map/ryotunes `43d063f`.** SoundCloud as a
+- **`ryotunes` 2.4.1-7 tracks ryoku-dev/ryotunes `43d063f`.** SoundCloud as a
   third provider (guest, waveform seek bar, Orange-style artist pages), the
   Discover home, the skin system (ten shipped skins under
   `/usr/share/ryotunes/skins`, the matugen template under
@@ -37,7 +37,7 @@
   to ~2 % while playing), pause-to-quit (client after a minute parked, daemon a
   minute later), and the Spotify Premium gate that says why a sign-in failed.
 - **`ryotunes` 2.4.1-4 ships the native client.** The package now tracks
-  neur0map/ryotunes `73e4e96` and carries `ryotunesd` (socket-activated daemon
+  ryoku-dev/ryotunes `73e4e96` and carries `ryotunesd` (socket-activated daemon
   owning playback, MPRIS and the tray), `ryotunes-cli`, and the pure-QML
   Quickshell client `ryotunes-qml` at `/usr/share/ryotunes/client`, next to the
   unchanged Tauri app. Measured on a 7940HS laptop the native client idles at
@@ -111,7 +111,7 @@
   update lands the client that understands channels.
 
 - `ryotunes` joins the signed repository at 2.4.1: the Ryoku music app (Tauri +
-  WebKitGTK + libmpv, built from `neur0map/ryotunes` at a pinned commit, the
+  WebKitGTK + libmpv, built from `ryoku-dev/ryotunes` at a pinned commit, the
   Ryostore submission adopted as the official app). `ryoku-desktop` depends on
   it and no longer installs the Chromium app-window wrapper of the same name;
   the package takes over `/usr/bin/ryotunes`, the `.desktop` entry and the icon
@@ -552,7 +552,7 @@
   wallust in its official-repo dependency check.
 - **`ryomotion` ships from the `[ryoku]` repo**: Ryoku Motion, the screen-demo
   recorder and editor, built from the OpenScreen fork
-  (github.com/neur0map/ryomotion) and rebranded to Ryo Motion. The PKGBUILD
+  (github.com/ryoku-dev/ryomotion) and rebranded to Ryo Motion. The PKGBUILD
   builds the Electron app from a pinned commit, fetching the fork's pinned node
   22 at build time (its npm 10 runs the electron/esbuild/sharp install scripts a
   newer npm blocks by default) and rebranding name, binary, and appId with

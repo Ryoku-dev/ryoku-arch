@@ -9,7 +9,7 @@ import (
 
 // where the recovery script lives on the channel, for boxes that have no local
 // checkout to run it from (a packaged install that lost its desktop).
-const recoveryURL = "https://raw.githubusercontent.com/neur0map/ryoku-arch/main/bin/ryoku-recovery"
+const recoveryURL = "https://raw.githubusercontent.com/ryoku-dev/ryoku-arch/main/bin/ryoku-recovery"
 
 // cmdRecovery hands off to bin/ryoku-recovery: prefer the copy in a local
 // checkout, otherwise fetch the canonical one. The script does the real work and
