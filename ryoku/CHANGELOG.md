@@ -53,6 +53,11 @@
   `shell/matugen/apps.toml`, `shell/ipc/matugen.go`, `../hub/backend/matugen.go`).
 
 ### Fixed
+- **Settings search for the workspace and launcher marks lands on the right tab
+  again.** Those controls moved to the bar control centre's Identity tab, but
+  the search index still sent "Workspace marker" and "Launcher mark" to the old
+  Widgets page, so a search dropped you where they no longer were. They route to
+  Identity now (`shell/modules/bar/barstyles/qsbar/controlcenter/ControlCenter.qml`).
 - **Floating windows fit the screen they open on (#147).** Files, Ryoku
   Settings, Ryostore, Ryovm and the other fixed-size floating rules asked for
   1500x850 or bigger, so on a 1366x768 panel Files opened larger than the
