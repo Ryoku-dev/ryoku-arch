@@ -122,17 +122,18 @@ Singleton {
     // above the shells in #60: caelestia and end-4 only animate the bar while a
     // player isPlaying, and a Waybar box has no GPU canvas at all.
     //
-    // So the silent drift is Performance-only. Balanced and Saver leave the bar
-    // still when nothing plays -- idling quiet like those shells -- while
-    // Performance spends the power the user explicitly asked for. That is the whole
-    // point of the tier split. lowPowerMode and Game Mode still force it off, and
-    // reduceMotion is enforced by the consumer (streamLive gates on !reduceMotion),
-    // so the motion toggle stops it too.
+    // By default the silent drift is Performance-only: Balanced and Saver leave the
+    // bar still when nothing plays, idling quiet like those shells. A user who
+    // wants it anyway opts in with ambientBarMotion (the Performance page's "Bar
+    // drifts when silent"), which runs the drift on Balanced and Performance alike.
+    // lowPowerMode, Game Mode and Power Saver still force it off, and reduceMotion
+    // is enforced by the consumer (streamLive gates on !reduceMotion), so the
+    // motion toggle stops it too.
     //
     // fullRate answers "may the drift run at the full frame rate it was drawn for".
-    // Only Performance drifts, and it drifts at full rate; loud playback (paceBusy)
-    // is always full rate on every profile, and a fully dark frame always backs off.
-    readonly property bool ambientMotion: tier === tierPerformance && !(lowPower || gaming)
+    // The silent drift runs at full rate; loud playback (paceBusy) is always full
+    // rate on every profile, and a fully dark frame always backs off.
+    readonly property bool ambientMotion: (tier === tierPerformance || adapter.ambientBarMotion) && !(lowPower || gaming || saver)
     readonly property bool fullRate: ambientMotion
 
     // Graceful cost knobs. Multiply a base poll interval by pollFactor: a second of
@@ -158,6 +159,7 @@ Singleton {
             property bool disableShadows: false
             property real motionSpeed: 1.0
             property bool powerProfileEffects: true
+            property bool ambientBarMotion: false
         }
     }
 }

@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- **"Bar drifts when silent" on the Performance page.** Opts the bar's gap
+  stream into drifting on Balanced and Saver when nothing plays, not only on the
+  Performance profile. Off by default (`quickshell/pages/PerformancePage.qml`).
 - **A Plugins page manages every Hyprland compositor plugin.** Settings >
   Plugins (DESKTOP, next to Windows) takes over the Windows page's Plugins tab
   and grows into the one place for compositor plugins: a tab per plugin (title

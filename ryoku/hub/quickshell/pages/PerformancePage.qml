@@ -50,6 +50,7 @@ Item {
         "disableBlur": false,
         "disableShadows": false,
         "liveWallpaper60": false,
+        "ambientBarMotion": false,
         "pauseLiveWallpaperWhenFullscreen": true,
         "unloadVisualizerWhenSilent": true,
         "unloadWidgetsWhenCovered": true,
@@ -102,6 +103,7 @@ Item {
             "disableBlur": cfgA.disableBlur,
             "disableShadows": cfgA.disableShadows,
             "liveWallpaper60": cfgA.liveWallpaper60,
+            "ambientBarMotion": cfgA.ambientBarMotion,
             "pauseLiveWallpaperWhenFullscreen": cfgA.pauseLiveWallpaperWhenFullscreen,
             "unloadVisualizerWhenSilent": cfgA.unloadVisualizerWhenSilent,
             "unloadWidgetsWhenCovered": cfgA.unloadWidgetsWhenCovered,
@@ -150,6 +152,7 @@ Item {
         cfgA.disableBlur = pg.draft.disableBlur;
         cfgA.disableShadows = pg.draft.disableShadows;
         cfgA.liveWallpaper60 = pg.draft.liveWallpaper60;
+        cfgA.ambientBarMotion = pg.draft.ambientBarMotion;
         cfgA.pauseLiveWallpaperWhenFullscreen = pg.draft.pauseLiveWallpaperWhenFullscreen;
         cfgA.unloadVisualizerWhenSilent = pg.draft.unloadVisualizerWhenSilent;
         cfgA.unloadWidgetsWhenCovered = pg.draft.unloadWidgetsWhenCovered;
@@ -194,6 +197,7 @@ Item {
             property bool disableBlur: false
             property bool disableShadows: false
             property bool liveWallpaper60: false
+            property bool ambientBarMotion: false
             property bool pauseLiveWallpaperWhenFullscreen: true
             property bool unloadVisualizerWhenSilent: true
             property bool unloadWidgetsWhenCovered: true
@@ -230,6 +234,9 @@ Item {
         { "tab": "", "group": I18n.tr("EYE CANDY"), "key": "liveWallpaper60", "ctl": "sw", "src": "performance",
           "label": "60fps live wallpaper",
           "desc": "Doubles video wallpaper decode for smoother motion; the one switch here that spends instead of saves. Applies to the next wallpaper you set, and clips that cannot supply 60 stay at 30." },
+        { "tab": "", "group": I18n.tr("EYE CANDY"), "key": "ambientBarMotion", "ctl": "sw", "src": "performance",
+          "label": "Bar drifts when silent",
+          "desc": "Keep the bar's gap stream drifting when nothing is playing, on any power profile. Off by default so a quiet desktop stays cheap; music animates the bar either way." },
 
         { "tab": "", "group": I18n.tr("IDLE"), "key": "pauseLiveWallpaperWhenFullscreen", "ctl": "sw", "src": "performance",
           "label": "Pause video wallpaper",
