@@ -50,7 +50,7 @@ Item {
     clip: true
 
     function triggerInstall() {
-        if (hasActionItem && StoreLogic.primaryAction(actionItem) !== "INSTALLED" && busyKey === "" && !StoreLogic.isDownloadPaused(actionItem))
+        if (hasActionItem && StoreLogic.primaryAction(actionItem) !== "INSTALLED" && busyKey === "")
             installRequested(actionItem);
     }
 
@@ -227,20 +227,6 @@ Item {
             offline: stage.offline
         }
 
-        Text {
-            objectName: "ryostore-stage-pause"
-            width: parent.width
-            visible: StoreLogic.isDownloadPaused(stage.displayItem)
-            text: I18n.tr("Under construction.") + " " + StoreLogic.downloadPauseReason(stage.displayItem)
-            color: Tokens.inkDim
-            font.family: Tokens.ui
-            font.pixelSize: Tokens.fSmall
-            wrapMode: Text.Wrap
-            textFormat: Text.PlainText
-            maximumLineCount: 3
-            elide: Text.ElideRight
-        }
-
         Row {
             spacing: Tokens.s2
 
@@ -251,7 +237,6 @@ Item {
                 armed: stage.hasActionItem
                         && StoreLogic.primaryAction(stage.actionItem) !== "INSTALLED"
                         && stage.busyKey === ""
-                        && !StoreLogic.isDownloadPaused(stage.actionItem)
                 Accessible.role: Accessible.Button
                 Accessible.name: text
                 onAct: stage.triggerInstall()

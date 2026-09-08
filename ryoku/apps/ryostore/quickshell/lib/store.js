@@ -1,7 +1,5 @@
 function statusLabels(item) {
     var labels = [];
-    if (isDownloadPaused(item))
-        labels.push("UNDER CONSTRUCTION");
     if (item && item.updateAvailable)
         labels.push("UPDATE");
     if (item && item.active)
@@ -12,24 +10,13 @@ function statusLabels(item) {
         labels.push(String(item.installedCount) + " / " + String(item.totalCount) + " INSTALLED");
     else if (item && item.installed)
         labels.push("INSTALLED");
-    else if (!isDownloadPaused(item))
+    else
         labels.push("AVAILABLE");
     return labels;
 }
 
 function isInstalled(item) {
     return Boolean(item && (item.installed || item.active || item.enabled || Number(item.installedCount || 0) > 0));
-}
-
-// downloadPaused: an item the catalogue has frozen. It stays listed and an
-// installed copy can still be removed, but every install/update surface must
-// treat it as unavailable and surface the reason instead of a download.
-function isDownloadPaused(item) {
-    return Boolean(item && item.downloadPaused);
-}
-
-function downloadPauseReason(item) {
-    return isDownloadPaused(item) ? String((item && item.downloadPauseReason) || "") : "";
 }
 
 // pluginKind classifies a plugin by its host surface: a plugin is a BAR plugin
@@ -181,8 +168,6 @@ function categoryPlates(categories) {
 }
 
 function primaryAction(item) {
-    if (isDownloadPaused(item))
-        return "UNDER CONSTRUCTION";
     if (item && item.busy)
         return "INSTALLING";
     if (item && Number(item.installedCount || 0) > 0 && Number(item.totalCount || 0) > Number(item.installedCount || 0))
@@ -206,4 +191,4 @@ function sortCategories(categories) {
 }
 
 if (typeof module !== "undefined" && module.exports)
-    module.exports = { statusLabels, isInstalled, isDownloadPaused, downloadPauseReason, pluginKind, searchText, matchesQuery, filter, groupSearch, featured, installed, itemKey, collection, selectionKey, categoryPlates, primaryAction, secondaryAction, sortCategories, shuffleSeeded };
+    module.exports = { statusLabels, isInstalled, pluginKind, searchText, matchesQuery, filter, groupSearch, featured, installed, itemKey, collection, selectionKey, categoryPlates, primaryAction, secondaryAction, sortCategories, shuffleSeeded };

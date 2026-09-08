@@ -113,28 +113,28 @@ FocusScope {
     }
 
     function triggerInstall() {
-        if (item && busyKey === "" && StoreLogic.primaryAction(actionItem) !== "INSTALLED" && !StoreLogic.isDownloadPaused(actionItem)) {
+        if (item && busyKey === "" && StoreLogic.primaryAction(actionItem) !== "INSTALLED") {
             lastComponents = null;
             installRequested(actionItem, ditherOn, null);
         }
     }
 
     function triggerInstallAll() {
-        if (item && busyKey === "" && !StoreLogic.isDownloadPaused(actionItem)) {
+        if (item && busyKey === "") {
             lastComponents = allNames;
             installRequested(actionItem, false, allNames);
         }
     }
 
     function triggerInstallSelected() {
-        if (item && busyKey === "" && selectedNames.length > 0 && !StoreLogic.isDownloadPaused(actionItem)) {
+        if (item && busyKey === "" && selectedNames.length > 0) {
             lastComponents = selectedNames;
             installRequested(actionItem, false, selectedNames);
         }
     }
 
     function triggerRetry() {
-        if (item && busyKey === "" && errorText !== "" && !StoreLogic.isDownloadPaused(actionItem))
+        if (item && busyKey === "" && errorText !== "")
             retryRequested(actionItem, ditherOn, lastComponents);
     }
 
@@ -495,18 +495,6 @@ FocusScope {
             }
 
             Text {
-                objectName: "ryostore-detail-pause"
-                width: parent.width
-                visible: StoreLogic.isDownloadPaused(detail.actionItem)
-                text: I18n.tr("Under construction.") + " " + StoreLogic.downloadPauseReason(detail.actionItem)
-                color: Tokens.inkDim
-                font.family: Tokens.ui
-                font.pixelSize: Tokens.fSmall
-                wrapMode: Text.Wrap
-                textFormat: Text.PlainText
-            }
-
-            Text {
                 objectName: "ryostore-detail-error"
                 width: parent.width
                 text: detail.errorText
@@ -539,7 +527,7 @@ FocusScope {
                             ? detail.installStage
                             : I18n.tr("INSTALL SELECTED")
                     primary: true
-                    armed: detail.item !== null && detail.busyKey === "" && detail.selectedNames.length > 0 && !StoreLogic.isDownloadPaused(detail.actionItem)
+                    armed: detail.item !== null && detail.busyKey === "" && detail.selectedNames.length > 0
                     Accessible.role: Accessible.Button
                     Accessible.name: text
                     onAct: detail.triggerInstallSelected()
@@ -550,7 +538,7 @@ FocusScope {
                     objectName: "ryostore-detail-install-all"
                     visible: detail.isBundle
                     text: I18n.tr("INSTALL ALL")
-                    armed: detail.item !== null && detail.busyKey === "" && !StoreLogic.isDownloadPaused(detail.actionItem)
+                    armed: detail.item !== null && detail.busyKey === ""
                     Accessible.role: Accessible.Button
                     Accessible.name: text
                     onAct: detail.triggerInstallAll()
@@ -566,7 +554,6 @@ FocusScope {
                     primary: true
                     armed: detail.item !== null && detail.busyKey === ""
                             && StoreLogic.primaryAction(detail.actionItem) !== "INSTALLED"
-                            && !StoreLogic.isDownloadPaused(detail.actionItem)
                     Accessible.role: Accessible.Button
                     Accessible.name: text
                     onAct: detail.triggerInstall()
@@ -577,7 +564,7 @@ FocusScope {
                     objectName: "ryostore-detail-retry"
                     text: I18n.tr("RETRY")
                     visible: detail.errorText !== ""
-                    armed: visible && detail.busyKey === "" && !StoreLogic.isDownloadPaused(detail.actionItem)
+                    armed: visible && detail.busyKey === ""
                     Accessible.role: Accessible.Button
                     Accessible.name: text
                     onAct: detail.triggerRetry()
