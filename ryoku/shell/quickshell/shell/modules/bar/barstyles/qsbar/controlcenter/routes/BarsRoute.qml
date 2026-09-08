@@ -3,6 +3,7 @@ import "../kit"
 import "../../modules"
 import Ryoku.Ui
 import Ryoku.Ui.Singletons
+import shell.services
 
 // Bar route (帯) on the QS Bar Settings kit. A live bar-surface panel: every
 // control writes straight to `root` (the qsbar Theme), so the running bar updates
@@ -204,6 +205,22 @@ Item {
                             options: page.animModes.map(m => m.label)
                             current: page.animLabel(page.curAnim)
                             onChose: key => page.setAnim(page.animValue(key))
+                        }
+                    }
+                    SettingRow {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        visible: page.curAnim >= 1 && page.curAnim <= 6
+                        divider: true
+                        controlWidth: 54
+                        label: I18n.tr("Drift when silent")
+                        desc: I18n.tr("Keep it moving with no audio, on any power profile")
+                        source: "performance.json"
+                        Sw {
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            on: Perf.ambientBarMotionPref
+                            onToggled: value => Perf.setAmbientBarMotion(value)
                         }
                     }
                 }

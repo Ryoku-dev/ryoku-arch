@@ -3,11 +3,12 @@
 ## Unreleased
 
 ### Added
-- **The bar stream can drift again when nothing is playing.** A new "Bar drifts
-  when silent" switch (Settings > Performance) keeps the gap stream animating on
-  any power profile, not only Performance. It ships off, so a quiet desktop
-  still idles cheap, and music animates the bar either way
-  (`shell/services/Perf.qml`).
+- **The bar stream can drift again when nothing is playing.** A new "Drift when
+  silent" switch keeps the gap stream animating on any power profile, not only
+  Performance. It sits next to Gap animation in the bar control centre and under
+  Settings > Performance, ships off so a quiet desktop still idles cheap, and
+  music animates the bar either way (`shell/services/Perf.qml`,
+  `bar/barstyles/qsbar/controlcenter/routes/BarsRoute.qml`).
 - **Ryotunes skins are a RyoStore category.** RyoStore serves the community
   Ryotunes-skin catalogue as `ryotunes-skins` (group `wear`): a skin installs
   as a generic product into `~/.local/share/ryoku/ryotunes-skins/<id>/` with a

@@ -51,6 +51,10 @@ Singleton {
     readonly property bool reduceMotionPref: adapter.reduceMotion
     function setLowPower(on) { adapter.lowPowerMode = on; file.writeAdapter(); }
     function setReduceMotion(on) { adapter.reduceMotion = on; file.writeAdapter(); }
+    // The bar's silent gap drift, flipped from the bar control centre's Gap
+    // animation card as well as the Performance page. Same write path as above.
+    readonly property bool ambientBarMotionPref: adapter.ambientBarMotion
+    function setAmbientBarMotion(on) { adapter.ambientBarMotion = on; file.writeAdapter(); }
 
     // Power profile -> tier. With powerProfileEffects off, or no power-profiles-daemon
     // (a desktop reports no profiles), the tier is Balanced so nothing is forced.
