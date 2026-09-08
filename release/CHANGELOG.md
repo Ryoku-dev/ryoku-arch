@@ -43,6 +43,20 @@
   ensures `ryogami` instead of `awww` when it puts the wallpaper daemon back.
 
 ### Changed
+- **Ryotunes updates on its own release channel, not the `[ryoku]` repo.**
+  Ryotunes is released independently as a prebuilt Arch package on
+  neur0map/ryotunes' GitHub releases (`ryotunes-<ver>-1-x86_64.pkg.tar.zst` and a
+  `.sha256` beside it). `ryoku update` now tracks those directly
+  (`ryoku/cli/internal/ryotunesrelease`): it verifies the download by sha256 and
+  by its own pacman name/version/arch, installs it with `pacman -U`, and only
+  ever moves the version forward, so an external build is never downgraded.
+  `ryoku doctor` reports a pending release without installing it, and Ryotunes is
+  dropped from the explicit `[ryoku]` update set so the repo's base build cannot
+  overwrite a newer one. The `[ryoku]` repo still builds the `ryotunes` package
+  (the retained sha256-pinned source tarball) for the initial install only. The
+  old auto-bump path is retired with it: `.github/workflows/ryotunes-release.yml`
+  and `bin/ryoku-release-ryotunes` are gone, and the Ryotunes release dispatch
+  into this repo with them.
 - **`ryoku-shell` ships `ryostage`, not the two old engines.** Depth and Parallax
   merged into one engine: the package installs `/usr/bin/ryostage` and no longer
   ships `ryoku-depth` or `ryoku-parallax-engine`. `deploy.sh` removes the two old
@@ -62,12 +76,11 @@
   with them. Ryotunes is the music app Ryoku ships. An already-installed Spotify
   is left alone.
 - **`ryotunes` 2.5.1-1 tracks neur0map/ryotunes v2.5.1.** The heart saves without an account. Liking a track when there is no YouTube Music session (or on a SoundCloud/local track) lands it in a device-local Liked...
-- **`ryotunes` 2.5.0-1 tracks neur0map/ryotunes v2.5.0.** The package now follows
-  Ryotunes' GitHub releases (a sha256-pinned source tarball) instead of a hand-pinned
-  commit: `.github/workflows/ryotunes-release.yml` bumps it on every upstream release
-  (dispatch or daily poll) and publishes to testing. The package enables
-  `ryotunesd.socket` for every user, so `ryotunes` opens the native client on a
-  fresh install instead of the old Tauri app.
+- **`ryotunes` 2.5.0-1 tracks neur0map/ryotunes v2.5.0.** The package follows
+  Ryotunes' GitHub releases (a sha256-pinned source tarball) instead of a
+  hand-pinned commit, and enables `ryotunesd.socket` for every user, so
+  `ryotunes` opens the native client on a fresh install instead of the old Tauri
+  app.
 - **Every Hyprland plugin package lays an `.abi` receipt beside its `.so`.**
   `hypr-dynamic-cursors`, `ryoku-hypr-plugins`, `hyprglass`, `imgborders` and
   `ryoku-keysounds` write `<name>.abi` from the build host's `version.h`, the

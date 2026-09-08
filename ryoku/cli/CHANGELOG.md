@@ -3,6 +3,19 @@
 ## Unreleased
 
 ### Changed
+- **`ryoku update` tracks Ryotunes on its own release channel; `ryoku doctor`
+  reports it.** Ryotunes is released independently as a prebuilt Arch package on
+  neur0map/ryotunes' GitHub releases, so `ryoku update` now installs a new build
+  directly through `internal/ryotunesrelease` (fresh release read, sha256 +
+  pacman name/version/arch verification, `pacman -U`, upgrade-only) on both the
+  git and packaged channels, outside the `[ryoku]` set -- a box with no other
+  changes still picks it up, and a newer external build is never downgraded.
+  `ryoku doctor` and `ryoku status --json` report a pending release without
+  installing it (`internal/ryotunesrelease.Check`), an offline check is never
+  rendered as up to date, and Ryotunes is dropped from the explicit `[ryoku]`
+  update set so the repo's base build cannot overwrite a newer one
+  (`internal/updater/ryotunes.go`, `internal/updater/ryokuset.go`,
+  `internal/doctor/reconcile_ryotunes.go`).
 - **`ryoku update` moves the Ryoku packages, and nothing else.** It was a full
   `pacman -Syu`, so a Ryoku update decided when a box changed kernel, rebuilt
   its DKMS modules and rewrote its boot image, and `ryoku rollback` could never

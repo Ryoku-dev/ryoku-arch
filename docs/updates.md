@@ -44,6 +44,34 @@ status` prints it as `system:`, and the Hub lists it under SYSTEM PACKAGES;
 They must converge. A change that lands on one but not the other is the bug this
 page exists to prevent.
 
+### Ryotunes: an external app on its own channel
+
+Ryotunes updates are released independently as prebuilt Arch packages on
+[neur0map/ryotunes](https://github.com/neur0map/ryotunes)' GitHub
+releases (`ryotunes-<ver>-1-x86_64.pkg.tar.zst`, with a `.sha256` beside it), so
+it is a third channel a Ryoku box tracks directly rather than through the
+`[ryoku]` repo. `ryoku update` runs the check on every channel (dev checkout and
+packaged) and outside the `[ryoku]` set, so a box with no other changes still
+picks up a new Ryotunes (`internal/ryotunesrelease`, `internal/updater/ryotunes.go`):
+
+- **`ryoku update` installs a newer build.** It re-reads the latest release
+  fresh, verifies the download by sha256 and by its own pacman metadata (name,
+  version, `x86_64`), installs it with `pacman -U`, and only ever moves the
+  version forward. A build that is not strictly newer is left alone, so an
+  external build is never downgraded, and a box without Ryotunes installed gets
+  nothing (a removal stays removed).
+- **`ryoku doctor --check` reports a pending release** without installing
+  anything. Advisory findings also appear with `--verbose` and `--json`; plain
+  doctor remains quiet for advisory notes. Failed release lookups are reported
+  as unavailable rather than "up to date".
+- Ryotunes is **excluded from the `[ryoku]` update set** so the repo's base
+  build can never overwrite a newer external one. Only the download origin Ryoku
+  trusts (the `neur0map/ryotunes` GitHub release path) is used, and the package
+  lands through `pacman -U`, which honours pacman's signature policy and file
+  ownership -- never a raw `/usr/bin` replacement. The `[ryoku]` repo still
+  builds the `ryotunes` package (a sha256-pinned source tarball) for the initial
+  install.
+
 ## `ryoku update`
 
 Snapper pre-snapshot, then the channel (git fast-forward, or the `[ryoku]`

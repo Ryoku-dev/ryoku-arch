@@ -47,6 +47,12 @@ func TestRyokuSet(t *testing.T) {
 			installed: []string{"ryoku-desktop"},
 			want:      []string{"ryoku/ryoku-desktop"},
 		},
+		{
+			name:      "an external-release package the repo serves is never in the update set (no downgrade of a newer external build)",
+			repo:      []string{"ryoku-desktop", "ryotunes"},
+			installed: []string{"ryoku-desktop", "ryotunes"},
+			want:      []string{"ryoku/ryoku-desktop"},
+		},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			got := ryokuSet(c.repo, c.installed)

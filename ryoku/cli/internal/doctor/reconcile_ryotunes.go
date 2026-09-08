@@ -1,11 +1,14 @@
 package doctor
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"ryoku-cli/internal/ryotunesrelease"
 	"ryoku-cli/internal/sys"
 
 	i18n "ryoku-i18n"
@@ -42,12 +45,12 @@ func reconcileRyotunes(checkOnly bool) recResult {
 		fixes = append(fixes, "systemctl --user enable --now ryotunesd.socket")
 	}
 	if len(problems) == 0 {
-		if _, err := sys.RunOut("pacman", "-Qoq", "/usr/bin/ryotunes"); err == nil {
-			return okRes(i18n.T("ryotunes is the packaged app"))
-		}
-		if sys.Exists("/usr/bin/ryotunes") {
+		if _, err := sys.RunOut("pacman", "-Qoq", "/usr/bin/ryotunes"); err != nil && sys.Exists("/usr/bin/ryotunes") {
 			return warnRes(i18n.T("/usr/bin/ryotunes is not owned by the ryotunes package")).
 				withFix("sudo pacman -S --overwrite /usr/bin/ryotunes ryotunes")
+		}
+		if note, ok := ryotunesUpdateNote(); ok {
+			return note
 		}
 		return okRes(i18n.T("ryotunes is the packaged app"))
 	}
@@ -79,6 +82,22 @@ func reconcileRyotunes(checkOnly bool) recResult {
 		}
 	}
 	return fixedRes(i18n.T("ryotunes opens the packaged app (%s)"), strings.Join(problems, "; "))
+}
+
+// Release availability is advisory: doctor checks but never installs. A lookup
+// failure remains visible in check/report modes without failing desktop health.
+func ryotunesUpdateNote() (recResult, bool) {
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	defer cancel()
+	st, err := ryotunesrelease.Check(ctx)
+	if err != nil {
+		return noteRes(i18n.T("could not check Ryotunes releases: %v"), err), true
+	}
+	if !st.Available {
+		return recResult{}, false
+	}
+	return noteRes(i18n.T("a newer Ryotunes (%s) is available; `ryoku update` installs it"), st.Latest).
+		withFix("ryoku update"), true
 }
 
 func ryotunesSocketEnabled() bool {

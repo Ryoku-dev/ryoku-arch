@@ -35,6 +35,18 @@ import (
 // name that also exists in core/extra, whatever the section order is.
 const ryokuRepo = "ryoku"
 
+// externalReleasePkgs are packages the [ryoku] repo builds for a first install
+// but that update on their OWN published-release channel afterwards, not through
+// the Ryoku package lane. Ryotunes ships prebuilt Arch packages on its GitHub
+// releases; `ryoku update` installs those directly (internal/ryotunesrelease,
+// upgrade-only, sha256/arch/version-verified). Moving it from the [ryoku] repo
+// set would DOWNGRADE a newer external build onto the repo's base version (an
+// explicit `-S` moves a package down as well as up), so it is dropped from the
+// update set and from the distribution lane's pending list, and tracked through
+// its own channel instead. The initial install still comes from the repo (ISO
+// pacstrap, ryoku-desktop optdepend) -- only the update path skips it.
+var externalReleasePkgs = map[string]bool{"ryotunes": true}
+
 // ryokuSet: the installed packages the [ryoku] repo serves, repo-qualified and
 // sorted. Pure over its two inputs, so the selection is unit-testable without
 // pacman: repoNames is `pacman -Slq ryoku`, installed is `pacman -Qq`.
@@ -49,7 +61,7 @@ func ryokuSet(repoNames, installed []string) []string {
 	out := make([]string, 0, len(repoNames))
 	for _, p := range repoNames {
 		p = strings.TrimSpace(p)
-		if p == "" || seen[p] || !have[p] {
+		if p == "" || seen[p] || !have[p] || externalReleasePkgs[p] {
 			continue
 		}
 		seen[p] = true
@@ -136,7 +148,7 @@ func systemLanePending(ryokuTargets []string) []updateItem {
 	var ups []updateItem
 	for _, l := range lines(out) {
 		f := strings.Fields(l)
-		if len(f) < 4 || f[2] != "->" || ours[f[0]] {
+		if len(f) < 4 || f[2] != "->" || ours[f[0]] || externalReleasePkgs[f[0]] {
 			continue
 		}
 		ups = append(ups, updateItem{Name: f[0], Old: f[1], New: f[3]})
