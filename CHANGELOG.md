@@ -5,6 +5,14 @@ for finer detail.
 
 ## Unreleased
 
+### Fixed
+- Ryotunes installs and upgrades now use the official epoch-1 release instead of
+  the retired `2.5.1` distro build. Both developer and packaged desktops restore
+  a missing installation through the verified release channel.
+- The signed pacman repository imports the same official package without
+  rebuilding it. An hourly catch-up and a post-publication refresh keep both
+  mutable channels current without changing frozen distro snapshots.
+
 ### Added
 - **Plain-language GitHub release notes, generated from commit notes.** A change
   users notice gets a `Note: New|Fixed|Removed: ...` trailer on its commit;

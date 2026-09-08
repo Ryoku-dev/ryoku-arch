@@ -1,27 +1,12 @@
-// Package ryotunesrelease is the update client for Ryotunes, an app Ryoku ships
-// but does not build: it is released on its own cadence as a prebuilt Arch
-// package on the ryoku-dev/ryotunes GitHub releases, and a Ryoku box tracks it by
-// polling those releases directly rather than through the [ryoku] pacman repo.
+// Package ryotunesrelease consumes official Ryotunes GitHub release packages.
+// Ryoku's pacman repository mirrors and signs the same packages independently.
 //
-// The package exposes exactly two operations, both context-bounded:
+// Check reports availability without installing. Upgrade updates an existing
+// installation but respects absence. Ensure also installs an absent package
+// when Doctor is reconciling a managed Ryoku desktop.
 //
-//	Check(ctx)   reports what is installed and what the latest published build
-//	             is, without ever touching a package. It is what `ryoku doctor`
-//	             calls, so it is cheap (a cached, bounded release lookup) and
-//	             never mutates anything.
-//	Upgrade(ctx) installs the latest build when it is strictly newer than what is
-//	             installed. It is what `ryoku update` calls. It re-reads the
-//	             release fresh (never a stale cache), verifies the downloaded
-//	             package by sha256 and by its own pacman metadata (name, version,
-//	             architecture) before it runs pacman, and only ever moves the
-//	             version forward.
-//
-// Both refuse to invent good news: an offline box or a failed lookup returns an
-// error, never a false "up to date", so the doctor and the updater can report
-// "could not check" instead of silently claiming the box is current. Neither
-// touches the network, and Upgrade never installs, when Ryotunes is not already
-// installed: Ryoku tracks an app it has, it does not resurrect one the user
-// removed.
+// All operations are context-bounded. Installation resolves the release fresh,
+// verifies its checksum and package metadata, and never downgrades.
 package ryotunesrelease
 
 import (
@@ -29,17 +14,16 @@ import (
 	"time"
 )
 
-// Status is the outcome of a Check or an Upgrade.
+// Status is the outcome of a Check, Upgrade or Ensure.
 //
 //	Installed is the pacman version (pkgver-pkgrel, epoch included) currently
 //	          installed, or "" when Ryotunes is not installed. After a successful
-//	          Upgrade it is the version just installed.
-//	Latest    is the newest published version discovered, or "" when Ryotunes is
-//	          not installed (no lookup runs) or discovery was skipped.
+//	          Upgrade or Ensure it is the version just installed.
+//	Latest    is the resolved published version, or "" when discovery was skipped
+//	          or failed.
 //	Available reports that a strictly newer build exists than what is installed.
-//	          Only Check sets it; a successful Upgrade clears it (nothing newer
-//	          remains).
-//	Updated   reports that Upgrade installed a newer build during this call.
+//	          It may remain true on installation failure; success clears it.
+//	Updated   reports that Upgrade or Ensure installed a build during this call.
 type Status struct {
 	Installed string
 	Latest    string
@@ -54,6 +38,18 @@ const pkgName = "ryotunes"
 // A package file that reports any other architecture is refused before pacman
 // ever sees it.
 const wantArch = "x86_64"
+
+// wantEpoch is the pacman epoch every official Ryotunes release carries in its
+// .PKGINFO. The release asset FILENAME is deliberately epochless
+// (ryotunes-<pkgver>-<pkgrel>-x86_64.pkg.tar.zst, the published contract), but
+// the package's real version is 1:<pkgver>-<pkgrel>. The epoch is what lets a
+// current build outrank the retired, divergently high-versioned build the
+// [ryoku] repo used to ship (2.5.1-1): under pacman ordering 1:x-y beats any
+// epoch-0 version, so an old box moves forward instead of seeing a "downgrade".
+// It is a fixed part of the publishing contract, not read from the (untrusted)
+// asset name; the downloaded package's own .PKGINFO is verified to carry exactly
+// this epoch before pacman installs it.
+const wantEpoch = "1"
 
 // checkCacheTTL bounds how often Check re-reads the GitHub release. `ryoku
 // doctor` (and anything else polling availability) can run repeatedly; a cache
@@ -74,6 +70,14 @@ func Check(ctx context.Context) (Status, error) { return defaultClient().Check(c
 // a removed app and never downgrades. The candidate package is verified by
 // sha256 and by its own pacman metadata before it is installed through pacman.
 func Upgrade(ctx context.Context) (Status, error) { return defaultClient().Upgrade(ctx) }
+
+// Ensure installs the latest published Ryotunes on a box that is meant to have
+// it (a fresh install, or a reconcile after the user removed it) and moves an
+// older installed build forward. Unlike Upgrade it installs when the package is
+// absent -- it is the install path, not just the update path -- while still
+// verifying the candidate by sha256 and its own pacman metadata, refusing a
+// downgrade, and pulling only from the official GitHub release.
+func Ensure(ctx context.Context) (Status, error) { return defaultClient().Ensure(ctx) }
 
 // Check is the Client-scoped implementation behind the package-level Check.
 func (c *Client) Check(ctx context.Context) (Status, error) {
@@ -123,11 +127,48 @@ func (c *Client) Upgrade(ctx context.Context) (Status, error) {
 		return Status{Installed: installed, Latest: rel.Version}, nil
 	}
 
-	if err := c.installRelease(ctx, rel); err != nil {
+	if err := c.installRelease(ctx, rel, false); err != nil {
 		return Status{Installed: installed, Latest: rel.Version, Available: true}, err
 	}
 	// Installed the new build: it is now what is installed, and nothing newer
 	// remains to offer.
+	return Status{Installed: rel.Version, Latest: rel.Version, Updated: true}, nil
+}
+
+// Ensure brings Ryotunes to the latest published build for a box that is meant
+// to have it but does not (a fresh install, or a reconcile after the user
+// removed it), and moves an older installed build forward. Unlike Upgrade it
+// installs when the package is absent -- that is the whole point: it is the
+// install path, called by `ryoku doctor` when a desktop box is missing the app.
+// It is still safe: it fetches the release fresh, verifies the candidate by
+// sha256 and by its own pacman metadata, refuses a downgrade when a newer build
+// is already installed, and pulls only from the official GitHub release (never
+// the stale [ryoku] repo copy), so it delivers the current native build even
+// before a repo re-import has propagated.
+func (c *Client) Ensure(ctx context.Context) (Status, error) {
+	installed := c.installedVersion(pkgName)
+
+	// Fresh, never a stale cache: an install decision must be made against what
+	// GitHub serves right now.
+	rel, err := c.latestRelease(ctx, true)
+	if err != nil {
+		return Status{Installed: installed}, err
+	}
+
+	if installed != "" {
+		newer, err := c.isNewer(rel.Version, installed)
+		if err != nil {
+			return Status{Installed: installed, Latest: rel.Version}, err
+		}
+		if !newer {
+			// Already current or ahead: nothing to install. Never downgrade.
+			return Status{Installed: installed, Latest: rel.Version}, nil
+		}
+	}
+
+	if err := c.installRelease(ctx, rel, true); err != nil {
+		return Status{Installed: installed, Latest: rel.Version, Available: true}, err
+	}
 	return Status{Installed: rel.Version, Latest: rel.Version, Updated: true}, nil
 }
 

@@ -9,21 +9,21 @@ func TestPlanShippedApps(t *testing.T) {
 	apps := []shippedApp{
 		{"kitty", "terminal"},
 		{"neovim", "editor"},
-		{"ryotunes", "music"},
+		{"ryomotion", "recorder"},
 		{"mangohud", "overlay"},
 	}
 	// kitty: present as a dependency; neovim: present and ledgered;
-	// ryotunes: ledgered and gone; mangohud: never seen.
+	// ryomotion: ledgered and gone; mangohud: never seen.
 	plan := planShippedApps(apps,
 		map[string]bool{"kitty": true, "neovim": true},
 		map[string]bool{"kitty": true},
-		map[string]bool{"neovim": true, "ryotunes": true},
+		map[string]bool{"neovim": true, "ryomotion": true},
 	)
 	if got := strings.Join(plan.install, ","); got != "mangohud" {
 		t.Errorf("install = %q, want mangohud", got)
 	}
-	if got := strings.Join(plan.removed, ","); got != "ryotunes" {
-		t.Errorf("removed = %q, want ryotunes", got)
+	if got := strings.Join(plan.removed, ","); got != "ryomotion" {
+		t.Errorf("removed = %q, want ryomotion", got)
 	}
 	if got := strings.Join(plan.adopt, ","); got != "kitty" {
 		t.Errorf("adopt = %q, want kitty", got)
@@ -40,10 +40,10 @@ func TestReconcileShippedAppsLeavesRemovedAppsRemoved(t *testing.T) {
 		present[a.pkg] = true
 	}
 	delete(present, "kitty")
-	delete(present, "ryotunes")
+	delete(present, "ryomotion")
 	withShippedAppTestState(t, present)
 	recordProvisioned("kitty")
-	recordProvisioned("ryotunes")
+	recordProvisioned("ryomotion")
 	for pkg := range present {
 		recordProvisioned(pkg)
 	}

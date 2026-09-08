@@ -171,6 +171,7 @@ for pkgbuild in "${pkgbuilds[@]}"; do
   build_pkg "$pkgdir" || die "makepkg failed for $(basename "$pkgdir") after retries"
 done
 
+
 # 3. a published filename never changes bytes (see adopt_published above):
 #    a name that was built here anyway but which the mirror already serves
 #    keeps the served bytes, re-signed. the normal path adopts before
@@ -194,6 +195,13 @@ for pkg in "$ARCH_DIR"/*.pkg.tar.zst; do
   mv -f "$pkg.published" "$pkg"
   gpg --batch --yes --detach-sign -u "$KEY_ID" -o "$pkg.sig" "$pkg"
 done
+
+# Import after mirror adoption: verified official bytes must not be replaced by
+# a cached distro build. The shared importer verifies checksum/identity/epoch
+# and re-signs the unchanged package; the scheduled refresh uses it too.
+log "Importing ryotunes from its GitHub release channel"
+RYOKU_REPO_KEY="$KEY_ID" "$SCRIPT_DIR/import-ryotunes.sh" "$ARCH_DIR" >/dev/null \
+  || die "could not import the official ryotunes release into $ARCH_DIR"
 
 # 4. collect built packages, confirm each is signed before indexing.
 packages=("$ARCH_DIR"/*.pkg.tar.zst)

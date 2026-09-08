@@ -22,7 +22,14 @@ import (
 // and the exact file that was verified is the exact path handed to pacman -- it
 // is never re-fetched or resolved again between the check and the install, so
 // there is no window to swap trusted bytes for untrusted ones.
-func (c *Client) installRelease(ctx context.Context, rel relInfo) error {
+//
+// ensure selects the install-when-absent behaviour. With ensure=false (Upgrade)
+// a package that vanished mid-download stays removed -- a removal is respected,
+// not resurrected. With ensure=true (Ensure) an absent package is installed
+// fresh, which is the point of the reconcile/install path. Either way a build
+// that is not strictly newer than one already installed is refused: no path
+// here ever downgrades.
+func (c *Client) installRelease(ctx context.Context, rel relInfo, ensure bool) error {
 	ctx, cancel := context.WithTimeout(ctx, downloadTimeout)
 	defer cancel()
 
@@ -68,20 +75,27 @@ func (c *Client) installRelease(ctx context.Context, rel relInfo) error {
 
 	// Re-read the installed version immediately before installing, against the
 	// version the package actually carries (not just the filename the release
-	// advertised). The download took time; if Ryotunes was removed or upgraded
-	// past this build meanwhile, installing now would resurrect a removed app or
-	// force a downgrade. The `installed` captured when the upgrade started is only
-	// a hint; this fresh read is what the decision is made on.
+	// advertised). The download took time; the state may have changed under us,
+	// and this fresh read -- not the hint captured when the call started -- is
+	// what the decision is made on.
 	current := c.installedVersion(pkgName)
 	if current == "" {
-		return fmt.Errorf("ryotunes upgrade: %s was removed during download; not reinstalling", pkgName)
-	}
-	newer, err := c.isNewer(meta.Version, current)
-	if err != nil {
-		return fmt.Errorf("ryotunes upgrade: %w", err)
-	}
-	if !newer {
-		return fmt.Errorf("ryotunes upgrade: refusing to install %s over installed %s (not newer)", meta.Version, current)
+		// Absent right before install. For Upgrade that means a removal during
+		// download, which stays removed. For Ensure an absent package is exactly
+		// what we are here to install, so a fresh install proceeds.
+		if !ensure {
+			return fmt.Errorf("ryotunes upgrade: %s was removed during download; not reinstalling", pkgName)
+		}
+	} else {
+		// Already installed: only ever move forward, never downgrade, whether we
+		// were upgrading or ensuring.
+		newer, err := c.isNewer(meta.Version, current)
+		if err != nil {
+			return fmt.Errorf("ryotunes upgrade: %w", err)
+		}
+		if !newer {
+			return fmt.Errorf("ryotunes upgrade: refusing to install %s over installed %s (not newer)", meta.Version, current)
+		}
 	}
 
 	// Hand pacman the verified bytes across a root-owned boundary; the digest lets

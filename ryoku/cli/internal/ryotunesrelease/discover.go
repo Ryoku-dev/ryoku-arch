@@ -69,7 +69,9 @@ func pkgAssetName(pkgver, pkgrel string) string {
 // carries. A candidate name must be exactly ryotunes-<tag X.Y.Z>-<pkgrel>-x86_64.pkg.tar.zst
 // for a positive integer pkgrel; anything else (a mismatched version, a bad
 // pkgrel, a traversal or separator smuggled into the name) is ignored. It
-// returns the asset name and the pacman version (pkgver-pkgrel), and refuses a
+// returns the (epochless) asset name and the pacman version, which carries the
+// fixed epoch the package is published under (wantEpoch:pkgver-pkgrel), and
+// refuses a
 // release that offers none, or more than one, such asset -- ambiguity is treated
 // as untrustworthy rather than "pick one".
 func resolveAsset(tag string, assets []asset) (name, version string, err error) {
@@ -94,7 +96,7 @@ func resolveAsset(tag string, assets []asset) (name, version string, err error) 
 	if gotName == "" {
 		return "", "", fmt.Errorf("ryotunes release %s has no %s package asset for version %s", tag, wantArch, pv)
 	}
-	return gotName, pv + "-" + gotRel, nil
+	return gotName, wantEpoch + ":" + pv + "-" + gotRel, nil
 }
 
 // validRelInfo reports whether rel is internally consistent under the strict
@@ -106,7 +108,7 @@ func validRelInfo(rel relInfo) bool {
 		return false
 	}
 	pv := pkgVer(rel.Tag)
-	rel_, ok := strings.CutPrefix(rel.Version, pv+"-")
+	rel_, ok := strings.CutPrefix(rel.Version, wantEpoch+":"+pv+"-")
 	if !ok || !pkgRelRe.MatchString(rel_) {
 		return false
 	}

@@ -33,6 +33,7 @@ type shippedApp struct {
 // Tools the shell calls by name (grim, playerctl, matugen, cava, mpv for the
 // launcher's radio, the pill's OCR/capture backends) stay hard depends, because
 // losing them breaks a Ryoku surface the user never touched.
+// Ryotunes has its own official-release install/reconciliation path.
 func shippedApps() []shippedApp {
 	return []shippedApp{
 		{"kitty", "the default terminal (Settings > App Overrides repoints the terminal role)"},
@@ -44,7 +45,6 @@ func shippedApps() []shippedApp {
 		{"neovim", "the shipped editor"},
 		{"nautilus", "the graphical file manager"},
 		{"nautilus-python", "the Ryoku stash actions in Nautilus' right-click menu"},
-		{"ryotunes", "the Ryoku music app the now-playing widget follows"},
 		{"ryomotion", "the screen-demo recorder and editor"},
 		{"waifu2x-ncnn-vulkan", "AI upscale behind ryoshot Beautify HD and ryowalls Enhance"},
 		{"pavucontrol", "the GUI mixer the bar's Open audio button launches"},

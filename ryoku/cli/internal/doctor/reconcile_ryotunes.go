@@ -14,23 +14,22 @@ import (
 	i18n "ryoku-i18n"
 )
 
-// ryotunesSocketUnit is the user unit systemd listens on for the native
-// client. `ryotunes` defers to the daemon only when its socket exists; without
-// the unit enabled a fresh package install keeps opening the Tauri app.
+// ryotunesSocketUnit provides native daemon socket activation. The launcher can
+// start it on demand; enabling it also makes cold session activation available.
 const ryotunesSocketUnit = "ryotunesd.socket"
 
-// Keeps an updated box off the retired Chromium YouTube Music window: a wrapper
-// or locally built copy in ~/.local/bin shadows /usr/bin/ryotunes on PATH, and
-// the socket unit needs enabling for `ryotunes` to reach the daemon.
-//
-// Installing the package belongs to reconcile_shipped_apps.go, which honours a
-// removal, so a missing package is silence here.
+// Ryotunes is part of the Ryoku desktop (ryoku-desktop depends on it) but is
+// delivered on its own GitHub release channel rather than built in the [ryoku]
+// repo: the repo imports and re-signs the official checksummed epoch=1 build,
+// and a box also tracks it directly (internal/ryotunesrelease). Two things keep
+// a box from opening the packaged native client: a wrapper or a locally built
+// copy in ~/.local/bin that shadows /usr/bin/ryotunes on PATH (a dev deploy laid
+// both before the package existed), and a managed box -- a dev checkout
+// (ResolveRepo) or one with the packaged ryoku-desktop -- simply missing the
+// package -- which the reconcile installs from the official release (never the
+// stale repo copy), so it lands the current build even before a repo re-import
+// has propagated.
 func reconcileRyotunes(checkOnly bool) recResult {
-	if !sys.PkgInstalled("ryotunes") {
-		if stale := staleUserRyotunes(filepath.Join(sys.Home(), ".local", "bin", "ryotunes")); stale == "" {
-			return okRes(i18n.T("the ryotunes package is not installed; nothing to reconcile"))
-		}
-	}
 	var problems, fixes []string
 
 	bin := filepath.Join(sys.Home(), ".local", "bin", "ryotunes")
@@ -39,9 +38,19 @@ func reconcileRyotunes(checkOnly bool) recResult {
 		problems = append(problems, i18n.Tf("%s in ~/.local/bin shadows the packaged app", stale))
 		fixes = append(fixes, "rm -f ~/.local/bin/ryotunes ~/.local/share/applications/ryotunes.desktop")
 	}
+	// A box that runs the Ryoku desktop is expected to have Ryotunes: a dev
+	// checkout (all Ryoku managed by `ryoku deploy`, so ryoku-desktop is not a
+	// pacman package) or a packaged install (ryoku-desktop present). Either way,
+	// if the app is absent the reconcile installs the current official build.
+	managedDesktop := sys.ResolveRepo() != "" || sys.PkgInstalled("ryoku-desktop")
+	desktopMissingRyotunes := managedDesktop && !sys.PkgInstalled("ryotunes")
+	if desktopMissingRyotunes {
+		problems = append(problems, i18n.T("the ryotunes package is not installed"))
+		fixes = append(fixes, "ryoku update")
+	}
 	socketMissing := sys.PkgInstalled("ryotunes") && !ryotunesSocketEnabled()
 	if socketMissing {
-		problems = append(problems, i18n.T("the ryotunesd socket is not enabled, so `ryotunes` opens the old Tauri app"))
+		problems = append(problems, i18n.T("the ryotunesd socket is not enabled for session activation"))
 		fixes = append(fixes, "systemctl --user enable --now ryotunesd.socket")
 	}
 	if len(problems) == 0 {
@@ -70,6 +79,19 @@ func reconcileRyotunes(checkOnly bool) recResult {
 		icons, _ := filepath.Glob(filepath.Join(appshare, "icons", "hicolor", "*", "apps", "ryotunes.png"))
 		for _, p := range icons {
 			_ = os.Remove(p)
+		}
+	}
+	if desktopMissingRyotunes {
+		// Install from the official GitHub release, verified and re-checked
+		// against its own pacman metadata, rather than `pacman -S` from the
+		// [ryoku] repo: it delivers the current native build on any box (dev
+		// checkout or packaged) without depending on the repo being configured
+		// or a re-import having propagated. Ryotunes' own channel, like Upgrade.
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+		_, err := ryotunesrelease.Ensure(ctx)
+		cancel()
+		if err != nil {
+			return failRes(i18n.T("could not install ryotunes: %v"), err).withFix("ryoku update")
 		}
 	}
 	if socketMissing {
