@@ -26,26 +26,28 @@ var (
 
 // ProductEntry is the common registry envelope shared by every extras category.
 type ProductEntry struct {
-	ID             string   `json:"id"`
-	Name           string   `json:"name"`
-	Version        string   `json:"version"`
-	Path           string   `json:"path"`
-	Author         string   `json:"author"`
-	Summary        string   `json:"summary"`
-	Description    string   `json:"description"`
-	Tags           []string `json:"tags"`
-	Screenshots    []string `json:"screenshots"`
-	Accent         string   `json:"accent"`
-	Surface        string   `json:"surface"`
-	Preview        string   `json:"preview"`
-	PreviewRaw     string   `json:"previewRaw,omitempty"`
-	Manifest       string   `json:"manifest"`
-	ManifestSHA256 string   `json:"manifestSha256"`
-	Official       bool     `json:"official,omitempty"`
-	Tagline        string   `json:"tagline,omitempty"`
-	Icon           string   `json:"icon,omitempty"`
-	Hosts          []string `json:"hosts,omitempty"`
-	LastUpdated    string   `json:"lastUpdated,omitempty"`
+	ID                  string   `json:"id"`
+	Name                string   `json:"name"`
+	Version             string   `json:"version"`
+	Path                string   `json:"path"`
+	Author              string   `json:"author"`
+	Summary             string   `json:"summary"`
+	Description         string   `json:"description"`
+	Tags                []string `json:"tags"`
+	Screenshots         []string `json:"screenshots"`
+	Accent              string   `json:"accent"`
+	Surface             string   `json:"surface"`
+	Preview             string   `json:"preview"`
+	PreviewRaw          string   `json:"previewRaw,omitempty"`
+	Manifest            string   `json:"manifest"`
+	ManifestSHA256      string   `json:"manifestSha256"`
+	Official            bool     `json:"official,omitempty"`
+	Tagline             string   `json:"tagline,omitempty"`
+	Icon                string   `json:"icon,omitempty"`
+	Hosts               []string `json:"hosts,omitempty"`
+	LastUpdated         string   `json:"lastUpdated,omitempty"`
+	DownloadPaused      bool     `json:"downloadPaused,omitempty"`
+	DownloadPauseReason string   `json:"downloadPauseReason,omitempty"`
 }
 
 // ProductFile is one manifest-owned source and its installed destination.

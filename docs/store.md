@@ -184,8 +184,16 @@ Item
   id, category, name, summary, description
   art, screenshots, author, version, compatibility
   installed, active, enabled, installedCount, totalCount
-  updateAvailable, metadata
+  updateAvailable, downloadPaused, downloadPauseReason, metadata
 ```
+
+A source may pause a product's downloads without delisting it: the registry
+entry carries `downloadPaused` and a human `downloadPauseReason`, which flow
+through to the item unchanged. A paused product stays listed and removable, but
+the shared transaction engine re-reads the authoritative registry and refuses
+an install or update before fetching any manifest or payload byte. The check is
+keyed by category and id alone, so no client request can bypass it, and a
+default (absent) flag leaves normal behavior untouched.
 
 The public command surface is deliberately small:
 

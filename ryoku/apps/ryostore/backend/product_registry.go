@@ -59,6 +59,7 @@ func productEntryItem(base, category string, entry ProductEntry) (Item, error) {
 		Manifest: entry.Manifest, ManifestSHA256: entry.ManifestSHA256,
 		Screenshots: resolveAssets(base, entry.Path, entry.Screenshots),
 		Tags:        entry.Tags, Accent: entry.Accent, Surface: entry.Surface,
+		DownloadPaused: entry.DownloadPaused, DownloadPauseReason: entry.DownloadPauseReason,
 	}
 	// A missing receipt means not installed. A corrupt or unreadable one is a
 	// local problem, not a source outage: leave the product installable
@@ -79,4 +80,27 @@ func findProductEntry(entries []ProductEntry, id string) (ProductEntry, error) {
 		}
 	}
 	return ProductEntry{}, fmt.Errorf("unknown product %q", id)
+}
+
+// assertProductDownloadable refuses a registry-backed install or update when the
+// source has paused the product's downloads. It reads a fresh, authoritative
+// registry so a stale provider cache cannot hide a pause, checks the entry by id
+// alone so a client request carries no bypass, and leaves the product listed and
+// removable: only fetching new payload is blocked.
+func assertProductDownloadable(ctx context.Context, cache *Cache, category, id string) error {
+	entries, _, err := loadProductRegistry(ctx, cache, category, true)
+	if err != nil {
+		return err
+	}
+	entry, err := findProductEntry(entries, id)
+	if err != nil {
+		return err
+	}
+	if !entry.DownloadPaused {
+		return nil
+	}
+	if entry.DownloadPauseReason != "" {
+		return fmt.Errorf("%s/%s: downloads are paused: %s", category, id, entry.DownloadPauseReason)
+	}
+	return fmt.Errorf("%s/%s: downloads are paused", category, id)
 }
