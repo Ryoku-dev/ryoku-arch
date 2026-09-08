@@ -88,6 +88,20 @@ eq(
     "multiword search preserves source order"
 );
 
+// A paused item stays listed but cannot be downloaded: every action surface
+// reads it as under construction and shows the catalogue's reason, while the
+// underlying install state stays visible so an installed copy is still removable.
+const paused = { installed: false, downloadPaused: true, downloadPauseReason: "Has known issues. The developer is working on fixes." };
+const pausedInstalled = { installed: true, active: true, downloadPaused: true, downloadPauseReason: "Broken on Wayland." };
+eq(Store.isDownloadPaused(paused), true, "paused item is detected");
+eq(Store.isDownloadPaused({ installed: false }), false, "unpaused item is not paused");
+eq(Store.downloadPauseReason(paused), "Has known issues. The developer is working on fixes.", "pause reason is surfaced when paused");
+eq(Store.downloadPauseReason({ downloadPauseReason: "stale" }), "", "reason is empty unless the item is paused");
+eq(Store.primaryAction(paused), "UNDER CONSTRUCTION", "paused item cannot be installed");
+eq(Store.primaryAction({ installed: true, busy: true, downloadPaused: true }), "UNDER CONSTRUCTION", "pause overrides every other action state");
+eq(Store.statusLabels(paused), ["UNDER CONSTRUCTION"], "paused uninstalled item drops the contradictory AVAILABLE label");
+eq(Store.statusLabels(pausedInstalled), ["UNDER CONSTRUCTION", "ACTIVE"], "paused installed item keeps its state so remove stays reachable");
+
 // Discover rotates on a daily seed: stable within a day, varies across days, and
 // never drops or invents an item. No seed keeps the legacy deterministic order.
 const disc = [

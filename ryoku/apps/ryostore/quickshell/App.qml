@@ -127,7 +127,7 @@ Rectangle {
             if (it.category !== "colorschemes")
                 continue;
             var pv = (it.metadata && it.metadata.provider) ? it.metadata.provider : "Community";
-            if (pv === app.providerFilter && it.installed !== true)
+            if (pv === app.providerFilter && it.installed !== true && it.downloadPaused !== true)
                 n++;
         }
         return n;

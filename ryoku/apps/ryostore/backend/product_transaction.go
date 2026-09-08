@@ -61,6 +61,15 @@ func installProductFrom(ctx context.Context, cache *Cache, category string, entr
 	if err := rejectSymlinkPath(productDestinationRoot(category), filepath.FromSlash(expectedDestination)); err != nil {
 		return err
 	}
+	// A source can pause downloads of a still-listed product without delisting
+	// it. Re-read the authoritative registry (never the provider's cached
+	// listing, never a client-supplied field) and refuse before any manifest or
+	// payload byte is fetched. A local install carries no registry and skips it.
+	if local == nil {
+		if err := assertProductDownloadable(ctx, cache, category, entry.ID); err != nil {
+			return err
+		}
+	}
 	var manifest ProductManifest
 	if local != nil {
 		manifest = local.manifest

@@ -12,16 +12,42 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 )
 
 type transactionFixture struct {
-	cache   *Cache
-	entry   ProductEntry
-	content []byte
+	cache    *Cache
+	entry    ProductEntry
+	content  []byte
+	requests *requestLog
 }
 
-func newTransactionFixture(t *testing.T, version string, declared, served []byte) transactionFixture {
+// requestLog records every path the fixture's origin server was asked for, so a
+// test can prove the transaction stopped before fetching the manifest or payload.
+type requestLog struct {
+	mu    sync.Mutex
+	paths []string
+}
+
+func (l *requestLog) record(p string) {
+	l.mu.Lock()
+	l.paths = append(l.paths, p)
+	l.mu.Unlock()
+}
+
+func (l *requestLog) hit(p string) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	for _, got := range l.paths {
+		if got == p {
+			return true
+		}
+	}
+	return false
+}
+
+func newTransactionFixture(t *testing.T, version string, declared, served []byte, opts ...func(*ProductEntry)) transactionFixture {
 	t.Helper()
 	fileHash := fmt.Sprintf("%x", sha256.Sum256(declared))
 	runtimeManifest := []byte(fmt.Sprintf(`{"id":"demo","version":%q}`, version))
@@ -79,7 +105,19 @@ func newTransactionFixture(t *testing.T, version string, declared, served []byte
 		Manifest:       "product-manifest.json",
 		ManifestSHA256: fmt.Sprintf("%x", sha256.Sum256(manifestRaw)),
 	}
+	for _, opt := range opts {
+		opt(&entry)
+	}
+	registryRaw, err := json.Marshal(map[string]any{
+		"schema":  1,
+		"plugins": []ProductEntry{entry},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	reqLog := &requestLog{}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reqLog.record(r.URL.Path)
 		switch r.URL.Path {
 		case "/plugins/demo/product-manifest.json":
 			_, _ = w.Write(manifestRaw)
@@ -87,6 +125,8 @@ func newTransactionFixture(t *testing.T, version string, declared, served []byte
 			_, _ = w.Write(served)
 		case "/plugins/demo/manifest.json":
 			_, _ = w.Write(runtimeManifest)
+		case "/plugins/registry.json":
+			_, _ = w.Write(registryRaw)
 		default:
 			http.NotFound(w, r)
 		}
@@ -99,13 +139,83 @@ func newTransactionFixture(t *testing.T, version string, declared, served []byte
 			dir:    t.TempDir(),
 			memo:   map[string]memoEntry{},
 		},
-		entry:   entry,
-		content: declared,
+		entry:    entry,
+		content:  declared,
+		requests: reqLog,
 	}
 }
 
 func installedPluginPath() string {
 	return filepath.Join(dataHome(), "ryoku", "plugins", "demo")
+}
+
+// TestPausedProductRefusesDownloadBeforeFetch proves a paused registry entry
+// blocks a fresh install before any manifest or payload byte is fetched, while
+// carrying the source's reason. The product stays listed elsewhere; here only
+// the download is refused, and nothing lands on disk.
+func TestPausedProductRefusesDownloadBeforeFetch(t *testing.T) {
+	setTransactionXDG(t)
+	ctx := context.Background()
+
+	paused := newTransactionFixture(t, "1.0.0", []byte("payload\n"), []byte("payload\n"), func(e *ProductEntry) {
+		e.DownloadPaused = true
+		e.DownloadPauseReason = "Has known issues. The developer is working on fixes."
+	})
+	err := installProduct(ctx, paused.cache, "plugins", paused.entry)
+	if err == nil {
+		t.Fatal("installProduct accepted a paused product")
+	}
+	if !strings.Contains(err.Error(), "paused") || !strings.Contains(err.Error(), "known issues") {
+		t.Fatalf("paused install error = %v, want paused reason", err)
+	}
+	if paused.requests.hit("/plugins/demo/product-manifest.json") {
+		t.Error("paused install fetched the product manifest")
+	}
+	if paused.requests.hit("/plugins/demo/content/Plugin.qml") {
+		t.Error("paused install fetched a payload file")
+	}
+	if _, err := os.Stat(installedPluginPath()); !os.IsNotExist(err) {
+		t.Errorf("paused install wrote to the destination: %v", err)
+	}
+}
+
+// TestPausedProductBlocksUpdateButAllowsRemoval proves pausing an already-owned
+// product refuses its update (before the new payload is fetched) yet leaves the
+// installed copy intact and removal working, so a user is never stranded.
+func TestPausedProductBlocksUpdateButAllowsRemoval(t *testing.T) {
+	setTransactionXDG(t)
+	ctx := context.Background()
+
+	first := newTransactionFixture(t, "1.0.0", []byte("version one\n"), []byte("version one\n"))
+	if err := installProduct(ctx, first.cache, "plugins", first.entry); err != nil {
+		t.Fatalf("initial install: %v", err)
+	}
+	installed := filepath.Join(installedPluginPath(), "content", "Plugin.qml")
+	if raw, err := os.ReadFile(installed); err != nil || string(raw) != "version one\n" {
+		t.Fatalf("installed content = %q, %v", raw, err)
+	}
+
+	update := newTransactionFixture(t, "2.0.0", []byte("version two\n"), []byte("version two\n"), func(e *ProductEntry) {
+		e.DownloadPaused = true
+		e.DownloadPauseReason = "Has known issues. The developer is working on fixes."
+	})
+	if err := installProduct(ctx, update.cache, "plugins", update.entry); err == nil {
+		t.Fatal("installProduct accepted an update to a paused product")
+	} else if !strings.Contains(err.Error(), "paused") {
+		t.Fatalf("paused update error = %v, want paused", err)
+	}
+	if update.requests.hit("/plugins/demo/content/Plugin.qml") {
+		t.Error("paused update fetched a payload file")
+	}
+	if raw, err := os.ReadFile(installed); err != nil || string(raw) != "version one\n" {
+		t.Fatalf("paused update disturbed the installed copy: %q, %v", raw, err)
+	}
+	if err := removeProduct(ctx, "plugins", "demo"); err != nil {
+		t.Fatalf("remove of paused product: %v", err)
+	}
+	if _, err := os.Stat(installedPluginPath()); !os.IsNotExist(err) {
+		t.Fatalf("remove left the destination behind: %v", err)
+	}
 }
 
 func TestProductTransactionLifecycle(t *testing.T) {

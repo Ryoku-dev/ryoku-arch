@@ -33,35 +33,38 @@ type Category struct {
 
 // Item is one specimen. Its state is explicit: Installed for an owned item,
 // Active or Enabled for the refinement a worn rice or running plugin adds,
-// InstalledCount/TotalCount for a partial bundle, and UpdateAvailable when a
-// newer store-managed version exists. Metadata carries category-specific facts
-// and stays nil for a provider that has none.
+// InstalledCount/TotalCount for a partial bundle, UpdateAvailable when a newer
+// store-managed version exists, and DownloadPaused when the source has paused
+// new downloads (the item stays listed and removable). Metadata carries
+// category-specific facts and stays nil for a provider that has none.
 type Item struct {
-	ID               string         `json:"id"`
-	Category         string         `json:"category"`
-	Name             string         `json:"name"`
-	Summary          string         `json:"summary,omitempty"`
-	Description      string         `json:"description,omitempty"`
-	Art              string         `json:"art,omitempty"`
-	ArtRaw           string         `json:"artRaw,omitempty"`
-	Author           string         `json:"author,omitempty"`
-	Version          string         `json:"version,omitempty"`
-	Manifest         string         `json:"manifest,omitempty"`
-	ManifestSHA256   string         `json:"manifestSha256,omitempty"`
-	InstalledVersion string         `json:"installedVersion,omitempty"`
-	Compatibility    string         `json:"compatibility,omitempty"`
-	Accent           string         `json:"accent,omitempty"`
-	Surface          string         `json:"surface,omitempty"`
-	Screenshots      []string       `json:"screenshots,omitempty"`
-	Tags             []string       `json:"tags,omitempty"`
-	Installed        bool           `json:"installed"`
-	Active           bool           `json:"active"`
-	Enabled          bool           `json:"enabled"`
-	InstalledCount   int            `json:"installedCount"`
-	TotalCount       int            `json:"totalCount"`
-	UpdateAvailable  bool           `json:"updateAvailable"`
-	HasSettings      bool           `json:"hasSettings,omitempty"`
-	Metadata         map[string]any `json:"metadata,omitempty"`
+	ID                  string         `json:"id"`
+	Category            string         `json:"category"`
+	Name                string         `json:"name"`
+	Summary             string         `json:"summary,omitempty"`
+	Description         string         `json:"description,omitempty"`
+	Art                 string         `json:"art,omitempty"`
+	ArtRaw              string         `json:"artRaw,omitempty"`
+	Author              string         `json:"author,omitempty"`
+	Version             string         `json:"version,omitempty"`
+	Manifest            string         `json:"manifest,omitempty"`
+	ManifestSHA256      string         `json:"manifestSha256,omitempty"`
+	InstalledVersion    string         `json:"installedVersion,omitempty"`
+	Compatibility       string         `json:"compatibility,omitempty"`
+	DownloadPauseReason string         `json:"downloadPauseReason,omitempty"`
+	Accent              string         `json:"accent,omitempty"`
+	Surface             string         `json:"surface,omitempty"`
+	Screenshots         []string       `json:"screenshots,omitempty"`
+	Tags                []string       `json:"tags,omitempty"`
+	Installed           bool           `json:"installed"`
+	Active              bool           `json:"active"`
+	Enabled             bool           `json:"enabled"`
+	InstalledCount      int            `json:"installedCount"`
+	TotalCount          int            `json:"totalCount"`
+	UpdateAvailable     bool           `json:"updateAvailable"`
+	DownloadPaused      bool           `json:"downloadPaused"`
+	HasSettings         bool           `json:"hasSettings,omitempty"`
+	Metadata            map[string]any `json:"metadata,omitempty"`
 }
 
 // SourceState is a provider's fetch outcome: whether it fell back to cached data
