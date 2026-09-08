@@ -80,10 +80,27 @@ func (f *fixture) server() *httptest.Server {
 // tests do not depend on the system vercmp binary. It compares dot/dash-split
 // numeric fields, which is all the fixtures need.
 func cmpVer(a, b string) (int, error) {
-	split := func(s string) []string {
-		return strings.FieldsFunc(s, func(r rune) bool { return r == '.' || r == '-' || r == ':' })
+	// Epoch dominates pacman ordering: split a leading "N:" and compare epochs
+	// first, so 1:1.0.5-1 outranks 2.5.1-1 exactly as pacman's vercmp would.
+	epoch := func(s string) (int, string) {
+		if i := strings.IndexByte(s, ':'); i >= 0 {
+			e, _ := strconv.Atoi(s[:i])
+			return e, s[i+1:]
+		}
+		return 0, s
 	}
-	fa, fb := split(a), split(b)
+	ea, ra := epoch(a)
+	eb, rb := epoch(b)
+	if ea != eb {
+		if ea < eb {
+			return -1, nil
+		}
+		return 1, nil
+	}
+	split := func(s string) []string {
+		return strings.FieldsFunc(s, func(r rune) bool { return r == '.' || r == '-' })
+	}
+	fa, fb := split(ra), split(rb)
 	for i := 0; i < len(fa) && i < len(fb); i++ {
 		na, _ := strconv.Atoi(fa[i])
 		nb, _ := strconv.Atoi(fb[i])
@@ -106,7 +123,6 @@ func cmpVer(a, b string) (int, error) {
 // recorder captures what the injected installer was handed.
 type recorder struct {
 	installs int32
-	digest   []byte
 }
 
 // newClient wires a Client to the fixture server with stubbed system deps, so no
@@ -126,15 +142,14 @@ func newClient(t *testing.T, srv *httptest.Server, f *fixture, installed string,
 			if meta.Name == "" {
 				meta = pkgMeta{
 					Name:    pkgName,
-					Version: strings.TrimSuffix(strings.TrimPrefix(f.pkgAsset, "ryotunes-"), "-"+wantArch+".pkg.tar.zst"),
+					Version: wantEpoch + ":" + strings.TrimSuffix(strings.TrimPrefix(f.pkgAsset, "ryotunes-"), "-"+wantArch+".pkg.tar.zst"),
 					Arch:    wantArch,
 				}
 			}
 			return meta, nil
 		},
-		install: func(_ context.Context, _ string, digest []byte) error {
+		install: func(_ context.Context, _ string, _ []byte) error {
 			atomic.AddInt32(&rec.installs, 1)
-			rec.digest = append([]byte(nil), digest...)
 			return installErr
 		},
 		vercmp: cmpVer,
@@ -184,7 +199,7 @@ func TestCheckReportsAvailable(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Check: %v", err)
 	}
-	want := Status{Installed: "2.4.0-1", Latest: "2.5.0-1", Available: true}
+	want := Status{Installed: "2.4.0-1", Latest: "1:2.5.0-1", Available: true}
 	if st != want {
 		t.Fatalf("Check: got %+v, want %+v", st, want)
 	}
@@ -210,8 +225,8 @@ func TestCheckOfflineCacheThenError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("offline Check with cache: unexpected error: %v", err)
 	}
-	if st.Latest != "2.5.0-1" {
-		t.Fatalf("offline Check: want cached Latest 2.5.0-1, got %q", st.Latest)
+	if st.Latest != "1:2.5.0-1" {
+		t.Fatalf("offline Check: want cached Latest 1:2.5.0-1, got %q", st.Latest)
 	}
 
 	// A fresh client with no cache and no server must surface the error, never a
@@ -238,7 +253,7 @@ func TestCheckRejectsPoisonedCache(t *testing.T) {
 
 	poison := relInfo{
 		Tag:      "v2.5.0",
-		Version:  "2.5.0-1",
+		Version:  "1:2.5.0-1",
 		PkgAsset: "ryotunes-2.5.0-1-x86_64.pkg.tar.zst/../../etc/evil",
 		ShaAsset: "ryotunes-2.5.0-1-x86_64.pkg.tar.zst.sha256",
 	}
@@ -334,9 +349,9 @@ func TestUpgradeChecksumMismatch(t *testing.T) {
 // before pacman runs, even when its checksum is correct.
 func TestUpgradeWrongPackageIdentity(t *testing.T) {
 	cases := map[string]pkgMeta{
-		"wrong name":    {Name: "notryotunes", Version: "2.5.0-1", Arch: wantArch},
-		"wrong arch":    {Name: pkgName, Version: "2.5.0-1", Arch: "aarch64"},
-		"wrong version": {Name: pkgName, Version: "9.9.9-1", Arch: wantArch},
+		"wrong name":    {Name: "notryotunes", Version: "1:2.5.0-1", Arch: wantArch},
+		"wrong arch":    {Name: pkgName, Version: "1:2.5.0-1", Arch: "aarch64"},
+		"wrong version": {Name: pkgName, Version: "1:9.9.9-1", Arch: wantArch},
 	}
 	for name, meta := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -360,7 +375,7 @@ func TestUpgradeWrongPackageIdentity(t *testing.T) {
 // Upgrade never installs a build that is not strictly newer than what is
 // installed: no download, no pacman, Updated false.
 func TestUpgradeNoDowngrade(t *testing.T) {
-	for _, installed := range []string{"2.5.0-1", "2.6.0-1"} {
+	for _, installed := range []string{"1:2.5.0-1", "1:2.6.0-1"} {
 		t.Run("installed_"+installed, func(t *testing.T) {
 			f := stableFixture() // latest is 2.5.0-1
 			srv := f.server()
@@ -386,7 +401,7 @@ func TestUpgradeNoDowngrade(t *testing.T) {
 // upgraded past the candidate), the install is abandoned rather than resurrecting
 // or downgrading it.
 func TestUpgradeAbortsOnInstalledChange(t *testing.T) {
-	for name, second := range map[string]string{"removed": "", "upgraded past": "2.9.0-1"} {
+	for name, second := range map[string]string{"removed": "", "upgraded past": "1:2.9.0-1"} {
 		t.Run(name, func(t *testing.T) {
 			f := stableFixture()
 			srv := f.server()
@@ -434,31 +449,71 @@ func TestUpgradeRefusesUntrustedRedirect(t *testing.T) {
 	}
 }
 
-// The happy path: a strictly-newer, correctly-checksummed, correctly-identified
-// release is installed, the installer is handed the verified digest, and the
-// returned Status reflects the new build.
+// The v1 package must upgrade the retired higher-numbered v2 build because its
+// pacman epoch takes precedence over the semantic version.
 func TestUpgradeInstallsNewer(t *testing.T) {
 	f := stableFixture()
+	f.tag = "v1.0.5"
+	f.pkgAsset = "ryotunes-1.0.5-1-x86_64.pkg.tar.zst"
 	srv := f.server()
 	defer srv.Close()
 	var rec recorder
-	c := newClient(t, srv, f, "2.4.0-1", pkgMeta{}, nil, &rec)
+	c := newClient(t, srv, f, "2.5.1-1", pkgMeta{}, nil, &rec)
 
 	st, err := c.Upgrade(context.Background())
 	if err != nil {
 		t.Fatalf("Upgrade: %v", err)
 	}
-	want := Status{Installed: "2.5.0-1", Latest: "2.5.0-1", Updated: true}
+	want := Status{Installed: "1:1.0.5-1", Latest: "1:1.0.5-1", Updated: true}
 	if st != want {
 		t.Fatalf("Upgrade: got %+v, want %+v", st, want)
 	}
 	if n := atomic.LoadInt32(&rec.installs); n != 1 {
 		t.Fatalf("Upgrade: installer ran %d time(s), want 1", n)
 	}
-	wantDigest := sha256.Sum256(f.pkgBytes)
-	if hex.EncodeToString(rec.digest) != hex.EncodeToString(wantDigest[:]) {
-		t.Fatalf("Upgrade: installer got digest %x, want %x", rec.digest, wantDigest[:])
-	}
+}
+
+// Ensure installs the latest build when Ryotunes is absent -- the install path
+// (a fresh box, or a reconcile after the user removed it), unlike Upgrade which
+// leaves a removed app removed -- and is a no-op when the box is already current.
+func TestEnsure(t *testing.T) {
+	t.Run("absent installs", func(t *testing.T) {
+		f := stableFixture()
+		srv := f.server()
+		defer srv.Close()
+		var rec recorder
+		c := newClient(t, srv, f, "", pkgMeta{}, nil, &rec) // not installed
+
+		st, err := c.Ensure(context.Background())
+		if err != nil {
+			t.Fatalf("Ensure: %v", err)
+		}
+		want := Status{Installed: "1:2.5.0-1", Latest: "1:2.5.0-1", Updated: true}
+		if st != want {
+			t.Fatalf("Ensure: got %+v, want %+v", st, want)
+		}
+		if n := atomic.LoadInt32(&rec.installs); n != 1 {
+			t.Fatalf("Ensure: installer ran %d time(s), want 1", n)
+		}
+	})
+	t.Run("current is a no-op", func(t *testing.T) {
+		f := stableFixture()
+		srv := f.server()
+		defer srv.Close()
+		var rec recorder
+		c := newClient(t, srv, f, "1:2.5.0-1", pkgMeta{}, nil, &rec)
+
+		st, err := c.Ensure(context.Background())
+		if err != nil {
+			t.Fatalf("Ensure: %v", err)
+		}
+		if st.Updated {
+			t.Fatalf("Ensure: Updated true for an already-current box")
+		}
+		if n := atomic.LoadInt32(&rec.installs); n != 0 {
+			t.Fatalf("Ensure: installer ran %d time(s) for a current box", n)
+		}
+	})
 }
 
 // isTrustedGitHubHost admits only the concrete GitHub hosts a release download

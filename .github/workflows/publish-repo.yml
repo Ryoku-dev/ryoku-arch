@@ -207,6 +207,8 @@ jobs:
           internal=$(for p in release/packages/*/PKGBUILD; do
             bash -c 'source "$1" >/dev/null 2>&1; printf "%s\n" "${pkgname[@]}"' _ "$p"
           done)
+          # Ryotunes is imported as an official binary, not built from a local PKGBUILD.
+          internal+=$'\n'ryotunes
           missing=0
           for p in release/packages/*/PKGBUILD; do
             mapfile -t deps < <(bash -c 'source "$1" >/dev/null 2>&1; printf "%s\n" "${depends[@]:-}"' _ "$p")
