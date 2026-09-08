@@ -71,6 +71,43 @@ func TestMaterializePreservesGeneratedAndUserFiles(t *testing.T) {
 	wantFile(t, filepath.Join(dest, "kitty/current-theme.conf"), "3a5f8a")
 }
 
+// nvim seeds once like ghostty: the shipped LazyVim starting point lands on a
+// fresh install, then the config is the user's. A later release must not reset
+// their edits, and LazyVim's own state that lives under ~/.config/nvim (never
+// shipped) must be left alone. This is the "toggles reset every update" fix.
+func TestMaterializeSeedsNvimOnce(t *testing.T) {
+	base, dest := t.TempDir(), t.TempDir()
+	t.Setenv("RYOKU_CONFIG_BASE", base)
+	t.Setenv("XDG_CONFIG_HOME", dest)
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+
+	writeFile(t, filepath.Join(base, "nvim/init.lua"), "-- ryoku defaults\n")
+	writeFile(t, filepath.Join(base, "nvim/lua/config/options.lua"), "opt.wrap = false\n")
+	writeFile(t, filepath.Join(base, "nvim/lua/plugins/99-ryoku-user.lua"), "return {}\n")
+
+	if err := Materialize(); err != nil {
+		t.Fatalf("fresh materialize: %v", err)
+	}
+	wantFile(t, filepath.Join(dest, "nvim/init.lua"), "ryoku defaults")
+
+	// user tweaks options and their plugin slot, and LazyVim writes its state.
+	writeFile(t, filepath.Join(dest, "nvim/lua/config/options.lua"), "opt.wrap = true\n")
+	writeFile(t, filepath.Join(dest, "nvim/lua/plugins/99-ryoku-user.lua"), "return { \"mine\" }\n")
+	writeFile(t, filepath.Join(dest, "nvim/lazyvim.json"), "{\"extras\":[\"lang.go\"]}\n")
+	// a later release reworks its shipped defaults.
+	writeFile(t, filepath.Join(base, "nvim/init.lua"), "-- ryoku defaults v2\n")
+	writeFile(t, filepath.Join(base, "nvim/lua/config/options.lua"), "opt.wrap = false\nopt.number = true\n")
+
+	if err := Materialize(); err != nil {
+		t.Fatalf("update materialize: %v", err)
+	}
+	// every nvim path the machine had stays exactly as the user left it.
+	wantFile(t, filepath.Join(dest, "nvim/init.lua"), "ryoku defaults\n")
+	wantFile(t, filepath.Join(dest, "nvim/lua/config/options.lua"), "opt.wrap = true")
+	wantFile(t, filepath.Join(dest, "nvim/lua/plugins/99-ryoku-user.lua"), "mine")
+	wantFile(t, filepath.Join(dest, "nvim/lazyvim.json"), "lang.go")
+}
+
 // A managed file dropped from a release is pruned; a generated seed is never
 // pruned, even after the base stops shipping it.
 func TestMaterializePrunesManagedNotSeeds(t *testing.T) {

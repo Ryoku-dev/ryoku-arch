@@ -46,6 +46,14 @@ var generatedSeed = map[string]bool{
 	"ghostty/ryoku-colors":     true,
 }
 
+// nvim is seeded like ghostty: Ryoku lays its LazyVim starting point once, then
+// the config is the user's. Their edits, plugins and LazyVim's own state under
+// ~/.config/nvim then survive every update instead of being reset each time.
+// isSeed folds the per-path seeds and the whole nvim tree into one test.
+func isSeed(rel string) bool {
+	return generatedSeed[rel] || strings.HasPrefix(rel, "nvim/")
+}
+
 // Materialize lays the Ryoku-owned base configs into the user's ~/.config,
 // declaratively: every file the package ships under baseConfigDir() is
 // copied over (clobbering the previous Ryoku copy), files we shipped before
@@ -107,7 +115,7 @@ func Materialize() error {
 	var kept []string
 	for _, rel := range current {
 		dst := filepath.Join(dest, rel)
-		if generatedSeed[rel] {
+		if isSeed(rel) {
 			if !sys.Exists(dst) {
 				if err := sys.CopyFile(filepath.Join(base, rel), dst); err != nil {
 					return fmt.Errorf(i18n.T("seed %s: %w"), rel, err)

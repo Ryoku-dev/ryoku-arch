@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Changed
+- **Neovim config seeds once, like ghostty, so updates stop resetting it.**
+  `ryoku update` no longer overwrites `~/.config/nvim` every run: it lays the
+  LazyVim starting point on a fresh install and then leaves the tree to the
+  user, so edits, plugins and LazyVim's own state persist across updates
+  (`internal/updater/materialize.go`, `internal/sys/useredits.go`).
 - **`ryoku update` tracks Ryotunes on its own release channel; `ryoku doctor`
   reports it.** Ryotunes is released independently as a prebuilt Arch package on
   ryoku-dev/ryotunes' GitHub releases, so `ryoku update` now installs a new build
