@@ -32,7 +32,7 @@ jobs:
       image: archlinux:latest
     steps:
       - name: Install repository tools
-        run: pacman -Syu --noconfirm --needed git curl jq libarchive gnupg rclone
+        run: pacman -Syu --noconfirm --needed git curl jq libarchive gnupg rclone diffutils
       - uses: actions/checkout@v4
         with:
           ref: main
