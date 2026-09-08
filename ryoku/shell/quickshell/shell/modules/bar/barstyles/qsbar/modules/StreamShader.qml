@@ -71,7 +71,8 @@ Item {
             y: 0
             width: Math.max(0, x2 - x1)
             height: root.height
-            visible: width > 10 && height > 0
+            // hidden when not live: a stopped clock clears the gap instead of freezing the last frame
+            visible: root.streamLive && width > 10 && height > 0
 
             property real time: root.time
             property real aud:  root.audioLevel

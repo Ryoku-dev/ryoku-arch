@@ -59,6 +59,10 @@
   `shell/matugen/apps.toml`, `shell/ipc/matugen.go`, `../hub/backend/matugen.go`).
 
 ### Fixed
+- **The gap stream clears when it stops instead of freezing a frame.** A silent
+  bar with no drift left the last shader frame stuck in the gaps; it now hides,
+  so the stream reads as off, then on when audio returns
+  (`bar/barstyles/qsbar/modules/StreamShader.qml`).
 - **Settings search for the workspace and launcher marks lands on the right tab
   again.** Those controls moved to the bar control centre's Identity tab, but
   the search index still sent "Workspace marker" and "Launcher mark" to the old
