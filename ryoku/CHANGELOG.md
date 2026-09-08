@@ -3,6 +3,15 @@
 ## Unreleased
 
 ### Added
+- **Scrolling window controls.** Alt+Tab and Alt+Shift+Tab cycle windows rather
+  than focus history. Super+Shift+wheel focuses columns spatially without
+  crossing monitors, and Super+Alt+F toggles full column width with a fresh
+  restore fraction. Super+Ctrl+Left/Right uses animated small column steps while
+  held; other layouts and floating windows retain pixel resizing. Super+A only
+  sizes and centres on entering floating and restores the pre-float scrolling
+  width on return (`hyprland/modules/window_controls.lua`, `modules/binds.lua`).
+  See `docs/window-controls.md`, including an opt-in wheel cooldown workaround;
+  no global scroll delay is changed.
 - **Ryotunes skins are a RyoStore category.** RyoStore serves the community
   Ryotunes-skin catalogue as `ryotunes-skins` (group `wear`): a skin installs
   as a generic product into `~/.local/share/ryoku/ryotunes-skins/<id>/` with a

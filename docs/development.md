@@ -22,6 +22,9 @@ Edit the repo, deploy, test on the running system.
 ## Verify before committing
 
 - Lua: `luac -p <file>` parses every changed Lua file.
+  `lua tests/hyprland-window-controls.lua` checks the window-control helpers and
+  shipped bindings without a compositor; see `docs/window-controls.md` for the
+  behaviour and live verification checklist.
 - Shell scripts: `bash -n <file>`; the pre-commit hook also checks staged scripts.
 - Installer: exercise the whole flow without a disk. The dry-run matrix runs the
   backend across every strategy and profile (from the repo root):

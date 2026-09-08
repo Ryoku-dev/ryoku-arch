@@ -1,0 +1,39 @@
+name: Hyprland window controls
+
+on:
+  pull_request:
+    paths:
+      - 'ryoku/hyprland/**/*.lua'
+      - 'tests/hyprland-window-controls.lua'
+      - '.github/workflows/hyprland-window-controls.yml'
+  push:
+    branches: [main, unstable-dev]
+    paths:
+      - 'ryoku/hyprland/**/*.lua'
+      - 'tests/hyprland-window-controls.lua'
+      - '.github/workflows/hyprland-window-controls.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Lua
+        run: sudo apt-get update && sudo apt-get install -y lua5.4
+      - name: Check syntax and window controls
+        run: |
+          luac5.4 -p ryoku/hyprland/modules/window_controls.lua
+          luac5.4 -p ryoku/hyprland/modules/binds.lua
+          luac5.4 -p tests/hyprland-window-controls.lua
+          lua5.4 tests/hyprland-window-controls.lua
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: ryoku/hub/backend/go.mod
+      - name: Check shipped Settings catalogue
+        working-directory: ryoku/hub/backend
+        run: go test -run '^TestShippedWindowControlsCatalogue$' ./...

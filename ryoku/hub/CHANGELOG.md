@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Added
+- **Window controls appear in the System keybind catalogue.** The shipped
+  cycle-window, full-column and spatial wheel shortcuts are read from the same
+  `binds.lua` as the cheatsheet, with descriptions and existing keyboard
+  rebinding intact. No duplicate Custom entries are seeded. A regression test
+  reads the shipped file to keep that integration covered.
 - **A Plugins page manages every Hyprland compositor plugin.** Settings >
   Plugins (DESKTOP, next to Windows) takes over the Windows page's Plugins tab
   and grows into the one place for compositor plugins: a tab per plugin (title
