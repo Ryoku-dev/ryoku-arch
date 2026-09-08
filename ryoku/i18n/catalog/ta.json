@@ -4047,6 +4047,7 @@
   "Unavailable": "கிடைக்கவில்லை",
   "Unblock": "தடை நீக்கவும்",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "%s இல் உறுதிசெய்யப்படாத மாற்றங்கள்; %s இல் இருக்கிறது (அவற்றை உறுதிசெய்க அல்லது உறுதிபடுத்தவும், பின்னர் மீண்டும் புதுப்பிக்கவும்)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "இறக்குமதி %s உ undid, மீட்டெடுக்கப்பட்டது:",
   "Undo": "உதறவும்",
   "Undo failed (exit %1).": "உதறுதல் தோல்வியுற்றது (வெளியேறு %1).",

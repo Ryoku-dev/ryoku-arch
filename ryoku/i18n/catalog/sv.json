@@ -4047,6 +4047,7 @@
   "Unavailable": "Otillgänglig",
   "Unblock": "Avblokera",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "Ej commitade ändringar i %s; stannar på %s (committa eller spara dem, uppdatera sedan igen)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "Ångra import %s, återställd:",
   "Undo": "Ångra",
   "Undo failed (exit %1).": "Ångring misslyckades (exit %1).",

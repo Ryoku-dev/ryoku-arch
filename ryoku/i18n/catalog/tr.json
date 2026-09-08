@@ -4047,6 +4047,7 @@
   "Unavailable": "Kullanılamıyor",
   "Unblock": "Engeli Kaldır",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "%s'de kaydedilmemiş değişiklikler; %s'de kalınıyor (değişiklikleri kaydedin veya sakla, ardından yeniden güncelleyin)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "%s ithalatı geri alındı, geri yüklendi:",
   "Undo": "Geri Al",
   "Undo failed (exit %1).": "Geri alma başarısız (çıkış %1).",

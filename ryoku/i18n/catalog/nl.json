@@ -4047,6 +4047,7 @@
   "Unavailable": "Niet beschikbaar",
   "Unblock": "Deblokkeer",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "Niet-gecommitteerde wijzigingen in %s; blijf op %s (commit of bewaar ze, werk dan opnieuw bij)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "Import %s ongedaan gemaakt, hersteld:",
   "Undo": "Ongedaan maken",
   "Undo failed (exit %1).": "Ongedaan maken mislukt (exit %1).",

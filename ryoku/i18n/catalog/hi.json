@@ -4047,6 +4047,7 @@
   "Unavailable": "अनुपलब्ध",
   "Unblock": "अनब्लॉक करें",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "%s में अप्रतिबद्ध परिवर्तन; %s पर रह रहे हैं (प्रतिबद्ध या स्टैश करें, फिर फिर से अपडेट करें)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "%s आयात पूर्ववत किया, पुनः स्थापित:",
   "Undo": "पूर्ववत करें",
   "Undo failed (exit %1).": "पूर्ववत विफल (exit %1)।",

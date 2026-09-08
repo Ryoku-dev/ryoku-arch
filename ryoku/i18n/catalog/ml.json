@@ -4047,6 +4047,7 @@
   "Unavailable": "ലഭ്യമല്ല",
   "Unblock": "തടസ്സം മാറ്റുക",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "%s-ൽ പ്രതിബദ്ധമാക്കാത്ത മാറ്റങ്ങൾ; %s-ൽ നിലനിൽക്കുന്നു (അവ പ്രതിബദ്ധമാക്കുക അഥവാ സംരക്ഷിക്കുക, പിന്നെ വീണ്ടും അപ്ഡേറ്റ് ചെയ്യുക)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "%s ഇമ്പോർട്ട് പഴയതാക്കി, പുനരുദ്ധാരിച്ചു:",
   "Undo": "പഴയതാക്കുക",
   "Undo failed (exit %1).": "പഴയതാക്കൽ ആപത്ത് (exit %1).",

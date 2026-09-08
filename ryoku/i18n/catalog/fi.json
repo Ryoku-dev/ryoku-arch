@@ -4047,6 +4047,7 @@
   "Unavailable": "Ei saatavilla",
   "Unblock": "Poista esto",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "Vahvistamattomia muutoksia kohdassa %s; pysytään kohdassa %s (vahvista tai säilytä ne, sitten päivitä uudelleen)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "Peruttiin tuonti %s, palautettu:",
   "Undo": "Peru",
   "Undo failed (exit %1).": "Peru epäonnistui (exit %1).",

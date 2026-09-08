@@ -4047,6 +4047,7 @@
   "Unavailable": "غير متاح",
   "Unblock": "إلغاء الحظر",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "تغييرات غير معتمدة في %s؛ البقاء على %s (اعتمدها أو احفظها، ثم حدّث مجددًا)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "تراجع استيراد %s، تم الاستعادة:",
   "Undo": "تراجع",
   "Undo failed (exit %1).": "فشل التراجع (خروج %1).",

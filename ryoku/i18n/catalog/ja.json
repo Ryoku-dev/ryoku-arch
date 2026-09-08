@@ -4047,6 +4047,7 @@
   "Unavailable": "利用不可",
   "Unblock": "ブロック解除",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "%s に未コミット変更があります: %s に留まります (コミットまたはスタッシュしてから再度更新してください)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "インポート %s を元に戻しました, 復元:",
   "Undo": "元に戻す",
   "Undo failed (exit %1).": "元に戻すに失敗しました (終了 %1)",

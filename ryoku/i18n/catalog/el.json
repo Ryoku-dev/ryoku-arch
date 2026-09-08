@@ -4047,6 +4047,7 @@
   "Unavailable": "Μη διαθέσιμο",
   "Unblock": "Ξεμπλοκάρισμα",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "Ανεπιβεβαίωτες αλλαγές στο %s· παραμονή στο %s (δεσμεύστε ή αποθηκεύστε, μετά ενημερώστε)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "Αναίρεση εισαγωγής %s, επαναφορά:",
   "Undo": "Αναίρεση",
   "Undo failed (exit %1).": "Αναίρεση απέτυχε (έξοδος %1).",

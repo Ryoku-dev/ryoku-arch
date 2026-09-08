@@ -4047,6 +4047,7 @@
   "Unavailable": "사용 불가",
   "Unblock": "차단 해제",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "%s의 커밋되지 않은 변경사항, %s 유지 (커밋하거나 stash 후 다시 업데이트)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "%s 가져오기 취소, 복원됨:",
   "Undo": "취소",
   "Undo failed (exit %1).": "취소 실패 (종료 %1)",

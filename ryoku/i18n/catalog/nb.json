@@ -4047,6 +4047,7 @@
   "Unavailable": "Utilgjengelig",
   "Unblock": "Opphev blokkering",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "Ulagte endringer i %s, blir på %s (utfør eller lagre dem, oppdater deretter)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "Angret import %s, gjenopprettet:",
   "Undo": "Angre",
   "Undo failed (exit %1).": "Angring mislyktes (avslutning %1).",

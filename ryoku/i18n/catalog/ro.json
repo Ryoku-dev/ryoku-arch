@@ -4047,6 +4047,7 @@
   "Unavailable": "Indisponibil",
   "Unblock": "Deblochează",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "Modificări necomise în %s, rămân pe %s (confirmă sau salvează-le, apoi actualizează din nou)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "Am anulat importul %s, restaurat:",
   "Undo": "Anulează",
   "Undo failed (exit %1).": "Anularea a eșuat (ieșire %1).",

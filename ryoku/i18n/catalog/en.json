@@ -4047,6 +4047,7 @@
   "Unavailable": "Unavailable",
   "Unblock": "Unblock",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "Undid import %s, restored:",
   "Undo": "Undo",
   "Undo failed (exit %1).": "Undo failed (exit %1).",

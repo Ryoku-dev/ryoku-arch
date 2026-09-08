@@ -4047,6 +4047,7 @@
   "Unavailable": "無法使用",
   "Unblock": "解除封鎖",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "%s 中有未提交的變更，保留在 %s（提交或暫存後，再次更新）",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "復原匯入 %s，已還原：",
   "Undo": "復原",
   "Undo failed (exit %1).": "復原失敗（結束代碼 %1）。",

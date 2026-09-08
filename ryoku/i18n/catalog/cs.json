@@ -4047,6 +4047,7 @@
   "Unavailable": "Není dostupné",
   "Unblock": "Odblokovat",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "Nepotvrzené změny v %s; zůstávám na %s (potvrďte je nebo je uložte, pak aktualizujte)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "Import %s vrácen, obnoveno:",
   "Undo": "Vrátit zpět",
   "Undo failed (exit %1).": "Vrácení selhalo (exit %1).",

@@ -4047,6 +4047,7 @@
   "Unavailable": "Недоступно",
   "Unblock": "Розблокувати",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "Невинесені зміни в %s; залишаючись на %s (зафіксуйте або приберіть їх, потім оновіть)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "Скасовано імпорт %s, відновлено:",
   "Undo": "Скасувати",
   "Undo failed (exit %1).": "Скасування не вдалося (вихід %1).",

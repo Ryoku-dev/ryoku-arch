@@ -4047,6 +4047,7 @@
   "Unavailable": "Không có sẵn",
   "Unblock": "Bỏ chặn",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "Thay đổi chưa được commit trong %s; ở lại %s (commit hoặc stash rồi cập nhật lại)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "Hoàn tác nhập %s, đã khôi phục:",
   "Undo": "Hoàn tác",
   "Undo failed (exit %1).": "Hoàn tác thất bại (thoát %1).",

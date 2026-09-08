@@ -4047,6 +4047,7 @@
   "Unavailable": "Nem elérhető",
   "Unblock": "Feloldás",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "Nem véglegesített módosítások a %s-ben; maradás a %s-en (véglegesítse vagy tármentse őket, majd frissítsen újra)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "Visszavont import %s, helyreállítva:",
   "Undo": "Visszavonás",
   "Undo failed (exit %1).": "A visszavonás sikertelen (kilépés %1).",

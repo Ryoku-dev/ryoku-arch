@@ -4047,6 +4047,7 @@
   "Unavailable": "ไม่พร้อม",
   "Unblock": "ปลดการบล็อก",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "มีการเปลี่ยนแปลงที่ยังไม่ยืนยันใน %s อยู่ที่ %s (ยืนยันหรือซ่อน แล้วอัปเดตใหม่)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "เลิกนำเข้า %s ได้ คืนค่า:",
   "Undo": "เลิกทำ",
   "Undo failed (exit %1).": "เลิกทำล้มเหลว (ออก %1)",

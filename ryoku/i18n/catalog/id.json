@@ -4047,6 +4047,7 @@
   "Unavailable": "Tidak tersedia",
   "Unblock": "Buka blokir",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "Perubahan tak tertanggung di %s; tetap di %s (komit atau simpan, lalu perbarui lagi)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "Impor %s dibatalkan, dipulihkan:",
   "Undo": "Batalkan",
   "Undo failed (exit %1).": "Pembatalan gagal (keluar %1).",

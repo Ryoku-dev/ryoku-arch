@@ -4047,6 +4047,7 @@
   "Unavailable": "לא זמין",
   "Unblock": "בטל חסימה",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "שינויים לא התחייבו ב‏ %s; נשארים ב‏ %s (בצע commit או stash, ואז עדכן שוב)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "ביטלתי ייבוא %s, שוחזרו:",
   "Undo": "בטל",
   "Undo failed (exit %1).": "ביטול נכשל (יציאה %1).",

@@ -4047,6 +4047,7 @@
   "Unavailable": "در دسترس نیست",
   "Unblock": "رفع مسدود‌کردن",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "تغییرات commit‌نشده در %s؛ باقی در %s (آن‌ها را commit یا stash کنید، سپس دوباره به‌روزرسانی کنید)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "وارد کردن %s لغو شد، بازیابی شد:",
   "Undo": "لغو",
   "Undo failed (exit %1).": "لغو ناموفق (خروج %1).",

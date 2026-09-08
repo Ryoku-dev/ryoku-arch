@@ -4047,6 +4047,7 @@
   "Unavailable": "Indisponible",
   "Unblock": "Débloquer",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "Modifications non validées dans %s, maintien sur %s (validez ou remisez-les, puis relancez la mise à jour)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "Annulation de l'import %s, restauré :",
   "Undo": "Annuler",
   "Undo failed (exit %1).": "Annulation échouée (sortie %1).",

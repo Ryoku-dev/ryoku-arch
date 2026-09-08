@@ -4047,6 +4047,7 @@
   "Unavailable": "అందుబాటులో లేనిది",
   "Unblock": "అన్‌బ్లాక్ చేయండి",
   "Uncommitted changes in %s; staying on %s (commit or stash them, then update again)": "%s లో కమిట్ చేయని మార్పులు; %s పై ఉండటం (వాటిని కమిట్ లేదా స్టాష్ చేసి, తర్వాత మళ్లీ నవీకరించండి)",
+  "Under construction.": "Under construction.",
   "Undid import %s, restored:": "%s దిగుమతిని చేయవద్దు, పునరుద్ధరించారు:",
   "Undo": "చేయవద్దు",
   "Undo failed (exit %1).": "చేయవద్దు విఫలమైంది (నిష్క్రమణ %1).",
