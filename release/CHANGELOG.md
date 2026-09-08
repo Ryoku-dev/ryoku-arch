@@ -44,6 +44,7 @@
 
 ### Changed
 - **Ryotunes updates on its own release channel, not the `[ryoku]` repo.**
+- **Ryotunes also updates on its own GitHub release channel.**
   Ryotunes is released independently as a prebuilt Arch package on
   ryoku-dev/ryotunes' GitHub releases (`ryotunes-<ver>-1-x86_64.pkg.tar.zst` and a
   `.sha256` beside it). `ryoku update` now tracks those directly
@@ -75,6 +76,11 @@
   retired, and the Ryoku Canvas extension and its loopback relay are removed
   with them. Ryotunes is the music app Ryoku ships. An already-installed Spotify
   is left alone.
+  `ryoku doctor` reports a pending release without installing it. The `[ryoku]`
+  repo still builds and ships the `ryotunes` package (the retained sha256-pinned
+  source tarball). The old auto-bump path is retired with it:
+  `.github/workflows/ryotunes-release.yml` and `bin/ryoku-release-ryotunes` are
+  gone, and the Ryotunes release dispatch into this repo with them.
 - **`ryotunes` 2.5.1-1 tracks ryoku-dev/ryotunes v2.5.1.** The heart saves without an account. Liking a track when there is no YouTube Music session (or on a SoundCloud/local track) lands it in a device-local Liked...
 - **`ryotunes` 2.5.0-1 tracks ryoku-dev/ryotunes v2.5.0.** The package follows
   Ryotunes' GitHub releases (a sha256-pinned source tarball) instead of a

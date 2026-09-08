@@ -136,6 +136,12 @@
   orphan sweep cannot delete them, and the Ryotunes check no longer reinstalls
   the package (`internal/doctor/reconcile_shipped_apps.go`,
   `reconcile_ryotunes.go`). The two spicetify reconcilers are gone with Spotify.
+  git and packaged channels -- a box with no other changes still picks it up, and
+  a newer external build is never downgraded. `ryoku doctor` and
+  `ryoku status --json` report a pending release without installing it
+  (`internal/ryotunesrelease.Check`), and an offline check is never rendered as
+  up to date (`internal/updater/ryotunes.go`,
+  `internal/doctor/reconcile_ryotunes.go`).
 - **An edit to a shipped file survives the update as a fork.** `ryoku
   materialize` re-lays every shipped config on each update, so a hand edit
   to, say, `hypr/modules/window_rules.lua` was thrown away. The manifest now
