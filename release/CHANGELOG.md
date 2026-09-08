@@ -13,13 +13,24 @@
   the other plugin packages.
 
 ### Changed
+- **Ryotunes also updates on its own GitHub release channel.**
+  Ryotunes is released independently as a prebuilt Arch package on
+  ryoku-dev/ryotunes' GitHub releases (`ryotunes-<ver>-1-x86_64.pkg.tar.zst` and a
+  `.sha256` beside it). `ryoku update` now tracks those directly
+  (`ryoku/cli/internal/ryotunesrelease`): it verifies the download by sha256 and
+  by its own pacman name/version/arch, installs it with `pacman -U`, and only
+  ever moves the version forward, so an external build is never downgraded.
+  `ryoku doctor` reports a pending release without installing it. The `[ryoku]`
+  repo still builds and ships the `ryotunes` package (the retained sha256-pinned
+  source tarball). The old auto-bump path is retired with it:
+  `.github/workflows/ryotunes-release.yml` and `bin/ryoku-release-ryotunes` are
+  gone, and the Ryotunes release dispatch into this repo with them.
 - **`ryotunes` 2.5.1-1 tracks ryoku-dev/ryotunes v2.5.1.** The heart saves without an account. Liking a track when there is no YouTube Music session (or on a SoundCloud/local track) lands it in a device-local Liked...
-- **`ryotunes` 2.5.0-1 tracks ryoku-dev/ryotunes v2.5.0.** The package now follows
-  Ryotunes' GitHub releases (a sha256-pinned source tarball) instead of a hand-pinned
-  commit: `.github/workflows/ryotunes-release.yml` bumps it on every upstream release
-  (dispatch or daily poll) and publishes to testing. The package enables
-  `ryotunesd.socket` for every user, so `ryotunes` opens the native client on a
-  fresh install instead of the old Tauri app.
+- **`ryotunes` 2.5.0-1 tracks ryoku-dev/ryotunes v2.5.0.** The package follows
+  Ryotunes' GitHub releases (a sha256-pinned source tarball) instead of a
+  hand-pinned commit, and enables `ryotunesd.socket` for every user, so
+  `ryotunes` opens the native client on a fresh install instead of the old Tauri
+  app.
 - **Every Hyprland plugin package lays an `.abi` receipt beside its `.so`.**
   `hypr-dynamic-cursors`, `ryoku-hypr-plugins`, `hyprglass`, `imgborders` and
   `ryoku-keysounds` write `<name>.abi` from the build host's `version.h`, the

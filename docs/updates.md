@@ -15,6 +15,32 @@ file, a `shell.json` key, or anything a user must receive.
 They must converge. A change that lands on one but not the other is the bug this
 page exists to prevent.
 
+### Ryotunes: an external app on its own channel
+
+Ryotunes updates are released independently as prebuilt Arch packages on
+[ryoku-dev/ryotunes](https://github.com/ryoku-dev/ryotunes)' GitHub
+releases (`ryotunes-<ver>-1-x86_64.pkg.tar.zst`, with a `.sha256` beside it), so
+it is a third channel a Ryoku box tracks directly rather than through the
+`[ryoku]` repo. `ryoku update` runs the check on every channel (dev checkout and
+packaged), so a box with no other changes still
+picks up a new Ryotunes (`internal/ryotunesrelease`, `internal/updater/ryotunes.go`):
+
+- **`ryoku update` installs a newer build.** It re-reads the latest release
+  fresh, verifies the download by sha256 and by its own pacman metadata (name,
+  version, `x86_64`), installs it with `pacman -U`, and only ever moves the
+  version forward. A build that is not strictly newer is left alone, so an
+  external build is never downgraded, and a box without Ryotunes installed gets
+  nothing (a removal stays removed).
+- **`ryoku doctor --check` reports a pending release** without installing
+  anything. Advisory findings also appear with `--verbose` and `--json`; plain
+  doctor remains quiet for advisory notes. Failed release lookups are reported
+  as unavailable rather than "up to date".
+- The download origin Ryoku trusts (the `ryoku-dev/ryotunes` GitHub release
+  path) is the only one used, and the package lands through `pacman -U`, which
+  honours pacman's signature policy and file ownership -- never a raw `/usr/bin`
+  replacement. The `[ryoku]` repo still builds the `ryotunes` package (a
+  sha256-pinned source tarball) for the initial install.
+
 ## `ryoku update`
 
 Snapper pre-snapshot, then the channel (git fast-forward, or `pacman -Syu` from

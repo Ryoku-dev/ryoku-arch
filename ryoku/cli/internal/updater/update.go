@@ -116,6 +116,7 @@ func Update(args []string) error {
 		}
 		rashinReindex()
 		prowlRefresh()
+		upgradeRyotunes()
 		progress.at("doctor")
 		offerSnapperHelpers()
 		runFreshDoctor()
@@ -487,6 +488,7 @@ func updateStage2(pre string) error {
 	startShell()
 	rashinReindex()
 	prowlRefresh()
+	upgradeRyotunes()
 
 	progress.at("doctor")
 	offerSnapperHelpers()
@@ -1001,6 +1003,7 @@ func buildStatus() statusReport {
 	if len(r.Packages) > 0 {
 		r.Available = true
 	}
+	addRyotunesUpdate(&r)
 	return r
 }
 
@@ -1134,7 +1137,7 @@ func pendingUpdates() []updateItem {
 	sc := bufio.NewScanner(strings.NewReader(string(out)))
 	for sc.Scan() {
 		f := strings.Fields(sc.Text())
-		if len(f) >= 4 && f[2] == "->" {
+		if len(f) >= 4 && f[2] == "->" && !externalReleasePkgs[f[0]] {
 			ups = append(ups, updateItem{Name: f[0], Old: f[1], New: f[3]})
 		}
 	}
