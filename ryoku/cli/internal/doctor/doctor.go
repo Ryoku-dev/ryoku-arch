@@ -2322,8 +2322,11 @@ const greeterCompositorBin = "/usr/share/ryoku/lockscreen/ryoku-greeter"
 // (ryoku-cursors, a hard depend) at the size env.lua uses. This only helps
 // clients that honor XCURSOR_THEME; reconcileGreeterCursor establishes the
 // "default" theme itself for the ones (SDDM's Wayland greeter, weston) that fall
-// back to it regardless.
-const greeterEnvironment = "QT_QPA_PLATFORM=wayland,XCURSOR_THEME=Bibata-Modern-Ice,XCURSOR_SIZE=24"
+// back to it regardless. QML_XHR_ALLOW_FILE_READ lets the greeter theme's
+// bundled I18n read the shipped catalog with a file:// request (Qt6 blocks local
+// XHR reads without it), so the login screen localises without pulling in the
+// shell's Quickshell-backed singletons (#162).
+const greeterEnvironment = "QT_QPA_PLATFORM=wayland,XCURSOR_THEME=Bibata-Modern-Ice,XCURSOR_SIZE=24,QML_XHR_ALLOW_FILE_READ=1"
 
 func sddmWaylandBody() string {
 	compositor := "weston --shell=kiosk"

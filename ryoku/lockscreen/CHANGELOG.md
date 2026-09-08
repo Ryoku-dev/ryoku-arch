@@ -14,6 +14,13 @@
   this root installer). Honors `RYOKU_DRYRUN`; `ryoku keyring` changes it later.
 
 ### Fixed
+- **The SDDM greeter stops logging a Quickshell plugin error on every boot
+  (#162).** Its theme imported the shell's `Ryoku.Ui.Singletons`, whose
+  singletons load `Quickshell.Io`, a plugin the plain `sddm-greeter-qt6` process
+  cannot load, so the greeter logged "quickshell-coreplugin not found" each boot.
+  The theme now carries its own Quickshell-free `I18n` and reads the shipped
+  catalog directly, so it localises without the shell singletons
+  (`themes/clockwork/orbital/i18n`, greeter env gains `QML_XHR_ALLOW_FILE_READ`).
 - **The login screen waits for a slow second monitor before it starts.** On
   boards that bring one connector up a beat before another (DP before HDMI), the
   greeter probed once and lit only the fast panel, so login landed on the wrong

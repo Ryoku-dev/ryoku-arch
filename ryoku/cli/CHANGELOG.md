@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Changed
+- **`ryoku doctor` adds `QML_XHR_ALLOW_FILE_READ` to the SDDM greeter env
+  (#162).** The greeter theme's bundled I18n reads the shipped catalog with a
+  `file://` request, which Qt6 blocks without this flag, so existing boxes
+  converge onto a login screen that localises without the shell's Quickshell
+  singletons (`internal/doctor/doctor.go`).
 - **Neovim config seeds once, like ghostty, so updates stop resetting it.**
   `ryoku update` no longer overwrites `~/.config/nvim` every run: it lays the
   LazyVim starting point on a fresh install and then leaves the tree to the

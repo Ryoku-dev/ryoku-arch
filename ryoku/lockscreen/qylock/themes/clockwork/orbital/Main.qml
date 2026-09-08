@@ -3,7 +3,7 @@ import QtQuick.Window
 import Qt5Compat.GraphicalEffects
 import Qt.labs.folderlistmodel
 import SddmComponents 2.0
-import Ryoku.Ui.Singletons
+import "i18n"
 
 Rectangle {
     // Wayland Cursor Fix
