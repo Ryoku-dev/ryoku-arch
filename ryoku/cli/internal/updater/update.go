@@ -1404,6 +1404,14 @@ func stopShell() {
 	for _, p := range []string{"ryoku-livewall", "mpvpaper", "phonto"} {
 		_ = exec.Command("pkill", "-x", p).Run()
 	}
+	// The Hub (Ryoku Settings) is a separate, session-resident quickshell
+	// instance under its own /tmp/ryoku-hub.lock, not one of the daemon's
+	// components, so the quit above never touches it. Left running it keeps the
+	// old QML mapped, and a settings page this update just shipped only appears
+	// after a relogin. Reap it so the next open loads the new pages; the lock is
+	// advisory and frees with the process.
+	_ = exec.Command("pkill", "-f", "hub/quickshell").Run()
+	_ = exec.Command("pkill", "-f", "qs -c hub($| )").Run()
 	time.Sleep(200 * time.Millisecond)
 }
 

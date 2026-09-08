@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Changed
+- **`ryoku update` reaps the Hub so a new settings page appears without a
+  relogin.** Ryoku Settings is a session-resident quickshell instance the shell
+  daemon does not own, so an update left it running on the old QML and a
+  just-shipped page (like the bar's silent-drift toggle) only showed after a
+  relogin. The shell stop now closes it too (`internal/updater/update.go`).
 - **`ryoku doctor` adds `QML_XHR_ALLOW_FILE_READ` to the SDDM greeter env
   (#162).** The greeter theme's bundled I18n reads the shipped catalog with a
   `file://` request, which Qt6 blocks without this flag, so existing boxes
