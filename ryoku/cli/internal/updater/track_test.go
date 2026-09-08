@@ -37,7 +37,7 @@ func initRyokuArchClone(t *testing.T, dir string) {
 		t.Fatal(err)
 	}
 	mustGit(t, dir, "init")
-	mustGit(t, dir, "remote", "add", "origin", "https://github.com/neur0map/ryoku-arch.git")
+	mustGit(t, dir, "remote", "add", "origin", "https://github.com/ryoku-dev/ryoku-arch.git")
 }
 
 // isolateHome points HOME and the XDG roots at fresh temp dirs and clears

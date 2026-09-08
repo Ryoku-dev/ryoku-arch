@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-// The catalogue lives in the Ryostore repo (neur0map/ryostore), fetched from
+// The catalogue lives in the Ryostore repo (ryoku-dev/ryostore), fetched from
 // raw GitHub. RYOSTORE_BASE overrides the base for a fork or a local tree under
 // test; the former RYOKU_EXTRAS_BASE is still honoured for one release so a dev
 // with it already exported keeps working.
-const defaultExtrasBase = "https://raw.githubusercontent.com/neur0map/ryostore/main"
+const defaultExtrasBase = "https://raw.githubusercontent.com/ryoku-dev/ryostore/main"
 
 // extrasBaseOverride returns the environment source override, preferring the
 // current RYOSTORE_BASE and falling back to the legacy RYOKU_EXTRAS_BASE.

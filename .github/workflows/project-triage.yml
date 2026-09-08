@@ -172,7 +172,7 @@ jobs:
           # resolve the board and its Area/Type fields plus option ids.
           # shellcheck disable=SC2016
           proj_query='query($login: String!, $number: Int!) {
-            user(login: $login) {
+            organization(login: $login) {
               projectV2(number: $number) {
                 id
                 fields(first: 50) {
@@ -186,18 +186,18 @@ jobs:
             }
           }'
           proj="$(gh api graphql -f query="$proj_query" -f login="$OWNER" -F number="$PROJECT_NUMBER" 2>/dev/null || true)"
-          project_id="$(jq -r '.data.user.projectV2.id // empty' <<<"$proj" 2>/dev/null || true)"
+          project_id="$(jq -r '.data.organization.projectV2.id // empty' <<<"$proj" 2>/dev/null || true)"
           if [[ -z "$project_id" ]]; then
             echo "::notice::Could not resolve project #$PROJECT_NUMBER for $OWNER; skipping board write."
             exit 0
           fi
 
-          area_field="$(jq -r 'first(.data.user.projectV2.fields.nodes[]? | select(.name == "Area") | .id) // empty' <<<"$proj")"
-          type_field="$(jq -r 'first(.data.user.projectV2.fields.nodes[]? | select(.name == "Type") | .id) // empty' <<<"$proj")"
+          area_field="$(jq -r 'first(.data.organization.projectV2.fields.nodes[]? | select(.name == "Area") | .id) // empty' <<<"$proj")"
+          type_field="$(jq -r 'first(.data.organization.projectV2.fields.nodes[]? | select(.name == "Type") | .id) // empty' <<<"$proj")"
 
           option_id() {
             jq -r --arg f "$1" --arg o "$2" \
-              'first(.data.user.projectV2.fields.nodes[]? | select(.name == $f) | .options[]? | select(.name == $o) | .id) // empty' \
+              'first(.data.organization.projectV2.fields.nodes[]? | select(.name == $f) | .options[]? | select(.name == $o) | .id) // empty' \
               <<<"$proj"
           }
 

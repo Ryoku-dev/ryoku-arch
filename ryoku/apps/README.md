@@ -37,7 +37,7 @@ These are full applications, not `~/.config` seeds. Two shapes live here:
   The packaging supports it; nothing uses it today.
 
 The music app is not here: `ryotunes` is its own repository
-(github.com/neur0map/ryotunes, Tauri + libmpv) packaged from a pinned commit
+(github.com/ryoku-dev/ryotunes, Tauri + libmpv) packaged from a pinned commit
 under `release/packages/ryotunes/`, like `ryomotion`.
 
 A shell *surface* is a fourth thing and does not live here. `ryoshot` and

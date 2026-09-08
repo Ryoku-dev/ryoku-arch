@@ -13,7 +13,7 @@ import (
 // where the track script lives, for boxes with no local checkout that ask to
 // build from source (`--source`). Always the main copy: the stable script moves
 // a box in either direction, so a packaged box can still reach it.
-const trackURL = "https://raw.githubusercontent.com/neur0map/ryoku-arch/main/bin/ryoku-track"
+const trackURL = "https://raw.githubusercontent.com/ryoku-dev/ryoku-arch/main/bin/ryoku-track"
 
 // sourceChannels are the git branches `ryoku track ... --source` builds from.
 var sourceChannels = map[string]bool{"main": true, "unstable-dev": true}

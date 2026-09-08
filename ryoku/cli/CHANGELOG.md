@@ -5,7 +5,7 @@
 ### Changed
 - **`ryoku update` tracks Ryotunes on its own release channel; `ryoku doctor`
   reports it.** Ryotunes is released independently as a prebuilt Arch package on
-  neur0map/ryotunes' GitHub releases, so `ryoku update` now installs a new build
+  ryoku-dev/ryotunes' GitHub releases, so `ryoku update` now installs a new build
   directly through `internal/ryotunesrelease` (fresh release read, sha256 +
   pacman name/version/arch verification, `pacman -U`, upgrade-only) on both the
   git and packaged channels, outside the `[ryoku]` set -- a box with no other
@@ -345,7 +345,7 @@
   catalogue's per-file sha256/size/mode, docs and preview media `install:
   false`) and `registry-entry.json` (a complete, community `plugins/registry.json`
   row with `hosts` and the `bar-widget`/`desktop-widget` tag), under git.
-  `share <id>` exports if needed, then lays it into a fork of `neur0map/ryostore`
+  `share <id>` exports if needed, then lays it into a fork of `ryoku-dev/ryostore`
   as `plugins/<id>/`, upserts the registry entry, pushes `plugin/<id>` and opens
   the pull request with the catalogue's checklist (as the plugin's author when
   git has no identity); without `gh` it opens the submission form prefilled

@@ -50,7 +50,7 @@
   app.** YouTube Music ran as a Chromium `--app` window in its own profile
   because the Tauri/Electron clients of the time crashed on this compositor or
   published no MPRIS. The Ryostore-submitted Ryotunes (Tauri + libmpv,
-  `neur0map/ryotunes`) does both, so it ships as the `ryotunes` package from the
+  `ryoku-dev/ryotunes`) does both, so it ships as the `ryotunes` package from the
   `[ryoku]` repo (`release/packages/ryotunes/`) and the wrapper, its `.desktop`
   and icon leave this tree. The desktop's music integration is unchanged: it
   follows `org.mpris.MediaPlayer2.ryotunes`. Super+J now launches Ryotunes

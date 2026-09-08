@@ -1,7 +1,7 @@
 # Maintainer: Ryoku <releases@ryoku.dev>
 #
 # ryomotion: Ryoku Motion, the screen-demo recorder and editor. A Linux build of
-# the OpenScreen fork (github.com/neur0map/ryomotion), rebranded to Ryo Motion
+# the OpenScreen fork (github.com/ryoku-dev/ryomotion), rebranded to Ryo Motion
 # and packaged for the [ryoku] repo. The shell's record island opens it for a
 # studio capture and for importing a clip to edit. It records natively on Linux
 # with gpu-screen-recorder (electron/recording/linuxCapture.ts) -- the same
@@ -23,7 +23,7 @@ pkgver=1.5.0
 pkgrel=11
 pkgdesc="Ryoku Motion: screen-demo recorder and editor (OpenScreen, Linux)"
 arch=('x86_64')
-url="https://github.com/neur0map/ryomotion"
+url="https://github.com/ryoku-dev/ryomotion"
 license=('MIT')
 # gpu-screen-recorder: the native Wayland capture backend (electron/recording/linuxCapture.ts).
 depends=('gtk3' 'nss' 'alsa-lib' 'libnotify' 'pipewire' 'xdg-desktop-portal' 'gpu-screen-recorder')
@@ -31,7 +31,7 @@ makedepends=('git')
 options=('!strip' '!debug')
 _commit=60ea129dabfed8c4936aa6264dc43452c1ed8ab5
 _node=22.22.1
-source=("$pkgname::git+https://github.com/neur0map/ryomotion.git#commit=$_commit"
+source=("$pkgname::git+https://github.com/ryoku-dev/ryomotion.git#commit=$_commit"
         "node-$_node-linux-x64.tar.xz::https://nodejs.org/dist/v$_node/node-v$_node-linux-x64.tar.xz"
         "ryomotion-logo.png")
 sha256sums=('SKIP'

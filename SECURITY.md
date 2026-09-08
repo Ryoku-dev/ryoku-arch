@@ -13,7 +13,7 @@ Please report security issues privately. Do not open a public issue, pull
 request, or discussion for a vulnerability.
 
 - Preferred: open a private report through GitHub at
-  [Security > Report a vulnerability](https://github.com/neur0map/ryoku-arch/security/advisories/new).
+  [Security > Report a vulnerability](https://github.com/ryoku-dev/ryoku-arch/security/advisories/new).
 - Alternative: contact the maintainer privately at
   [github.com/neur0map](https://github.com/neur0map).
 

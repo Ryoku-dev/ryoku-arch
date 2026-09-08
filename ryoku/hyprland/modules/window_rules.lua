@@ -170,7 +170,7 @@ hl.window_rule({
     immediate    = true,
 })
 
--- Ryotunes, the music app ([ryoku] package, neur0map/ryotunes). Float it like
+-- Ryotunes, the music app ([ryoku] package, ryoku-dev/ryotunes). Float it like
 -- the other music players (Spotify above); the app sizes and centres its own
 -- floating window. The Tauri app maps with class "ryotunes"; the native
 -- Quickshell client (ryotunes-qml) maps with Quickshell's class and the title

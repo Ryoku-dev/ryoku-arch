@@ -23,7 +23,7 @@ func gitInitRyokuArch(t *testing.T, dir string) {
 		}
 	}
 	run("init")
-	run("remote", "add", "origin", "https://github.com/neur0map/ryoku-arch.git")
+	run("remote", "add", "origin", "https://github.com/ryoku-dev/ryoku-arch.git")
 }
 
 // RetireSourceTracking drops the recorded pointer and the tracked channel so the

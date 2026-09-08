@@ -11,7 +11,7 @@ import (
 
 // upgradeRyotunes moves Ryotunes to its latest published GitHub release as part
 // of `ryoku update`. Ryotunes is released on its own cadence as a prebuilt Arch
-// package (neur0map/ryotunes releases), not through the [ryoku] pacman repo, so
+// package (ryoku-dev/ryotunes releases), not through the [ryoku] pacman repo, so
 // it updates on its own channel: internal/ryotunesrelease re-reads the release
 // fresh, verifies the download by sha256 and by its own pacman metadata (name,
 // version, x86_64), installs it with pacman -U, and only ever moves the version

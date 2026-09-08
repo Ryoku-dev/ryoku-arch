@@ -34,7 +34,7 @@ const (
 // environment-overridable: the repo slug is part of the download-and-install
 // URL, so a knob for it would be a knob for aiming a root install at arbitrary
 // release bytes. Tests set Client.Repo on the struct instead.
-const defaultRepo = "neur0map/ryotunes"
+const defaultRepo = "ryoku-dev/ryotunes"
 
 // Client resolves and installs Ryotunes releases. The package-level Check and
 // Upgrade run it wired to the real system (pacman, sudo, GitHub); its fields are

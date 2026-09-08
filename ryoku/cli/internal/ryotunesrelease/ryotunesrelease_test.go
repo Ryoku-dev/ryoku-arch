@@ -144,7 +144,7 @@ func newClient(t *testing.T, srv *httptest.Server, f *fixture, installed string,
 func stableFixture() *fixture {
 	pkg := "ryotunes-2.5.0-1-x86_64.pkg.tar.zst"
 	return &fixture{
-		repo:     "neur0map/ryotunes",
+		repo:     "ryoku-dev/ryotunes",
 		tag:      "v2.5.0",
 		pkgAsset: pkg,
 		pkgBytes: []byte("fake ryotunes package payload"),

@@ -541,7 +541,7 @@ sha256/size/mode of every file, docs and preview media marked `install: false`,
 executables `0755`) and `registry-entry.json` (a complete `plugins/registry.json`
 row: `official: false`, `hosts` from the manifest, the `bar-widget` or
 `desktop-widget` tag added), and puts the folder under git. `share` lays that
-into a fork of `neur0map/ryostore` as `plugins/<id>/`, upserts the registry
+into a fork of `ryoku-dev/ryostore` as `plugins/<id>/`, upserts the registry
 entry, pushes `plugin/<id>` and opens the pull request with the catalogue's
 checklist; without `gh` it opens the submission form prefilled and tells you to
 push the folder somewhere public first. A real `assets/preview-widget.png` is

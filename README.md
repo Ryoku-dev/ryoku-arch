@@ -18,7 +18,7 @@ moves.
 [![Built on Arch](https://img.shields.io/badge/Arch_Linux-1793D1?style=for-the-badge&logo=archlinux&logoColor=white)](https://archlinux.org)
 [![Hyprland](https://img.shields.io/badge/Hyprland-58E1C2?style=for-the-badge&logoColor=white)](https://hypr.land)
 [![Release status](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fiso.ryoku.dev%2Fstable%2Flatest.json&query=%24.channel&label=status&color=E2342A&style=for-the-badge)](https://ryoku.dev)
-[![Build ISO](https://github.com/neur0map/ryoku-arch/actions/workflows/build-iso.yml/badge.svg)](https://github.com/neur0map/ryoku-arch/actions/workflows/build-iso.yml)
+[![Build ISO](https://github.com/ryoku-dev/ryoku-arch/actions/workflows/build-iso.yml/badge.svg)](https://github.com/ryoku-dev/ryoku-arch/actions/workflows/build-iso.yml)
 [![Discord](https://img.shields.io/badge/Discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/8KjBmUEyKA)
 [![Reddit](https://img.shields.io/badge/Reddit-r%2FRyokuArch-FF4500?style=for-the-badge&logo=reddit&logoColor=white)](https://www.reddit.com/r/RyokuArch/)
 
@@ -67,6 +67,16 @@ series on, the tree was pruned and rebuilt from an empty root, so the installer,
 shell, theming, tooling, and system definition are all Ryoku's own, and the
 current codebase shares no code with Omarchy. The shell is custom: its frame-blob
 rendering and some animation curves are adapted from Caelestia.
+
+## A community-first project
+
+Ryoku is a community-first Linux passion project. It is led by one maintainer in
+their spare time and improved by generous contributors; there is no company or
+full-time engineering team behind it. Community ideas help shape what gets built,
+within the time, knowledge, and maintenance capacity available. Ryoku favours a
+rich, deliberate desktop on capable hardware -- it is not designed as a
+lightweight distribution for older or low-resource machines. It builds on the
+work of Arch Linux, Hyprland, and Quickshell, and keeps the credits noted above.
 
 ## The desktop
 
@@ -203,7 +213,7 @@ you off conflicting shells and daemons, and wires up the full desktop. It never
 partitions a disk.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/neur0map/ryoku-arch/main/ryoku-shell-installer/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ryoku-dev/ryoku-arch/main/ryoku-shell-installer/install.sh | bash
 ```
 
 Preview everything it would do without changing anything by appending
@@ -276,7 +286,7 @@ If the `ryoku` command itself is gone, drop to a TTY (`Ctrl+Alt+F2`, then log in
 and run the same recovery straight from the repo:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/neur0map/ryoku-arch/main/bin/ryoku-recovery | bash
+curl -fsSL https://raw.githubusercontent.com/ryoku-dev/ryoku-arch/main/bin/ryoku-recovery | bash
 ```
 
 This is a true last resort. It discards local Ryoku config customizations

@@ -1,6 +1,6 @@
 // Package ryotunesrelease is the update client for Ryotunes, an app Ryoku ships
 // but does not build: it is released on its own cadence as a prebuilt Arch
-// package on the neur0map/ryotunes GitHub releases, and a Ryoku box tracks it by
+// package on the ryoku-dev/ryotunes GitHub releases, and a Ryoku box tracks it by
 // polling those releases directly rather than through the [ryoku] pacman repo.
 //
 // The package exposes exactly two operations, both context-bounded:

@@ -47,7 +47,7 @@ page exists to prevent.
 ### Ryotunes: an external app on its own channel
 
 Ryotunes updates are released independently as prebuilt Arch packages on
-[neur0map/ryotunes](https://github.com/neur0map/ryotunes)' GitHub
+[ryoku-dev/ryotunes](https://github.com/ryoku-dev/ryotunes)' GitHub
 releases (`ryotunes-<ver>-1-x86_64.pkg.tar.zst`, with a `.sha256` beside it), so
 it is a third channel a Ryoku box tracks directly rather than through the
 `[ryoku]` repo. `ryoku update` runs the check on every channel (dev checkout and
@@ -66,7 +66,7 @@ picks up a new Ryotunes (`internal/ryotunesrelease`, `internal/updater/ryotunes.
   as unavailable rather than "up to date".
 - Ryotunes is **excluded from the `[ryoku]` update set** so the repo's base
   build can never overwrite a newer external one. Only the download origin Ryoku
-  trusts (the `neur0map/ryotunes` GitHub release path) is used, and the package
+  trusts (the `ryoku-dev/ryotunes` GitHub release path) is used, and the package
   lands through `pacman -U`, which honours pacman's signature policy and file
   ownership -- never a raw `/usr/bin` replacement. The `[ryoku]` repo still
   builds the `ryotunes` package (a sha256-pinned source tarball) for the initial
