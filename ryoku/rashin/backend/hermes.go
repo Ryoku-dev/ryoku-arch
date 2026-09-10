@@ -139,11 +139,14 @@ func modelStatePath() string {
 	return filepath.Join(base, "rashin-model")
 }
 
-// configModelKey is the fingerprint a pick is tied to: hermes's configured
-// provider and default model.
+// configModelKey is the fingerprint a remembered model pick is tied to: the
+// active chat backend plus hermes's configured provider/model. Keying on the
+// backend keeps each agent's model separate, so switching to omp never shows
+// (or applies) a model the user picked for hermes.
 func configModelKey() string {
 	provider, model, _ := hermesModel()
-	return provider + "/" + model
+	backend, _ := resolveChatBackend(LoadConfig())
+	return backend.ID + "|" + provider + "/" + model
 }
 
 func savedSessionModel() string {

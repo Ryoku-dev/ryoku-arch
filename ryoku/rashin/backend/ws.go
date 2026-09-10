@@ -31,6 +31,7 @@ type wsOut struct {
 	StopReason string        `json:"stopReason,omitempty"`
 	Models     []ModelInfo   `json:"models,omitempty"`
 	Current    string        `json:"current,omitempty"`
+	Agent      string        `json:"agent,omitempty"`
 	Commands   []CommandInfo `json:"commands,omitempty"`
 	SessionID  string        `json:"sessionId,omitempty"`
 	Size       int           `json:"size,omitempty"`
@@ -196,8 +197,14 @@ func (h *chatHub) resetConn() {
 	h.mu.Unlock()
 	if old != nil {
 		old.Close()
-		h.broadcast(wsOut{Type: "state", State: "ready"})
 	}
+	// Clear the remembered model frame so a joiner (or the live chip) never
+	// shows the previous backend's model; the next session re-emits its own.
+	h.mu.Lock()
+	h.models = wsOut{Type: "models", Current: "", Agent: ""}
+	h.mu.Unlock()
+	h.broadcast(h.models)
+	h.broadcast(wsOut{Type: "state", State: "ready"})
 }
 
 func (h *chatHub) pump(c *acpConn) {
@@ -222,7 +229,7 @@ func (h *chatHub) pump(c *acpConn) {
 			h.broadcast(wsOut{Type: "turn_end", StopReason: ev.StopReason})
 			h.broadcast(wsOut{Type: "state", State: "ready"})
 		case "models":
-			m := wsOut{Type: "models", Models: ev.Models, Current: ev.CurrentModel}
+			m := wsOut{Type: "models", Models: ev.Models, Current: ev.CurrentModel, Agent: ev.AgentName}
 			h.mu.Lock()
 			h.models = m
 			h.mu.Unlock()

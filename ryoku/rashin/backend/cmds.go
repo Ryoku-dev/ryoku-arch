@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 )
 
@@ -105,8 +106,17 @@ func cmdAgent(args []string) error {
 		if err := setChatAgent(id); err != nil {
 			return err
 		}
-		fmt.Printf("chat backend set to %q (applies on your next chat)\n", id)
+		// Tell a running daemon to drop its live session so the switch takes
+		// effect on the very next turn, not only after a restart.
+		cfg := LoadConfig()
+		if pingDaemon(cfg.Port) {
+			askPost(cfg.Port, "/api/chat/agent?id="+url.QueryEscape(id))
+		}
+		fmt.Printf("chat backend set to %q\n", id)
 		return nil
+	}
+	if len(args) >= 1 && args[0] == "--json" {
+		return json.NewEncoder(os.Stdout).Encode(BuildManifest(LoadConfig()).ChatBackends)
 	}
 	m := BuildManifest(LoadConfig())
 	for _, a := range m.Agents {

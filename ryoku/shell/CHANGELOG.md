@@ -14,6 +14,15 @@
   default. `ryoku-rashin paths` and `ryoku-rashin agent` do the same in a
   terminal.
 
+- **The Super+S chat header picks the agent and its model in one place.** The
+  chip shows what is answering -- the agent, plus its model when it has one
+  ("Hermes · gpt-5.6-luna", or just "Oh My Pi" for an agent that carries its own
+  model). Tapping it opens a two-level picker: choose the agent (Hermes, Oh My
+  Pi, and any other whose adapter is installed; the rest show "needs adapter"),
+  and, for agents that expose a model list, the model. Switching the agent takes
+  effect on your next message, and the chip no longer shows a stale model after
+  a switch.
+
 - **The Super+S needle opens with a clearer start.** Instead of a wall of text,
   the empty chat now leads with a heading, a one-line explainer, and three
   tap-to-fill example prompts, so it is obvious what to do first.

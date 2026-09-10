@@ -75,6 +75,14 @@ Item {
         var c = t.lastIndexOf(":");
         return c >= 0 ? t.slice(c + 1) : t;
     }
+    // The chip reads "Agent · model" when the backend exposes a model, or just
+    // the agent name when it does not (omp and others carry their own model).
+    function chipLabel() {
+        var a = String(Needle.currentAgent);
+        var m = Needle.currentModel.length > 0 ? root.shortModel(Needle.currentModel) : "";
+        if (a.length > 0 && m.length > 0) return a + " · " + m;
+        return a.length > 0 ? a : m;
+    }
     // Markdown collapses single newlines, so line-structured output (a /tools
     // list, terse notes) renders as one run-on paragraph. Turn each non-blank
     // newline into a hard break so the line structure survives; blank-line
@@ -259,7 +267,7 @@ Item {
                 height: 18 * root.s
                 width: chipRow.implicitWidth + 12 * root.s
                 radius: 9 * root.s
-                visible: Needle.currentModel.length > 0
+                visible: Needle.currentModel.length > 0 || Needle.currentAgent.length > 0
                 color: chipArea.containsMouse || root.modelMenuOpen
                     ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.18)
                     : Qt.rgba(Theme.onSurface.r, Theme.onSurface.g, Theme.onSurface.b, 0.06)
@@ -270,7 +278,7 @@ Item {
                     spacing: 3 * root.s
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: root.shortModel(Needle.currentModel)
+                        text: root.chipLabel()
                         color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurface)
                         font.family: Theme.mono
                         font.pixelSize: 8 * root.s
@@ -345,59 +353,163 @@ Item {
         onClicked: root.modelMenuOpen = false
     }
     Rectangle {
+        id: pickerMenu
         visible: root.modelMenuOpen
         z: 21
         anchors.top: header.bottom
         anchors.right: parent.right
         anchors.topMargin: 4 * root.s
         anchors.rightMargin: 14 * root.s
-        width: 220 * root.s
-        height: Math.min(260 * root.s, modelList.contentHeight + 8 * root.s)
+        width: 232 * root.s
+        height: Math.min(340 * root.s, pickerFlick.contentHeight + 12 * root.s)
         radius: Theme.radiusWidget
         color: Theme.surfaceContainer
         border.width: Theme.borderWidth
         border.color: Theme.outline
         SumiEdge { radius: Theme.radiusWidget }
-        ListView {
-            id: modelList
+        Flickable {
+            id: pickerFlick
             anchors.fill: parent
-            anchors.margins: 4 * root.s
+            anchors.margins: 6 * root.s
+            contentHeight: pickerCol.implicitHeight
             clip: true
-            model: Needle.models
             boundsBehavior: Flickable.StopAtBounds
             ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
-            delegate: Rectangle {
-                id: mrow
-                required property int index
-                required property var modelData
-                width: ListView.view ? ListView.view.width : 0
-                height: 30 * root.s
-                radius: 6 * root.s
-                readonly property bool current: Needle.currentModel === mrow.modelData.id
-                color: mrowArea.containsMouse
-                    ? Qt.rgba(Theme.onSurface.r, Theme.onSurface.g, Theme.onSurface.b, 0.10)
-                    : mrow.current ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.14)
-                    : "transparent"
+            Column {
+                id: pickerCol
+                width: pickerFlick.width
+                spacing: 1 * root.s
+
+                // AGENT — which assistant answers; a pick is a live backend switch.
                 Text {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.leftMargin: 8 * root.s
-                    anchors.rightMargin: 8 * root.s
-                    text: mrow.modelData.name || mrow.modelData.id
-                    elide: Text.ElideRight
-                    color: mrow.current ? Theme.primary : Theme.inkOn(Theme.effectiveSurface, Theme.onSurface)
-                    font.family: Theme.fontPrimary
-                    font.pixelSize: 10 * root.s
+                    leftPadding: 6 * root.s
+                    topPadding: 3 * root.s
+                    bottomPadding: 3 * root.s
+                    text: I18n.tr("AGENT")
+                    color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
+                    font.family: Theme.mono
+                    font.pixelSize: 8 * root.s
                 }
-                MouseArea {
-                    id: mrowArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        Needle.setModel(mrow.modelData.id);
-                        root.modelMenuOpen = false;
+                Repeater {
+                    model: Needle.backends
+                    delegate: Rectangle {
+                        id: arow
+                        required property var modelData
+                        width: pickerCol.width
+                        height: 30 * root.s
+                        radius: 6 * root.s
+                        readonly property bool active: arow.modelData.active === true
+                        readonly property bool avail: arow.modelData.available === true
+                        color: aArea.containsMouse && arow.avail
+                            ? Qt.rgba(Theme.onSurface.r, Theme.onSurface.g, Theme.onSurface.b, 0.10)
+                            : arow.active ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.14)
+                            : "transparent"
+                        MaterialIcon {
+                            anchors.left: parent.left
+                            anchors.leftMargin: 6 * root.s
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "check"
+                            font.pixelSize: 12 * root.s
+                            visible: arow.active
+                            color: Theme.primary
+                        }
+                        Text {
+                            anchors.left: parent.left
+                            anchors.leftMargin: 24 * root.s
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: arow.modelData.name || arow.modelData.id
+                            color: arow.active ? Theme.primary
+                                : arow.avail ? Theme.inkOn(Theme.effectiveSurface, Theme.onSurface)
+                                : Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
+                            font.family: Theme.fontPrimary
+                            font.pixelSize: 10 * root.s
+                        }
+                        Text {
+                            anchors.right: parent.right
+                            anchors.rightMargin: 8 * root.s
+                            anchors.verticalCenter: parent.verticalCenter
+                            visible: !arow.avail
+                            text: I18n.tr("needs adapter")
+                            color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
+                            font.family: Theme.mono
+                            font.pixelSize: 8 * root.s
+                        }
+                        MouseArea {
+                            id: aArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            enabled: arow.avail
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                Needle.setBackend(arow.modelData.id);
+                                root.modelMenuOpen = false;
+                            }
+                        }
+                    }
+                }
+
+                // divider + MODEL — only for agents that expose a model list.
+                Rectangle {
+                    x: 4 * root.s
+                    width: pickerCol.width - 8 * root.s
+                    height: Theme.borderWidth
+                    color: Theme.outline
+                    visible: Needle.models.length > 0
+                }
+                Text {
+                    leftPadding: 6 * root.s
+                    topPadding: 3 * root.s
+                    bottomPadding: 3 * root.s
+                    visible: Needle.models.length > 0
+                    text: I18n.tr("MODEL")
+                    color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
+                    font.family: Theme.mono
+                    font.pixelSize: 8 * root.s
+                }
+                Repeater {
+                    model: Needle.models
+                    delegate: Rectangle {
+                        id: mrow
+                        required property var modelData
+                        width: pickerCol.width
+                        height: 28 * root.s
+                        radius: 6 * root.s
+                        readonly property bool current: Needle.currentModel === mrow.modelData.id
+                        color: mArea.containsMouse
+                            ? Qt.rgba(Theme.onSurface.r, Theme.onSurface.g, Theme.onSurface.b, 0.10)
+                            : mrow.current ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.14)
+                            : "transparent"
+                        MaterialIcon {
+                            anchors.left: parent.left
+                            anchors.leftMargin: 6 * root.s
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "check"
+                            font.pixelSize: 12 * root.s
+                            visible: mrow.current
+                            color: Theme.primary
+                        }
+                        Text {
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.leftMargin: 24 * root.s
+                            anchors.rightMargin: 8 * root.s
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: mrow.modelData.name || mrow.modelData.id
+                            elide: Text.ElideRight
+                            color: mrow.current ? Theme.primary : Theme.inkOn(Theme.effectiveSurface, Theme.onSurface)
+                            font.family: Theme.fontPrimary
+                            font.pixelSize: 10 * root.s
+                        }
+                        MouseArea {
+                            id: mArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                Needle.setModel(mrow.modelData.id);
+                                root.modelMenuOpen = false;
+                            }
+                        }
                     }
                 }
             }

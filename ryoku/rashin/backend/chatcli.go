@@ -81,7 +81,7 @@ func emitModelsFrame(m wsOut) {
 	for _, mi := range m.Models {
 		arr = append(arr, map[string]any{"id": mi.ID, "name": mi.Name})
 	}
-	emitChat(map[string]any{"type": "models", "models": arr, "current": m.Current})
+	emitChat(map[string]any{"type": "models", "models": arr, "current": m.Current, "agent": m.Agent})
 }
 
 func emitCommandsFrame(m wsOut) {

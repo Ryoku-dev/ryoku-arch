@@ -63,6 +63,7 @@ type AcpEvent struct {
 	StopReason   string
 	Models       []ModelInfo
 	CurrentModel string
+	AgentName    string
 	Commands     []CommandInfo
 	SessionID    string
 	SessionTitle string
@@ -111,6 +112,9 @@ type acpConn struct {
 	protoVersion int
 	loadSession  bool
 	promptImages bool
+	// agentName is the chat backend's display name (Hermes, Oh My Pi, ...), so
+	// the UI can label the session even when the agent advertises no model list.
+	agentName string
 
 	events chan AcpEvent
 }
@@ -215,16 +219,22 @@ type sessionResult struct {
 	} `json:"models"`
 }
 
+// emitModels always emits a models event for a fresh session, carrying the
+// backend's name so the UI can label the agent even when it advertises no
+// models (omp, for one). A stale model from a different backend is never shown.
 func (c *acpConn) emitModels(res json.RawMessage) {
 	var out sessionResult
-	if json.Unmarshal(res, &out) != nil || out.Models == nil {
-		return
+	_ = json.Unmarshal(res, &out)
+	var ms []ModelInfo
+	current := ""
+	if out.Models != nil {
+		ms = make([]ModelInfo, 0, len(out.Models.Available))
+		for _, m := range out.Models.Available {
+			ms = append(ms, ModelInfo{ID: m.ModelID, Name: m.Name, Description: m.Description})
+		}
+		current = out.Models.CurrentModelID
 	}
-	ms := make([]ModelInfo, 0, len(out.Models.Available))
-	for _, m := range out.Models.Available {
-		ms = append(ms, ModelInfo{ID: m.ModelID, Name: m.Name, Description: m.Description})
-	}
-	c.emit(AcpEvent{Type: "models", Models: ms, CurrentModel: out.Models.CurrentModelID})
+	c.emit(AcpEvent{Type: "models", Models: ms, CurrentModel: current, AgentName: c.agentName})
 }
 
 // reconcileModel keeps a fresh session on the remembered model, and remembers
@@ -685,6 +695,7 @@ func startACP(vault string) (*acpConn, error) {
 	}
 	c := newACPConn(stdin, stdout, stdin)
 	c.configStamp = stamp
+	c.agentName = b.Name
 	go func() { _ = cmd.Wait() }()
 	return c, nil
 }
