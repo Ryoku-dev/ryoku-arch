@@ -116,12 +116,25 @@ require_jq() {
 
 # live monitor state as JSON. RYOKU_MONITOR_JSON points at a fixture file for
 # tests (and skips the live hyprctl side effects below).
+#
+# Hyprland's "disabled" flag is not trustworthy across versions: hyprland-git
+# reports "disabled": true on a plainly active output (focused, DPMS on, a real
+# mode, an active workspace), which made every `select(.disabled | not)` drop the
+# live panel -- no scale, GDK_SCALE wrong, and write_monitors_conf even persisted
+# `disabled = true` into monitors.lua, disabling it for real on the next login.
+# Derive disabled from the mode instead: a genuinely off output has no resolution
+# (width/height 0), while a user-disabled one is removed from the layout and so
+# also reports 0x0. This is stable across Hyprland versions and leaves a sleeping
+# (DPMS-off) panel, which keeps its mode, enabled.
 monitors_json() {
+  local raw
   if [[ -n ${RYOKU_MONITOR_JSON:-} ]]; then
-    cat "$RYOKU_MONITOR_JSON"
+    raw="$(cat "$RYOKU_MONITOR_JSON")"
   else
-    hyprctl monitors all -j
+    raw="$(hyprctl monitors all -j)"
   fi
+  printf '%s' "$raw" | jq -c 'if type == "array" then map(.disabled = (((.width // 0) <= 0) or ((.height // 0) <= 0))) else . end' 2>/dev/null \
+    || printf '%s' "$raw"
 }
 
 # a hypervisor fabricates the guest display's EDID, so px/mm there is fiction

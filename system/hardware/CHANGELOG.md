@@ -11,6 +11,16 @@
   `tests/monitor-custom-mode.sh`.
 
 ### Fixed
+- `display/ryoku-monitor`: **an active monitor is no longer treated as disabled
+  on Hyprland builds that mislabel it.** hyprland-git reports `"disabled": true`
+  for a plainly active output (focused, DPMS on, a real mode, an active
+  workspace); Ryoku trusted the flag, so every `select(.disabled | not)` dropped
+  the live panel -- no scale, wrong `GDK_SCALE` -- and `write_monitors_conf`
+  persisted `disabled = true` into `monitors.lua`, disabling it for real on the
+  next login (the Hub also showed it disabled, and workspaces on it broke).
+  `monitors_json` now derives disabled from the mode (a genuinely off output has
+  no resolution, `0x0`), which is stable across Hyprland versions and keeps a
+  DPMS-asleep panel enabled.
 - `display/ryoku-monitor`: **display settings survive a reboot and a power-cycled
   TV; an HDMI output no longer reverts as if freshly connected.** A saved layout
   was recalled only when the connected identity set matched the saved one
