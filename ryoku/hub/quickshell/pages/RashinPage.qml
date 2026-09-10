@@ -71,6 +71,13 @@ Item {
     property string hermesVersion: ""
     property int agentsPresent: 0
     property int agentsWired: 0
+    // manifest: the full agent surface (paths + agents + chat backends), from
+    // `ryoku-rashin paths --json`. Drives the Agents and Connect sections.
+    property var agentList: []
+    property var chatBackends: []
+    property string skillPath: ""
+    property string prowlPath: ""
+    property var vaultItems: []
 
     readonly property string wiredSummary: pg.agentsPresent > 0
         ? I18n.tr("%1 / %2 wired").arg(pg.agentsWired).arg(pg.agentsPresent)
@@ -82,7 +89,7 @@ Item {
     property bool setupOk: true
 
     Component.onCompleted: pg.refresh()
-    function refresh() { statusProc.running = true; }
+    function refresh() { statusProc.running = true; manifestProc.running = true; }
 
     Process {
         id: statusProc
@@ -180,6 +187,42 @@ Item {
         openProc.running = true;
     }
     Process { id: openProc; onExited: pg.refresh() }
+
+    // the agent surface, refreshed with status. Best effort: a missing binary
+    // leaves the sections empty rather than erroring.
+    Process {
+        id: manifestProc
+        command: ["sh", "-c", "ryoku-rashin paths --json"]
+        stderr: StdioCollector {}
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    var m = JSON.parse(this.text);
+                    pg.skillPath = (m.skill && m.skill.path) || "";
+                    pg.prowlPath = (m.prowl && m.prowl.path) || "";
+                    pg.vaultItems = m.vault || [];
+                    pg.agentList = m.agents || [];
+                    pg.chatBackends = m.chatBackends || [];
+                } catch (e) {}
+            }
+        }
+    }
+    Process { id: wireProc; onExited: pg.refresh() }
+    Process { id: chatProc; onExited: pg.refresh() }
+    // Wiring drops the pointer + the ryoku skill + prowl-agent's skills into an
+    // agent (or every present one); useChatAgent picks who drives the chat.
+    function wireAgent(id) { wireProc.command = ["ryoku-rashin", "wire", id]; wireProc.running = true; }
+    function wireAll() { wireProc.command = ["ryoku-rashin", "wire"]; wireProc.running = true; }
+    function useChatAgent(id) { chatProc.command = ["ryoku-rashin", "agent", "use", id]; chatProc.running = true; }
+    // Copy the paste snippet for an agent Rashin does not wire directly.
+    function copySnippet() { Quickshell.execDetached(["sh", "-c", "ryoku-rashin paths --snippet | wl-copy"]); }
+    // whether an agent can drive the Super+S chat (its ACP adapter is present).
+    function agentCanChat(id) {
+        for (var i = 0; i < pg.chatBackends.length; i++)
+            if (pg.chatBackends[i].id === id)
+                return pg.chatBackends[i].available === true;
+        return false;
+    }
 
     // ── reusable poster parts ────────────────────────────────────────────────
 
@@ -325,6 +368,81 @@ Item {
             anchors.fill: parent; enabled: bt.on
             cursorShape: Qt.PointingHandCursor
             onClicked: bt.act()
+        }
+    }
+
+    // one detected coding agent: name, wiring state, skill/chat stamps, and a
+    // one-click WIRE (inject the pointer + skill + prowl).
+    component AgentRow: Rectangle {
+        id: ar
+        property var agent: ({})
+        property bool canChat: false
+        width: parent ? parent.width : 0
+        height: 56
+        color: hx.paper2
+        border.width: 1
+        border.color: (ar.agent.present && ar.agent.wired) ? Qt.rgba(hx.ink.r, hx.ink.g, hx.ink.b, 0.3) : hx.line
+        opacity: ar.agent.present ? 1 : 0.5
+
+        Column {
+            anchors { left: parent.left; leftMargin: 16; right: arActions.left; rightMargin: 12; verticalCenter: parent.verticalCenter }
+            spacing: 3
+            Text {
+                width: parent.width
+                text: ar.agent.name || ar.agent.id || ""
+                color: hx.ink; font.family: pg.fDisplay; font.pixelSize: 16; elide: Text.ElideRight
+            }
+            Text {
+                width: parent.width
+                text: !ar.agent.present ? I18n.tr("not installed")
+                    : (ar.agent.wired ? I18n.tr("wired to the vault") : I18n.tr("present \u00b7 not wired yet"))
+                color: hx.inkDim; font.family: pg.fMono; font.pixelSize: 11; elide: Text.ElideRight
+            }
+        }
+        Row {
+            id: arActions
+            anchors { right: parent.right; rightMargin: 12; verticalCenter: parent.verticalCenter }
+            spacing: Tokens.s2
+            Stamp { visible: ar.agent.skillWired === true; label: "SKILL"; tint: hx.teal; anchors.verticalCenter: parent.verticalCenter }
+            Stamp { visible: ar.canChat; label: "CHAT"; tint: hx.slate; anchors.verticalCenter: parent.verticalCenter }
+            Rectangle {
+                visible: ar.agent.present === true
+                anchors.verticalCenter: parent.verticalCenter
+                width: wbT.implicitWidth + Tokens.s4 * 2
+                height: 30
+                color: ar.agent.wired ? "transparent" : hx.ink
+                border.width: 1
+                border.color: ar.agent.wired ? hx.line : hx.ink
+                Text {
+                    id: wbT
+                    anchors.centerIn: parent
+                    text: ar.agent.wired ? I18n.tr("RE-WIRE") : I18n.tr("WIRE")
+                    color: ar.agent.wired ? hx.ink : hx.paper
+                    font.family: pg.fMono; font.pixelSize: 10; font.letterSpacing: 2; font.weight: Font.Medium
+                }
+                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: pg.wireAgent(ar.agent.id) }
+            }
+        }
+    }
+
+    // one manifest path: label + the resolved location (dim when absent).
+    component PathRow: Row {
+        id: pr
+        property string label: ""
+        property string path: ""
+        property bool ok: true
+        width: parent ? parent.width : 0
+        spacing: Tokens.s3
+        Text {
+            width: Math.round(pr.width * 0.26)
+            text: pr.label; color: pr.ok ? hx.ink : hx.inkDim
+            font.family: pg.fMono; font.pixelSize: 12; elide: Text.ElideRight
+        }
+        Text {
+            width: pr.width - Math.round(pr.width * 0.26) - pr.spacing
+            text: pr.path === "" ? I18n.tr("not installed") : pr.path
+            color: pr.ok ? hx.tan : hx.inkDim
+            font.family: pg.fMono; font.pixelSize: 12; elide: Text.ElideLeft
         }
     }
 
@@ -541,6 +659,104 @@ Item {
                     FnCard {
                         width: fnGrid.cellW; index: "06"; kanji: "\u7f85\u91dd"; name: I18n.tr("CODE"); accent: hx.teal
                         desc: I18n.tr("prowl-agent code intelligence - cited answers over your repos.")
+                    }
+                }
+            }
+
+            // ── YOUR AGENTS: one-click wire any coding CLI to the vault ───────
+            Column {
+                width: parent.width
+                spacing: Tokens.s4
+                Head { kanji: "\u4e94\u4eba\u8846"; title: I18n.tr("YOUR AGENTS") }
+                Text {
+                    width: parent.width
+                    text: I18n.tr("Wire any coding agent to the same living map of this machine. One click drops a pointer into its instructions, links the ryoku skill, and installs prowl-agent's code-intelligence skill.")
+                    color: hx.inkDim; font.family: pg.fMono; font.pixelSize: 12; wrapMode: Text.WordWrap; lineHeight: 1.4
+                }
+                Column {
+                    width: parent.width
+                    spacing: Tokens.s2
+                    Repeater {
+                        model: pg.agentList
+                        delegate: AgentRow {
+                            required property var modelData
+                            width: parent.width
+                            agent: modelData
+                            canChat: pg.agentCanChat(modelData.id)
+                        }
+                    }
+                }
+                PosterBtn { label: I18n.tr("WIRE ALL PRESENT"); on: pg.installed; onAct: pg.wireAll() }
+            }
+
+            // ── POINT ANY AGENT: the paths, and a paste snippet for the rest ──
+            Column {
+                width: parent.width
+                spacing: Tokens.s4
+                Head { kanji: "\u9023\u643a"; title: I18n.tr("POINT ANY AGENT") }
+                Text {
+                    width: parent.width
+                    text: I18n.tr("On an agent Rashin doesn't wire for you? Point it at these yourself, or copy the ready-made instructions and paste them into its config.")
+                    color: hx.inkDim; font.family: pg.fMono; font.pixelSize: 12; wrapMode: Text.WordWrap; lineHeight: 1.4
+                }
+                Column {
+                    width: parent.width
+                    spacing: Tokens.s2
+                    PathRow { label: I18n.tr("skill"); path: pg.skillPath; ok: pg.skillPath !== "" }
+                    PathRow { label: I18n.tr("prowl-agent"); path: pg.prowlPath; ok: pg.prowlPath !== "" }
+                    Repeater {
+                        model: pg.vaultItems
+                        delegate: PathRow {
+                            required property var modelData
+                            width: parent.width
+                            label: modelData.label
+                            path: modelData.path
+                            ok: modelData.exists === true
+                        }
+                    }
+                }
+                PosterBtn { label: I18n.tr("COPY AGENT SNIPPET"); primary: true; on: pg.installed; onAct: pg.copySnippet() }
+            }
+
+            // ── CHAT BACKEND: who answers Super+S (Hermes recommended) ────────
+            Column {
+                width: parent.width
+                spacing: Tokens.s3
+                Head { kanji: "\u5bfe\u8a71"; title: I18n.tr("CHAT BACKEND") }
+                Text {
+                    width: parent.width
+                    text: I18n.tr("Which agent answers the Super+S chat. Hermes is recommended; others need their own ACP adapter installed.")
+                    color: hx.inkDim; font.family: pg.fMono; font.pixelSize: 12; wrapMode: Text.WordWrap; lineHeight: 1.4
+                }
+                Flow {
+                    width: parent.width
+                    spacing: Tokens.s2
+                    Repeater {
+                        model: pg.chatBackends
+                        delegate: Rectangle {
+                            id: cb
+                            required property var modelData
+                            readonly property bool sel: cb.modelData.active === true
+                            height: 34
+                            width: cbT.implicitWidth + Tokens.s4 * 2
+                            color: cb.sel ? hx.ink : "transparent"
+                            opacity: cb.modelData.available ? 1 : 0.45
+                            border.width: 1
+                            border.color: cb.sel ? hx.ink : hx.line
+                            Text {
+                                id: cbT
+                                anchors.centerIn: parent
+                                text: (cb.modelData.name || cb.modelData.id) + (cb.modelData.recommended ? "  \u2605" : "")
+                                color: cb.sel ? hx.paper : (cb.modelData.available ? hx.ink : hx.inkDim)
+                                font.family: pg.fMono; font.pixelSize: 11; font.letterSpacing: 1
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                enabled: cb.modelData.available === true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: pg.useChatAgent(cb.modelData.id)
+                            }
+                        }
                     }
                 }
             }
