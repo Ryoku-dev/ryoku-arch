@@ -23,6 +23,8 @@ const usage = `ryoku-rashin: the Ryoku agent OS daemon
   disable                stop the daemon and turn autostart off (opt out of the default)
   ensure                 default-on convergence: enable at boot unless the user opted out
   backend [provider[:model]]  view or set the fast-lane assistant backend ('auto' follows hermes)
+  paths [--json]         show every skill/vault/prowl path (and a paste snippet for any agent)
+  agent [use <id>]       list agents + chat backends, or set which agent drives the chat
 
 Invoked as 'rashin', a bare argument is a terminal ask; status/enable/disable/
 setup/index still work as subcommands.
@@ -73,6 +75,10 @@ func main() {
 		err = cmdEnsure()
 	case "backend":
 		err = cmdBackend(os.Args[2:])
+	case "paths":
+		err = cmdPaths(len(os.Args) > 2 && os.Args[2] == "--json")
+	case "agent":
+		err = cmdAgent(os.Args[2:])
 	default:
 		fmt.Print(usage)
 		os.Exit(2)
@@ -98,6 +104,10 @@ func dispatchRashin(args []string) error {
 			return cmdEnsure()
 		case "backend":
 			return cmdBackend(args[1:])
+		case "paths":
+			return cmdPaths(len(args) > 1 && args[1] == "--json")
+		case "agent":
+			return cmdAgent(args[1:])
 		case "setup":
 			return cmdSetup()
 		case "index":

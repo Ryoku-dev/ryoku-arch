@@ -613,14 +613,16 @@ func (c *acpConn) handleUpdate(params json.RawMessage) {
 	}
 }
 
-// startACP spawns hermes acp with the vault as its working directory.
+// startACP spawns the configured chat agent's ACP command with the vault as its
+// working directory. Hermes is the recommended default; resolveChatBackend
+// falls back to it when a chosen agent's adapter is absent.
 func startACP(vault string) (*acpConn, error) {
-	bin, ok := FindHermes()
+	b, ok := resolveChatBackend(LoadConfig())
 	if !ok {
-		return nil, errors.New("hermes not installed")
+		return nil, errors.New("no chat agent available; install Hermes (recommended) or a supported ACP agent")
 	}
 	stamp := hermesConfigStamp()
-	cmd := exec.Command(bin, "acp")
+	cmd := exec.Command(b.Argv[0], b.Argv[1:]...)
 	cmd.Dir = vault
 	stdin, err := cmd.StdinPipe()
 	if err != nil {

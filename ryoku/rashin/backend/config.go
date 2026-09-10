@@ -22,6 +22,10 @@ type Config struct {
 		BaseURL  string `json:"baseUrl,omitempty"`
 		KeyEnv   string `json:"keyEnv,omitempty"`
 	} `json:"quick,omitzero"`
+	// ChatAgent selects which agent drives the Super+S chat's interactive
+	// session. Empty means the recommended default (hermes). Only agents with
+	// an ACP adapter present can drive it; see chatBackends.
+	ChatAgent string `json:"chatAgent,omitempty"`
 	// Habits gates the vault's user-habits mining. History defaults on;
 	// nil means enabled so an absent key keeps the feature.
 	Habits struct {

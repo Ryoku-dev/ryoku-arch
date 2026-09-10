@@ -39,9 +39,87 @@ func cmdWire(agent string) error {
 		}
 	}
 	// A single-agent or hermes wire still refreshes the always-created skill
-	// links (~/.agents, ~/.hermes, and every hermes profile).
+	// links (~/.agents, ~/.hermes, every hermes profile) and prowl-agent's
+	// skills for the detected clients, so one wire is a complete inject.
 	_, _ = WireSkill()
+	wireProwlSkills()
 	return nil
+}
+
+// cmdPaths prints the agent manifest: every path Rashin exposes plus a
+// paste-ready snippet, so any coding agent (supported or not) can be pointed at
+// the vault, the skill, and prowl-agent.
+func cmdPaths(asJSON bool) error {
+	m := BuildManifest(LoadConfig())
+	if asJSON {
+		return json.NewEncoder(os.Stdout).Encode(m)
+	}
+	fmt.Println("Rashin exposes these to your coding agent:")
+	fmt.Println()
+	fmt.Printf("  skill   %s\n          %s\n", dashIfEmpty(m.Skill.Path), m.Skill.Desc)
+	fmt.Printf("  prowl   %s\n          %s\n", dashIfEmpty(m.Prowl.Path), m.Prowl.Desc)
+	fmt.Println("  vault:")
+	for _, v := range m.Vault {
+		mark := "+"
+		if !v.Exists {
+			mark = "-"
+		}
+		fmt.Printf("    %s %-11s %s\n", mark, v.Label, v.Path)
+	}
+	fmt.Println()
+	fmt.Println("Agents (one-click wire drops the pointer + skill + prowl):")
+	for _, a := range m.Agents {
+		fmt.Printf("  %-10s present=%-5v wired=%-5v skill=%-5v %s\n", a.ID, a.Present, a.Wired, a.SkillWired, a.File)
+	}
+	fmt.Println()
+	fmt.Println("Chat backends (Super+S; Hermes recommended):")
+	for _, b := range m.ChatBackends {
+		tag := ""
+		if b.Recommended {
+			tag = " (recommended)"
+		}
+		if b.Active {
+			tag += " [active]"
+		}
+		fmt.Printf("  %-8s available=%-5v%s\n", b.ID, b.Available, tag)
+	}
+	fmt.Println()
+	fmt.Println("Point any other agent at Ryoku by pasting this into its instructions:")
+	fmt.Println()
+	fmt.Println(m.Snippet)
+	return nil
+}
+
+// cmdAgent lists agents and chat backends, or sets the chat backend with
+// `agent use <id>`.
+func cmdAgent(args []string) error {
+	if len(args) >= 1 && args[0] == "use" {
+		id := ""
+		if len(args) >= 2 {
+			id = args[1]
+		}
+		if err := setChatAgent(id); err != nil {
+			return err
+		}
+		fmt.Printf("chat backend set to %q (applies on your next chat)\n", id)
+		return nil
+	}
+	m := BuildManifest(LoadConfig())
+	for _, a := range m.Agents {
+		fmt.Printf("agent:   %-10s present=%-5v wired=%-5v skill=%-5v\n", a.ID, a.Present, a.Wired, a.SkillWired)
+	}
+	for _, b := range m.ChatBackends {
+		fmt.Printf("chat:    %-10s available=%-5v recommended=%-5v active=%-5v\n", b.ID, b.Available, b.Recommended, b.Active)
+	}
+	return nil
+}
+
+// dashIfEmpty renders an empty path as "-" (not installed).
+func dashIfEmpty(s string) string {
+	if s == "" {
+		return "-"
+	}
+	return s
 }
 
 func cmdUnwire(agent string) error {

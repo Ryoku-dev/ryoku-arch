@@ -187,6 +187,19 @@ func (h *chatHub) dropConn(c *acpConn) {
 	c.Close()
 }
 
+// resetConn drops the live session so the next turn respawns it -- used when
+// the chat backend changes, so switching agents takes effect immediately.
+func (h *chatHub) resetConn() {
+	h.mu.Lock()
+	old := h.conn
+	h.conn = nil
+	h.mu.Unlock()
+	if old != nil {
+		old.Close()
+		h.broadcast(wsOut{Type: "state", State: "ready"})
+	}
+}
+
 func (h *chatHub) pump(c *acpConn) {
 	for ev := range c.Events() {
 		switch ev.Type {

@@ -25,9 +25,12 @@ const PointerBlock = pointerBegin + "\n" +
 	"system lives at `~/.local/share/ryoku/rashin/`. Before exploring the machine or\n" +
 	"guessing paths, read `AGENTS.md` there: it says where every config lives, which\n" +
 	"binary owns it, and how to reload it. Write durable notes to `memory/` and\n" +
-	"dated notes to `journal/YYYY-MM-DD.md`. The `ryoku` agent skill (safety\n" +
-	"rules, a bar and dock guide, and the command catalogue) is wired into this\n" +
-	"agent's skills directory; read it before customising the desktop.\n" +
+	"dated notes to `journal/YYYY-MM-DD.md`. For code questions prefer `prowl-agent`\n" +
+	"(cited code intelligence, reindexed each run): `prowl-agent search \"<question>\"`,\n" +
+	"`find`, `def`, `references`, `outline`, `impact` -- one call instead of grepping.\n" +
+	"The `ryoku` agent skill (safety rules, a bar and dock guide, and the command\n" +
+	"catalogue) is wired into this agent's skills directory; read it before\n" +
+	"customising the desktop.\n" +
 	pointerEnd
 
 // Agent is a detected coding CLI and its vault-pointer wiring state.

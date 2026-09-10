@@ -140,6 +140,20 @@ func Serve(cfg Config) error {
 		}
 		writeJSON(w, quickInfo(LoadConfig()))
 	})
+	mux.HandleFunc("GET /api/manifest", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, BuildManifest(LoadConfig()))
+	})
+	mux.HandleFunc("GET /api/chat/agent", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, chatBackendInfos(LoadConfig()))
+	})
+	mux.HandleFunc("POST /api/chat/agent", func(w http.ResponseWriter, r *http.Request) {
+		if err := setChatAgent(r.URL.Query().Get("id")); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		hub.resetConn() // switch takes effect on the next turn
+		writeJSON(w, chatBackendInfos(LoadConfig()))
+	})
 
 	mux.HandleFunc("GET /api/hermes/skills", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, SkillsReportNow())
