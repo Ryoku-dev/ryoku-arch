@@ -130,6 +130,16 @@ func Serve(cfg Config) error {
 	})
 	mux.HandleFunc("POST /api/agents/wire", agentMutation(Wire))
 	mux.HandleFunc("POST /api/agents/unwire", agentMutation(Unwire))
+	mux.HandleFunc("GET /api/quick", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, quickInfo(LoadConfig()))
+	})
+	mux.HandleFunc("POST /api/quick", func(w http.ResponseWriter, r *http.Request) {
+		if err := cmdBackend([]string{r.URL.Query().Get("provider")}); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		writeJSON(w, quickInfo(LoadConfig()))
+	})
 
 	mux.HandleFunc("GET /api/hermes/skills", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, SkillsReportNow())

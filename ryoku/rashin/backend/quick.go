@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
@@ -43,7 +44,9 @@ type quickTarget struct {
 	Label   string // provider:model for logs and the dashboard
 }
 
-// quickProviders maps hermes provider ids to openai-compatible endpoints.
+// quickProviders maps a provider id to its openai-compatible endpoint and the
+// env var holding its key. The user picks one with `ryoku-rashin backend`, or
+// it is derived from hermes's own provider.
 var quickProviders = map[string]struct {
 	base   string
 	keyEnv string
@@ -51,18 +54,64 @@ var quickProviders = map[string]struct {
 	"openrouter": {"https://openrouter.ai/api/v1", "OPENROUTER_API_KEY"},
 	"openai":     {"https://api.openai.com/v1", "OPENAI_API_KEY"},
 	"groq":       {"https://api.groq.com/openai/v1", "GROQ_API_KEY"},
+	"deepseek":   {"https://api.deepseek.com/v1", "DEEPSEEK_API_KEY"},
+	"mistral":    {"https://api.mistral.ai/v1", "MISTRAL_API_KEY"},
+	"together":   {"https://api.together.xyz/v1", "TOGETHER_API_KEY"},
+	"xai":        {"https://api.x.ai/v1", "XAI_API_KEY"},
+	"cerebras":   {"https://api.cerebras.ai/v1", "CEREBRAS_API_KEY"},
 	"ollama":     {"http://127.0.0.1:11434/v1", "OLLAMA_API_KEY"},
+	"local":      {"http://127.0.0.1:8080/v1", "LOCAL_API_KEY"},
 }
 
-// hermesEnvValue reads one key from ~/.hermes/.env (process env wins).
-func hermesEnvValue(key string) string {
+// providerIDs lists the known providers, sorted, for the CLI and the picker.
+func providerIDs() []string {
+	ids := make([]string, 0, len(quickProviders))
+	for id := range quickProviders {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	return ids
+}
+
+// readyProviders lists providers usable right now: a key is present, or the
+// endpoint is keyless (local). The picker dims the rest.
+func readyProviders() []string {
+	var out []string
+	for _, id := range providerIDs() {
+		p := quickProviders[id]
+		if isLocalURL(p.base) || envValue(p.keyEnv) != "" {
+			out = append(out, id)
+		}
+	}
+	return out
+}
+
+// rashinEnvPath is rashin's own key file, next to its config. Keys here are
+// not shared with hermes, so the assistant's backend is not hermes-locked.
+func rashinEnvPath() string {
+	return filepath.Join(filepath.Dir(ConfigPath()), "rashin.env")
+}
+
+// envValue reads one key for the fast lane. Process env wins, then rashin's own
+// env file, then hermes's .env for back-compat. Empty key or nothing found -> "".
+func envValue(key string) string {
 	if key == "" {
 		return ""
 	}
 	if v := os.Getenv(key); v != "" {
 		return v
 	}
-	b, err := os.ReadFile(filepath.Join(home(), ".hermes", ".env"))
+	for _, p := range []string{rashinEnvPath(), filepath.Join(home(), ".hermes", ".env")} {
+		if v := envFileValue(p, key); v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+// envFileValue reads KEY=value from a dotenv-style file (quotes trimmed).
+func envFileValue(path, key string) string {
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return ""
 	}
@@ -83,13 +132,16 @@ func isLocalURL(u string) bool {
 	return strings.Contains(u, "127.0.0.1") || strings.Contains(u, "localhost")
 }
 
-// resolveQuickTarget picks the fast lane's model connection: the rashin.json
-// quick overrides first, else hermes's own configured provider when it speaks
-// plain chat-completions. OAuth backends (openai-codex) and native anthropic
-// cannot be called directly, so they report unavailable and asks take the
-// session lane.
+// resolveQuickTarget picks the fast lane's model connection: an explicit
+// rashin.json quick override (provider, or a raw baseUrl) first, else hermes's
+// own configured provider when it speaks plain chat-completions. OAuth backends
+// (openai-codex) and native anthropic cannot be called directly, so they report
+// unavailable and asks take the session lane.
 func resolveQuickTarget(cfg Config) (quickTarget, error) {
 	provider, model, _ := hermesModel()
+	if cfg.Quick.Provider != "" {
+		provider = cfg.Quick.Provider
+	}
 	// Track the remembered session model so the terminal fast lane defaults to
 	// the same model as the sidebar and dashboard; an explicit Quick.Model in
 	// the rashin config still overrides.
@@ -123,12 +175,12 @@ func resolveQuickTarget(cfg Config) (quickTarget, error) {
 	if t.Model == "" {
 		return t, fmt.Errorf("no model configured")
 	}
-	t.Key = hermesEnvValue(keyEnv)
+	t.Key = envValue(keyEnv)
 	if t.Key == "" && !isLocalURL(t.BaseURL) {
-		return t, fmt.Errorf("no API key in ~/.hermes/.env (%s); quick asks use the hermes session", keyEnv)
+		return t, fmt.Errorf("no API key for %s (set %s in ~/.config/ryoku/rashin.env); quick asks use the hermes session", provider, keyEnv)
 	}
 	t.Label = provider + ":" + t.Model
-	if cfg.Quick.Model != "" {
+	if provider == "" && cfg.Quick.Model != "" {
 		t.Label = "quick:" + t.Model
 	}
 	return t, nil

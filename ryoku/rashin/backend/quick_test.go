@@ -61,6 +61,65 @@ func TestResolveQuickTargetConfigOverrideWins(t *testing.T) {
 	}
 }
 
+// A user-selected provider must override hermes's own, and its key must come
+// from rashin's own env file: the fast lane is not locked to hermes here.
+func TestResolveQuickTargetProviderOverride(t *testing.T) {
+	seedQuickHermes(t, "model:\n  provider: openai-codex\n  default: gpt-5.5\n", "")
+	cfgDir := filepath.Join(t.TempDir(), "cfg")
+	t.Setenv("XDG_CONFIG_HOME", cfgDir)
+	if err := os.MkdirAll(filepath.Join(cfgDir, "ryoku"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(cfgDir, "ryoku", "rashin.env"),
+		[]byte("DEEPSEEK_API_KEY=sk-ds-test\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cfg := defaultConfig()
+	cfg.Quick.Provider = "deepseek"
+	cfg.Quick.Model = "deepseek-chat"
+	tgt, err := resolveQuickTarget(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(tgt.BaseURL, "deepseek.com") {
+		t.Fatalf("baseURL = %q, want deepseek despite hermes on codex", tgt.BaseURL)
+	}
+	if tgt.Key != "sk-ds-test" {
+		t.Fatalf("key = %q, want sk-ds-test from rashin.env", tgt.Key)
+	}
+	if tgt.Label != "deepseek:deepseek-chat" {
+		t.Fatalf("label = %q, want deepseek:deepseek-chat", tgt.Label)
+	}
+}
+
+// envValue precedence: process env beats rashin.env beats hermes's .env.
+func TestEnvValuePrecedence(t *testing.T) {
+	h := t.TempDir()
+	t.Setenv("HOME", h)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(h, "cfg"))
+	if err := os.MkdirAll(filepath.Join(h, ".hermes"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	os.WriteFile(filepath.Join(h, ".hermes", ".env"), []byte("K=from-hermes\n"), 0o644)
+	if got := envValue("K"); got != "from-hermes" {
+		t.Fatalf("hermes fallback: got %q", got)
+	}
+	if err := os.MkdirAll(filepath.Join(h, "cfg", "ryoku"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	os.WriteFile(filepath.Join(h, "cfg", "ryoku", "rashin.env"), []byte("K=from-rashin\n"), 0o644)
+	if got := envValue("K"); got != "from-rashin" {
+		t.Fatalf("rashin.env must beat hermes: got %q", got)
+	}
+	t.Setenv("K", "from-proc")
+	if got := envValue("K"); got != "from-proc" {
+		t.Fatalf("process env must win: got %q", got)
+	}
+	if got := envValue(""); got != "" {
+		t.Fatalf("empty key must be empty: got %q", got)
+	}
+}
+
 func sseServer(t *testing.T, deltas []string) *httptest.Server {
 	t.Helper()
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

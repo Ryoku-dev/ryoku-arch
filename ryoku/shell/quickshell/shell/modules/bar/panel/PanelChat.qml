@@ -1098,26 +1098,92 @@ Item {
     // empty state
     Column {
         anchors.centerIn: list
-        width: list.width - 40 * root.s
-        spacing: 8 * root.s
+        width: Math.min(list.width - 32 * root.s, 300 * root.s)
+        spacing: 9 * root.s
         visible: Needle.convo.count === 0
 
         MaterialIcon {
             anchors.horizontalCenter: parent.horizontalCenter
             text: "cognition"
-            font.pixelSize: 30 * root.s
+            font.pixelSize: 32 * root.s
             fill: 0
-            color: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.55)
+            color: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.6)
+        }
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: I18n.tr("Ask the needle")
+            color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurface)
+            font.family: Theme.display
+            font.pixelSize: 21 * root.s
         }
         Text {
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
-            text: I18n.tr("Ask the needle anything. It knows this machine, your desktop, and the Ryoku source. Drop or paste an image to ask about it.")
+            text: I18n.tr("It knows this machine, your desktop, and the Ryoku source. Drop in an image to ask about it.")
             wrapMode: Text.WordWrap
             color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
             font.family: Theme.fontPrimary
-            font.pixelSize: 11.5 * root.s
-            lineHeight: 1.25
+            font.pixelSize: 11 * root.s
+            lineHeight: 1.3
+        }
+        Column {
+            width: parent.width
+            spacing: 6 * root.s
+            topPadding: 4 * root.s
+            Repeater {
+                model: [
+                    { icon: "bolt", text: I18n.tr("Why is my battery draining?") },
+                    { icon: "wallpaper", text: I18n.tr("How do I change my wallpaper?") },
+                    { icon: "terminal", text: I18n.tr("Where does the shell config live?") }
+                ]
+                delegate: Rectangle {
+                    id: ex
+                    required property var modelData
+                    width: parent.width
+                    height: 34 * root.s
+                    radius: 8 * root.s
+                    color: exArea.containsMouse
+                        ? Qt.rgba(Theme.onSurface.r, Theme.onSurface.g, Theme.onSurface.b, 0.08)
+                        : "transparent"
+                    border.width: 1
+                    border.color: Qt.rgba(Theme.onSurface.r, Theme.onSurface.g, Theme.onSurface.b, 0.14)
+                    Behavior on color { ColorAnimation { duration: Motion.fast } }
+                    Row {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 10 * root.s
+                        anchors.right: parent.right
+                        anchors.rightMargin: 10 * root.s
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 9 * root.s
+                        MaterialIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: ex.modelData.icon
+                            font.pixelSize: 14 * root.s
+                            color: Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.85)
+                        }
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: parent.width - 23 * root.s
+                            text: ex.modelData.text
+                            elide: Text.ElideRight
+                            color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurface)
+                            font.family: Theme.fontPrimary
+                            font.pixelSize: 11.5 * root.s
+                        }
+                    }
+                    MouseArea {
+                        id: exArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            input.text = ex.modelData.text;
+                            input.cursorPosition = input.text.length;
+                            input.forceActiveFocus();
+                        }
+                    }
+                }
+            }
         }
     }
 

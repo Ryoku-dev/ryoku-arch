@@ -4,6 +4,17 @@
 
 ### Added
 
+- **The Super+S needle opens with a clearer start.** Instead of a wall of text,
+  the empty chat now leads with a heading, a one-line explainer, and three
+  tap-to-fill example prompts, so it is obvious what to do first.
+
+- **Quick asks are no longer locked to Hermes.** The launcher fast lane can run
+  against any of ten built-in providers (OpenRouter, OpenAI, Groq, DeepSeek,
+  Mistral, Together, xAI, Cerebras, Ollama, local). `ryoku-rashin backend
+  <provider>[:model]` picks one (`backend auto` follows Hermes), and keys can
+  live in `~/.config/ryoku/rashin.env` instead of Hermes's own `.env`, so quick
+  asks work without a Hermes provider configured.
+
 - **The qsbar music widget opens a now-playing card, with a 10-band equalizer.**
   Clicking the widget (its title, its spectrum glyph, or anywhere on it in the
   `full` style) opens the record and the track: artwork with the playback spectrum

@@ -22,6 +22,7 @@ const usage = `ryoku-rashin: the Ryoku agent OS daemon
                          adds user lingering so it starts with the machine
   disable                stop the daemon and turn autostart off (opt out of the default)
   ensure                 default-on convergence: enable at boot unless the user opted out
+  backend [provider[:model]]  view or set the fast-lane assistant backend ('auto' follows hermes)
 
 Invoked as 'rashin', a bare argument is a terminal ask; status/enable/disable/
 setup/index still work as subcommands.
@@ -70,6 +71,8 @@ func main() {
 		err = cmdDisable()
 	case "ensure":
 		err = cmdEnsure()
+	case "backend":
+		err = cmdBackend(os.Args[2:])
 	default:
 		fmt.Print(usage)
 		os.Exit(2)
@@ -93,6 +96,8 @@ func dispatchRashin(args []string) error {
 			return cmdDisable()
 		case "ensure":
 			return cmdEnsure()
+		case "backend":
+			return cmdBackend(args[1:])
 		case "setup":
 			return cmdSetup()
 		case "index":

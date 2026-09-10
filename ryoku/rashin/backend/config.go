@@ -13,11 +13,14 @@ type Config struct {
 	OptedOut bool `json:"optedOut,omitempty"`
 	Port     int  `json:"port"`
 	// Quick overrides the launcher fast lane's model connection. Empty means
-	// derive it from hermes's own provider config.
+	// derive it from hermes's own provider config. Provider names one of the
+	// built-in openai-compatible providers (see quickProviders); BaseURL/KeyEnv
+	// override it for anything else.
 	Quick struct {
-		Model   string `json:"model,omitempty"`
-		BaseURL string `json:"baseUrl,omitempty"`
-		KeyEnv  string `json:"keyEnv,omitempty"`
+		Provider string `json:"provider,omitempty"`
+		Model    string `json:"model,omitempty"`
+		BaseURL  string `json:"baseUrl,omitempty"`
+		KeyEnv   string `json:"keyEnv,omitempty"`
 	} `json:"quick,omitzero"`
 	// Habits gates the vault's user-habits mining. History defaults on;
 	// nil means enabled so an absent key keeps the feature.
