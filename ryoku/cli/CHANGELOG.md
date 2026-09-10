@@ -3,6 +3,15 @@
 ## Unreleased
 
 ### Changed
+- **The Rashin AI assistant is on by default now.** The needle (Super+S) and its
+  dashboard used to sit dormant until you found the switch in the Hub; a fresh
+  box now brings the daemon up at boot. `ryoku-rashin disable` turns it off for
+  good (recorded as `optedOut`, so an update never flips it back on), `enable`
+  turns it back on. A new `ryoku-rashin ensure` is the quiet default-on
+  convergence the installer, `ryoku materialize`, and `ryoku doctor` run.
+- **`ryoku doctor` keeps the assistant healthy.** It brings Rashin up at boot
+  unless you opted out, and enables the AI usage collector timer that feeds the
+  bar pill (`internal/doctor/reconcile_rashin_daemon.go`).
 - **`ryoku doctor` installs the fingerprint unlock module on a box with a
   reader.** The lock and greeter PAM stacks load `pam_fprintd_grosshack.so`, but
   it was never shipped, so touch-to-unlock did nothing (fprintd enroll/verify in

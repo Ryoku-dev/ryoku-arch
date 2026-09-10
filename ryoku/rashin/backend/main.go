@@ -20,7 +20,8 @@ const usage = `ryoku-rashin: the Ryoku agent OS daemon
   status [--json]        report daemon, vault, hermes, and wiring state
   enable [--at-boot]     start the daemon now and at every login; --at-boot
                          adds user lingering so it starts with the machine
-  disable                stop the daemon and turn autostart off
+  disable                stop the daemon and turn autostart off (opt out of the default)
+  ensure                 default-on convergence: enable at boot unless the user opted out
 
 Invoked as 'rashin', a bare argument is a terminal ask; status/enable/disable/
 setup/index still work as subcommands.
@@ -67,6 +68,8 @@ func main() {
 		err = cmdEnable(len(os.Args) > 2 && os.Args[2] == "--at-boot")
 	case "disable":
 		err = cmdDisable()
+	case "ensure":
+		err = cmdEnsure()
 	default:
 		fmt.Print(usage)
 		os.Exit(2)
@@ -88,6 +91,8 @@ func dispatchRashin(args []string) error {
 			return cmdEnable(len(args) > 1 && args[1] == "--at-boot")
 		case "disable":
 			return cmdDisable()
+		case "ensure":
+			return cmdEnsure()
 		case "setup":
 			return cmdSetup()
 		case "index":

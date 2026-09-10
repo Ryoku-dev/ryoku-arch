@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""
-OpenCode local usage for the Quickshell AI usage widget.
+"""OpenCode local usage for the Quickshell AI usage widget.
 
-OpenCode does not expose a Claude/Codex-style 5h/7d quota locally. This script
-reads OpenCode's local SQLite messages and writes the same cache shape the
-widget already understands, using configurable soft caps for the visual usage
-bars. It never reads API tokens and never makes network calls.
+OpenCode has no local 5h/7d quota, so this reads its local session store and
+writes the cache shape the widget understands, with soft caps for the bars. No
+API tokens, no network. Storage moved across versions, so try each in turn:
+filesystem JSON current (<data>/storage/message/<session>/*.json), the legacy
+session/message path, then the oldest sqlite opencode.db.
 """
+import glob
 import json
 import os
 import sqlite3
@@ -14,12 +15,19 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
-DATA_DIR = Path(os.environ.get("OPENCODE_DATA_DIR") or (Path.home() / ".local" / "share" / "opencode"))
+DATA_DIR = Path(os.environ.get("OPENCODE_DATA_DIR") or (Path(
+    os.environ.get("XDG_DATA_HOME") or (Path.home() / ".local" / "share")) / "opencode"))
+STORAGE_DIR = DATA_DIR / "storage"
 DB_FILE = DATA_DIR / "opencode.db"
 CACHE_FILE = Path.home() / ".cache" / "opencode-usage.json"
 
 DEFAULT_5H_LIMIT = 1_000_000
 DEFAULT_7D_LIMIT = 20_000_000
+
+# Every window the widget shows is <= 7 days, so a message older than 8 days can
+# never move a bar. Skipping those files by mtime bounds the walk for a heavy
+# user with thousands of sessions instead of parsing the whole history each run.
+WINDOW_HORIZON_S = 8 * 24 * 3600
 
 
 def env_int(name: str, default: int) -> int:
@@ -45,12 +53,6 @@ def stale_last() -> None:
         pass
 
 
-def connect() -> sqlite3.Connection:
-    con = sqlite3.connect(f"file:{DB_FILE}?mode=ro", uri=True, timeout=2.0)
-    con.execute("pragma busy_timeout=2000")
-    return con
-
-
 def as_int(value) -> int:
     try:
         return int(value or 0)
@@ -71,67 +73,133 @@ def model_label(model_id: str, provider_id: str = "") -> str:
     return model_id + (f" ({provider_id})" if provider_id else "")
 
 
-def assistant_messages(con: sqlite3.Connection, since_ms: int = 0) -> list[dict]:
-    rows = con.execute(
-        """
-        select session_id, time_created, time_updated, data
-        from message
-        where time_updated >= ?
-        order by time_updated asc
-        """,
-        (since_ms,),
-    ).fetchall()
-    out = []
-    for session_id, time_created, time_updated, raw in rows:
-        try:
-            data = json.loads(raw or "{}")
-        except Exception:
-            continue
-        if data.get("role") != "assistant":
-            continue
-        model_id = data.get("modelID") or ""
-        if not model_id:
-            continue
-        tokens = data.get("tokens") or {}
-        cache = tokens.get("cache") or {}
-        inp = as_int(tokens.get("input"))
-        output = as_int(tokens.get("output"))
-        reasoning = as_int(tokens.get("reasoning"))
-        cache_read = as_int(cache.get("read"))
-        cache_write = as_int(cache.get("write"))
-        # cache_read is server-side context replay. Keep it visible in the model
-        # breakdown, but exclude it from usage caps so the 5h bar can move.
-        total = inp + output + reasoning + cache_write
-        out.append({
-            "session_id": session_id,
-            "model_id": model_id,
-            "provider_id": data.get("providerID") or "",
-            "input": inp,
-            "output": output,
-            "reasoning": reasoning,
-            "cache_read": cache_read,
-            "cache_write": cache_write,
-            "total": total,
-            "total_with_cache_read": total + cache_read,
-            "cost": as_float(data.get("cost")),
-            "time": as_int(time_updated or time_created),
-        })
+def msg_time_ms(data: dict) -> int:
+    """Assistant messages carry time as {created, completed} in ms; the sqlite
+    layout carried plain millisecond columns. Accept either."""
+    t = data.get("time")
+    if isinstance(t, dict):
+        return as_int(t.get("completed") or t.get("created"))
+    return as_int(t)
+
+
+def parse_message(data: dict, session_hint: str = "") -> dict | None:
+    """Turn one message info dict into the usage record the aggregation uses, or
+    None when it is not a token-bearing assistant turn."""
+    if not isinstance(data, dict) or data.get("role") != "assistant":
+        return None
+    model_id = data.get("modelID") or ""
+    if not model_id:
+        return None
+    tokens = data.get("tokens") or {}
+    cache = tokens.get("cache") or {}
+    inp = as_int(tokens.get("input"))
+    output = as_int(tokens.get("output"))
+    reasoning = as_int(tokens.get("reasoning"))
+    cache_read = as_int(cache.get("read"))
+    cache_write = as_int(cache.get("write"))
+    # cache_read is server-side context replay. Keep it visible in the model
+    # breakdown, but exclude it from usage caps so the 5h bar can move.
+    total = inp + output + reasoning + cache_write
+    return {
+        "session_id": data.get("sessionID") or session_hint,
+        "model_id": model_id,
+        "provider_id": data.get("providerID") or "",
+        "input": inp,
+        "output": output,
+        "reasoning": reasoning,
+        "cache_read": cache_read,
+        "cache_write": cache_write,
+        "total": total,
+        "total_with_cache_read": total + cache_read,
+        "cost": as_float(data.get("cost")),
+        "time": msg_time_ms(data),
+    }
+
+
+def load_fs_messages(cutoff_s: float) -> list[dict]:
+    """Walk OpenCode's per-file JSON message store (current and legacy paths),
+    skipping files older than the window horizon by mtime."""
+    if not STORAGE_DIR.is_dir():
+        return []
+    patterns = [
+        str(STORAGE_DIR / "message" / "*" / "*.json"),          # current
+        str(STORAGE_DIR / "session" / "message" / "*" / "*.json"),  # legacy
+    ]
+    out: list[dict] = []
+    for pattern in patterns:
+        for path in glob.iglob(pattern):
+            try:
+                if os.path.getmtime(path) < cutoff_s:
+                    continue
+                with open(path, "r") as fh:
+                    data = json.load(fh)
+            except (OSError, ValueError):
+                continue
+            session_hint = os.path.basename(os.path.dirname(path))
+            rec = parse_message(data, session_hint)
+            if rec is not None:
+                out.append(rec)
     return out
 
 
-def sum_since(con: sqlite3.Connection, since_ms: int) -> tuple[int, float, int]:
+def load_sqlite_messages(cutoff_ms: int) -> list[dict]:
+    """Oldest layout: a single opencode.db with a message(data) table."""
+    if not DB_FILE.exists():
+        return []
+    try:
+        con = sqlite3.connect(f"file:{DB_FILE}?mode=ro", uri=True, timeout=2.0)
+        con.execute("pragma busy_timeout=2000")
+    except sqlite3.Error:
+        return []
+    out: list[dict] = []
+    try:
+        with con:
+            rows = con.execute(
+                "select session_id, time_created, time_updated, data "
+                "from message where time_updated >= ? order by time_updated asc",
+                (cutoff_ms,),
+            ).fetchall()
+        for session_id, time_created, time_updated, raw in rows:
+            try:
+                data = json.loads(raw or "{}")
+            except ValueError:
+                continue
+            rec = parse_message(data, str(session_id or ""))
+            if rec is None:
+                continue
+            if not rec["time"]:
+                rec["time"] = as_int(time_updated or time_created)
+            out.append(rec)
+    except sqlite3.Error:
+        return []
+    finally:
+        con.close()
+    return out
+
+
+def load_messages() -> list[dict]:
+    cutoff_s = time.time() - WINDOW_HORIZON_S
+    msgs = load_fs_messages(cutoff_s)
+    if not msgs:
+        msgs = load_sqlite_messages(int(cutoff_s * 1000))
+    msgs.sort(key=lambda m: m["time"])
+    return msgs
+
+
+def sum_since(msgs: list[dict], since_ms: int) -> tuple[int, float, int]:
     usage = 0
     cost = 0.0
     with_cache_read = 0
-    for msg in assistant_messages(con, since_ms):
+    for msg in msgs:
+        if msg["time"] < since_ms:
+            continue
         usage += msg["total"]
         with_cache_read += msg["total_with_cache_read"]
         cost += msg["cost"]
     return usage, cost, with_cache_read
 
 
-def newest_model(con: sqlite3.Connection) -> str:
-    msgs = assistant_messages(con)
+def newest_model(msgs: list[dict]) -> str:
     if not msgs:
         return ""
     msg = max(msgs, key=lambda item: item["time"])
@@ -146,9 +214,9 @@ def fmt_tokens(value: int) -> str:
     return str(value)
 
 
-def model_rows(con: sqlite3.Connection, today_ms: int, limit: int = 6) -> list[dict]:
+def model_rows(msgs: list[dict], today_ms: int, limit: int = 6) -> list[dict]:
     by_model = {}
-    for msg in assistant_messages(con):
+    for msg in msgs:
         key = (msg["provider_id"], msg["model_id"])
         cur = by_model.setdefault(key, {
             "name": model_label(msg["model_id"], msg["provider_id"]),
@@ -210,12 +278,15 @@ def pct(tokens: int, limit: int) -> float:
     return min(1.0, max(0.0, tokens / float(limit)))
 
 
-def recent_days(con: sqlite3.Connection, days: int = 7) -> list[dict]:
-    """Per-day assistant-token totals for the last `days` days, oldest→newest."""
+def recent_days(msgs: list[dict], days: int = 7) -> list[dict]:
+    """Per-day assistant-token totals for the last `days` days, oldest->newest."""
     now = datetime.now().astimezone()
     start = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=days - 1)
+    start_ms = int(start.timestamp() * 1000)
     by_day: dict[str, int] = {}
-    for msg in assistant_messages(con, int(start.timestamp() * 1000)):
+    for msg in msgs:
+        if msg["time"] < start_ms:
+            continue
         key = datetime.fromtimestamp(msg["time"] / 1000).strftime("%Y-%m-%d")
         by_day[key] = by_day.get(key, 0) + msg["total"]
     out = []
@@ -227,7 +298,12 @@ def recent_days(con: sqlite3.Connection, days: int = 7) -> list[dict]:
 
 
 def main() -> None:
-    if not DB_FILE.exists():
+    if not STORAGE_DIR.is_dir() and not DB_FILE.exists():
+        stale_last()
+        return
+
+    msgs = load_messages()
+    if not msgs:
         stale_last()
         return
 
@@ -238,19 +314,13 @@ def main() -> None:
     start_today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
     today_ms = int(start_today * 1000)
 
-    try:
-        con = connect()
-        with con:
-            tok_5h, cost_5h, tok_5h_with_cache = sum_since(con, five_h_ms)
-            tok_7d, cost_7d, tok_7d_with_cache = sum_since(con, seven_d_ms)
-            tok_1h, _, tok_1h_with_cache = sum_since(con, hour_ms)
-            tok_today, cost_today, tok_today_with_cache = sum_since(con, today_ms)
-            model = newest_model(con)
-            models = model_rows(con, today_ms)
-            recent_days_list = recent_days(con)
-    except sqlite3.Error:
-        stale_last()
-        return
+    tok_5h, cost_5h, tok_5h_with_cache = sum_since(msgs, five_h_ms)
+    tok_7d, cost_7d, tok_7d_with_cache = sum_since(msgs, seven_d_ms)
+    tok_1h, _, tok_1h_with_cache = sum_since(msgs, hour_ms)
+    tok_today, cost_today, tok_today_with_cache = sum_since(msgs, today_ms)
+    model = newest_model(msgs)
+    models = model_rows(msgs, today_ms)
+    recent_days_list = recent_days(msgs)
 
     out = {
         "5h-utilization": f"{pct(tok_5h, LIMIT_5H):.4f}",
@@ -258,7 +328,7 @@ def main() -> None:
         "7d-utilization": f"{pct(tok_7d, LIMIT_7D):.4f}",
         "7d-reset": "0",
         "updated_at": datetime.now().strftime("%H:%M:%S"),
-        "_source": "sqlite",
+        "_source": "storage",
         "_plan": "local messages",
         "_model": model,
         "_models": models,

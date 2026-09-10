@@ -8,7 +8,10 @@ import (
 
 type Config struct {
 	Enabled bool `json:"enabled"`
-	Port    int  `json:"port"`
+	// OptedOut: the user turned rashin off on purpose (`disable`), so the
+	// default-on convergence leaves it off. Cleared by `enable`.
+	OptedOut bool `json:"optedOut,omitempty"`
+	Port     int  `json:"port"`
 	// Quick overrides the launcher fast lane's model connection. Empty means
 	// derive it from hermes's own provider config.
 	Quick struct {
@@ -28,8 +31,10 @@ func (c Config) HabitsHistoryEnabled() bool {
 	return c.Habits.History == nil || *c.Habits.History
 }
 
+// defaultConfig: rashin is on by default (opt-out via `disable`, which records
+// OptedOut). LoadConfig starts here, so a box with no config reads as enabled.
 func defaultConfig() Config {
-	return Config{Enabled: false, Port: 3600}
+	return Config{Enabled: true, Port: 3600}
 }
 
 func LoadConfig() Config {

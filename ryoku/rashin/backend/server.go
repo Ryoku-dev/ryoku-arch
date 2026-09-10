@@ -283,6 +283,7 @@ func haveSystemd() bool {
 func cmdEnable(atBoot bool) error {
 	cfg := LoadConfig()
 	cfg.Enabled = true
+	cfg.OptedOut = false
 	if err := SaveConfig(cfg); err != nil {
 		return err
 	}
@@ -331,6 +332,7 @@ func cmdEnable(atBoot bool) error {
 func cmdDisable() error {
 	cfg := LoadConfig()
 	cfg.Enabled = false
+	cfg.OptedOut = true
 	if err := SaveConfig(cfg); err != nil {
 		return err
 	}
@@ -340,6 +342,29 @@ func cmdDisable() error {
 	stopSpawnedDaemon()
 	fmt.Println("rashin disabled")
 	return nil
+}
+
+// cmdEnsure is the default-on convergence for installers and `ryoku doctor`:
+// enable at boot unless the user opted out. Idempotent and quiet.
+func cmdEnsure() error {
+	cfg := LoadConfig()
+	if cfg.OptedOut {
+		fmt.Println("rashin left off by choice")
+		return nil
+	}
+	if cfg.Enabled && rashinActive() {
+		return nil
+	}
+	return cmdEnable(true)
+}
+
+// rashinActive: is the user unit running? False when systemd is absent.
+func rashinActive() bool {
+	if !haveSystemd() || !unitKnown() {
+		return false
+	}
+	out, _ := exec.Command("systemctl", "--user", "is-active", rashinUnit).Output()
+	return strings.TrimSpace(string(out)) == "active"
 }
 
 // stopSpawnedDaemon SIGTERMs a daemon started by the pre-systemd spawn path.

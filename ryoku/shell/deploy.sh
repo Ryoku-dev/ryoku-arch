@@ -223,6 +223,8 @@ sed "s|^ExecStart=.*|ExecStart=$bindir/ryoku-rashin serve --if-enabled|" \
   "$here/../rashin/systemd/ryoku-rashin.service" > "$cfg/systemd/user/ryoku-rashin.service"
 systemctl --user daemon-reload 2>/dev/null || true
 say "installed rashin systemd user unit"
+# Rashin is on by default: bring it up at boot now unless the user opted out.
+"$bindir/ryoku-rashin" ensure 2>/dev/null || true
 say "building ryoku CLI"
 (cd "$here/../cli" && go build -o ryoku .)
 install -m755 "$here/../cli/ryoku" "$bindir/ryoku"

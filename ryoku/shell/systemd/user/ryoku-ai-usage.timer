@@ -2,8 +2,8 @@
 Description=Ryoku AI usage collector schedule
 
 [Timer]
-OnBootSec=2min
-OnUnitActiveSec=10min
+OnBootSec=45sec
+OnUnitActiveSec=5min
 Persistent=true
 
 [Install]

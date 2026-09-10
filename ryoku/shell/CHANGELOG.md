@@ -64,6 +64,13 @@
   config migrates (`ryogami/wall-ui/qml/Config.qml`).
 
 ### Fixed
+- **The bar AI usage pill works with OpenCode again, and refreshes faster.** The
+  `opencode-usage` collector read a long-gone `opencode.db`; current OpenCode
+  keeps per-message JSON under `storage/message/<session>/*.json`. It now walks
+  that (and the legacy `session/message` path), falling back to the old sqlite
+  only if present, so the OpenCode chip fills from real sessions. The collector
+  timer also runs 45s after boot and every 5 min instead of 2 min/10 min, so the
+  pill is fresher (`bin/opencode-usage`, `systemd/user/ryoku-ai-usage.timer`).
 - **A dev/checkout build now installs the translation catalog, so the Hub's
   language and regional-format pickers list every shipped language instead of
   just Auto and the two English locales.** `deploy.sh` and `dev-run.sh` copied
