@@ -284,8 +284,14 @@ func receiptLockSlug(receiptPath string) string {
 func lockSkinFor(dir, slug string) LockSkin {
 	s := lockSkinMeta(dir, slug)
 	s.Installed = true
-	if p := filepath.Join(dir, slug, "preview.gif"); fileExists(p) {
-		s.Preview = "file://" + p
+	// Shipped skins carry preview.gif at the skin root; a RyoStore download lands
+	// it under assets/ (its product manifest maps the preview to assets/preview.gif),
+	// so a downloaded theme showed no preview until we look there too.
+	for _, rel := range [][]string{{"preview.gif"}, {"assets", "preview.gif"}} {
+		if p := filepath.Join(append([]string{dir, slug}, rel...)...); fileExists(p) {
+			s.Preview = "file://" + p
+			break
+		}
 	}
 	return s
 }

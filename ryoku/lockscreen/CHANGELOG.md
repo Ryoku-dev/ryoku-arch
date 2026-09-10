@@ -14,6 +14,17 @@
   this root installer). Honors `RYOKU_DRYRUN`; `ryoku keyring` changes it later.
 
 ### Fixed
+- **The in-session lock shows a usable mouse cursor with any theme.** The lock
+  is spawned by the shell daemon, whose imported env can predate the login-time
+  `hyprctl setcursor` (autostart.lua), and a downloaded theme carries no cursor
+  workaround of its own, so the lock could come up with no visible pointer.
+  `lock.sh` now re-asserts `hyprctl setcursor` from the same theme/size the lock
+  client uses, best-effort, before launching (`qylock/quickshell-lockscreen/lock.sh`).
+- **A downloaded lockscreen theme now shows its preview in the Hub.** The Hub
+  looked for `preview.gif` only at the skin root, where shipped themes keep it,
+  but a RyoStore download lands it under `assets/preview.gif` (its product
+  manifest maps it there), so downloaded skins showed a blank tile with no
+  Preview button. `lockSkinFor` now checks both paths (`hub/backend/lock.go`).
 - **The login screen lands on a chosen monitor instead of whichever trained
   first.** With two displays weston's kiosk shell dropped the greeter on the
   connector that came up first (a DP a beat before an HDMI), so the login

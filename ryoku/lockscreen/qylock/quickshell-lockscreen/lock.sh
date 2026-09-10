@@ -64,6 +64,16 @@ fi
 echo "Locking with Quickshell using theme: $QS_THEME"
 echo "Theme path: $QS_THEME_PATH"
 
+
+# Hyprland draws the lock-surface pointer from the theme set with
+# `hyprctl setcursor` (autostart.lua does this at login). The lock is spawned by
+# the shell daemon, whose imported env can predate that call, and a downloaded
+# theme carries no cursor fix of its own, so the lock could come up with no
+# visible pointer. Re-assert it here, best-effort, from the same theme/size the
+# client uses, so every theme shows a usable cursor.
+if [ "$XDG_SESSION_TYPE" = wayland ] && command -v hyprctl >/dev/null 2>&1; then
+    hyprctl setcursor "$XCURSOR_THEME" "$XCURSOR_SIZE" >/dev/null 2>&1 || true
+fi
 # Kill active lockers
 killall -9 hyprlock swaylock wlogout 2>/dev/null || true
 
