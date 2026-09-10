@@ -4,6 +4,16 @@
 
 ### Added
 
+- **Rashin works with any coding agent now, not just Hermes.** The Hub's Rashin
+  page and the dashboard both list your detected agents with a one-click Wire
+  (it drops a pointer, the ryoku skill, and prowl-agent's code-intelligence
+  skill into that agent), show every path Rashin exposes -- the skill, each
+  vault map, prowl-agent -- and offer a Copy snippet to point an agent Rashin
+  doesn't wire directly. The Super+S chat can run a coding agent other than
+  Hermes when its ACP adapter is installed; Hermes stays the recommended
+  default. `ryoku-rashin paths` and `ryoku-rashin agent` do the same in a
+  terminal.
+
 - **The Super+S needle opens with a clearer start.** Instead of a wall of text,
   the empty chat now leads with a heading, a one-line explainer, and three
   tap-to-fill example prompts, so it is obvious what to do first.
