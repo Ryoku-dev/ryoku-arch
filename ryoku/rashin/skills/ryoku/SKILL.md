@@ -44,10 +44,12 @@ guessing where anything lives:
   this user diverges from the shipped defaults, and this user's directories and
   tool stack.
 
-`user.md` lists the user's own choices; never revert one to a shipped default
-without being asked. Write durable notes to `memory/`, dated notes to
-`journal/YYYY-MM-DD.md`; never edit inside a `rashin:generated` fence, a reindex
-overwrites it.
+Ownership inside the vault: the generated maps (`AGENTS.md`, `desktop.md`,
+`system.md`, `packages.md`, `repo.md`, `user.md`, `habits.md`) are rewritten on
+every reindex, so read them and never edit them. `memory/` and `journal/` are
+yours: write durable notes and dated notes (`journal/YYYY-MM-DD.md`) there and
+they survive. `user.md` lists the user's own choices; never revert one to a
+shipped default without being asked.
 
 Topic guides sit beside this file. Read the matching one first:
 

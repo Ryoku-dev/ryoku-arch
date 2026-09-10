@@ -32,10 +32,11 @@ export function initAgents(root) {
     );
   }
 
-  function pathRow(label, path, ok) {
+  function pathRow(label, path, owner, ok) {
     return (
       '<div class="manifest-row' + (ok ? "" : " absent") + '">' +
       '<span class="mlabel">' + escapeHtml(label) + "</span>" +
+      '<span class="mowner' + (owner === "yours" ? " mowner-yours" : "") + '">' + escapeHtml(owner || "") + "</span>" +
       '<span class="mpath">' + escapeHtml(path || "not installed") + "</span></div>"
     );
   }
@@ -43,9 +44,9 @@ export function initAgents(root) {
   function renderConnect(m) {
     snippet = m.snippet || "";
     const rows = [
-      pathRow("skill", m.skill && m.skill.path, m.skill && m.skill.exists),
-      pathRow("prowl-agent", m.prowl && m.prowl.path, m.prowl && m.prowl.exists),
-    ].concat((m.vault || []).map((v) => pathRow(v.label, v.path, v.exists)));
+      pathRow("skill", m.skill && m.skill.path, "read-only", m.skill && m.skill.exists),
+      pathRow("prowl-agent", m.prowl && m.prowl.path, "tool", m.prowl && m.prowl.exists),
+    ].concat((m.vault || []).map((v) => pathRow(v.label, v.path, v.owner, v.exists)));
     connectEl.innerHTML =
       '<h3 class="sub-title">POINT ANY AGENT</h3>' +
       '<p class="dim">Using an agent Rashin does not wire for you? Point it at these, or copy a ready-made instruction block and paste it into its config.</p>' +

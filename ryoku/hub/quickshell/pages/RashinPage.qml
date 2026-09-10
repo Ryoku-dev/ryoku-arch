@@ -425,21 +425,32 @@ Item {
         }
     }
 
-    // one manifest path: label + the resolved location (dim when absent).
+    // one manifest path: label + who owns it (generated/yours/read-only) + the
+    // resolved location (dim when absent).
     component PathRow: Row {
         id: pr
         property string label: ""
         property string path: ""
+        property string owner: ""
         property bool ok: true
+        readonly property int labelW: Math.round(pr.width * 0.22)
+        readonly property int ownerW: 76
         width: parent ? parent.width : 0
         spacing: Tokens.s3
         Text {
-            width: Math.round(pr.width * 0.26)
+            width: pr.labelW
             text: pr.label; color: pr.ok ? hx.ink : hx.inkDim
             font.family: pg.fMono; font.pixelSize: 12; elide: Text.ElideRight
         }
         Text {
-            width: pr.width - Math.round(pr.width * 0.26) - pr.spacing
+            width: pr.ownerW
+            text: pr.owner
+            color: pr.owner === "yours" ? hx.teal : hx.inkDim
+            font.family: pg.fMono; font.pixelSize: 10; font.letterSpacing: 1
+            anchors.verticalCenter: parent.verticalCenter
+        }
+        Text {
+            width: pr.width - pr.labelW - pr.ownerW - pr.spacing * 2
             text: pr.path === "" ? I18n.tr("not installed") : pr.path
             color: pr.ok ? hx.tan : hx.inkDim
             font.family: pg.fMono; font.pixelSize: 12; elide: Text.ElideLeft
@@ -702,8 +713,8 @@ Item {
                 Column {
                     width: parent.width
                     spacing: Tokens.s2
-                    PathRow { label: I18n.tr("skill"); path: pg.skillPath; ok: pg.skillPath !== "" }
-                    PathRow { label: I18n.tr("prowl-agent"); path: pg.prowlPath; ok: pg.prowlPath !== "" }
+                    PathRow { label: I18n.tr("skill"); path: pg.skillPath; owner: I18n.tr("read-only"); ok: pg.skillPath !== "" }
+                    PathRow { label: I18n.tr("prowl-agent"); path: pg.prowlPath; owner: I18n.tr("tool"); ok: pg.prowlPath !== "" }
                     Repeater {
                         model: pg.vaultItems
                         delegate: PathRow {
@@ -711,6 +722,7 @@ Item {
                             width: parent.width
                             label: modelData.label
                             path: modelData.path
+                            owner: modelData.owner
                             ok: modelData.exists === true
                         }
                     }

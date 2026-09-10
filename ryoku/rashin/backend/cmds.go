@@ -62,13 +62,13 @@ func cmdPaths(format string) error {
 	fmt.Println()
 	fmt.Printf("  skill   %s\n          %s\n", dashIfEmpty(m.Skill.Path), m.Skill.Desc)
 	fmt.Printf("  prowl   %s\n          %s\n", dashIfEmpty(m.Prowl.Path), m.Prowl.Desc)
-	fmt.Println("  vault:")
+	fmt.Println("  vault (generated = read-only, refreshed each reindex; yours = write here):")
 	for _, v := range m.Vault {
 		mark := "+"
 		if !v.Exists {
 			mark = "-"
 		}
-		fmt.Printf("    %s %-11s %s\n", mark, v.Label, v.Path)
+		fmt.Printf("    %s %-11s %-10s %s\n", mark, v.Label, "["+v.Owner+"]", v.Path)
 	}
 	fmt.Println()
 	fmt.Println("Agents (one-click wire drops the pointer + skill + prowl):")
