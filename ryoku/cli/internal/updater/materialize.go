@@ -116,7 +116,12 @@ func Materialize() error {
 	for _, rel := range current {
 		dst := filepath.Join(dest, rel)
 		if isSeed(rel) {
-			if !sys.Exists(dst) {
+			// PathPresent, not Exists: a seed slot the user filled with a symlink
+			// into their dotfiles is theirs, so never lay the shipped default over
+			// it -- not even when the link dangles because its repo is not mounted
+			// yet at this point in boot. Exists follows the link and would see the
+			// missing target as an empty slot, clobbering the symlink.
+			if !sys.PathPresent(dst) {
 				if err := sys.CopyFile(filepath.Join(base, rel), dst); err != nil {
 					return fmt.Errorf(i18n.T("seed %s: %w"), rel, err)
 				}

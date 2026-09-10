@@ -583,9 +583,14 @@ if [[ -d $cfg/hypr ]]; then
     [[ -e "$staging/$rel" ]] && continue   # shipped -> Ryoku-owned, repo copy wins
     mkdir -p "$staging/$(dirname "$rel")"
     cp -a "$f" "$staging/$rel"
-  done < <(find "$cfg/hypr" -type f -print0)
+    # -type l too: a user who symlinks a user-owned file (monitors_user.lua,
+    # user.lua) from a dotfiles repo owns it; -type f alone would drop the link
+    # and the redeploy would lose their file. cp -a carries the symlink itself.
+  done < <(find "$cfg/hypr" \( -type f -o -type l \) -print0)
   for f in "${seeds[@]}"; do
-    [[ -e "$cfg/hypr/$f" ]] && cp -a "$cfg/hypr/$f" "$staging/$f"
+    # -e follows the link and misses a dangling one (repo not mounted yet), so
+    # test -L as well; without it a symlinked seed is replaced by the default.
+    { [[ -e "$cfg/hypr/$f" || -L "$cfg/hypr/$f" ]]; } && cp -a "$cfg/hypr/$f" "$staging/$f"
   done
 fi
 # cp -a carries the repo's older mtimes; bump the entry so an mtime-watching

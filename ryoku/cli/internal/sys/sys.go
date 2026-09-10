@@ -35,6 +35,14 @@ func Has(name string) bool { _, err := exec.LookPath(name); return err == nil }
 // Exists reports whether the path exists.
 func Exists(p string) bool { _, err := os.Stat(p); return err == nil }
 
+// PathPresent reports whether something already occupies p -- a regular file, a
+// directory, or a symlink, INCLUDING a dangling one. Unlike Exists it does not
+// follow the link (os.Lstat, not os.Stat), so a user's symlink into a dotfiles
+// repo counts as present even when its target is momentarily unavailable (an
+// unmounted repo at early boot). Guards a seed from overwriting a slot the user
+// already owns.
+func PathPresent(p string) bool { _, err := os.Lstat(p); return err == nil }
+
 // PkgInstalled reports whether a pacman package is installed.
 func PkgInstalled(name string) bool {
 	return exec.Command("pacman", "-Q", name).Run() == nil

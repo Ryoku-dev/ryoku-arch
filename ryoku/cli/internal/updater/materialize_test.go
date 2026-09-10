@@ -71,6 +71,52 @@ func TestMaterializePreservesGeneratedAndUserFiles(t *testing.T) {
 	wantFile(t, filepath.Join(dest, "kitty/current-theme.conf"), "3a5f8a")
 }
 
+// A user who symlinks a seed slot (hypr/user.lua, keyboard.lua, ...) at its live
+// path into a dotfiles repo owns it. materialize must leave the symlink alone --
+// even when the link dangles because the repo is not mounted yet at this point
+// in boot -- instead of laying the shipped default over it. The old check
+// followed the link (os.Stat), read the missing target as an empty slot, and
+// clobbered the symlink with Ryoku's default.
+func TestMaterializeKeepsSymlinkedSeed(t *testing.T) {
+	base, dest := t.TempDir(), t.TempDir()
+	t.Setenv("RYOKU_CONFIG_BASE", base)
+	t.Setenv("XDG_CONFIG_HOME", dest)
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+
+	writeFile(t, filepath.Join(base, "hypr/hyprland.lua"), "pcall(require, \"user\")\n")
+	writeFile(t, filepath.Join(base, "hypr/user.lua"), "-- shipped default\n")
+
+	// The user's dotfiles symlink into ~/.config/hypr, pointing at a target that
+	// only appears later, so at materialize time the link dangles.
+	target := filepath.Join(t.TempDir(), "user.lua")
+	link := filepath.Join(dest, "hypr/user.lua")
+	if err := os.MkdirAll(filepath.Dir(link), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(target, link); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := Materialize(); err != nil {
+		t.Fatalf("materialize over a dangling symlinked seed: %v", err)
+	}
+
+	fi, err := os.Lstat(link)
+	if err != nil {
+		t.Fatalf("symlinked seed vanished: %v", err)
+	}
+	if fi.Mode()&os.ModeSymlink == 0 {
+		t.Fatal("materialize clobbered the user's symlinked user.lua with the shipped default")
+	}
+	if got, _ := os.Readlink(link); got != target {
+		t.Fatalf("symlink now points at %q, want %q", got, target)
+	}
+
+	// Once the dotfiles repo is mounted the link resolves to the user's file.
+	writeFile(t, target, "-- my binds\n")
+	wantFile(t, link, "my binds")
+}
+
 // nvim seeds once like ghostty: the shipped LazyVim starting point lands on a
 // fresh install, then the config is the user's. A later release must not reset
 // their edits, and LazyVim's own state that lives under ~/.config/nvim (never

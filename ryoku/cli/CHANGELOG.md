@@ -168,6 +168,15 @@
   (`internal/updater/materialize.go`).
 
 ### Fixed
+- **A symlinked config file (dotfiles) is no longer overwritten with Ryoku's
+  default.** If you symlink a seeded file like `hypr/user.lua` or
+  `hypr/keyboard.lua` from a dotfiles repo, `ryoku materialize` kept the link --
+  unless its target was momentarily unavailable (the repo not mounted yet at
+  that point), in which case the existence check followed the dead link, read
+  the slot as empty, and laid the shipped default over your symlink, losing it.
+  It now tests the link itself, so a symlinked seed is always left alone; a fresh
+  install with nothing there still seeds normally (`internal/updater/materialize.go`,
+  `sys.PathPresent`). `ryoku deploy` carries symlinked user files the same way.
 - **`ryotunes` opened the old Tauri app after the package update.** The launcher
   defers to the native client only while `ryotunesd.socket` exists, and nothing
   enabled that user unit on a fresh install. The doctor now enables it
