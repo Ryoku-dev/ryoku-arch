@@ -64,6 +64,14 @@
   config migrates (`ryogami/wall-ui/qml/Config.qml`).
 
 ### Fixed
+- **A dev/checkout build now installs the translation catalog, so the Hub's
+  language and regional-format pickers list every shipped language instead of
+  just Auto and the two English locales.** `deploy.sh` and `dev-run.sh` copied
+  the UI module but never the i18n catalog, so on a source build `I18n` found no
+  `langs.json` and fell back to an empty language table. Both now run
+  `ryoku/i18n/tools/install.sh`, landing `langs.json` and the catalogs at
+  `~/.local/share/ryoku/i18n` (a packaged system already ships them to
+  `/usr/share/ryoku/i18n`).
 - **The now-playing spectrum follows the wallpaper.** With Follow System on, the
   bar retinted on a wallpaper change but the qsbar spectrum kept its old
   gradient: `cavaPalette` was an imperative snapshot taken when the panel

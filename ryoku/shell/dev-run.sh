@@ -22,6 +22,11 @@ bin="$here/ipc/ryoku-shell"
 # the module like a real deploy.
 "$here/framebars/install.sh" "$HOME/.local/lib/qt6/qml"
 
+# the language table + catalogs live at ~/.local/share/ryoku/i18n; install them
+# so the live shell and Hub resolve a real language list instead of falling back
+# to an empty table (the Hub picker would otherwise show only Auto and en_US/en_GB).
+"$here/../i18n/tools/install.sh"
+
 export RYOKU_SHELL_DIR="$here"
 echo "ryoku-shell dev  (RYOKU_SHELL_DIR=$here)"
 echo "  edit anything under $here/quickshell and it reloads live"

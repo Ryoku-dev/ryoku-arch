@@ -372,6 +372,14 @@ fi
 say "installing Ryoku.Ui module"
 "$here/../ui/install.sh" "$qmldir"
 
+# Install the translation catalog + langs.json where every surface's I18n looks
+# first on a dev box (~/.local/share/ryoku/i18n). Without this the shell and Hub
+# fall back to an empty language table -- the Hub's language and regional-format
+# pickers then show only Auto and the two English locales. A packaged system
+# gets the same files at /usr/share/ryoku/i18n from the ryoku-desktop PKGBUILD.
+say "installing Ryoku i18n catalog"
+"$here/../i18n/tools/install.sh"
+
 # Seed the decor art the Decor/Placard components render into ~/Pictures/ryodecors
 # (beside Wallpapers and livewalls): the dev-loop equivalent of the installer seed
 # and `ryoku doctor`. Missing-only, so a swapped or added file survives a redeploy.
