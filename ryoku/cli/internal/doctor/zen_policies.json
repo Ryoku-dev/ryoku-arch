@@ -4,16 +4,6 @@
     "DisableFirefoxStudies": true,
     "DisablePocket": true,
     "DontCheckDefaultBrowser": true,
-    "ExtensionSettings": {
-      "uBlock0@raymondhill.net": {
-        "installation_mode": "normal_installed",
-        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi"
-      },
-      "jid1-MnnxcxisBPnSXQ@jetpack": {
-        "installation_mode": "normal_installed",
-        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/privacy-badger17/latest.xpi"
-      }
-    },
     "Preferences": {
       "gfx.webrender.all": {
         "Value": true,

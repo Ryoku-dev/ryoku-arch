@@ -16,11 +16,11 @@ import (
 
 // zenPolicies is the base Ryoku Zen policy, embedded in the ryoku binary. It is a
 // Firefox enterprise policies.json (Zen is a Firefox fork and honours it on
-// Linux): the shipped extensions (uBlock Origin, Privacy Badger, installed
-// removable, not forced) and the Wayland / hardware-decode / privacy pref
-// defaults, set as defaults the user can still override. The palette-follow
-// Ryoku theme extension is added on top only when its signed xpi is present, see
-// zenPolicyBytes.
+// Linux): the Wayland / hardware-decode / privacy pref defaults, set as defaults
+// the user can still override. It ships no extensions of its own; the
+// palette-follow Ryoku theme extension is added on top only when its signed xpi
+// is present, see zenPolicyBytes. The policy is merged into whatever the Zen
+// package already ships in policies.json, so the packager's own keys survive.
 //
 //go:embed zen_policies.json
 var zenPolicies []byte
@@ -89,12 +89,14 @@ func zenInstallRoots() []string {
 	return roots
 }
 
-// reconcileZen writes the Ryoku Zen policy into every Zen install it finds. It
+// reconcileZen merges the Ryoku Zen policy into every Zen install it finds. It
 // is a no-op when Zen is absent, so an update never installs Zen or touches the
 // browser for a user who does not have it; Zen ships only on the ISO and the
 // install script. When Zen is present the policy converges idempotently. It
-// never sets the default browser and never edits a user profile, so a Zen user's
-// own choices stand.
+// merges its keys onto whatever policies.json already holds rather than
+// replacing the file, so the Zen packager's own policies are kept. It never sets
+// the default browser and never edits a user profile, so a Zen user's own
+// choices stand.
 func reconcileZen(checkOnly bool) recResult {
 	return reconcileZenInto(zenInstallRoots(), checkOnly)
 }
@@ -110,14 +112,20 @@ func reconcileZenInto(roots []string, checkOnly bool) recResult {
 		seen[root] = true
 		present = append(present, root)
 		dst := filepath.Join(root, "distribution", "policies.json")
-		if cur, err := os.ReadFile(dst); err == nil && bytes.Equal(bytes.TrimSpace(cur), want) {
+		cur, _ := os.ReadFile(dst)
+		merged, err := mergeZenPolicy(cur, want)
+		if err != nil {
+			return failRes(i18n.T("could not merge the Zen policy at %s: %v"), dst, err).
+				withFix("sudo ryoku doctor")
+		}
+		if bytes.Equal(bytes.TrimSpace(cur), bytes.TrimSpace(merged)) {
 			continue
 		}
 		if checkOnly {
 			pending = append(pending, root)
 			continue
 		}
-		if err := writeZenPolicy(dst, append(append([]byte{}, want...), '\n')); err != nil {
+		if err := writeZenPolicy(dst, append(merged, '\n')); err != nil {
 			return failRes(i18n.T("could not write the Zen policy at %s: %v"), dst, err).
 				withFix("sudo ryoku doctor")
 		}
@@ -152,4 +160,41 @@ func writeZenPolicy(dst string, body []byte) error {
 		return err
 	}
 	return sys.WriteRootFile(dst, string(body), "0644")
+}
+
+// mergeZenPolicy folds the Ryoku policy (want) onto whatever policies.json the
+// Zen package already ships (existing), so keys the packager set survive instead
+// of being discarded. Nested objects (policies, Preferences, ExtensionSettings)
+// are merged key by key; a scalar Ryoku sets wins for the keys it names, and
+// every other key the file already had is kept. An empty or unparseable
+// existing file starts from an empty base, so the result is just the Ryoku
+// policy. Output is stable (indented, sorted keys) so a second run is a no-op.
+func mergeZenPolicy(existing, want []byte) ([]byte, error) {
+	base := map[string]any{}
+	if trimmed := bytes.TrimSpace(existing); len(trimmed) > 0 {
+		var cur map[string]any
+		if err := json.Unmarshal(trimmed, &cur); err == nil && cur != nil {
+			base = cur
+		}
+	}
+	var overlay map[string]any
+	if err := json.Unmarshal(bytes.TrimSpace(want), &overlay); err != nil {
+		return nil, err
+	}
+	deepMerge(base, overlay)
+	return json.MarshalIndent(base, "", "  ")
+}
+
+// deepMerge writes every key of src into dst, recursing where both sides hold a
+// JSON object so sibling keys are preserved, and overwriting otherwise.
+func deepMerge(dst, src map[string]any) {
+	for k, sv := range src {
+		if sm, ok := sv.(map[string]any); ok {
+			if dm, ok := dst[k].(map[string]any); ok {
+				deepMerge(dm, sm)
+				continue
+			}
+		}
+		dst[k] = sv
+	}
 }

@@ -9,8 +9,8 @@ import (
 )
 
 func TestReconcileZen(t *testing.T) {
-	// The signed theme xpi is absent here, so the base policy is written verbatim;
-	// TestZenPolicyThemeExtension covers the injected form.
+	// The signed theme xpi is absent here, so no extension is installed;
+	// TestZenPolicyThemeExtension covers the theme injection.
 	origXPI := zenThemeXPI
 	zenThemeXPI = filepath.Join(t.TempDir(), "no-theme.xpi")
 	defer func() { zenThemeXPI = origXPI }()
@@ -35,7 +35,17 @@ func TestReconcileZen(t *testing.T) {
 		t.Fatal("check-only wrote the policy; it must only report")
 	}
 
-	// Apply writes the embedded policy verbatim.
+	// A packages-owned policies.json is already in place with the Zen packager's
+	// own keys; the reconciler must keep them, not overwrite the file.
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	packager := []byte(`{"policies":{"DisableAppUpdate":true,"DefaultSerialGuardSetting":3}}`)
+	if err := os.WriteFile(dst, packager, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Apply merges the Ryoku policy onto the packager's file.
 	if r := reconcileZenInto([]string{root}, false); r.status != recFixed {
 		t.Fatalf("apply: status %v, want fixed", r.status)
 	}
@@ -43,23 +53,30 @@ func TestReconcileZen(t *testing.T) {
 	if err != nil {
 		t.Fatalf("policy not written: %v", err)
 	}
-	if !bytes.Equal(bytes.TrimSpace(got), bytes.TrimSpace(zenPolicies)) {
-		t.Fatal("written policy does not match the embedded payload")
-	}
-
-	// The payload is valid JSON and ships the two chosen extensions.
 	var doc struct {
 		Policies struct {
-			ExtensionSettings map[string]any `json:"ExtensionSettings"`
+			DisableAppUpdate         bool           `json:"DisableAppUpdate"`
+			DefaultSerialGuardSetting int           `json:"DefaultSerialGuardSetting"`
+			DisableTelemetry         bool           `json:"DisableTelemetry"`
+			ExtensionSettings        map[string]any `json:"ExtensionSettings"`
+			Preferences              map[string]any `json:"Preferences"`
 		} `json:"policies"`
 	}
 	if err := json.Unmarshal(got, &doc); err != nil {
 		t.Fatalf("policy is not valid JSON: %v", err)
 	}
-	for _, id := range []string{"uBlock0@raymondhill.net", "jid1-MnnxcxisBPnSXQ@jetpack"} {
-		if _, ok := doc.Policies.ExtensionSettings[id]; !ok {
-			t.Fatalf("policy is missing shipped extension %s", id)
-		}
+	// The packager's own keys survive the merge.
+	if !doc.Policies.DisableAppUpdate || doc.Policies.DefaultSerialGuardSetting != 3 {
+		t.Fatal("merge discarded the Zen packager's own policies")
+	}
+	// Ryoku's own prefs are applied.
+	if !doc.Policies.DisableTelemetry || len(doc.Policies.Preferences) == 0 {
+		t.Fatal("Ryoku policy keys were not applied")
+	}
+	// No signed theme xpi here, so no extensions are installed at all: the two
+	// privacy extensions are gone, and the theme is only added with its xpi.
+	if len(doc.Policies.ExtensionSettings) != 0 {
+		t.Fatalf("unexpected extensions installed: %v", doc.Policies.ExtensionSettings)
 	}
 
 	// A second run changes nothing (idempotent).
@@ -125,9 +142,9 @@ func TestZenPolicyThemeExtension(t *testing.T) {
 	if e.InstallURL != "file://"+xpi {
 		t.Fatalf("theme install_url = %q, want file://%s", e.InstallURL, xpi)
 	}
-	for _, id := range []string{"uBlock0@raymondhill.net", "jid1-MnnxcxisBPnSXQ@jetpack"} {
-		if _, ok := doc.Policies.ExtensionSettings[id]; !ok {
-			t.Fatalf("base extension %s dropped when adding the theme", id)
-		}
+	// The theme is the only extension Ryoku installs; the two privacy extensions
+	// that used to ship here are gone.
+	if len(doc.Policies.ExtensionSettings) != 1 {
+		t.Fatalf("unexpected extensions alongside the theme: %v", doc.Policies.ExtensionSettings)
 	}
 }
