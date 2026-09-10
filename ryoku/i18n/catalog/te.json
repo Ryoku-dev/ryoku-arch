@@ -4800,6 +4800,7 @@
   "could not install the host manifest for %s: %v": "%s కోసం హోస్ట్ మానిఫెస్ట్‌ను ఇన్‌స్టాల్ చేయలేకుండా పోయింది: %v",
   "could not install ttf-material-symbols-variable: %v": "ttf-material-symbols-variable ను ఇన్‌స్టాల్ చేయలేకుండా పోయింది: %v",
   "could not link the palette snippet in %s: %v": "%s లో రంగు కూర్చిక స్నిపెట్‌ను లింక్ చేయలేకుండా పోయింది: %v",
+  "could not merge the Zen policy at %s: %v": "could not merge the Zen policy at %s: %v",
   "could not migrate %s: %v": "%s ను మైగ్రేట్ చేయలేకుండా పోయింది: %v",
   "could not migrate wallpaper_dir to ryogami.json: %v": "wallpaper_dir ను ryogami.json కు మైగ్రేట్ చేయలేకుండా పోయింది: %v",
   "could not move %s aside: %v": "%s ను సరిపెట్టలేకుండా పోయింది: %v",

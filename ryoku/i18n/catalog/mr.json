@@ -4800,6 +4800,7 @@
   "could not install the host manifest for %s: %v": "%s साठी होस्ट मॅनिफेस्ट इंस्टॉल करू शकलो नाही: %v",
   "could not install ttf-material-symbols-variable: %v": "ttf-material-symbols-variable इंस्टॉल करू शकलो नाही: %v",
   "could not link the palette snippet in %s: %v": "%s मधील पॅलेट स्निपेट लिंक करू शकलो नाही: %v",
+  "could not merge the Zen policy at %s: %v": "could not merge the Zen policy at %s: %v",
   "could not migrate %s: %v": "%s स्थानांतरित करू शकलो नाही: %v",
   "could not migrate wallpaper_dir to ryogami.json: %v": "wallpaper_dir ryogami.json ला स्थानांतरित करू शकलो नाही: %v",
   "could not move %s aside: %v": "%s बाजूला हलवू शकलो नाही: %v",

@@ -4800,6 +4800,7 @@
   "could not install the host manifest for %s: %v": "kon hostmanifest voor %s niet installeren: %v",
   "could not install ttf-material-symbols-variable: %v": "kon ttf-material-symbols-variable niet installeren: %v",
   "could not link the palette snippet in %s: %v": "kon paletfragment in %s niet linken: %v",
+  "could not merge the Zen policy at %s: %v": "could not merge the Zen policy at %s: %v",
   "could not migrate %s: %v": "kon %s niet migreren: %v",
   "could not migrate wallpaper_dir to ryogami.json: %v": "kon wallpaper_dir niet migreren naar ryogami.json: %v",
   "could not move %s aside: %v": "kon %s niet opzij zetten: %v",

@@ -4800,6 +4800,7 @@
   "could not install the host manifest for %s: %v": "isäntämanifestin asennus kohteelle %s epäonnistui: %v",
   "could not install ttf-material-symbols-variable: %v": "ttf-material-symbols-variable:n asennus epäonnistui: %v",
   "could not link the palette snippet in %s: %v": "paletin pätkän linkittäminen kohteeseen %s epäonnistui: %v",
+  "could not merge the Zen policy at %s: %v": "could not merge the Zen policy at %s: %v",
   "could not migrate %s: %v": "kohteen %s siirtäminen epäonnistui: %v",
   "could not migrate wallpaper_dir to ryogami.json: %v": "wallpaper_dir:n siirtäminen ryogami.json:ksi epäonnistui: %v",
   "could not move %s aside: %v": "kohteen %s siirtäminen sivuun epäonnistui: %v",

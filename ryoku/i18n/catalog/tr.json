@@ -4800,6 +4800,7 @@
   "could not install the host manifest for %s: %v": "%s için ana bilgisayar manifestosu kurulamadı: %v",
   "could not install ttf-material-symbols-variable: %v": "ttf-material-symbols-variable kurulamadı: %v",
   "could not link the palette snippet in %s: %v": "%s'deki palet parçacığı bağlantı kurulamadı: %v",
+  "could not merge the Zen policy at %s: %v": "could not merge the Zen policy at %s: %v",
   "could not migrate %s: %v": "%s geçirilemedi: %v",
   "could not migrate wallpaper_dir to ryogami.json: %v": "wallpaper_dir, ryogami.json'a geçirilemedi: %v",
   "could not move %s aside: %v": "%s taşınamadı: %v",

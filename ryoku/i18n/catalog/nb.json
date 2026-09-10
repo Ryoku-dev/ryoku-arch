@@ -4800,6 +4800,7 @@
   "could not install the host manifest for %s: %v": "kunne ikke installere vertskonfigurasjon for %s: %v",
   "could not install ttf-material-symbols-variable: %v": "kunne ikke installere ttf-material-symbols-variable: %v",
   "could not link the palette snippet in %s: %v": "kunne ikke lenke palett-kodebiten i %s: %v",
+  "could not merge the Zen policy at %s: %v": "could not merge the Zen policy at %s: %v",
   "could not migrate %s: %v": "kunne ikke migrere %s: %v",
   "could not migrate wallpaper_dir to ryogami.json: %v": "kunne ikke migrere wallpaper_dir til ryogami.json: %v",
   "could not move %s aside: %v": "kunne ikke flytte %s til siden: %v",

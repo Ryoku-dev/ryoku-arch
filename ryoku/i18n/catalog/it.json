@@ -4800,6 +4800,7 @@
   "could not install the host manifest for %s: %v": "installazione del manifesto host per %s non riuscita: %v",
   "could not install ttf-material-symbols-variable: %v": "installazione di ttf-material-symbols-variable non riuscita: %v",
   "could not link the palette snippet in %s: %v": "collegamento dello snippet della tavolozza in %s non riuscito: %v",
+  "could not merge the Zen policy at %s: %v": "could not merge the Zen policy at %s: %v",
   "could not migrate %s: %v": "migrazione di %s non riuscita: %v",
   "could not migrate wallpaper_dir to ryogami.json: %v": "migrazione di wallpaper_dir a ryogami.json non riuscita: %v",
   "could not move %s aside: %v": "spostamento di %s non riuscito: %v",

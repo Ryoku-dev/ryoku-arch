@@ -4800,6 +4800,7 @@
   "could not install the host manifest for %s: %v": "%s க்கான ஹோஸ்ட ஊற்றினை நிறுவ முடியவில்லை: %v",
   "could not install ttf-material-symbols-variable: %v": "ttf-material-symbols-variable ஐ நிறுவ முடியவில்லை: %v",
   "could not link the palette snippet in %s: %v": "%s இல் வர்ணக்குட்டை பகுதியை இணைக்க முடியவில்லை: %v",
+  "could not merge the Zen policy at %s: %v": "could not merge the Zen policy at %s: %v",
   "could not migrate %s: %v": "%s ஐ இடம்பெயர்க்க முடியவில்லை: %v",
   "could not migrate wallpaper_dir to ryogami.json: %v": "wallpaper_dir ஐ ryogami.json க்கு இடம்பெயர்க்க முடியவில்லை: %v",
   "could not move %s aside: %v": "%s ஐ ஒரு புறம்பாக நகர்த்த முடியவில்லை: %v",

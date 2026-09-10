@@ -4800,6 +4800,7 @@
   "could not install the host manifest for %s: %v": "تعذر تثبيت بيان المضيف لـ %s: %v",
   "could not install ttf-material-symbols-variable: %v": "تعذر تثبيت ttf-material-symbols-variable: %v",
   "could not link the palette snippet in %s: %v": "تعذر ربط مقطع اللوحة في %s: %v",
+  "could not merge the Zen policy at %s: %v": "could not merge the Zen policy at %s: %v",
   "could not migrate %s: %v": "تعذر نقل %s: %v",
   "could not migrate wallpaper_dir to ryogami.json: %v": "تعذر نقل wallpaper_dir إلى ryogami.json: %v",
   "could not move %s aside: %v": "تعذر إزاحة %s: %v",

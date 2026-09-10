@@ -4800,6 +4800,7 @@
   "could not install the host manifest for %s: %v": "ไม่สามารถติดตั้ง host manifest สำหรับ %s: %v",
   "could not install ttf-material-symbols-variable: %v": "ไม่สามารถติดตั้ง ttf-material-symbols-variable: %v",
   "could not link the palette snippet in %s: %v": "ไม่สามารถลิงก์ palette snippet ใน %s: %v",
+  "could not merge the Zen policy at %s: %v": "could not merge the Zen policy at %s: %v",
   "could not migrate %s: %v": "ไม่สามารถย้าย %s: %v",
   "could not migrate wallpaper_dir to ryogami.json: %v": "ไม่สามารถย้าย wallpaper_dir ไป ryogami.json: %v",
   "could not move %s aside: %v": "ไม่สามารถย้าย %s ออกไป: %v",

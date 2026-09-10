@@ -4800,6 +4800,7 @@
   "could not install the host manifest for %s: %v": "nu s-a putut instala manifestul gazdei pentru %s: %v",
   "could not install ttf-material-symbols-variable: %v": "nu s-a putut instala ttf-material-symbols-variable: %v",
   "could not link the palette snippet in %s: %v": "nu s-a putut lega fragmentul paletei din %s: %v",
+  "could not merge the Zen policy at %s: %v": "could not merge the Zen policy at %s: %v",
   "could not migrate %s: %v": "nu s-a putut migrа %s: %v",
   "could not migrate wallpaper_dir to ryogami.json: %v": "nu s-a putut migrа wallpaper_dir la ryogami.json: %v",
   "could not move %s aside: %v": "nu s-a putut muta %s deoparte: %v",

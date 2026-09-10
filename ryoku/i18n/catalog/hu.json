@@ -4800,6 +4800,7 @@
   "could not install the host manifest for %s: %v": "nem sikerült a host manifest telepítése %s-hez: %v",
   "could not install ttf-material-symbols-variable: %v": "nem sikerült a ttf-material-symbols-variable telepítése: %v",
   "could not link the palette snippet in %s: %v": "nem sikerült a paletta kódrészlet csatolása %s-ben: %v",
+  "could not merge the Zen policy at %s: %v": "could not merge the Zen policy at %s: %v",
   "could not migrate %s: %v": "nem sikerült a %s migrálása: %v",
   "could not migrate wallpaper_dir to ryogami.json: %v": "nem sikerült a wallpaper_dir migrálása ryogami.json-ba: %v",
   "could not move %s aside: %v": "nem sikerült a %s eltolása: %v",

@@ -4800,6 +4800,7 @@
   "could not install the host manifest for %s: %v": "לא היה ניתן להתקין את מניפסט המארח עבור %s: %v",
   "could not install ttf-material-symbols-variable: %v": "לא היה ניתן להתקין ttf-material-symbols-variable: %v",
   "could not link the palette snippet in %s: %v": "לא היה ניתן לקשר את קטע הפלטה ב-%s: %v",
+  "could not merge the Zen policy at %s: %v": "could not merge the Zen policy at %s: %v",
   "could not migrate %s: %v": "לא היה ניתן להעביר את %s: %v",
   "could not migrate wallpaper_dir to ryogami.json: %v": "לא היה ניתן להעביר את wallpaper_dir ל-ryogami.json: %v",
   "could not move %s aside: %v": "לא היה ניתן להעביר את %s בצד: %v",

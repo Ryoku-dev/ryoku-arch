@@ -4800,6 +4800,7 @@
   "could not install the host manifest for %s: %v": "%s의 호스트 매니페스트 설치 불가: %v",
   "could not install ttf-material-symbols-variable: %v": "ttf-material-symbols-variable 설치 불가: %v",
   "could not link the palette snippet in %s: %v": "%s의 팔레트 스니펫 링크 불가: %v",
+  "could not merge the Zen policy at %s: %v": "could not merge the Zen policy at %s: %v",
   "could not migrate %s: %v": "%s 마이그레이션 불가: %v",
   "could not migrate wallpaper_dir to ryogami.json: %v": "wallpaper_dir을 ryogami.json으로 마이그레이션할 수 없음: %v",
   "could not move %s aside: %v": "%s를 옆으로 이동할 수 없음: %v",

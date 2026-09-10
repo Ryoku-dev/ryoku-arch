@@ -4800,6 +4800,7 @@
   "could not install the host manifest for %s: %v": "не вдалося встановити маніфест хосту для %s: %v",
   "could not install ttf-material-symbols-variable: %v": "не вдалося встановити ttf-material-symbols-variable: %v",
   "could not link the palette snippet in %s: %v": "не вдалося пов'язати фрагмент палітри у %s: %v",
+  "could not merge the Zen policy at %s: %v": "could not merge the Zen policy at %s: %v",
   "could not migrate %s: %v": "не вдалося перенести %s: %v",
   "could not migrate wallpaper_dir to ryogami.json: %v": "не вдалося перенести wallpaper_dir на ryogami.json: %v",
   "could not move %s aside: %v": "не вдалося відсунути %s в сторону: %v",
