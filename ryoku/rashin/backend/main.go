@@ -76,7 +76,7 @@ func main() {
 	case "backend":
 		err = cmdBackend(os.Args[2:])
 	case "paths":
-		err = cmdPaths(len(os.Args) > 2 && os.Args[2] == "--json")
+		err = cmdPaths(pathsFormat(os.Args[2:]))
 	case "agent":
 		err = cmdAgent(os.Args[2:])
 	default:
@@ -105,7 +105,7 @@ func dispatchRashin(args []string) error {
 		case "backend":
 			return cmdBackend(args[1:])
 		case "paths":
-			return cmdPaths(len(args) > 1 && args[1] == "--json")
+			return cmdPaths(pathsFormat(args[1:]))
 		case "agent":
 			return cmdAgent(args[1:])
 		case "setup":
@@ -122,4 +122,18 @@ func argOr(i int, def string) string {
 		return os.Args[i]
 	}
 	return def
+}
+
+// pathsFormat maps the `paths` flags to cmdPaths' format: --json, --snippet, or
+// the human default.
+func pathsFormat(args []string) string {
+	for _, a := range args {
+		switch a {
+		case "--json":
+			return "json"
+		case "--snippet":
+			return "snippet"
+		}
+	}
+	return ""
 }

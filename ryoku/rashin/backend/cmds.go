@@ -49,10 +49,14 @@ func cmdWire(agent string) error {
 // cmdPaths prints the agent manifest: every path Rashin exposes plus a
 // paste-ready snippet, so any coding agent (supported or not) can be pointed at
 // the vault, the skill, and prowl-agent.
-func cmdPaths(asJSON bool) error {
+func cmdPaths(format string) error {
 	m := BuildManifest(LoadConfig())
-	if asJSON {
+	switch format {
+	case "json":
 		return json.NewEncoder(os.Stdout).Encode(m)
+	case "snippet":
+		fmt.Print(m.Snippet)
+		return nil
 	}
 	fmt.Println("Rashin exposes these to your coding agent:")
 	fmt.Println()
