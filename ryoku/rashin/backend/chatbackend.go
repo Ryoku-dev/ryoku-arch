@@ -19,12 +19,15 @@ type chatBackend struct {
 	Recommended bool
 }
 
-// chatBackends lists the agents Rashin can run as the chat session, in
-// preference order (Hermes leads). ACP adapters only: an agent absent here is
-// still wired for the terminal, it just cannot render inside the needle.
+// chatBackends lists the agents Rashin can run as the chat's ACP session, in
+// preference order (Hermes leads). omp and opencode speak ACP natively; claude
+// and gemini need their adapter on PATH. An agent absent here is still wired for
+// the terminal, it just cannot render inside the needle.
 func chatBackends() []chatBackend {
 	return []chatBackend{
 		{ID: "hermes", Name: "Hermes", Argv: hermesACPArgv(), Recommended: true},
+		{ID: "omp", Name: "Oh My Pi", Argv: []string{"omp", "acp"}},
+		{ID: "opencode", Name: "opencode", Argv: []string{"opencode", "acp"}},
 		{ID: "claude", Name: "Claude Code", Argv: []string{"claude-code-acp"}},
 		{ID: "gemini", Name: "Gemini", Argv: []string{"gemini", "--experimental-acp"}},
 	}

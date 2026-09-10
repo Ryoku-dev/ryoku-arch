@@ -216,7 +216,7 @@ func TestACPV2ImagesModelsSessions(t *testing.T) {
 	done := make(chan error, 1)
 	go func() { done <- conn.Initialize("/tmp/vault") }()
 	init := fa.read()
-	fa.respond(*init.ID, map[string]any{"protocolVersion": 1})
+	fa.respond(*init.ID, map[string]any{"protocolVersion": 1, "agentCapabilities": map[string]any{"loadSession": true, "promptCapabilities": map[string]any{"image": true}}})
 	newSess := fa.read()
 	fa.respond(*newSess.ID, map[string]any{
 		"sessionId": "s1",
