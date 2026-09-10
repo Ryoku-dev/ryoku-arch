@@ -1111,7 +1111,7 @@ Item {
         }
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: I18n.tr("Ask the needle")
+            text: Needle.ready ? I18n.tr("Ask the needle") : I18n.tr("Connect an AI")
             color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurface)
             font.family: Theme.display
             font.pixelSize: 21 * root.s
@@ -1119,7 +1119,9 @@ Item {
         Text {
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
-            text: I18n.tr("It knows this machine, your desktop, and the Ryoku source. Drop in an image to ask about it.")
+            text: Needle.ready
+                ? I18n.tr("It knows this machine, your desktop, and the Ryoku source. Drop in an image to ask about it.")
+                : I18n.tr("Rashin needs an AI to answer. Set it up once and the needle is ready.")
             wrapMode: Text.WordWrap
             color: Theme.inkOn(Theme.effectiveSurface, Theme.onSurfaceVariant, 3.0)
             font.family: Theme.fontPrimary
@@ -1127,6 +1129,7 @@ Item {
             lineHeight: 1.3
         }
         Column {
+            visible: Needle.ready
             width: parent.width
             spacing: 6 * root.s
             topPadding: 4 * root.s
@@ -1183,6 +1186,53 @@ Item {
                         }
                     }
                 }
+            }
+        }
+        Column {
+            width: parent.width
+            spacing: 8 * root.s
+            topPadding: 4 * root.s
+            visible: !Needle.ready
+            Rectangle {
+                width: parent.width
+                height: 36 * root.s
+                radius: 8 * root.s
+                color: setupArea.containsMouse ? Theme.vermLit : Theme.primary
+                Behavior on color { ColorAnimation { duration: Motion.fast } }
+                Row {
+                    anchors.centerIn: parent
+                    spacing: 7 * root.s
+                    MaterialIcon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "auto_awesome"
+                        font.pixelSize: 15 * root.s
+                        color: Theme.inkOn(Theme.primary, Theme.onPrimary)
+                    }
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: I18n.tr("Open setup")
+                        color: Theme.inkOn(Theme.primary, Theme.onPrimary)
+                        font.family: Theme.fontPrimary
+                        font.pixelSize: 12 * root.s
+                        font.weight: Font.Medium
+                    }
+                }
+                MouseArea {
+                    id: setupArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: Quickshell.execDetached(["ryoku-shell", "hub", "open", "rashin"])
+                }
+            }
+            Text {
+                width: parent.width
+                horizontalAlignment: Text.AlignHCenter
+                text: I18n.tr("Or add an API key to ~/.config/ryoku/rashin.env")
+                wrapMode: Text.WordWrap
+                color: Theme.inkOn(Theme.effectiveSurface, Theme.outlineVariant, 3.0)
+                font.family: Theme.mono
+                font.pixelSize: 9 * root.s
             }
         }
     }

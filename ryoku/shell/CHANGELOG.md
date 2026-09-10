@@ -8,6 +8,11 @@
   the empty chat now leads with a heading, a one-line explainer, and three
   tap-to-fill example prompts, so it is obvious what to do first.
 
+- **The needle guides first-time setup instead of failing.** On a box with no
+  AI configured yet, the Super+S chat now shows a "Connect an AI" prompt with an
+  Open setup button (straight to Ryoku Settings' Rashin page) rather than the
+  example prompts, so a first ask never dead-ends on an error.
+
 - **Quick asks are no longer locked to Hermes.** The launcher fast lane can run
   against any of ten built-in providers (OpenRouter, OpenAI, Groq, DeepSeek,
   Mistral, Together, xAI, Cerebras, Ollama, local). `ryoku-rashin backend

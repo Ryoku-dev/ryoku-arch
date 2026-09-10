@@ -24,6 +24,10 @@ Singleton {
     // Session model picker: the models hermes offers, and the current one.
     property var models: []
     property string currentModel: ""
+    // Whether the needle can actually answer (agent configured or a direct
+    // provider resolves). Starts true so a working box never flashes the
+    // first-run setup prompt while status loads.
+    property bool ready: true
 
     // Emitted whenever the transcript changes so the view can scroll to end.
     signal touched()
@@ -33,6 +37,7 @@ Singleton {
             root.newChat();
         root.lastSeen = Date.now();
         root.loadModels();
+        root.loadReady();
     }
 
     function noteClosed() {
@@ -125,6 +130,7 @@ Singleton {
     }
 
     function loadModels() { modelsProc.running = true; }
+    function loadReady() { readyProc.running = true; }
 
     function setModel(id) {
         if (!id || id === root.currentModel)
@@ -290,6 +296,20 @@ Singleton {
                     root.models = f.models || [];
                     if (f.current) root.currentModel = String(f.current);
                 }
+            }
+        }
+    }
+
+    Process {
+        id: readyProc
+        command: ["ryoku-rashin", "status", "--json"]
+        stdout: SplitParser {
+            splitMarker: "\n"
+            onRead: (line) => {
+                var f;
+                try { f = JSON.parse(String(line)); } catch (e) { return; }
+                if (f && typeof f.ready === "boolean")
+                    root.ready = f.ready;
             }
         }
     }
