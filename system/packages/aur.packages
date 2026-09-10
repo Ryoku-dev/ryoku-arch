@@ -58,3 +58,13 @@ ttf-fraunces-variable
 # still gets the Ryoku Zen policy (shipped extensions + Wayland/hardware-decode
 # and privacy defaults) applied by `ryoku doctor`. See reconcile_zen.go.
 zen-browser-bin
+
+# Fingerprint unlock module. The in-session lock (qylock) and the SDDM greeter
+# authenticate through a PAM stack that loads pam_fprintd_grosshack.so, which
+# forks fprintd-verify at the start of the conversation so the sensor scans while
+# the password field is live (touch OR type, whichever lands first). fprintd's
+# own enroll/verify (Ryoku Settings) works without it, but the lock/greeter
+# fingerprint path silently does nothing when the module is absent. AUR-only, so
+# it lands on new installs here; reconcileFingerprintModule backfills existing
+# boxes that have a reader (this set is not revisited by `ryoku update`).
+pam-fprint-grosshack

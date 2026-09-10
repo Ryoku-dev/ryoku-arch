@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Changed
+- **`ryoku doctor` installs the fingerprint unlock module on a box with a
+  reader.** The lock and greeter PAM stacks load `pam_fprintd_grosshack.so`, but
+  it was never shipped, so touch-to-unlock did nothing (fprintd enroll/verify in
+  Settings still worked). A new reconciler installs `pam-fprint-grosshack` (AUR)
+  when a fingerprint reader is present and the module is missing, and is silent
+  on a machine without a reader (`internal/doctor/reconcile_fingerprint.go`).
 - **`ryoku update` reaps the Hub so a new settings page appears without a
   relogin.** Ryoku Settings is a session-resident quickshell instance the shell
   daemon does not own, so an update left it running on the old QML and a

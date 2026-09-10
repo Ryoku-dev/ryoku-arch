@@ -196,6 +196,7 @@ func reconcilers() []reconciler {
 		{i18n.T("power profiles vs AMD GPU"), reconcilePpdAmdgpu},
 		{i18n.T("display resolution"), reconcileDisplayModes},
 		{i18n.T("phantom Wayland output"), reconcilePhantomOutput},
+		{i18n.T("fingerprint unlock module"), reconcileFingerprintModule},
 		{i18n.T("Kepler NVIDIA recovery"), reconcileKeplerNvidia},
 		{i18n.T("NVIDIA boot reliability"), reconcileNvidiaModeset},
 		{i18n.T("NVIDIA update guard hook"), reconcileNvidiaGuardHook},
