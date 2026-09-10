@@ -421,3 +421,22 @@
 }
 .code-hot-file { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .code-hot-in { color: var(--ink); }
+
+/* POINT ANY AGENT: the path manifest + copy, and the CHAT BACKEND chips. */
+.manifest-block { margin-top: 20px; }
+.sub-title {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 3px;
+  color: var(--ink); margin: 0 0 6px;
+}
+.manifest-row { display: flex; gap: 14px; padding: 3px 0; font-family: var(--font-mono); font-size: 12px; }
+.manifest-row .mlabel { width: 120px; flex: none; color: var(--ink); }
+.manifest-row .mpath { flex: 1; min-width: 0; color: var(--tan); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.manifest-row.absent .mpath { color: var(--ink-dim); }
+.manifest-copy { margin-top: 12px; }
+.chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip {
+  padding: 6px 14px; border: 1px solid var(--line); background: transparent;
+  color: var(--ink); font-family: var(--font-mono); font-size: 12px; letter-spacing: 1px; cursor: pointer;
+}
+.chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.chip:disabled { opacity: .45; cursor: not-allowed; }

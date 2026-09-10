@@ -128,7 +128,13 @@ func Serve(cfg Config) error {
 	mux.HandleFunc("GET /api/agents", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, DetectAgents())
 	})
-	mux.HandleFunc("POST /api/agents/wire", agentMutation(Wire))
+	mux.HandleFunc("POST /api/agents/wire", agentMutation(func(id string) error {
+		if err := Wire(id); err != nil {
+			return err
+		}
+		wireProwlSkills() // parity with `ryoku-rashin wire`: pointer + skill + prowl
+		return nil
+	}))
 	mux.HandleFunc("POST /api/agents/unwire", agentMutation(Unwire))
 	mux.HandleFunc("GET /api/quick", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, quickInfo(LoadConfig()))

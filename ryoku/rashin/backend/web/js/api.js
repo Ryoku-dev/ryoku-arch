@@ -25,6 +25,13 @@ export const api = {
   },
   wire: (id) => postAgent("/api/agents/wire", id),
   unwire: (id) => postAgent("/api/agents/unwire", id),
+  manifest: () => getJSON("/api/manifest"),
+  chatAgents: () => getJSON("/api/chat/agent"),
+  setChatAgent: async (id) => {
+    const r = await fetch("/api/chat/agent?id=" + encodeURIComponent(id), { method: "POST" });
+    if (!r.ok) throw new Error("chat agent " + r.status);
+    return r.json();
+  },
 };
 
 async function postAgent(path, id) {
