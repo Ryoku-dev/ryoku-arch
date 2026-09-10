@@ -14,6 +14,16 @@
   this root installer). Honors `RYOKU_DRYRUN`; `ryoku keyring` changes it later.
 
 ### Fixed
+- **The login screen lands on a chosen monitor instead of whichever trained
+  first.** With two displays weston's kiosk shell dropped the greeter on the
+  connector that came up first (a DP a beat before an HDMI), so the login
+  appeared on the wrong screen, or only on one. `ryoku-greeter` now pins the
+  greeter (`sddm-greeter-qt6`) to a resolved output via kiosk-shell `app-ids`:
+  an internal laptop panel (`eDP`/`LVDS`/`DSI`) when present, or the connector
+  set in `/etc/ryoku/greeter.conf` (`PRIMARY=<name>`, `APPID=<id>`) or the
+  `RYOKU_GREETER_PRIMARY` / `RYOKU_GREETER_APPID` env. Idle blanking is disabled
+  in the generated config so a display no longer powers off at the login screen
+  (`sddm/ryoku-greeter`).
 - **The SDDM greeter stops logging a Quickshell plugin error on every boot
   (#162).** Its theme imported the shell's `Ryoku.Ui.Singletons`, whose
   singletons load `Quickshell.Io`, a plugin the plain `sddm-greeter-qt6` process

@@ -14,6 +14,15 @@
 # the greeter always comes up. weston itself ignores an unmatched output mode
 # and keeps the preferred one, so a wrong pick degrades to today's behaviour
 # rather than a blank login screen.
+#
+# Which monitor the login form lands on: with two displays weston's kiosk shell
+# drops the greeter on whichever output came up first (a DP that trains a beat
+# before an HDMI), which is often the wrong one. kiosk-shell can pin a client to
+# a named output by its Wayland app-id, so the greeter (sddm-greeter-qt6) is
+# pinned to a chosen output: an internal laptop panel when there is one, or the
+# connector named in /etc/ryoku/greeter.conf (PRIMARY=<name>, APPID=<id>) or
+# RYOKU_GREETER_PRIMARY / RYOKU_GREETER_APPID. Idle blanking is off so a display
+# never powers down at the login screen.
 set -u
 
 # weston draws the pointer itself (DRM backend) from the XCursor theme named in
@@ -39,6 +48,29 @@ if [ -r "$kb_conf" ]; then
     [ -n "$options" ] && export XKB_DEFAULT_OPTIONS="$options"
   fi
 fi
+
+# Operator config for where the login form lands. env wins over the file; the
+# file is /etc/ryoku/greeter.conf with plain KEY=value lines (PRIMARY, APPID).
+# greeter_appid is the Wayland app-id kiosk-shell matches: the Qt6 greeter sets
+# none, so Qt uses the binary name, sddm-greeter-qt6.
+greeter_conf="${RYOKU_GREETER_CONF:-/etc/ryoku/greeter.conf}"
+conf_val() { [ -r "$greeter_conf" ] && sed -n "s/^[[:space:]]*$1[[:space:]]*=[[:space:]]*//p" "$greeter_conf" | tail -n1; }
+greeter_primary="${RYOKU_GREETER_PRIMARY:-$(conf_val PRIMARY)}"
+greeter_appid="${RYOKU_GREETER_APPID:-$(conf_val APPID)}"
+greeter_appid="${greeter_appid:-sddm-greeter-qt6}"
+
+# Resolve which connector the login form is pinned to. An explicit PRIMARY wins
+# when it is actually connected; otherwise an internal laptop panel (eDP/LVDS/DSI)
+# is the sensible default. With neither, print nothing: weston keeps its own
+# choice and only the mode tuning applies, exactly as before.
+choose_primary() {
+  local want="$1" names
+  names="$(printf '%s\n' "$modes" | awk 'NF { print $1 }')"
+  if [ -n "$want" ] && printf '%s\n' "$names" | grep -qxF "$want"; then
+    printf '%s' "$want"; return
+  fi
+  printf '%s\n' "$names" | grep -m1 -E '^(eDP|LVDS|DSI)' || true
+}
 
 # exec plain weston (preferred mode); the login screen must always start.
 weston_plain() { exec weston --shell=kiosk "$@"; }
@@ -70,15 +102,23 @@ probe_modes() {
 }
 
 gen_ini() {
+  # idle-time=0: the login screen must never blank a display out from under the
+  # user. One [output] per connected panel at its top mode; the chosen primary
+  # also carries app-ids so kiosk-shell drops the greeter window there.
+  printf '[core]\nidle-time=0\n\n'
   while read -r name w h rr; do
     [ -n "$name" ] && [ "${w:-0}" -gt 0 ] && [ "${h:-0}" -gt 0 ] || continue
-    printf '[output]\nname=%s\nmode=%sx%s@%s\n\n' "$name" "$w" "$h" "$rr"
+    printf '[output]\nname=%s\nmode=%sx%s@%s\n' "$name" "$w" "$h" "$rr"
+    [ -n "$greeter_primary" ] && [ "$name" = "$greeter_primary" ] &&
+      printf 'app-ids=%s\n' "$greeter_appid"
+    printf '\n'
   done <<< "$modes"
 }
 
 # Inspect the generated config without starting the greeter.
 if [ "${RYOKU_GREETER_DRYRUN:-0}" = 1 ]; then
   modes="$(probe_modes)"
+  greeter_primary="$(choose_primary "$greeter_primary")"
   gen_ini
   exit 0
 fi
@@ -106,6 +146,9 @@ while :; do
 done
 
 [ -n "$modes" ] || weston_plain "$@"
+
+# Pin the login form to the resolved output now that the full connected set is in.
+greeter_primary="$(choose_primary "$greeter_primary")"
 
 ini="$(mktemp --tmpdir ryoku-greeter.XXXXXX.ini 2>/dev/null)" || weston_plain "$@"
 gen_ini > "$ini"
