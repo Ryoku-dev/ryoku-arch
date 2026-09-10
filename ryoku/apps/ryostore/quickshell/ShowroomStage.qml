@@ -20,6 +20,7 @@ Item {
     signal installRequested(var item)
     signal detailsRequested(var item)
     signal settingsRequested(var item)
+    signal removeRequested(var item)
 
     readonly property var displayItem: previewItem || item || ({})
     readonly property var actionItem: item || ({})
@@ -62,6 +63,11 @@ Item {
     function triggerSettings() {
         if (hasActionItem && secondaryLabel !== "")
             settingsRequested(actionItem);
+    }
+
+    function triggerRemove() {
+        if (hasActionItem && busyKey === "" && StoreLogic.isInstalled(actionItem))
+            removeRequested(actionItem);
     }
 
     function revealArtwork() {
@@ -277,6 +283,17 @@ Item {
                 Accessible.name: text
                 onAct: stage.triggerSettings()
                 Accessible.onPressAction: stage.triggerSettings()
+            }
+
+            Btn {
+                objectName: "ryostore-stage-remove"
+                text: I18n.tr("REMOVE")
+                visible: StoreLogic.isInstalled(stage.actionItem)
+                armed: visible && stage.busyKey === ""
+                Accessible.role: Accessible.Button
+                Accessible.name: text
+                onAct: stage.triggerRemove()
+                Accessible.onPressAction: stage.triggerRemove()
             }
         }
     }

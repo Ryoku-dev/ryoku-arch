@@ -3,6 +3,14 @@
 ## Unreleased
 
 ### Added
+- `ryostore/`: **a Remove button on every installed item.** RyoStore could only
+  install; taking something back off meant leaving the app. The product dossier
+  and the showroom hero now show a REMOVE action whenever an item is installed
+  (any category -- theme, decor, lock, bundle, plugin -- since every provider
+  backend already implements remove), wired to `ryostore remove <category> <id>`
+  through a new `Store.remove` that reuses the install lifecycle and refreshes
+  the catalogue when it is done (`Singletons/Store.qml`, `ProductDetail.qml`,
+  `ShowroomStage.qml`, `App.qml`).
 - `ryovm/`: **a Looking Glass lane for GPU-passthrough VMs.** Ryoport grows a
   fourth section (rail + `Ctrl+4`) that manages passthrough machines: point it
   at an install ISO and pick the guest, and it defines a tuned `ryoku-<name>`

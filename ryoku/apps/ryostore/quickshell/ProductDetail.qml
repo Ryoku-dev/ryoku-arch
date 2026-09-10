@@ -31,6 +31,7 @@ FocusScope {
     signal installRequested(var item, bool dither, var components)
     signal retryRequested(var item, bool dither, var components)
     signal settingsRequested(var item)
+    signal removeRequested(var item)
 
     readonly property var actionItem: item || ({})
     readonly property string actionKey: StoreLogic.itemKey(actionItem)
@@ -160,6 +161,11 @@ FocusScope {
     function triggerSettings() {
         if (item && StoreLogic.secondaryAction(actionItem) !== "")
             settingsRequested(actionItem);
+    }
+
+    function triggerRemove() {
+        if (item && busyKey === "" && StoreLogic.isInstalled(actionItem))
+            removeRequested(actionItem);
     }
 
     function openLightbox(i) {
@@ -584,6 +590,16 @@ FocusScope {
                     Accessible.onPressAction: detail.triggerRetry()
                 }
 
+                Btn {
+                    objectName: "ryostore-detail-remove"
+                    text: I18n.tr("REMOVE")
+                    visible: StoreLogic.isInstalled(detail.actionItem)
+                    armed: visible && detail.busyKey === ""
+                    Accessible.role: Accessible.Button
+                    Accessible.name: text
+                    onAct: detail.triggerRemove()
+                    Accessible.onPressAction: detail.triggerRemove()
+                }
                 Btn {
                     objectName: "ryostore-detail-settings"
                     text: I18n.tr("OPEN IN SETTINGS")

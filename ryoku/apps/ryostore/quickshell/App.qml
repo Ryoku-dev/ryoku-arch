@@ -452,6 +452,7 @@ Rectangle {
         onInstallRequested: item => Store.install(item)
         onDetailsRequested: item => app.openSelectedDetail()
         onSettingsRequested: item => Store.openSettings(item)
+        onRemoveRequested: item => Store.remove(item)
     }
 
     ProductGrid {
@@ -598,5 +599,6 @@ Rectangle {
         onInstallRequested: (item, dither, components) => Store.install(item, dither, components)
         onRetryRequested: (item, dither, components) => Store.retryInstall(item, dither, components)
         onSettingsRequested: item => Store.openSettings(item)
+        onRemoveRequested: item => Store.remove(item)
     }
 }
