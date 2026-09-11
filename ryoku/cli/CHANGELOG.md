@@ -168,6 +168,12 @@
   (`internal/updater/materialize.go`).
 
 ### Fixed
+- **"Apply system-wide" for the keyboard layout no longer just says FAILED.**
+  Setting the login screen, TTYs, and disk-passphrase keymap rebuilds the boot
+  image, which needs root; run from the Hub there is no terminal for the sudo
+  password prompt, so it failed every time. It now escalates once through the
+  desktop's password prompt (pkexec) instead, so the whole apply goes through in
+  one go (`internal/keyboard`).
 - **Hybrid-GPU laptops no longer boot to a black screen through the login
   screen.** On a machine with two GPUs (an AMD/Intel iGPU plus an NVIDIA dGPU),
   SDDM could start your session on one virtual terminal while the Wayland login

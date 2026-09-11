@@ -83,6 +83,44 @@ func TestLayoutPrimary(t *testing.T) {
 	}
 }
 
+// `keyboard apply` escalates through pkexec from the Hub (no tty for sudo, so the
+// boot-image rebuild used to fail and the apply reported FAILED, #177). The
+// re-exec hands the fully-resolved layout across with --resolved so the root
+// pass reads no per-user config; the flag must round-trip the layout, variant,
+// and options exactly, and malformed input must error rather than silently drop.
+func TestParseApplyArgs(t *testing.T) {
+	t.Run("resolved carries the full layout across the privilege boundary", func(t *testing.T) {
+		want, noBoot, resolved, err := parseApplyArgs([]string{"--resolved", "fr", "azerty", "ctrl:nocaps", "--no-boot"})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if want != "" {
+			t.Errorf("want layout = %q, expected empty when resolved", want)
+		}
+		if !noBoot {
+			t.Error("--no-boot not parsed")
+		}
+		if resolved == nil || *resolved != (Layout{Layout: "fr", Variant: "azerty", Options: "ctrl:nocaps"}) {
+			t.Fatalf("resolved = %+v, want {fr azerty ctrl:nocaps}", resolved)
+		}
+	})
+	t.Run("a bare layout is the desktop override, not resolved", func(t *testing.T) {
+		want, _, resolved, err := parseApplyArgs([]string{"us"})
+		if err != nil || want != "us" || resolved != nil {
+			t.Fatalf("parseApplyArgs(us) = (%q, %v, %v)", want, resolved, err)
+		}
+	})
+	for _, bad := range [][]string{
+		{"--resolved", "us", ""}, // missing the options field
+		{"--bogus"},              // unknown flag
+		{"us", "de"},             // two layouts
+	} {
+		if _, _, _, err := parseApplyArgs(bad); err == nil {
+			t.Errorf("parseApplyArgs(%q) accepted malformed input", bad)
+		}
+	}
+}
+
 func touch(t *testing.T, path string, when time.Time) {
 	t.Helper()
 	if err := os.WriteFile(path, []byte("x"), 0o644); err != nil {
