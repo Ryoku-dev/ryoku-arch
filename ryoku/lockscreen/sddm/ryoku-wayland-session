@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#
+# ryoku-wayland-session: SDDM's [Wayland] SessionCommand, wrapping the stock
+# session start with a wait for the greeter to release the GPU.
+#
+# On a hybrid-GPU laptop (e.g. AMD iGPU + NVIDIA dGPU) the SDDM greeter runs as
+# weston on one VT; SDDM then starts the user session on the next VT without
+# waiting for weston to finish exiting, so weston can still hold a DRM device
+# ("[libseat] Could not take device: Device or resource busy" on /dev/dri/cardN)
+# when the session compositor probes KMS. Aquamarine drops that GPU -- often the
+# iGPU the panels hang off -- and falls back to a headless dGPU: a black screen
+# (issue #174). weston releases its DRM master when its process exits, so waiting
+# for it to be gone before the compositor enumerates cards fixes the handover.
+# Bounded so login never hangs; a plain no-op when no weston is running (a
+# desktop with no hybrid race, or the greeter already gone).
+set -u
+
+deadline="${RYOKU_SESSION_SETTLE_DEADLINE:-8}"
+start=$SECONDS
+waited=0
+while pgrep -x weston >/dev/null 2>&1; do
+  (( SECONDS - start >= deadline )) && break
+  sleep 0.1
+  waited=1
+done
+# The DRM master is dropped as weston's fds close on exit; give the kernel a beat
+# to publish that before the compositor enumerates cards.
+(( waited )) && sleep 0.3
+
+# Hand off to SDDM's own Wayland session script (its env setup, then exec the
+# chosen session), falling back to the session command directly if a distro
+# ships that script elsewhere.
+# RYOKU_WAYLAND_SESSION_DEFAULT is a test seam; in production this is SDDM's own
+# default [Wayland] SessionCommand.
+default="${RYOKU_WAYLAND_SESSION_DEFAULT:-/usr/share/sddm/scripts/wayland-session}"
+if [[ -x $default ]]; then
+  exec "$default" "$@"
+fi
+exec "$@"

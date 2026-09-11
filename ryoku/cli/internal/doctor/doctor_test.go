@@ -796,6 +796,7 @@ func TestSDDMWaylandBodyForcesQtWayland(t *testing.T) {
 		"GreeterEnvironment=QT_QPA_PLATFORM=wayland,XCURSOR_THEME=Bibata-Modern-Ice,XCURSOR_SIZE=24,QML_XHR_ALLOW_FILE_READ=1",
 		"[Wayland]",
 		"CompositorCommand=",
+		"SessionCommand=",
 	} {
 		if !strings.Contains(body, line) {
 			t.Errorf("sddmWaylandBody() missing %q:\n%s", line, body)

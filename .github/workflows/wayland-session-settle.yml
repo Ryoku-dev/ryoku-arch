@@ -1,0 +1,40 @@
+name: Wayland session settle
+
+# On a hybrid-GPU laptop the SDDM greeter (weston) can still hold a DRM device
+# when SDDM starts the session on the next VT, so the compositor's KMS probe
+# misses that GPU -- often the iGPU the panels hang off -- and falls back to a
+# headless dGPU: a black screen (issue #174). ryoku-wayland-session is SDDM's
+# [Wayland] SessionCommand: it waits for weston to exit (its DRM master is freed
+# on process exit) before handing off. The tests that matter: it does not hand
+# off while weston is present, always hands off eventually (login never hangs),
+# and passes the session arguments through. See tests/wayland-session-settle.sh.
+
+on:
+  pull_request:
+    paths:
+      - 'ryoku/lockscreen/sddm/ryoku-wayland-session'
+      - 'tests/wayland-session-settle.sh'
+      - '.github/workflows/wayland-session-settle.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'ryoku/lockscreen/sddm/ryoku-wayland-session'
+      - 'tests/wayland-session-settle.sh'
+      - '.github/workflows/wayland-session-settle.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wayland-session-settle:
+    name: The session wrapper waits for the greeter before handing off
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Greeter settle and argument passthrough
+        shell: bash
+        run: bash tests/wayland-session-settle.sh

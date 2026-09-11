@@ -181,6 +181,16 @@ if [[ -x $GREETER_BIN ]]; then
 else
   COMPOSITOR="weston --shell=kiosk"
 fi
+SESSION_WRAPPER="/usr/share/ryoku/lockscreen/ryoku-wayland-session"
+# SessionCommand waits for the greeter (weston) to release the GPU before the
+# session compositor probes KMS, so a hybrid-GPU laptop does not miss its iGPU
+# and fall back to a black headless dGPU (issue #174). SDDM's own default until
+# the wrapper lands. This body stays identical to sddmWaylandBody() (doctor.go).
+if [[ -x $SESSION_WRAPPER ]]; then
+  SESSION_CMD="$SESSION_WRAPPER"
+else
+  SESSION_CMD="/usr/share/sddm/scripts/wayland-session"
+fi
 echo "  greeter display server -> wayland ($WAYLAND_CONF)"
 priv mkdir -p /etc/sddm.conf.d
 write_root "$WAYLAND_CONF" <<EOF
@@ -190,6 +200,7 @@ GreeterEnvironment=QT_QPA_PLATFORM=wayland,XCURSOR_THEME=Bibata-Modern-Ice,XCURS
 
 [Wayland]
 CompositorCommand=$COMPOSITOR
+SessionCommand=$SESSION_CMD
 EOF
 
 # --- 6. give the "default" cursor theme a real target ------------------------

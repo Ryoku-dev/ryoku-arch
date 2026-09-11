@@ -168,6 +168,17 @@
   (`internal/updater/materialize.go`).
 
 ### Fixed
+- **Hybrid-GPU laptops no longer boot to a black screen through the login
+  screen.** On a machine with two GPUs (an AMD/Intel iGPU plus an NVIDIA dGPU),
+  SDDM could start your session on one virtual terminal while the Wayland login
+  greeter was still shutting down on another and still holding a GPU. The
+  compositor then found that card busy, dropped it -- usually the very iGPU the
+  displays hang off -- and came up headless on the other: a black, blank screen.
+  A tiny wait for the greeter to finish letting go of the GPU before the session
+  starts fixes it, wired in as SDDM's session command so it covers every Wayland
+  session; `ryoku doctor` adds it to existing machines and it is a no-op on a
+  single-GPU box (`ryoku/lockscreen/sddm/ryoku-wayland-session`, doctor's SDDM
+  greeter reconciler).
 - **`ryoku status` no longer reports `snapshots: 0` on a machine that has them.**
   The count came from a `sudo` call that fails whenever no credential is cached
   (every GUI poll, and any cold terminal), and the empty result parsed as a real

@@ -2368,6 +2368,12 @@ const sddmWaylandConf = "/etc/sddm.conf.d/10-ryoku-wayland.conf"
 // weston present -- the greeter could not start.
 const greeterCompositorBin = "/usr/share/ryoku/lockscreen/ryoku-greeter"
 
+// sessionWrapperBin waits for the greeter to release the GPU before the session
+// compositor probes KMS (see sddmWaylandBody). sddmDefaultWaylandSession is
+// SDDM's own default [Wayland] SessionCommand, used until the wrapper is shipped.
+const sessionWrapperBin = "/usr/share/ryoku/lockscreen/ryoku-wayland-session"
+const sddmDefaultWaylandSession = "/usr/share/sddm/scripts/wayland-session"
+
 // greeterEnvironment is SDDM's comma-separated GreeterEnvironment. The greeter
 // is a Qt client of the weston kiosk with no session behind it, so it inherits
 // no XCURSOR_*: Qt then asks libwayland-cursor for the "default" theme, and on a
@@ -2387,7 +2393,19 @@ func sddmWaylandBody() string {
 	if sys.Exists(greeterCompositorBin) {
 		compositor = greeterCompositorBin
 	}
-	return "[General]\nDisplayServer=wayland\nGreeterEnvironment=" + greeterEnvironment + "\n\n[Wayland]\nCompositorCommand=" + compositor + "\n"
+	// SessionCommand wraps the session start with a wait for the greeter (weston)
+	// to exit before the compositor probes KMS: on a hybrid-GPU laptop weston can
+	// still hold a DRM device when SDDM starts the session on the next VT, so the
+	// probe misses that GPU and lands on a headless dGPU -- a black screen (#174).
+	// Falls back to SDDM's own default session script until the wrapper ships,
+	// which is behaviourally a no-op.
+	session := sddmDefaultWaylandSession
+	if sys.Exists(sessionWrapperBin) {
+		session = sessionWrapperBin
+	}
+	return "[General]\nDisplayServer=wayland\nGreeterEnvironment=" + greeterEnvironment +
+		"\n\n[Wayland]\nCompositorCommand=" + compositor +
+		"\nSessionCommand=" + session + "\n"
 }
 
 // reconcileGreeterDisplayServer moves the SDDM greeter to Wayland. SDDM's

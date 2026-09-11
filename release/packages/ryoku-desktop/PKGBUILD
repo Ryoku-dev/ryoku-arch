@@ -473,6 +473,12 @@ EOF
   # output's top mode, so the login screen matches a high-refresh session.
   install -Dm755 "$_repo/ryoku/lockscreen/sddm/ryoku-greeter" \
     "$pkgdir/usr/share/ryoku/lockscreen/ryoku-greeter"
+  # the Wayland session wrapper: waits for the greeter (weston) to release the
+  # GPU before the compositor probes KMS, so a hybrid-GPU laptop does not miss
+  # its iGPU and fall back to a black headless dGPU (issue #174). Wired as SDDM's
+  # [Wayland] SessionCommand by sddm/setup and doctor.
+  install -Dm755 "$_repo/ryoku/lockscreen/sddm/ryoku-wayland-session" \
+    "$pkgdir/usr/share/ryoku/lockscreen/ryoku-wayland-session"
 
   # user session units: the target, and the shell daemon service the autostart
   # now starts (systemctl --user start ryoku-shell). Ship the whole dir so a
