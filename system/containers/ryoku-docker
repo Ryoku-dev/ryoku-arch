@@ -2,13 +2,14 @@
 # Ryoku's one door to root for container work, driven by the stash "Cobalt
 # engine" switch and its setup wizard.
 #
-# Why a helper instead of the docker group: adding a user to `docker` does not
-# affect the session they are already in, so a group-based design ends its
-# first run at a reboot prompt. This helper escalates through pkexec instead
-# (47-style polkit rule, active wheel user, no password), so it never consults
-# the caller's groups and first-time setup needs no re-login. The group is still
-# added by `provision`, because a user who types `docker` on the command line
-# wants it, but nothing here depends on it.
+# Why a helper, not the docker group: the docker group is passwordless root (a
+# member can `docker run -v /:/host` as root), so putting the user in it would
+# hand every process in their session that power -- the exact footgun a container
+# GUI toggle must never arm. This helper escalates through pkexec instead (polkit
+# rule, active wheel user, no password) and does every privileged action itself
+# as root, so the engine needs NO group membership and no re-login: the user's
+# session is never granted docker access at all. Someone who wants plain `docker`
+# on the command line opts themselves in by hand.
 #
 # SECURITY: the polkit grant is passwordless, so this script must never become a
 # way to run arbitrary docker. There is deliberately NO passthrough verb. Every
@@ -18,8 +19,8 @@
 # `-v /:/host`.
 #
 # tab-separated, line-buffered output the shell (Stash.qml) parses:
-#   state           -> binary/service/group/member/socket, one fact per line
-#   provision       -> "STEP\t<service|group|socket>" ... then "OK" or "ERROR\t<msg>"
+#   state           -> binary/service/socket, one fact per line
+#   provision       -> "STEP\t<service|socket>" ... then "OK" or "ERROR\t<msg>"
 #   container-*     -> the value, or "ERROR\t<msg>"
 # usage: ryoku-docker state | provision | container-status | container-up [port] | container-down
 set -uo pipefail
@@ -42,28 +43,14 @@ if [[ $EUID -eq 0 ]]; then
   DOCKER=docker
   SYSTEMCTL=systemctl
   SOCKET=/var/run/docker.sock
-  GETENT=getent
 else
   DOCKER="${RYOKU_DOCKER_BIN:-docker}"
   SYSTEMCTL="${RYOKU_DOCKER_SYSTEMCTL:-systemctl}"
   SOCKET="${RYOKU_DOCKER_SOCKET:-/var/run/docker.sock}"
-  GETENT="${RYOKU_DOCKER_GETENT:-getent}"
 fi
 
 emit() { printf '%s\t%s\n' "$1" "${2:-}"; }
 log() { printf 'ryoku-docker: %s\n' "$*" >&2; }
-
-# The user this ran for. Under pkexec the environment is root's, so PKEXEC_UID
-# is the only honest answer; a direct root call falls back to SUDO_UID, and an
-# unprivileged call is simply the caller.
-caller_name() {
-  local uid="${PKEXEC_UID:-${SUDO_UID:-}}"
-  if [[ -n $uid ]]; then
-    "$GETENT" passwd "$uid" 2>/dev/null | cut -d: -f1
-    return
-  fi
-  id -un
-}
 
 have_docker() { command -v "$DOCKER" >/dev/null 2>&1; }
 
@@ -74,19 +61,6 @@ service_state() {
   else
     echo inactive
   fi
-}
-
-group_exists() { "$GETENT" group docker >/dev/null 2>&1; }
-
-# Membership per /etc/group, which is what a NEW login session will see. The
-# current session may still be missing it; that is the whole reason this helper
-# exists, so report the file rather than `id`.
-is_member() {
-  local u="$1"
-  "$GETENT" group docker 2>/dev/null | awk -F: -v u="$u" '
-    { n = split($4, m, ","); for (i = 1; i <= n; i++) if (m[i] == u) { found = 1 } }
-    END { exit(found ? 0 : 1) }
-  '
 }
 
 socket_ready() { [[ -S $SOCKET ]]; }
@@ -112,21 +86,18 @@ cmd="${1:-}"
 case "$cmd" in
 state)
   # Read-only: never escalates, so the wizard can poll it freely.
-  u="$(caller_name)"
   emit binary "$(have_docker && echo yes || echo no)"
   emit service "$(service_state)"
-  emit group "$(group_exists && echo yes || echo no)"
-  emit member "$(is_member "$u" && echo yes || echo no)"
   emit socket "$(socket_ready && echo yes || echo no)"
   ;;
 provision)
   have_docker || { emit ERROR "docker is not installed"; exit 2; }
-  u="$(caller_name)"
-  [[ -n $u ]] || { emit ERROR "could not resolve the invoking user"; exit 1; }
 
-  # Convergent: a host that is already provisioned writes nothing and, because
-  # the checks run before need_root, never even raises a pkexec prompt.
-  if [[ "$(service_state)" == active ]] && group_exists && is_member "$u" && socket_ready; then
+  # Convergent: a host whose daemon is up with its socket bound writes nothing
+  # and, because the checks run before need_root, never even raises a pkexec
+  # prompt. No group work: the helper reaches docker as root through pkexec, so
+  # the user's session is deliberately never granted docker access of its own.
+  if [[ "$(service_state)" == active ]] && socket_ready; then
     emit OK
     exit 0
   fi
@@ -136,21 +107,6 @@ provision)
     emit STEP service
     "$SYSTEMCTL" enable --now docker >/dev/null 2>&1 || {
       emit ERROR "could not enable docker.service"
-      exit 1
-    }
-  fi
-
-  if ! group_exists; then
-    emit STEP group
-    groupadd -r docker >/dev/null 2>&1 || {
-      emit ERROR "could not create the docker group"
-      exit 1
-    }
-  fi
-  if ! is_member "$u"; then
-    emit STEP group
-    gpasswd -a "$u" docker >/dev/null 2>&1 || {
-      emit ERROR "could not add $u to the docker group"
       exit 1
     }
   fi

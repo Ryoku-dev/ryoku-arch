@@ -99,6 +99,14 @@
   config migrates (`ryogami/wall-ui/qml/Config.qml`).
 
 ### Fixed
+- **Turning on the Cobalt download engine no longer adds you to the `docker`
+  group.** Docker group membership is passwordless root for every process in
+  your session, so a GUI toggle should never grant it. The engine already does
+  all its container work as root through a tightly-scoped polkit helper, so the
+  membership was pure convenience and is gone: enabling Cobalt now grants your
+  session no docker access of its own. If you want plain `docker` on the command
+  line you can still add yourself by hand. Fresh installs were never in the
+  group; this only affects boxes that had switched Cobalt on.
 - **The bar AI usage pill works with OpenCode again, and refreshes faster.** The
   `opencode-usage` collector read a long-gone `opencode.db`; current OpenCode
   keeps per-message JSON under `storage/message/<session>/*.json`. It now walks

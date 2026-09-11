@@ -60,9 +60,10 @@ Singleton {
     // ── Cobalt first-run setup ──────────────────────────────────────────
     // The switch used to dead-end on "Install Docker to use cobalt", naming two
     // chores and doing neither. The wizard drives ryoku-docker instead: start
-    // the service, grant container access, pull the image, start cobalt, each
-    // step reporting for itself. No reboot step exists because the helper
-    // escalates through polkit and never reads this session's groups.
+    // the service, pull the image, start cobalt, each step reporting for itself.
+    // No reboot or "add yourself to a group" step exists: the helper escalates
+    // through polkit and does the docker work as root, so the user's session is
+    // never granted docker access of its own (that would be passwordless root).
     //
     // Every step is convergent, which is what makes a single Retry honest: it
     // re-runs the whole flow and the finished steps no-op.
@@ -80,7 +81,6 @@ Singleton {
         var defs = [
             { key: "runtime", label: I18n.tr("Container runtime installed") },
             { key: "service", label: I18n.tr("Start the container service") },
-            { key: "access",  label: I18n.tr("Grant your user container access") },
             { key: "image",   label: I18n.tr("Download the cobalt image") },
             { key: "start",   label: I18n.tr("Start cobalt") }
         ];
@@ -126,17 +126,11 @@ Singleton {
 
     function onProvisionLine(line) {
         var t = ("" + line).split("\t");
-        if (t[0] === "STEP") {
-            // The helper reports the host work it actually had to do; anything
-            // it skipped was already true.
-            if (t[1] === "group") {
-                setupMark("service", "done");
-                setupMark("access", "running");
-            }
-        } else if (t[0] === "OK") {
+        // The helper's STEP lines (service, socket) are progress detail under the
+        // single "Start the container service" step, which is already running;
+        // only OK and ERROR move the wizard on.
+        if (t[0] === "OK") {
             setupMark("service", "done");
-            setupMark("access", "done",
-                I18n.tr("Plain `docker` on the command line starts working at your next login"));
             setupMark("image", "running");
             root.setupOwnsEngine = true;
             root.setEngine(true);

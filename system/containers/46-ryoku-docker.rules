@@ -1,9 +1,10 @@
 // ryoku-docker provisions the container runtime behind the stash "Cobalt engine"
-// switch: it enables docker.service, ensures the docker group, and drives the
-// single ryoku-cobalt container. Authorized without a password so the setup
-// wizard is one click rather than a password prompt per step, and so the feature
-// works in the session the user is already in (adding a group does not affect a
-// live session, which is what would otherwise force a re-login).
+// switch: it enables docker.service and drives the single ryoku-cobalt container.
+// Authorized without a password so the setup wizard is one click rather than a
+// password prompt per step, and so the feature works in the session the user is
+// already in: every privileged action runs here as root through pkexec, so the
+// user's session is never added to the docker group (which would be passwordless
+// root for every process they run).
 //
 // Scoped to exactly /usr/bin/ryoku-docker for an active local user in the wheel
 // group. The passwordless grant stays safe because the helper exposes NO docker
