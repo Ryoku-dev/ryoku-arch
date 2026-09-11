@@ -93,14 +93,16 @@ func channelStatus() (statusReport, bool) {
 	if behind > 0 {
 		installed = gitShort(repo, base)
 	}
+	snaps, snapsKnown := snapshotCount()
 	return statusReport{
-		Installed: installed,
-		Latest:    latest,
-		Available: behind > 0,
-		Behind:    behind,
-		Updates:   gitLog(repo, base+".."+remote),
-		Channel:   ch,
-		Snapshots: snapshotCount(),
+		Installed:      installed,
+		Latest:         latest,
+		Available:      behind > 0,
+		Behind:         behind,
+		Updates:        gitLog(repo, base+".."+remote),
+		Channel:        ch,
+		Snapshots:      snaps,
+		SnapshotsKnown: snapsKnown,
 	}, true
 }
 

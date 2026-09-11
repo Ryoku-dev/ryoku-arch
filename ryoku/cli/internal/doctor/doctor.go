@@ -103,6 +103,7 @@ func reconcilers() []reconciler {
 		{i18n.T("interface language"), reconcileShellLanguage},
 		{i18n.T("swap kept out of snapshots"), reconcileSwapSubvolume},
 		{i18n.T("snapper configuration"), reconcileSnapper},
+		{i18n.T("snapshot read access"), reconcileSnapperAccess},
 		{i18n.T("snapshot cleanup"), reconcileSnapperCleanup},
 		{i18n.T("limine boot menu layout"), reconcileLimineLayout},
 		{i18n.T("limine boot entry"), reconcileLimineBootEntry},
@@ -610,6 +611,57 @@ func reconcileSnapper(checkOnly bool) recResult {
 			withFix(i18n.T("see https://wiki.archlinux.org/title/Snapper"))
 	}
 	return okRes(i18n.T("snapper root config is consistent"))
+}
+
+// reconcileSnapperAccess grants the primary user read access to the root
+// snapshots so `ryoku status` (and the Hub panel, the update island) can count
+// them without sudo -- snapper's own ALLOW_USERS + SYNC_ACL mechanism. Without
+// it the count came from a `sudo -n` that fails whenever no credential is cached,
+// and a failed read rendered as a bare "0", which reads as "no safety net" when
+// the safety net is fine. Idempotent and gated on whether an unprivileged read
+// already works, so it never has to read the 0640 config to know.
+func reconcileSnapperAccess(checkOnly bool) recResult {
+	if !sys.Has("snapper") || !sys.Exists("/etc/snapper/configs/root") {
+		return okRes(i18n.T("root snapshots not configured, no access to grant"))
+	}
+	user := doctorUser()
+	if user == "" || user == "root" {
+		return okRes(i18n.T("no primary user to grant snapshot access to"))
+	}
+	if snapperReadableUnprivileged() {
+		return okRes(i18n.T("snapshots are readable without sudo"))
+	}
+	if checkOnly {
+		return wouldRes(i18n.T("`ryoku status` cannot count snapshots without a cached sudo credential, so it can read as \"0\" on a machine that has them")).
+			withFix(i18n.T("grant %s read access (snapper ALLOW_USERS + SYNC_ACL)"), user)
+	}
+	if err := sys.Run("sudo", "snapper", "-c", "root", "set-config",
+		"ALLOW_USERS="+user, "SYNC_ACL=yes"); err != nil {
+		return failRes(i18n.T("granting %s snapshot read access: %v"), user, err).
+			withFix(i18n.T("sudo snapper -c root set-config ALLOW_USERS=%s SYNC_ACL=yes"), user)
+	}
+	if !snapperReadableUnprivileged() {
+		return warnRes(i18n.T("granted %s snapshot access, but an unprivileged read still fails; the ACL sync may land on the next snapshot"), user)
+	}
+	return fixedRes(i18n.T("granted %s read access to snapshots (ALLOW_USERS, SYNC_ACL); `ryoku status` counts them without sudo now"), user)
+}
+
+// snapperReadableUnprivileged reports whether the current user can list the root
+// snapshots without escalating -- i.e. the ALLOW_USERS + SYNC_ACL grant is in
+// effect. It runs snapper directly (no sudo), so it never prompts. A denied read
+// prints "No permissions." to stderr but still exits 0, so success is judged by
+// a real CSV listing on stdout (its header), not the exit code.
+func snapperReadableUnprivileged() bool {
+	out, err := sys.RunOut("snapper", "-c", "root", "--csvout", "list", "--columns", "number")
+	if err != nil {
+		return false
+	}
+	for _, line := range strings.Split(out, "\n") {
+		if s := strings.TrimSpace(line); s != "" {
+			return strings.HasPrefix(s, "number")
+		}
+	}
+	return false
 }
 
 // createSnapperRootConfig lays the installer's layout down on a live box.

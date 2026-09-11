@@ -889,17 +889,39 @@ func Snapshots() error {
 	return nil
 }
 
-// snapshotRows lists the snapshots through snapper (root), parsed. sudo is
-// primed on the terminal first (it may prompt), then the list is captured
-// without a tty so the parse gets clean CSV instead of a password prompt.
+// snapshotRows lists the root snapshots, parsed, without ever prompting. It runs
+// snapper unprivileged first -- which succeeds once the config grants the user
+// read access (ALLOW_USERS + SYNC_ACL, snapper's own mechanism, which `ryoku
+// doctor` sets up) -- then a cached-credential `sudo -n`, which never prompts,
+// so it needs no tty and cannot trip pam_faillock. Only a real CSV listing
+// counts as success: snapper prints "No permissions." to stderr and still exits
+// 0 on a denied read, so the exit code alone would read an empty stdout as an
+// empty store. The error is returned when neither attempt yields a listing, so a
+// caller can tell a failed read from a genuinely empty one instead of both
+// looking like zero.
 func snapshotRows() ([]snapshotRow, error) {
-	primeSudo()
-	out, err := sys.RunOut("sudo", "-n", "snapper", "-c", snapperConfig, "--csvout",
-		"list", "--columns", "number,type,date,description,cleanup")
-	if err != nil {
-		return nil, err
+	args := []string{"-c", snapperConfig, "--csvout", "list",
+		"--columns", "number,type,date,description,cleanup"}
+	if out, err := sys.RunOut("snapper", args...); err == nil && isSnapshotCSV(out) {
+		return parseSnapshotRows(out), nil
 	}
-	return parseSnapshotRows(out), nil
+	if out, err := sys.RunOut("sudo", append([]string{"-n", "snapper"}, args...)...); err == nil && isSnapshotCSV(out) {
+		return parseSnapshotRows(out), nil
+	}
+	return nil, fmt.Errorf(i18n.T("snapper root snapshots are not readable (grant access with `ryoku doctor` or prime sudo)"))
+}
+
+// isSnapshotCSV reports whether out is a real `snapper --csvout list` listing:
+// its first non-empty line is the column header. A denied read ("No
+// permissions." on stderr, empty stdout, exit 0) fails this, so it is never
+// mistaken for an empty store.
+func isSnapshotCSV(out string) bool {
+	for _, line := range strings.Split(out, "\n") {
+		if s := strings.TrimSpace(line); s != "" {
+			return strings.HasPrefix(s, "number,")
+		}
+	}
+	return false
 }
 
 // snapshotRow is one parsed line of `snapper --csvout list`.
@@ -1029,13 +1051,16 @@ func Status(args []string) error {
 	} else {
 		fmt.Println(i18n.T("system:        up to date"))
 	}
-	// a bare 0 can't tell "configured but empty" from "snapper has no root
-	// config at all". doctor restores a missing config, so send the user
-	// there rather than letting status look healthy on a broken setup.
-	if sys.Exists("/etc/snapper/configs/root") {
-		fmt.Printf(i18n.T("snapshots:     %d\n"), r.Snapshots)
-	} else {
+	// Three distinct states, never conflated: no root config at all (doctor
+	// restores it), a config we could not read (a bare "0" here used to look
+	// like a real empty store -- the opposite meaning), and the real count.
+	switch {
+	case !sys.Exists("/etc/snapper/configs/root"):
 		fmt.Println(i18n.T("snapshots:     not configured (run ryoku doctor)"))
+	case !r.SnapshotsKnown:
+		fmt.Println(i18n.T("snapshots:     unavailable (grant read access: run ryoku doctor)"))
+	default:
+		fmt.Printf(i18n.T("snapshots:     %d\n"), r.Snapshots)
 	}
 	return nil
 }
@@ -1053,6 +1078,10 @@ type statusReport struct {
 	Recent    []updateItem `json:"recent"`
 	Channel   string       `json:"channel"`
 	Snapshots int          `json:"snapshots"`
+	// SnapshotsKnown is false when the count could not be read (no snapper access,
+	// cold sudo) rather than genuinely zero, so a consumer never reads a failed
+	// query as "no safety net". A bare `snapshots: 0` used to conflate the two.
+	SnapshotsKnown bool `json:"snapshotsKnown"`
 	// Packages is the OTHER lane: what the distribution (Arch or CachyOS) has
 	// waiting, kernel included. `sudo pacman -Syu` takes those; `ryoku update`
 	// deliberately does not, so Available stays about the Ryoku lane alone and
@@ -1119,15 +1148,17 @@ func packagedStatus(installed, latest string) statusReport {
 	installedSha := shortCommit(installed)
 	latestSha := shortCommit(latest)
 
+	snaps, snapsKnown := snapshotCount()
 	r := statusReport{
-		Installed:   installedSha,
-		Latest:      latestSha,
-		Updates:     []updateItem{}, // non-nil, so a current box marshals [] like the git path
-		Recent:      []updateItem{}, // non-nil, so the JSON stays stable when nothing is fetched
-		Channel:     ryokuChannel(),
-		Snapshots:   snapshotCount(),
-		Release:     sys.ReadRelease().Release,
-		ReleaseName: ReleaseName(),
+		Installed:      installedSha,
+		Latest:         latestSha,
+		Updates:        []updateItem{}, // non-nil, so a current box marshals [] like the git path
+		Recent:         []updateItem{}, // non-nil, so the JSON stays stable when nothing is fetched
+		Channel:        ryokuChannel(),
+		Snapshots:      snaps,
+		SnapshotsKnown: snapsKnown,
+		Release:        sys.ReadRelease().Release,
+		ReleaseName:    ReleaseName(),
 	}
 	if ch := sys.PackagedChannel(); ch != "" {
 		serves := channelServes(ch)
@@ -1255,28 +1286,22 @@ func aurUpdates() []updateItem {
 	return ups
 }
 
-func snapshotCount() int {
+// snapshotCount returns how many snapshots the root store holds and whether it
+// could be read at all. A failed read -- no snapper access and no cached sudo --
+// returns (0, false), distinct from a genuinely empty store (0, true), so
+// `ryoku status` can say "unavailable" instead of a bare "0" that means the
+// opposite. snapshotRows never prompts, so this is safe from the GUI's
+// terminal-less poll (a prompt with no tty trips pam_faillock and can lock the
+// account out of sudo -- found the loud way).
+func snapshotCount() (int, bool) {
 	if !sys.Has("snapper") {
-		return 0
+		return 0, false
 	}
-	// `ryoku status` is polled from the GUI (Hub + pill) on a timer, no
-	// controlling terminal. snapper wants root; interactive sudo with no tty
-	// can't read a password, the PAM conversation fails, pam_faillock counts
-	// each failure, and the account ends up locked out of sudo even with the
-	// correct password. (yes, found this one the loud way.) so a read-only
-	// status query MUST never escalate: skip the count unless a real terminal
-	// drives us, and even then never prompt (sudo -n = already-cached cred only).
-	if !sys.StdinIsTTY() {
-		return 0
-	}
-	out, err := sys.RunOut("sudo", "-n", "snapper", "-c", snapperConfig, "list")
+	rows, err := snapshotRows()
 	if err != nil {
-		return 0
+		return 0, false
 	}
-	if n := sys.CountNonEmpty(out) - 2; n > 0 {
-		return n
-	}
-	return 0
+	return len(rows), true
 }
 
 func orDash(s string) string {

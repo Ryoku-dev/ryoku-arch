@@ -168,6 +168,18 @@
   (`internal/updater/materialize.go`).
 
 ### Fixed
+- **`ryoku status` no longer reports `snapshots: 0` on a machine that has them.**
+  The count came from a `sudo` call that fails whenever no credential is cached
+  (every GUI poll, and any cold terminal), and the empty result parsed as a real
+  `0` -- "no safety net" when the safety net was fine. The count now runs snapper
+  unprivileged first (working with no sudo at all once access is granted), falls
+  back to a cached-credential `sudo -n` that never prompts, and treats snapper's
+  exit-0 "No permissions." as the failure it is. A read it genuinely cannot make
+  now prints `snapshots: unavailable`, never a misleading `0`; `--json` carries a
+  `snapshotsKnown` flag so the Hub and the bar island can tell the two apart
+  (`internal/updater/update.go`). `ryoku doctor` grants the primary user snapper
+  read access (`ALLOW_USERS` + `SYNC_ACL`), so the count shows without any sudo
+  (`internal/doctor` snapshot read access reconciler).
 - **A symlinked config file (dotfiles) is no longer overwritten with Ryoku's
   default.** If you symlink a seeded file like `hypr/user.lua` or
   `hypr/keyboard.lua` from a dotfiles repo, `ryoku materialize` kept the link --

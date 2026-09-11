@@ -1,9 +1,63 @@
 package updater
 
 import (
+	"os"
+	"path/filepath"
 	"reflect"
+	"strconv"
 	"testing"
 )
+
+// snapshotCount must tell three states apart: a real count, a genuinely empty
+// store, and a read it could not perform at all. The last one used to render as
+// a bare "0" -- indistinguishable from an empty store, and the opposite meaning
+// (issue: "snapshots: 0 when snapshots exist"). It also tries snapper
+// unprivileged before a cached-credential sudo, so a machine that granted
+// ALLOW_USERS never needs sudo at all.
+func TestSnapshotCountDistinguishesUnavailableFromEmpty(t *testing.T) {
+	header := "number,type,date,description,cleanup\n"
+	base := "0,single,,current,\n" // dropped by parseSnapshotRows
+	two := "12,pre,2026-08-20 14:03:11,ryoku-update,number\n" +
+		"13,post,2026-08-20 14:05:22,ryoku-update,number\n"
+
+	cases := []struct {
+		name               string
+		snapOut, sudoOut   string
+		snapCode, sudoCode int
+		wantN              int
+		wantKnown          bool
+	}{
+		{"unprivileged read, two snapshots", header + base + two, "", 0, 1, 2, true},
+		{"unprivileged read, empty store", header + base, "", 0, 1, 0, true},
+		{"no access, cold sudo -> unavailable not zero", "", "", 1, 1, 0, false},
+		{"unprivileged denied, sudo cred cached", "", header + base + two, 1, 0, 2, true},
+		// snapper prints "No permissions." to stderr and STILL EXITS 0, so an empty
+		// stdout with a zero exit must not read as an empty store.
+		{"snapper denies but exits 0 -> unavailable not zero", "", "", 0, 1, 0, false},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			bin := t.TempDir()
+			writeExec(t, filepath.Join(bin, "snapper"),
+				"#!/bin/sh\nprintf '%s' '"+c.snapOut+"'\nexit "+strconv.Itoa(c.snapCode)+"\n")
+			writeExec(t, filepath.Join(bin, "sudo"),
+				"#!/bin/sh\nprintf '%s' '"+c.sudoOut+"'\nexit "+strconv.Itoa(c.sudoCode)+"\n")
+			t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+			n, known := snapshotCount()
+			if n != c.wantN || known != c.wantKnown {
+				t.Fatalf("snapshotCount() = (%d, %v), want (%d, %v)", n, known, c.wantN, c.wantKnown)
+			}
+		})
+	}
+}
+
+func writeExec(t *testing.T, path, body string) {
+	t.Helper()
+	if err := os.WriteFile(path, []byte(body), 0o755); err != nil {
+		t.Fatal(err)
+	}
+}
 
 func TestParseSnapshotRows(t *testing.T) {
 	out := "number,type,date,description,cleanup\n" +
