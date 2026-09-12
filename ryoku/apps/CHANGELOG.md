@@ -34,6 +34,12 @@
   v0.56.0-beta.19") via `ryoku version --pretty` (`config.jsonc`).
 
 ### Fixed
+- `fastfetch/`: **the greeting reports the real shell again.** The wrapper
+  bounded fastfetch with `timeout 8`, but fastfetch's shell module walks the
+  parent chain and skips known wrappers (`time`, `sudo`, ...) without knowing
+  `timeout`, so every greeting read "Shell: timeout". Each branch now `exec`s
+  fastfetch, which replaces the wrapper process and leaves the user's shell as
+  the direct parent.
 - `ryostore/`: **An installed theme now carries the store's preview image, so
   the Color-scheme picker shows it.** The install wrote `scheme.json` and
   `meta.json` and nothing else, while Ryogami's Themes tab looked for
