@@ -26,6 +26,14 @@
       "entrypoint": "variants/okshell/Main.qml",
       "preview": "variants/okshell/Preview.qml",
       "capabilities": []
+    },
+    {
+      "id": "kairos",
+      "name": "Kairos",
+      "description": "The island launcher: the Kairos bar island opens into the clock, a rolling date wheel, and the apps.",
+      "entrypoint": "variants/kairos/Main.qml",
+      "preview": "variants/kairos/Preview.qml",
+      "capabilities": []
     }
   ]
 }

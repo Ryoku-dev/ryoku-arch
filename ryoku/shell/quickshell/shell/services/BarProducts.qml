@@ -30,10 +30,11 @@ Singleton {
         }
     }
     function fail(id) {
-        // A builtin style (qsbar) ships with the shell and cannot be legitimately
-        // broken; a load error is a transient hiccup (an update's config/plugin
-        // swap, a cold-start import race), so never record it as failed - Frame
-        // retries it instead of permanently dropping the bar to the sumi rail.
+        // A builtin style (qsbar, kairos) ships with the shell and cannot be
+        // legitimately broken; a load error is a transient hiccup (an update's
+        // config/plugin swap, a cold-start import race), so never record it as
+        // failed - Frame retries it instead of permanently dropping the bar to
+        // the sumi rail.
         if (!id || root.builtins[id] || root.failedStyles[id])
             return;
         const next = Object.assign({}, root.failedStyles);
@@ -47,8 +48,12 @@ Singleton {
 
     // Built-in folder styles ship inside the shell and resolve relative to the
     // Frame Loader, so no store install is needed. "sumi" stays the painted
-    // frame scene (empty scene url); "qsbar" is the shipped QS Bar folder.
-    readonly property var builtins: ({ "qsbar": "barstyles/qsbar/Scene.qml" })
+    // frame scene (empty scene url); "qsbar" is the shipped QS Bar folder and
+    // "kairos" the shipped island clock.
+    readonly property var builtins: ({
+        "qsbar": "barstyles/qsbar/Scene.qml",
+        "kairos": "barstyles/kairos/Scene.qml"
+    })
 
     function sceneUrl(id) {
         if (!id || id === "sumi" || root.failedStyles[id])

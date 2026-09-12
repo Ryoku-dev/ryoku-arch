@@ -4,6 +4,47 @@
 
 ### Added
 
+- **Kairos, a third built-in bar style: one dynamic island carrying the clock.**
+  A single near-black pill floats at the top centre showing the time, and opens
+  on hover into that clock over a rolling date wheel: the centred day is the
+  selected one and the days either side turn away in perspective, scrollable by
+  drag, wheel and the arrow keys. Each morph is one animated progress value, the
+  clock's size steps to whole pixels (measured at a fixed size, so the resting
+  width can never fight the growth) and the wheel's visuals are interpolated from
+  each day's distance to the centre, so nothing switches at a threshold. The
+  island owns its surface (near-black over the wallpaper, with a cached drop
+  shadow) and reserves the resting band, so tiled windows clear it; the strip
+  around it stays click-through. Pick it with `ryoku-shell barstyle kairos` or
+  from Ryoku Settings' Bar Studio
+  (`modules/bar/barstyles/kairos`, `services/BarProducts.qml`).
+
+- **Kairos grows a music pill when a track plays.** A cover bubble appears just
+  left of the clock -- a track only ever brings up the bubble, never a panel of
+  its own. Hovering it peeks the island open far enough for the transport, and a
+  click opens the full now-playing panel, which closes again as soon as the
+  pointer leaves it -- no click needed. The panel's backdrop is the cover blurred
+  into an even ambient wash,
+  inset so the pill's near-black reads as a bezel around it, behind a low tint of
+  the shell's accent, so it recolours with the wallpaper palette (matugen) and
+  with a named scheme; over it sit the title, artist, album, player, a progress
+  bar with elapsed and total time, and prev/play/next wired to the player. The
+  clock stays the centre island: it rests on the screen's centre line and expands
+  there, symmetric, drawing over the music bubble, while the music grows leftward
+  from just beside it. Each island keeps its own hover target and hover-intent
+  timer, the shadows sit a little deeper under both, and each pill carries a
+  hairline rim so its rounded frame reads on a dark wallpaper where the
+  pure-black fill would otherwise vanish into the desktop
+  (`barstyles/kairos/components/{Island,MusicSurface}.qml`).
+
+- **Kairos also ships an app launcher, and Super+Space grows the island into it.**
+  The pill morphs from the RESTING island -- never from its hover size -- into the
+  clock, the app search and the app list, and its window is mapped at full size so
+  the surface never resizes mid-morph; the morph is armed only once that surface is
+  on screen, so the growth is always visible. While it is open the bar island rests
+  underneath it, and the input mask is the pill rather than the window, so the
+  desktop around the island stays usable. Select it as **Kairos** in Ryoku
+  Settings' App Launcher (`modules/launcher/variants/kairos`, `catalog.json`).
+
 - **Rashin works with any coding agent now, not just Hermes.** The Hub's Rashin
   page and the dashboard both list your detected agents with a one-click Wire
   (it drops a pointer, the ryoku skill, and prowl-agent's code-intelligence
