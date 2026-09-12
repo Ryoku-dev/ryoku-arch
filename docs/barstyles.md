@@ -1,12 +1,17 @@
 # Bar styles
 
-Ryoku ships two bar styles, and a single key decides which one runs. The default
-is **QS Bar** (`qsbar`), a full-colour top bar. The other is **Sumi**, the
-monochrome left rail. Sumi is not a folder: the shell paints it from the built-in
-frame scene in `shell.qml`, so it has no scene file of its own. QS Bar lives under
-`ryoku/shell/quickshell/shell/modules/bar/barstyles/qsbar/`, ships its own bar,
-popouts, control centre and settings, and loads once per monitor. Store-installed
-styles land under the same folder contract.
+Ryoku ships three bar styles, and a single key decides which one runs. The default
+is **QS Bar** (`qsbar`), a full-colour top bar. **Sumi** is the monochrome left
+rail, and **Kairos** is a single island at the top centre that carries the clock:
+hovering opens it into a rolling date wheel, a track that plays adds a cover
+bubble beside it that peeks open on hover and opens the now-playing panel on a
+click (moving the pointer off it closes it again), and Super+Space grows the same
+island into its own app launcher
+(`docs/launcher.md`). Sumi is not a folder: the shell paints it from the built-in
+frame scene in `shell.qml`, so it has no scene file of its own. QS Bar and Kairos
+live under `ryoku/shell/quickshell/shell/modules/bar/barstyles/`, ship their own
+bar, and load once per monitor. Store-installed styles land under the same folder
+contract.
 
 **QS Bar wears colour on purpose, and it is the one place the desktop does.** It
 is a Quickshell "Rise" bar ported onto Ryoku's data plane, and it keeps that
@@ -40,14 +45,17 @@ file. Built-in folder styles ship inside the shell, one row each:
 
 ```qml
 // BarProducts.qml
-readonly property var builtins: ({ "qsbar": "barstyles/qsbar/Scene.qml" })
+readonly property var builtins: ({
+    "qsbar": "barstyles/qsbar/Scene.qml",
+    "kairos": "barstyles/kairos/Scene.qml"
+})
 ```
 
 `BarProducts.sceneUrl(id)` is the one lookup the shell needs, and it returns:
 
 - `""` for `"sumi"`, an empty id, or a style that has failed to load. An empty
   scene is the built-in frame scene (Sumi), which `shell.qml` paints itself.
-- the built-in's relative `Scene.qml` for `"qsbar"`.
+- the built-in's relative `Scene.qml` for a built-in id (`"qsbar"`, `"kairos"`).
 - a `file://` path drawn from `~/.local/state/ryoku/store/barstyles.json` for a
   store-installed folder style. The store writes that index and a `revision.json`;
   `BarProducts` watches both and reloads live.

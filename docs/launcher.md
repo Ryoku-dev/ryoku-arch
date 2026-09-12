@@ -24,6 +24,11 @@ complete styles and saves the choice as `variant` in
   frost, result drawer, action shelf, and complete provider set.
 - **OkShell** is the lean applications-only list: search, hidden-app toggle, and
   sliding row selection.
+- **Kairos** is the island launcher, the one the Kairos bar style ships: the pill
+  grows out of that style's resting island at the top of the screen into the
+  clock, the app search and the app list. It masks input to the pill rather than
+  the window, so the desktop around it stays clickable; Escape (or Super+Space
+  again) closes it.
 
 The resident `shell.qml` selector loads the saved catalog entry without changing
 the stable `ryoku-shell launcher` command or socket. An unknown saved ID resolves
