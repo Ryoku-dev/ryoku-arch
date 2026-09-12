@@ -8,20 +8,17 @@
 # Every branch execs fastfetch instead of bounding it with `timeout`: the
 # shell module walks the parent chain and skips known wrappers (`time`,
 # `sudo`, ...) but not `timeout`, so `timeout 8 fastfetch` reported the
-# shell as "timeout" in every greeting.
+# shell as "timeout" in every greeting. A failed exec makes bash exit 127,
+# which no longer masks a missing fastfetch behind a false success.
 set -uo pipefail
 
 config="${XDG_CONFIG_HOME:-$HOME/.config}/fastfetch/config.jsonc"
 if [ ! -f "$config" ]; then
   exec fastfetch "$@"
-  exit 0
-fi
-
-if [ -n "${KITTY_WINDOW_ID:-}" ] || [ "${TERM:-}" = "xterm-kitty" ]; then
+elif [ -n "${KITTY_WINDOW_ID:-}" ] || [ "${TERM:-}" = "xterm-kitty" ]; then
   exec fastfetch --config "$config" --pipe false "$@"
 elif command -v chafa >/dev/null 2>&1; then
   exec fastfetch --config "$config" --logo-type chafa "$@"
 else
   exec fastfetch --config "$config" --logo-type none "$@"
 fi
-exit 0
