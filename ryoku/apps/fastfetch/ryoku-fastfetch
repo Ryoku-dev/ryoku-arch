@@ -5,21 +5,23 @@
 # logos and falls back to ASCII -- so in kitty we force `--pipe false` to keep
 # the image. Outside kitty: chafa if present, else fastfetch's default.
 #
-# Bounded with `timeout` so a slow probe can never freeze the shell greeting:
-# a stuck process makes /proc enumeration block, and WM/DE detection scans it.
+# Every branch execs fastfetch instead of bounding it with `timeout`: the
+# shell module walks the parent chain and skips known wrappers (`time`,
+# `sudo`, ...) but not `timeout`, so `timeout 8 fastfetch` reported the
+# shell as "timeout" in every greeting.
 set -uo pipefail
 
 config="${XDG_CONFIG_HOME:-$HOME/.config}/fastfetch/config.jsonc"
 if [ ! -f "$config" ]; then
-  timeout 8 fastfetch "$@"
+  exec fastfetch "$@"
   exit 0
 fi
 
 if [ -n "${KITTY_WINDOW_ID:-}" ] || [ "${TERM:-}" = "xterm-kitty" ]; then
-  timeout 8 fastfetch --config "$config" --pipe false "$@"
+  exec fastfetch --config "$config" --pipe false "$@"
 elif command -v chafa >/dev/null 2>&1; then
-  timeout 8 fastfetch --config "$config" --logo-type chafa "$@"
+  exec fastfetch --config "$config" --logo-type chafa "$@"
 else
-  timeout 8 fastfetch --config "$config" --logo-type none "$@"
+  exec fastfetch --config "$config" --logo-type none "$@"
 fi
 exit 0
