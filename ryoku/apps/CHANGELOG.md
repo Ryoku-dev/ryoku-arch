@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Added
+- `ryostore/`: **Kairos joins the built-in bar styles in the catalogue.** The
+  bar-style provider now lists the shell's island-clock style beside Sumi and QS
+  Bar, so Ryoku Settings' Bar Studio shows it as an installed, selectable card
+  and `ryostore install` / `remove` refuse it as built-in
+  (`backend/provider_bars.go`).
 - `ryostore/`: **a Remove button on every installed item.** RyoStore could only
   install; taking something back off meant leaving the app. The product dossier
   and the showroom hero now show a REMOVE action whenever an item is installed
