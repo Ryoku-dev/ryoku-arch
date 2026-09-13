@@ -4,6 +4,11 @@
 
 ### Added
 
+- **Palette Bridge settings now live in Win+W > Advanced > Matugen.** The
+  existing Matugen controls stay on their own page, while a second page handles
+  building the bridge, managing its service, checking its health, and setting up
+  or removing the Spotify, Vesktop, and Zen integrations.
+
 - **Kairos, a third built-in bar style: one dynamic island carrying the clock.**
   A single near-black pill floats at the top centre showing the time, and opens
   on hover into that clock over a rolling date wheel: the centred day is the
