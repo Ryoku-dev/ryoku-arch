@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+- Settings rejects null desktop save and preview requests before they can
+  replace saved preferences. Empty JSON stores containing `null` now recover
+  as an editable empty store instead of crashing the next edit.
+
 ### Added
 - **`CardColumns`: a page body of blocks, laid into balanced columns.** It takes
   the children a page already declares, measures them at the column width, and
