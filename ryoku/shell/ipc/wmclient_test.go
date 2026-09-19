@@ -67,3 +67,28 @@ func BenchmarkMonitorSpawnProxy(b *testing.B) {
 		_ = exec.Command("true").Run()
 	}
 }
+
+func TestUnchangedWorkspaceFrameDoesNotWakeWidgets(t *testing.T) {
+	d := &daemon{widgetSig: make(chan struct{}, 1)}
+	f := wm.Frame{Kind: wm.FrameWorkspaces, Workspaces: []wm.Workspace{{ID: "1", Windows: 2}}}
+
+	d.onWMFrame(f)
+	<-d.widgetSig
+
+	d.onWMFrame(f)
+	select {
+	case <-d.widgetSig:
+		t.Fatal("unchanged frame woke widget gate")
+	default:
+	}
+
+	d.onWMFrame(wm.Frame{
+		Kind:       wm.FrameWorkspaces,
+		Workspaces: []wm.Workspace{},
+	})
+	select {
+	case <-d.widgetSig:
+	default:
+		t.Fatal("empty workspace transition lost")
+	}
+}

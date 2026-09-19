@@ -1,8 +1,9 @@
 # Bar styles
 
-Ryoku ships three bar styles, and a single key decides which one runs. The default
+Ryoku ships four bar styles, and a single key decides which one runs. The default
 is **QS Bar** (`qsbar`), a full-colour top bar. **Sumi** is the monochrome left
-rail, and **Kairos** is a single island at the top centre that carries the clock:
+rail, **Chroma** is a modular Matugen signal bar, and **Kairos** is a single
+island at the top centre that carries the clock:
 hovering opens it into a rolling date wheel, a track that plays adds a cover
 bubble beside it that peeks open on hover and opens the now-playing panel on a
 click (moving the pointer off it closes it again), and Super+Space grows the same
@@ -47,6 +48,7 @@ file. Built-in folder styles ship inside the shell, one row each:
 // BarProducts.qml
 readonly property var builtins: ({
     "qsbar": "barstyles/qsbar/Scene.qml",
+    "chroma": "barstyles/chroma/Scene.qml",
     "kairos": "barstyles/kairos/Scene.qml"
 })
 ```
@@ -55,7 +57,7 @@ readonly property var builtins: ({
 
 - `""` for `"sumi"`, an empty id, or a style that has failed to load. An empty
   scene is the built-in frame scene (Sumi), which `shell.qml` paints itself.
-- the built-in's relative `Scene.qml` for a built-in id (`"qsbar"`, `"kairos"`).
+- the built-in's relative `Scene.qml` for a built-in id (`"qsbar"`, `"chroma"`, `"kairos"`).
 - a `file://` path drawn from `~/.local/state/ryoku/store/barstyles.json` for a
   store-installed folder style. The store writes that index and a `revision.json`;
   `BarProducts` watches both and reloads live.
@@ -88,6 +90,11 @@ Loader {
 the contract is: your `Scene.qml` loads once per screen, takes the screen through
 a `modelData` property, and if it errors on load `BarProducts.fail` drops the shell
 back to Sumi. Everything else is yours.
+
+Ryoku Settings > Displays can suppress the active bar on any output. Sumi releases
+its rail reserve there, normal folder styles are not instantiated there, and QS
+Bar filters that output from its shared multi-monitor bar model. A missing
+per-display setting means enabled, so upgrades preserve the existing layout.
 
 **To add a built-in style, drop its folder under `barstyles/` and add one row to
 `BarProducts.builtins`.** A store style needs no shell edit: it installs into
@@ -551,6 +558,15 @@ Where that key is edited is the style's call. The built-in Sumi bar is edited fr
 snapshots the keys and applies them live. A folder style usually ships its own
 settings surface instead, the way QS Bar carries **QS Bar Settings** (see below).
 A style with no settings omits all of this.
+
+## Chroma Settings
+
+Chroma keeps its configuration under the `chroma` object in `shell.json`.
+Bar Studio exposes a 60–140% size control and independent visibility switches
+for the launcher, workspaces, media, notifications, wallpaper, network, audio,
+battery, quick settings and clock modules. Geometry derives from one shared
+scale value, so reducing Chroma on a 1080p output preserves the composition
+instead of shrinking only selected widgets.
 
 ## QS Bar Settings
 

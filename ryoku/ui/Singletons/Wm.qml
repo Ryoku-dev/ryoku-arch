@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.WindowManager
 import Quickshell.Wayland
+import "../lib/wmstate.js" as WmState
 
 // Capability-shaped view of the window manager. Presentation lists come from the
 // Wayland protocols (ext-workspace-v1 windowsets, foreign-toplevel toplevels);
@@ -16,25 +17,37 @@ Singleton {
 
     readonly property string sockPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/ryoku-shell.sock"
 
-    // Last frame the daemon `wm` topic pushed.
-    property var _frame: ({})
-    readonly property bool ready: root._frame.ready === true
+    // Separate properties keep a window-only update from invalidating every model.
+    QtObject {
+        id: state
+        property bool ready: false
+        property var caps: ({})
+        property string workspaceModel: "fixed"
+        property string focusedOutput: ""
+        property var outputs: []
+        property var configFiles: []
+        property string keyboardLayout: ""
+        property var keyboardLayouts: []
+        property var windows: []
+        property var workspaces: []
+    }
+    readonly property bool ready: state.ready === true
 
     // Every capability key is always present as a boolean, so read Wm.caps.<name>
     // directly with no undefined guard.
-    readonly property var caps: root._frame.caps || ({})
-    readonly property string workspaceModel: root._frame.workspaceModel || "fixed"
+    readonly property var caps: state.caps || ({})
+    readonly property string workspaceModel: state.workspaceModel || "fixed"
 
-    readonly property string focusedOutput: root._frame.focusedOutput || ""
-    readonly property var outputs: root._frame.outputs || []
-    readonly property var configFiles: root._frame.configFiles || []
+    readonly property string focusedOutput: state.focusedOutput || ""
+    readonly property var outputs: state.outputs || []
+    readonly property var configFiles: state.configFiles || []
 
     // Active xkb layout name (human string) and the configured layout list.
-    readonly property string keyboardLayout: root._frame.keyboardLayout || ""
-    readonly property var keyboardLayouts: root._frame.keyboardLayouts || []
+    readonly property string keyboardLayout: state.keyboardLayout || ""
+    readonly property var keyboardLayouts: state.keyboardLayouts || []
 
-    readonly property var _winResidue: root._frame.windows || []
-    readonly property var _wsResidue: root._frame.workspaces || []
+    readonly property var _winResidue: state.windows || []
+    readonly property var _wsResidue: state.workspaces || []
 
     // Bound at declaration so the Wayland registry binds early; the lists fill in
     // asynchronously after connect.
@@ -225,7 +238,7 @@ Singleton {
         try {
             const frame = JSON.parse(line);
             if (frame && typeof frame === "object" && !Array.isArray(frame))
-                root._frame = frame;
+                WmState.applyFrame(state, frame);
         } catch (e) {
         }
     }
