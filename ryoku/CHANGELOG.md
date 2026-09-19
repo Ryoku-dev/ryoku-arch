@@ -17,6 +17,11 @@
   trace of its contents reads as an empty one.
 
 ### Fixed
+- **Hyprland window focus no longer hitches the desktop.** Moving the pointer
+  between windows no longer routes a focus-only event through a broad compositor
+  resync. Known `activewindowv2` focus changes update cached window history
+  directly, unchanged daemon frames are suppressed, and unrelated QML window
+  manager state keeps its identity.
 - **A Hub page holds still.** Section switches used to flicker: the incoming page
   was centred from its measured height and had its rows inflated by a timer that
   fired for up to three seconds after it appeared, so cards hopped while the reader

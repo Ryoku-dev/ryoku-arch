@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"reflect"
 	"time"
 
 	wm "ryoku-wm"
@@ -41,19 +42,29 @@ func (d *daemon) activeMonitor() string {
 // A FrameFocus with an empty output clears the cached focus.
 func (d *daemon) onWMFrame(f wm.Frame) {
 	d.wmMu.Lock()
+	changed := false
 	switch f.Kind {
 	case wm.FrameFocus:
+		changed = !reflect.DeepEqual(d.activeMon, f.FocusedOutput)
 		d.activeMon = f.FocusedOutput
 	case wm.FrameOutputs:
+		changed = !reflect.DeepEqual(d.wmOutputs, f.Outputs)
 		d.wmOutputs = f.Outputs
 	case wm.FrameWorkspaces:
+		changed = !reflect.DeepEqual(d.wmWorkspaces, f.Workspaces)
 		d.wmWorkspaces = f.Workspaces
 	case wm.FrameWindows:
+		changed = !reflect.DeepEqual(d.wmWindows, f.Windows)
 		d.wmWindows = f.Windows
 	case wm.FrameReady:
+		changed = !d.wmReady
 		d.wmReady = true
 	}
 	d.wmMu.Unlock()
+
+	if !changed {
+		return
+	}
 
 	switch f.Kind {
 	case wm.FrameFocus, wm.FrameOutputs, wm.FrameWorkspaces:
